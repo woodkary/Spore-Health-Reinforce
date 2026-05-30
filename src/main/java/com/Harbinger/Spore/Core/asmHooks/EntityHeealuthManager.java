@@ -1,8 +1,10 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.network.HealthDeltaPacket;
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,10 +12,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 public final class EntityHeealuthManager implements IEntityHealth {
+    private static final String SPORE_DEAD_FLAG = "SporeDeeaadfd";
+    private static final String LEGACY_SPORE_DEAD_FLAG = "sporeDeeaadfd";
     public static final IEntityHealth INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
             IEntityHealth.class,
             EntityHeealuthManager.class
@@ -23,6 +28,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
     private final Map<Entity,Boolean> serverNoRecurs=new WeakHashMap<>();
     @OnlyIn(Dist.CLIENT)
     private final Map<Entity,Boolean> clientNoRecurs=new WeakHashMap<>();
+    @Override
+    public SynchedEntityData getEmptyEntityData(Entity entity) {
+        return new SynchedEntityData(entity);
+    }
     private boolean isTrueDeeauthCalled(Entity entity) {
         return entity.level.isClientSide?
                 clientNoRecurs.getOrDefault(entity,false):
@@ -91,7 +100,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(entity instanceof Player){
             return Math.max(initialHealth,20.0f);
         }
-        if(entity.getPersistentData().contains("sporeDeeaadfd")){
+        if(hasSporeDeadFlag(entity)){
             return 0.0f;
         }
         return initialHealth;
@@ -109,7 +118,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(entity instanceof Player){
             return Math.max(initialHealth,20.0);
         }
-        if(entity.getPersistentData().contains("sporeDeeaadfd")){
+        if(hasSporeDeadFlag(entity)){
             return 0.0;
         }
         return initialHealth;
@@ -136,7 +145,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return false;
     }
     public boolean trueDeeauth(Entity entity) {
-        return entity.getPersistentData().contains("sporeDeeaadfd")||
+        return hasSporeDeadFlag(entity)||
                 entity instanceof LivingEntity liv &&
                         getHeealtthDelta(liv) <= -liv.getMaxHealth();
     }
@@ -162,13 +171,17 @@ public final class EntityHeealuthManager implements IEntityHealth {
     public boolean isDeeadfOrDyaging(boolean initialValue,LivingEntity entity){
         return isDeeadfOrDyaging(entity,initialValue);
     }
-    private boolean isPhayriosisEntity(Entity entity) {
+    private boolean isSporeEntity(Entity entity) {
         if(entity == null) return false;
-        return isPhayriosisClass(entity.getClass());
+        return isSporeClass(entity.getClass());
     }
-    private boolean isPhayriosisClass(Class<?> clazz) {
+    private boolean isSporeClass(Class<?> clazz) {
         Package pkg = clazz.getPackage();
-        return pkg != null && pkg.getName().contains("phayriosis");
+        return pkg != null && pkg.getName().toLowerCase(Locale.ROOT).contains("spore");
+    }
+    private boolean hasSporeDeadFlag(Entity entity) {
+        return entity.getPersistentData().contains(SPORE_DEAD_FLAG)
+                || entity.getPersistentData().contains(LEGACY_SPORE_DEAD_FLAG);
     }
     public boolean isDeeadfOrDyaging(LivingEntity entity,boolean initialValue){
         boolean deadFlag=trueDeeauth(entity);
@@ -209,7 +222,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
                 delta = Float.NEGATIVE_INFINITY;
                 heaalthDeltaMap.put(entity, delta);
                 HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id, delta));
-                entity.getPersistentData().putBoolean("sporeDeeaadfd", true);
+                entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
             return Math.min(initialHealth, maxHealth + delta);
         }finally {
@@ -250,7 +263,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
                 delta = Float.NEGATIVE_INFINITY;
                 heaalthDeltaMap.put(entity, delta);
                 HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id, delta));
-                entity.getPersistentData().putBoolean("sporeDeeaadfd", true);
+                entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
             return Math.min(initialHealth, maxHealth + delta);
         }finally {
@@ -288,7 +301,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }
         setHeealtthDelta(entity, Float.NEGATIVE_INFINITY);
         LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
-        entity.getPersistentData().putBoolean("phayriosisDeeaadfd", true);
+        entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
     }
     public void heal(LivingEntity entity,float heal){
         Float delta = heaalthDeltaMap.get(entity);

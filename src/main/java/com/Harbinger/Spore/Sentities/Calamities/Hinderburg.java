@@ -313,7 +313,7 @@ public class Hinderburg extends Calamity implements FlyingInfected, TrueCalamity
       return (SoundEvent)Ssounds.HINDEN_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

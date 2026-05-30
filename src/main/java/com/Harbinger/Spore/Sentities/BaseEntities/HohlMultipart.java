@@ -65,7 +65,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       this.setMaxUpStep(1.5F);
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.CALAMITY_DAMAGE.get();
    }
 

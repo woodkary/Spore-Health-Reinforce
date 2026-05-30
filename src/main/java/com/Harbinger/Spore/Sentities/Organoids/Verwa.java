@@ -187,7 +187,7 @@ public class Verwa extends Organoid {
       return (SoundEvent)Ssounds.WOMB_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

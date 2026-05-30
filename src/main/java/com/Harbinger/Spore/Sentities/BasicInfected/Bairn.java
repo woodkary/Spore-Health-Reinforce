@@ -181,11 +181,11 @@ public class Bairn extends Infected implements VariantKeeper {
       return (SoundEvent)Ssounds.BAIRN.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

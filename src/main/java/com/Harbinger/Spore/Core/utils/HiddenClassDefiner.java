@@ -318,7 +318,7 @@ public class HiddenClassDefiner {
             return;
         }catch (Throwable e){}
         try{
-            Class.forName("org.kary.phayriosisrebornmore.transformation.HiddenClassDefiner");
+            Class.forName("com.Harbinger.Spore.Core.utils.HiddenClassDefiner");
         }catch (Throwable e){}
     }
 }

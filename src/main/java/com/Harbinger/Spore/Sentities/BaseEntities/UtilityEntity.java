@@ -105,7 +105,7 @@ public class UtilityEntity extends PathfinderMob {
       });
    }
 
-   protected void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
+   public void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
       super.dropCustomDeathLoot(source, val, bool);
       if (this.getDropList() != null) {
          if (!this.getDropList().isEmpty()) {

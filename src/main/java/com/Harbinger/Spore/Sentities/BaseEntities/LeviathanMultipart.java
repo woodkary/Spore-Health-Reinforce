@@ -69,7 +69,7 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       return ColdEndurance.CALAMITY;
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.CALAMITY_DAMAGE.get();
    }
 

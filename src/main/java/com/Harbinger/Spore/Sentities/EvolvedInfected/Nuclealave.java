@@ -198,7 +198,7 @@ public class Nuclealave extends EvolvedInfected implements RangedAttackMob, Arme
       return (SoundEvent)Ssounds.ADVENTURER_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

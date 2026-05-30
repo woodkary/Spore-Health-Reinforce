@@ -78,7 +78,7 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness {
 
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.ORGANOID_DAMAGE.get();
    }
 

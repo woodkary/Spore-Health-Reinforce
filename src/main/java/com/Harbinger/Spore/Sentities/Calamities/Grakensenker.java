@@ -449,7 +449,7 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
       }
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

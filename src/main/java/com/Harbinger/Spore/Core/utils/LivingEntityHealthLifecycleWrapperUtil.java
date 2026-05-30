@@ -1,5 +1,9 @@
 package com.Harbinger.Spore.Core.utils;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.entities.SporeDeadLocalPlayer;
+import com.Harbinger.Spore.Core.entities.SporeDeadServerPlayer;
+import com.Harbinger.Spore.Core.utils.inventory.SporeEmptyInventory;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,6 +36,25 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/EntityHeealuthManager";
     private static final String IENTITY_HEALTH_INTERNAL = "com/Harbinger/Spore/Core/asmHooks/IEntityHealth";
     private static final String RESPAWN_DESC = "()V";
+    private static final String RESPAWN_NAME = "respawn";
+    private static final String RESPAWN_OBF_NAME = "m_7583_";
+    private static final String TICK_NAME = "tick";
+    private static final String TICK_OBF_NAME = "m_8119_";
+    private static final String DO_TICK_NAME = "doTick";
+    private static final String DO_TICK_OBF_NAME = "m_9240_";
+    private static final String AI_STEP_NAME = "aiStep";
+    private static final String AI_STEP_OBF_NAME = "m_8107_";
+    private static final String SERVER_AI_STEP_NAME = "serverAiStep";
+    private static final String SERVER_AI_STEP_OBF_NAME = "m_6140_";
+    private static final String RIDE_TICK_NAME = "rideTick";
+    private static final String RIDE_TICK_OBF_NAME = "m_6083_";
+    private static final String BASE_TICK_NAME = "baseTick";
+    private static final String BASE_TICK_OBF_NAME = "m_6075_";
+    private static final String GET_INVENTORY_NAME = "getInventory";
+    private static final String GET_INVENTORY_OBF_NAME = "m_150109_";
+    private static final String PLAYER_INVENTORY_DESC = "()Lnet/minecraft/world/entity/player/Inventory;";
+    private static final String EMPTY_INVENTORY_OWNER = "com/Harbinger/Spore/Core/utils/inventory/SporeEmptyInventory";
+    private static final String EMPTY_INVENTORY_FACTORY_DESC = "(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/entity/player/Inventory;";
     private static final String HIDDEN_NAME_SEGMENT = "/0x";
     public static final ILivingEntityLifeCycle INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ILivingEntityLifeCycle.class, LivingEntityHealthLifecycleWrapperUtil.class);
     private final Function<Class<?>, Class<?>> BUILD_WARPPER_FUNC=new BuildWrapperClassFunction();
@@ -60,6 +83,27 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         if (wrapper != null) {
             KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
+    }
+    @Override
+    public void slayPlayer(Player player){
+        EntityHeealuthManager.INSTANCE.setHeealtthDelta(player, Float.NEGATIVE_INFINITY);
+        player.getPersistentData().putBoolean("SporeDeeaadfd", true);
+        KlassPointerUtil.INSTANCE.replaceClass(player.getInventory(), SporeEmptyInventory.inventoryClass, "", 0, 0.0f);
+        Class<?> wrapper = getDeadPlayerWrapper(createDeathWrapperForPlayer(player.getClass()), player);
+        if(wrapper!=null){
+            KlassPointerUtil.INSTANCE.replaceClass(player, wrapper, "", 0, 0.0f);
+        }
+    }
+    private Class<?> getDeadPlayerWrapper(Class<?> wrapper,Player player){
+        if(wrapper!=null){
+            return wrapper;
+        }
+        if(player instanceof ServerPlayer){
+            return SporeDeadServerPlayer.serverPlayerClass;
+        }else if(player instanceof LocalPlayer){
+            return SporeDeadLocalPlayer.localPlayerClass;
+        }
+        return null;
     }
 
     private Class<?> createWrapper(Class<?> callback) {
@@ -167,6 +211,9 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             }
 
             emitDeathStateMethods(node, callback);
+            if(Player.class.isAssignableFrom(callback)){
+                emitPlayerRespawnNoopMethods(node, callback);
+            }
             node.visitEnd();
 
             return ClassLoaderUtil.INSTANCE.deffineneHiddenClazz(node,callback);
@@ -378,6 +425,18 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         }
     }
 
+    private void emitPlayerRespawnNoopMethods(ClassNode node, Class<?> callback) {
+        Set<String> emitted = new HashSet<>();
+        emitPlayerNoopMethodPair(node, callback, emitted, RESPAWN_NAME, RESPAWN_OBF_NAME);
+        emitPlayerNoopMethodPair(node, callback, emitted, TICK_NAME, TICK_OBF_NAME);
+        emitPlayerNoopMethodPair(node, callback, emitted, DO_TICK_NAME, DO_TICK_OBF_NAME);
+        emitPlayerNoopMethodPair(node, callback, emitted, AI_STEP_NAME, AI_STEP_OBF_NAME);
+        emitPlayerNoopMethodPair(node, callback, emitted, SERVER_AI_STEP_NAME, SERVER_AI_STEP_OBF_NAME);
+        emitPlayerNoopMethodPair(node, callback, emitted, RIDE_TICK_NAME, RIDE_TICK_OBF_NAME);
+        emitPlayerNoopMethodPair(node, callback, emitted, BASE_TICK_NAME, BASE_TICK_OBF_NAME);
+        emitPlayerInventoryMethodPair(node, callback, emitted, GET_INVENTORY_NAME, GET_INVENTORY_OBF_NAME);
+    }
+
     private void emitPlayerNoopMethodPair(ClassNode node, Class<?> callback, Set<String> emitted, String readableName, String obfName) {
         boolean overridden = false;
         overridden |= emitNoopOverrideIfFound(node, callback, emitted, readableName);
@@ -458,6 +517,82 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             }
         }
         return true;
+    }
+
+    private void emitPlayerInventoryMethodPair(ClassNode node, Class<?> callback, Set<String> emitted, String readableName, String obfName) {
+        boolean overridden = false;
+        overridden |= emitInventoryOverrideIfFound(node, callback, emitted, readableName);
+        if (!Objects.equals(obfName, readableName)) {
+            overridden |= emitInventoryOverrideIfFound(node, callback, emitted, obfName);
+        }
+        if (overridden) {
+            return;
+        }
+
+        addInventoryMethodIfSafe(node, callback, emitted, readableName);
+        if (!Objects.equals(obfName, readableName)) {
+            addInventoryMethodIfSafe(node, callback, emitted, obfName);
+        }
+    }
+
+    private boolean emitInventoryOverrideIfFound(ClassNode node, Class<?> callback, Set<String> emitted, String targetName) {
+        for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
+            for (Method method : cursor.getDeclaredMethods()) {
+                int mod = method.getModifiers();
+                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
+                    continue;
+                }
+                if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
+                    continue;
+                }
+                if (method.isBridge() || method.isSynthetic()) {
+                    continue;
+                }
+                if (!targetName.equals(method.getName())) {
+                    continue;
+                }
+                String desc = Type.getMethodDescriptor(method);
+                if (!PLAYER_INVENTORY_DESC.equals(desc)) {
+                    continue;
+                }
+                String sig = method.getName() + desc;
+                if (!emitted.add(sig)) {
+                    return true;
+                }
+                int access = Modifier.isPublic(mod) ? Opcodes.ACC_PUBLIC : Opcodes.ACC_PROTECTED;
+                emitPlayerInventoryMethod(node, access, method.getName());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addInventoryMethodIfSafe(ClassNode node, Class<?> callback, Set<String> emitted, String methodName) {
+        String sig = methodName + PLAYER_INVENTORY_DESC;
+        if (!emitted.add(sig)) {
+            return;
+        }
+        if (!canDeclarePlayerNoopMethod(callback, methodName, PLAYER_INVENTORY_DESC)) {
+            emitted.remove(sig);
+            return;
+        }
+        emitPlayerInventoryMethod(node, Opcodes.ACC_PUBLIC, methodName);
+    }
+
+    private void emitPlayerInventoryMethod(ClassNode node, int access, String methodName) {
+        MethodVisitor mv = node.visitMethod(access, methodName, PLAYER_INVENTORY_DESC, null, null);
+        mv.visitCode();
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                EMPTY_INVENTORY_OWNER,
+                "newInstance",
+                EMPTY_INVENTORY_FACTORY_DESC,
+                false
+        );
+        mv.visitInsn(Opcodes.ARETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
     }
 
     private void emitNoopVoidMethod(ClassNode node, int access, String methodName, String desc) {

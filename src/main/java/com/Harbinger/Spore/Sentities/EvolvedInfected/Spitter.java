@@ -188,7 +188,7 @@ public class Spitter extends EvolvedInfected implements RangedAttackMob, Variant
       return (SoundEvent)Ssounds.INF_VILLAGER_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

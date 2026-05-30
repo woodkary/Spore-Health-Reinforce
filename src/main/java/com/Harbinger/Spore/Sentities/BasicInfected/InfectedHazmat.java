@@ -66,11 +66,11 @@ public class InfectedHazmat extends Infected implements VariantKeeper, EvolvingI
       return (SoundEvent)Ssounds.SCIENTIST_AMBIENT.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

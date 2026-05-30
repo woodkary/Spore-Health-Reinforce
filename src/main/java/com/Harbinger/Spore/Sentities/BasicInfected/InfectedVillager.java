@@ -108,11 +108,11 @@ public class InfectedVillager extends Infected implements EvolvingInfected, Vari
       return (SoundEvent)Ssounds.INF_VILLAGER_AMBIENT.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

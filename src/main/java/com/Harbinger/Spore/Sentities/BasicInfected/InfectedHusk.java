@@ -81,11 +81,11 @@ public class InfectedHusk extends Infected implements EvolvingInfected {
       return (SoundEvent)Ssounds.HUSK_AMBIENT.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

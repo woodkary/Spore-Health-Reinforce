@@ -102,7 +102,7 @@ public class Womb extends Organoid implements MenuProvider {
       return (SoundEvent)Ssounds.WOMB_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

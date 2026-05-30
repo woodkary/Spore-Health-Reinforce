@@ -352,7 +352,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected, RangedAttac
       return super.doHurtTarget(entity);
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

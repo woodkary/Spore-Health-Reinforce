@@ -110,11 +110,11 @@ public class InfectedEvoker extends EvolvedInfected implements EvolvingInfected 
       return (SoundEvent)Ssounds.INF_EVOKER_GROWL.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.INF_EVOKER_DAMAGE.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_EVOKER_DEATH.get();
    }
 

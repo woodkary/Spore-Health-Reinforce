@@ -86,7 +86,7 @@ public class Howler extends EvolvedInfected implements VariantKeeper, ArmorPerse
       return (SoundEvent)Ssounds.INF_PILLAGER_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

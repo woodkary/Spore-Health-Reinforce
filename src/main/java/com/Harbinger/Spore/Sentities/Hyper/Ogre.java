@@ -243,11 +243,11 @@ public class Ogre extends Hyper implements RangedAttackMob, ArmorPersentageBypas
       return (SoundEvent)Ssounds.OGRE_AMBIENT.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.INF_VILLAGER_DAMAGE.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

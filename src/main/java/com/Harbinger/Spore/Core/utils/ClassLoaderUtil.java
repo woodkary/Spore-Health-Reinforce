@@ -38,7 +38,7 @@ public class ClassLoaderUtil extends ClassLoader implements IClassLoader {
 
     @Override
     public Class<?> getOriginalClass(Class<?> clazz){
-        if(!clazz.getName().contains("PhayriosisAllReturnWrapper")){
+        if(!clazz.getName().contains("SporeAllReturnWrapper")){
             return clazz;
         }
         return (clazz.isHidden()?hiddenWrapperToOriginal:wrapperToOriginal).getOrDefault(clazz,clazz);
@@ -102,7 +102,7 @@ public class ClassLoaderUtil extends ClassLoader implements IClassLoader {
             if (Modifier.isFinal(callback.getModifiers())) {
                 return null;
             }
-            if (callback.getName().contains("PhayriosisAllReturnWrapper")) {
+            if (callback.getName().contains("SporeAllReturnWrapper")) {
                 return callback;
             }
             Class<?> cached = hiddenClassCache.get(callback);

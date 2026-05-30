@@ -97,7 +97,7 @@ public class Inquisitor extends Hyper {
       return (SoundEvent)Ssounds.INQUISITOR_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

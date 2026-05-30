@@ -528,7 +528,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       entity.level().addFreshEntity(mound);
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.CALAMITY_DAMAGE.get();
    }
 
@@ -598,7 +598,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       return false;
    }
 
-   protected void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
+   public void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
       if (!this.level().isClientSide()) {
          List<ItemStack> loot = this.getDroppedItems(val);
          List<HitboxesForParts> partList = this.parts();

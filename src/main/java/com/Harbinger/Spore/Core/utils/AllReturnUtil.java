@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class AllReturnUtil implements IAllReturn {
     public static final IAllReturn INSTANCE = BytecodeUtil.createHiddenSingletonInstance(IAllReturn.class, AllReturnUtil.class);
-    private static final String WRAPPER_SUFFIX = "PhayriosisAllReturnWrapper";
+    private static final String WRAPPER_SUFFIX = "SporeAllReturnWrapper";
     private static final String HIDDEN_NAME_SEGMENT = "/0x";
 
     public AllReturnUtil() {
@@ -70,7 +70,7 @@ public class AllReturnUtil implements IAllReturn {
         String pkg = lastDot >= 0 ? stableBinaryName.substring(0, lastDot) : "";
         String simple = lastDot >= 0 ? stableBinaryName.substring(lastDot + 1) : stableBinaryName;
         if (simple.isEmpty()) {
-            simple = "PhayriosisDynamicHost";
+            simple = "SporeDynamicHost";
         }
         if (pkg.isEmpty()) {
             return simple + WRAPPER_SUFFIX;
@@ -121,19 +121,12 @@ public class AllReturnUtil implements IAllReturn {
         }
         if (isObfGetBlockPosMethod(name, desc)) {
             // BlockEntity#getBlockPos 特化：返回统一无效坐标，阻断后续位置访问链
-            mv.visitFieldInsn(
-                    Opcodes.GETSTATIC,
-                    "org/kary/phayriosisrebornmore/util/removal/BlockEntityRemovalUtil",
-                    "INSTANCE",
-                    "Lorg/kary/phayriosisrebornmore/util/removal/IBlockEntityRemoval;"
-            );
-            mv.visitMethodInsn(
-                    Opcodes.INVOKEINTERFACE,
-                    "org/kary/phayriosisrebornmore/util/removal/IBlockEntityRemoval",
-                    "getInfBlockPos",
-                    "()Lnet/minecraft/core/BlockPos;",
-                    true
-            );
+            mv.visitTypeInsn(Opcodes.NEW, "net/minecraft/core/BlockPos");
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitInsn(Opcodes.ICONST_0);
+            mv.visitIntInsn(Opcodes.SIPUSH, -2048);
+            mv.visitInsn(Opcodes.ICONST_0);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "net/minecraft/core/BlockPos", "<init>", "(III)V", false);
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();
@@ -164,14 +157,14 @@ public class AllReturnUtil implements IAllReturn {
             // Entity#getEntityData(m_20088_) 特化：返回全局维护的空实体数据
             mv.visitFieldInsn(
                     Opcodes.GETSTATIC,
-                    "org/kary/phayriosisrebornmore/agent/healthManager/EntityHeealltuth",
+                    "com/Harbinger/Spore/Core/asmHooks/EntityHeealuthManager",
                     "INSTANCE",
-                    "Lorg/kary/phayriosisrebornmore/agent/healthManager/IEntityHealth;"
+                    "Lcom/Harbinger/Spore/Core/asmHooks/IEntityHealth;"
             );
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitMethodInsn(
                     Opcodes.INVOKEINTERFACE,
-                    "org/kary/phayriosisrebornmore/agent/healthManager/IEntityHealth",
+                    "com/Harbinger/Spore/Core/asmHooks/IEntityHealth",
                     "getEmptyEntityData",
                     "(Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/network/syncher/SynchedEntityData;",
                     true

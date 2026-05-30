@@ -64,11 +64,11 @@ public class InfectedWanderingTrader extends Infected implements EvolvingInfecte
       return (SoundEvent)Ssounds.TRADER_AMBIENT.get();
    }
 
-   protected SoundEvent getHurtSound() {
+   public SoundEvent getHurtSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

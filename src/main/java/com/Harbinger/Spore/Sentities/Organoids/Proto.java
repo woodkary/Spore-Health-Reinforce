@@ -627,7 +627,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       return (SoundEvent)Ssounds.PROTO_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

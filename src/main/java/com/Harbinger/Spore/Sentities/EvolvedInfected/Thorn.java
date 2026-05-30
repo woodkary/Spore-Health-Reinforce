@@ -107,7 +107,7 @@ public class Thorn extends EvolvedInfected implements VariantKeeper {
       return (SoundEvent)Ssounds.HUSK_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

@@ -235,7 +235,7 @@ public class Hvindicator extends Hyper implements RangedAttackMob {
       return (SoundEvent)Ssounds.HINDICATOR_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

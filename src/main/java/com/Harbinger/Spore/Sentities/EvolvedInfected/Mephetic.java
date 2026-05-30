@@ -223,7 +223,7 @@ public class Mephetic extends EvolvedInfected implements RangedAttackMob {
       return (SoundEvent)Ssounds.WITCH_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

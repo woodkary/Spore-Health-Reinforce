@@ -44,7 +44,7 @@ public class EvolvedInfected extends Infected {
       return false;
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.EVOLVE_HURT.get();
    }
 

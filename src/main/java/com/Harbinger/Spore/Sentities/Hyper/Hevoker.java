@@ -388,7 +388,7 @@ public class Hevoker extends Hyper {
       return this.isFakeDead() ? null : (SoundEvent)Ssounds.HEVOKER_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

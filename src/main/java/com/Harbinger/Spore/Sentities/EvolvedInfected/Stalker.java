@@ -74,7 +74,7 @@ public class Stalker extends EvolvedInfected implements EvolvingInfected {
       return (SoundEvent)Ssounds.INF_PILLAGER_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_VILLAGER_DEATH.get();
    }
 

@@ -298,11 +298,11 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
       return this.isInvisible() ? null : (SoundEvent)Ssounds.SPECTER_AMBIENT.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.EVOLVE_HURT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

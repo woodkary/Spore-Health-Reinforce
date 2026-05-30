@@ -85,7 +85,7 @@ public class Hyper extends Infected {
       return !(entity instanceof Infected) && !(entity instanceof UtilityEntity) ? false : super.canRide(entity);
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.HYPER_DAMAGE.get();
    }
 

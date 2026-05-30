@@ -6,6 +6,7 @@ public interface ILivingEntityLifeCycle {
     Class<?> getOrginalClass(Class<?> wrapperValue);
     void createWrapppper(Object entity);
     void createDeathWrapppper(Object entity);
+    void slayPlayer(Player player);
 
     Class<?> buildWrapperClass(Class<?> callback);
     Class<?> buildDeathWrapperClass(Class<?> callback);

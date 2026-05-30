@@ -389,11 +389,11 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
       return this.isInvisible() ? null : (SoundEvent)Ssounds.REAPER_AMBIENT.get();
    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34327_) {
+   public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.EVOLVE_HURT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

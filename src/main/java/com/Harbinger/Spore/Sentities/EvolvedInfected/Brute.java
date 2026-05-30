@@ -181,7 +181,7 @@ public class Brute extends EvolvedInfected implements Carrier, RangedAttackMob, 
       return (SoundEvent)Ssounds.INF_PILLAGER_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_VILLAGER_DEATH.get();
    }
 

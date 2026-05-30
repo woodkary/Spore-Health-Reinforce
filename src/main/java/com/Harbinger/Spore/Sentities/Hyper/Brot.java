@@ -163,7 +163,7 @@ public class Brot extends Hyper {
       return (SoundEvent)Ssounds.BROT_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 

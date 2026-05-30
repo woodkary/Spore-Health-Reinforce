@@ -290,7 +290,7 @@ public class Gargoyl extends EvolvedInfected implements FlyingInfected, ArmedInf
       return (SoundEvent)Ssounds.ADVENTURER_AMBIENT.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_VILLAGER_DEATH.get();
    }
 

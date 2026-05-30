@@ -616,7 +616,7 @@ public class Infected extends Monster implements ColdWeakness {
       return super.hasLineOfSight(entity);
    }
 
-   protected void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
+   public void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
       super.dropCustomDeathLoot(source, val, bool);
       if (this.getDropList() != null) {
          if (!this.getDropList().isEmpty()) {

@@ -67,7 +67,7 @@ public class Knight extends EvolvedInfected implements EvolvingInfected {
       return (SoundEvent)Ssounds.INF_GROWL.get();
    }
 
-   protected SoundEvent getDeathSound() {
+   public SoundEvent getDeathSound() {
       return (SoundEvent)Ssounds.INF_DAMAGE.get();
    }
 
