@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Core.asmHooks;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.network.HealthDeltaPacket;
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -81,6 +82,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return Math.min(initialDelta,getHeealtthDelta(entity));
     }
     public void setHeealtthDelta(LivingEntity entity,float delta){
+        if(entity.level.isClientSide){
+            setHeealtthDeltaLocal(entity,delta);
+            return;
+        }
         heaalthDeltaMap.put(entity,delta);
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
     }
@@ -118,6 +123,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(entity instanceof Player){
             return Math.max(initialHealth,20.0);
         }
+        if(isSporeEntity(entity)){
+            return SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(entity);
+        }
         if(hasSporeDeadFlag(entity)){
             return 0.0;
         }
@@ -150,6 +158,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
                         getHeealtthDelta(liv) <= -liv.getMaxHealth();
     }
     public boolean isAlliive(LivingEntity entity,boolean initialValue){
+        if(isSporeEntity(entity)){
+            return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity)>0.0f&&!entity.isRemoved();
+        }
         boolean deadFlag=trueDeeauth(entity);
         if(deadFlag){
             return false;
@@ -207,6 +218,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return getHeealth(entity,initialHealth);
     }
     public float getHeealth(LivingEntity entity,float initialHealth){
+        if(isSporeEntity(entity)){
+            return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity);
+        }
         try{
             setTrueDeeauthCalled(entity,true);
             float maxHealth = entity.getMaxHealth();
@@ -245,6 +259,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return getHeealth(entity,initialHealth);
     }
     public double getHeealth(LivingEntity entity,double initialHealth){
+        if(isSporeEntity(entity)){
+            return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity);
+        }
         if(isTrueDeeauthCalled(entity)){
             return initialHealth;
         }
@@ -291,6 +308,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(source!=null){
             entity.getCombatTracker().recordDamage(source,damage);
         }
+        if(isSporeEntity(entity)){
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(entity,source,damage);
+            return;
+        }
         if(entity.getHealth()<=0.0f){
             killEntity(entity,source);
         }
@@ -298,6 +319,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
     public void killEntity(LivingEntity entity,DamageSource source) {
         if (source != null) {
             entity.getCombatTracker().recordDamage(source, Float.POSITIVE_INFINITY);
+        }
+        if(isSporeEntity(entity)){
+            SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(entity,0.0f);
+            return;
         }
         setHeealtthDelta(entity, Float.NEGATIVE_INFINITY);
         LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
@@ -316,6 +341,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
     public void heal(LivingEntity entity,float heal,DamageSource source){
         if(heal<0.0f){
             hurt(entity,-heal,source);
+            return;
+        }
+        if(isSporeEntity(entity)){
+            SporeEntityHeeaafastthManager.INSTANCE.heal(entity,heal);
             return;
         }
         heal(entity,heal);
