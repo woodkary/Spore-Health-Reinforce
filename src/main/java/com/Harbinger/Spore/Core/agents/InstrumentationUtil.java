@@ -47,13 +47,28 @@ public final class InstrumentationUtil implements IInstrumentations {
 
     @Override
     public IInstrumentations addTransformer(ClassFileTransformer transformer) {
-        instrumentation.addTransformer(transformer);
+        try {
+            instrumentation.addTransformer(transformer, true);
+        } catch (Throwable t) {
+            LogUtil.errorf("failed to add retransformable transformer, fallback to normal transformer. %s", t.getMessage());
+            instrumentation.addTransformer(transformer);
+        }
         return this;
     }
 
     @Override
     public Class<?>[] getAllLoadedClasses() {
         return instrumentation.getAllLoadedClasses();
+    }
+
+    @Override
+    public boolean isModifiableClass(Class<?> clazz) {
+        return instrumentation.isModifiableClass(clazz);
+    }
+
+    @Override
+    public boolean isRetransformClassesSupported() {
+        return instrumentation.isRetransformClassesSupported();
     }
 
     @Override

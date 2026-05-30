@@ -19,8 +19,12 @@ public class SporePacketHandler {
    private static final String PROTOCOL_VERSION = "1";
    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(new ResourceLocation("spore", "main"), () -> "1", "1"::equals, "1"::equals);
    private static final AtomicInteger packetId = new AtomicInteger(0);
+   private static boolean registered;
 
-   public static void registerPackets() {
+   public static synchronized void registerPackets() {
+      if (registered) {
+         return;
+      }
       INSTANCE.messageBuilder(RequestAdvancementPacket.class, packetId.getAndIncrement()).encoder(RequestAdvancementPacket::encode).decoder(RequestAdvancementPacket::new).consumerMainThread(RequestAdvancementPacket::handle).add();
       INSTANCE.messageBuilder(SporeGunFirePacket.class, packetId.getAndIncrement()).encoder(SporeGunFirePacket::encode).decoder(SporeGunFirePacket::new).consumerMainThread(SporeGunFirePacket::handle).add();
       INSTANCE.messageBuilder(SyncAdvancementPacket.class, packetId.getAndIncrement()).encoder(SyncAdvancementPacket::encode).decoder(SyncAdvancementPacket::new).consumerMainThread(SyncAdvancementPacket::handle).add();
@@ -29,6 +33,7 @@ public class SporePacketHandler {
       INSTANCE.messageBuilder(OpenSurgeryScreenPacket.class, packetId.getAndIncrement()).encoder(OpenSurgeryScreenPacket::encode).decoder(OpenSurgeryScreenPacket::new).consumerMainThread(OpenSurgeryScreenPacket::handle).add();
       INSTANCE.messageBuilder(SporeGunFireSyncPacket.class, packetId.getAndIncrement()).encoder(SporeGunFireSyncPacket::encode).decoder(SporeGunFireSyncPacket::new).consumerMainThread(SporeGunFireSyncPacket::handle).add();
       INSTANCE.messageBuilder(SongInitializingPacket.class, packetId.getAndIncrement()).encoder(SongInitializingPacket::encode).decoder(SongInitializingPacket::new).consumerMainThread(SongInitializingPacket::handle).add();
+      registered = true;
    }
 
    public static void sendToServer(Object packet) {

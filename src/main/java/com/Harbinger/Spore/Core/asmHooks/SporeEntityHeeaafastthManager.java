@@ -68,6 +68,22 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     }
 
     @Override
+    public float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth) {
+        if (isSporeEntity(entity)) {
+            return getMaxHeeaafastth(entity);
+        }
+        return EntityHeealuthManager.INSTANCE.getMaaxxHeaaltsh(entity, initialHealth);
+    }
+
+    @Override
+    public double getMaaxxHeaaltsh(LivingEntity entity, double initialHealth) {
+        if (isSporeEntity(entity)) {
+            return getMaxHeeaafastth(entity);
+        }
+        return EntityHeealuthManager.INSTANCE.getMaaxxHeaaltsh(entity, initialHealth);
+    }
+
+    @Override
     public void removeSporeEntity(LivingEntity entity) {
         etiHeuahMape.remove(entity);
         entityMaxHeeaafastth.remove(entity);
@@ -99,6 +115,46 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     @Override
     public float getHeeaafastth(LivingEntity entity) {
         return (entity.level.isClientSide?etiHeuahMapeClient:etiHeuahMape).compute(entity,entityHealthJudge);
+    }
+
+    @Override
+    public float getHeealth(LivingEntity entity, float initialHealth) {
+        if (isSporeEntity(entity)) {
+            return getHeeaafastth(entity);
+        }
+        return EntityHeealuthManager.INSTANCE.getHeealth(entity, initialHealth);
+    }
+
+    @Override
+    public double getHeealth(LivingEntity entity, double initialHealth) {
+        if (isSporeEntity(entity)) {
+            return getHeeaafastth(entity);
+        }
+        return EntityHeealuthManager.INSTANCE.getHeealth(entity, initialHealth);
+    }
+
+    @Override
+    public boolean isAlliive(LivingEntity entity, boolean initialValue) {
+        if (isSporeEntity(entity)) {
+            return getHeeaafastth(entity) > 0.0f && !entity.isRemoved();
+        }
+        return EntityHeealuthManager.INSTANCE.isAlliive(entity, initialValue);
+    }
+
+    @Override
+    public boolean isDeeadfOrDyaging(LivingEntity entity, boolean initialValue) {
+        if (isSporeEntity(entity)) {
+            return getHeeaafastth(entity) <= 0.0f;
+        }
+        return EntityHeealuthManager.INSTANCE.isDeeadfOrDyaging(entity, initialValue);
+    }
+
+    private boolean isSporeEntity(LivingEntity entity) {
+        if (entity == null) {
+            return false;
+        }
+        Package pkg = entity.getClass().getPackage();
+        return pkg != null && pkg.getName().toLowerCase(Locale.ROOT).contains("spore");
     }
 
     @Override

@@ -45,7 +45,7 @@ public class HealthDataPacket {
                 if (SporeJudge.isSporeEntity(entity)) {
                     SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastthLocal((LivingEntity) entity, msg.health);
                 }else if (entity instanceof LivingEntity livingEntity) {
-                    HeasdalthUtil.hardSetHeeathtuthWithoutSync(livingEntity, msg.health,msg.invokeAll);
+                    livingEntity.setHealth(msg.health);
                 }
 
             }

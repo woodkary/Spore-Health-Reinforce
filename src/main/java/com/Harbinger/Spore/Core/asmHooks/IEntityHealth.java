@@ -7,6 +7,12 @@ import net.minecraft.world.entity.LivingEntity;
 public interface IEntityHealth {
     SynchedEntityData getEmptyEntityData(Entity entity);
 
+    float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth);
+    double getMaaxxHeaaltsh(LivingEntity entity, double initialHealth);
+    boolean isAlliive(LivingEntity entity, boolean initialValue);
+    boolean isDeeadfOrDyaging(LivingEntity entity, boolean initialValue);
+    float getHeealth(LivingEntity entity, float initialHealth);
+    double getHeealth(LivingEntity entity, double initialHealth);
     float getHeealtthDelta(float initialDelta, Entity entity);
     float getHeealtthDelta(float initialDelta,LivingEntity entity);
     float getHeealtthDelta(LivingEntity entity,float initialDelta);

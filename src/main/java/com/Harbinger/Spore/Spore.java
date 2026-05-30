@@ -18,9 +18,12 @@ import com.Harbinger.Spore.Core.Spotion;
 import com.Harbinger.Spore.Core.Srecipes;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.SticketType;
+import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.ExtremelySusThings.StructureModification;
+import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
+import com.Harbinger.Spore.network.HealthPacketHandler;
 import com.Harbinger.Spore.sEvents.HandlerEvents;
 import com.mojang.serialization.Codec;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,7 +33,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig.Type;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.DeferredRegister;
@@ -51,6 +54,7 @@ public class Spore {
       ModLoadingContext.get().registerConfig(Type.COMMON, SConfig.SERVER_SPEC, "sporeconfig.toml");
       SConfig.loadConfig(SConfig.SERVER_SPEC, FMLPaths.CONFIGDIR.get().resolve("sporeconfig.toml").toString());
       MinecraftForge.EVENT_BUS.register(this);
+      modEventBus.addListener(this::commonSetup);
       modEventBus.addListener(HandlerEvents::SpawnPlacement);
       Sblocks.register(modEventBus);
       Sitems.register(modEventBus);
@@ -70,7 +74,6 @@ public class Spore {
       SblockEntities.register(modEventBus);
       SAttributes.register(modEventBus);
       SticketType.init();
-      SporePacketHandler.registerPackets();
       DeferredRegister<Codec<? extends BiomeModifier>> biomeModifiers = DeferredRegister.create(Keys.BIOME_MODIFIER_SERIALIZERS, "spore");
       biomeModifiers.register(modEventBus);
       biomeModifiers.register("inf_spawns", BiomeModification::makeCodec);
@@ -79,7 +82,11 @@ public class Spore {
       structureModifiers.register("spore_structure_spawns", StructureModification::makeCodec);
    }
 
-   public void loadComplete(FMLLoadCompleteEvent event) {
+   public void commonSetup(FMLCommonSetupEvent event) {
+      SporePacketHandler.registerPackets();
+      HealthPacketHandler.register();
+      HealthDeltaPacketHandler.register();
+      SporeLivingEntityHealthTransformerBootstrap.installAndRetransform();
       event.enqueueWork(Sfluids::postInit);
    }
 }
