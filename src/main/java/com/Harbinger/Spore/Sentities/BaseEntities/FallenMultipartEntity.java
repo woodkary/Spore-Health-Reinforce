@@ -1,0 +1,49 @@
+package com.Harbinger.Spore.Sentities.BaseEntities;
+
+import com.Harbinger.Spore.Core.Sblocks;
+import com.Harbinger.Spore.Sentities.ColdEndurance;
+import com.Harbinger.Spore.Sentities.ColdWeakness;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.fluids.FluidType;
+
+public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdWeakness {
+   public FallenMultipartEntity(EntityType type, Level level) {
+      super(type, level);
+   }
+
+   public void tick() {
+      super.tick();
+      if (this.random.nextInt(200) == 0 && this.onGround()) {
+         AABB aabb = this.getBoundingBox().inflate((double)1.0F);
+
+         for(BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
+            BlockState blockState = this.level().getBlockState(blockpos);
+            BlockState above = this.level().getBlockState(blockpos.above());
+            if (!this.level().isClientSide() && blockState.isSolidRender(this.level(), blockpos) && above.isAir() && Math.random() < 0.1) {
+               if (Math.random() < (double)0.5F) {
+                  this.level().setBlock(blockpos.above(), ((Block)Sblocks.GROWTHS_BIG.get()).defaultBlockState(), 3);
+               } else {
+                  this.level().setBlock(blockpos.above(), ((Block)Sblocks.GROWTHS_SMALL.get()).defaultBlockState(), 3);
+               }
+            }
+         }
+      }
+
+   }
+
+   public boolean canDrownInFluidType(FluidType type) {
+      return false;
+   }
+
+   public ColdEndurance getEndurance() {
+      return ColdEndurance.HYPER;
+   }
+}
