@@ -10,7 +10,7 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.Pose;
 import net.minecraftforge.entity.PartEntity;
 
-public class CalamityMultipart extends PartEntity {
+public class CalamityMultipart extends PartEntity<Calamity> {
    public final Calamity parentMob;
    public final String name;
    protected final EntityDimensions size;
@@ -52,17 +52,13 @@ public class CalamityMultipart extends PartEntity {
       return false;
    }
 
-   public void deserializeNBT(Tag nbt) {
-   }
 
    public boolean hurt(DamageSource source, float amount) {
       if (source.getEntity() == this.parentMob) {
          return false;
       } else {
-         Calamity var4 = this.parentMob;
-         if (var4 instanceof TrueCalamity) {
-            TrueCalamity calamity = (TrueCalamity)var4;
-            return !this.isInvulnerableTo(source) && calamity.hurt(this, source, amount);
+          if (this.parentMob instanceof TrueCalamity calamity) {
+             return !this.isInvulnerableTo(source) && calamity.hurt(this, source, amount);
          } else {
             return !this.isInvulnerableTo(source) && this.parentMob.hurt(source, amount);
          }
