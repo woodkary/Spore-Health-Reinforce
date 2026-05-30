@@ -84,8 +84,6 @@ public class Spore {
 
    public void commonSetup(FMLCommonSetupEvent event) {
       SporePacketHandler.registerPackets();
-      HealthPacketHandler.register();
-      HealthDeltaPacketHandler.register();
       SporeLivingEntityHealthTransformerBootstrap.installAndRetransform();
       event.enqueueWork(Sfluids::postInit);
    }

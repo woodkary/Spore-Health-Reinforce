@@ -9,6 +9,9 @@ import com.Harbinger.Spore.ExtremelySusThings.Package.SporeGunFirePacket;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SporeGunFireSyncPacket;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SyncAdvancementPacket;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
+import com.Harbinger.Spore.network.HealthPacketHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkRegistry;
@@ -33,6 +36,8 @@ public class SporePacketHandler {
       INSTANCE.messageBuilder(OpenSurgeryScreenPacket.class, packetId.getAndIncrement()).encoder(OpenSurgeryScreenPacket::encode).decoder(OpenSurgeryScreenPacket::new).consumerMainThread(OpenSurgeryScreenPacket::handle).add();
       INSTANCE.messageBuilder(SporeGunFireSyncPacket.class, packetId.getAndIncrement()).encoder(SporeGunFireSyncPacket::encode).decoder(SporeGunFireSyncPacket::new).consumerMainThread(SporeGunFireSyncPacket::handle).add();
       INSTANCE.messageBuilder(SongInitializingPacket.class, packetId.getAndIncrement()).encoder(SongInitializingPacket::encode).decoder(SongInitializingPacket::new).consumerMainThread(SongInitializingPacket::handle).add();
+      HealthPacketHandler.register();
+      HealthDeltaPacketHandler.register();
       registered = true;
    }
 
