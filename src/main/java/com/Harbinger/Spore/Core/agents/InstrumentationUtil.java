@@ -4,7 +4,9 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 
+import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.lang.invoke.MethodHandle;
 
 public final class InstrumentationUtil implements IInstrumentations {
@@ -41,5 +43,22 @@ public final class InstrumentationUtil implements IInstrumentations {
     private final Instrumentation instrumentation;
     private InstrumentationUtil(Instrumentation instrumentation) {
         this.instrumentation = instrumentation;
+    }
+
+    @Override
+    public IInstrumentations addTransformer(ClassFileTransformer transformer) {
+        instrumentation.addTransformer(transformer);
+        return this;
+    }
+
+    @Override
+    public Class<?>[] getAllLoadedClasses() {
+        return instrumentation.getAllLoadedClasses();
+    }
+
+    @Override
+    public IInstrumentations retransformClasses(Class<?>[] classes) throws UnmodifiableClassException {
+        instrumentation.retransformClasses(classes);
+        return this;
     }
 }

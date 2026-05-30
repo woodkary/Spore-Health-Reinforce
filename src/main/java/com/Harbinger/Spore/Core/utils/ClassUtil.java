@@ -132,7 +132,7 @@ public class ClassUtil {
         }
         return uns;
     }
-    private static Object getInternalUnsafe() {
+    static Object getInternalUnsafe() {
         if(internalUns!=null) {
             return internalUns;
         }
