@@ -305,12 +305,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
             heal(entity,-damage,source);
             return;
         }
-        if(source!=null){
-            entity.getCombatTracker().recordDamage(source,damage);
-        }
         if(isSporeEntity(entity)){
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(entity,source,damage);
             return;
+        }
+        if(source!=null){
+            entity.getCombatTracker().recordDamage(source,damage);
         }
         if(entity.getHealth()<=0.0f){
             killEntity(entity,source);
