@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 
 public interface ASMSetHealthMeleeAttackGoal {
     Mob mob();
@@ -23,6 +24,6 @@ public interface ASMSetHealthMeleeAttackGoal {
         if(distanceSquared > d0||ticksUntilNextAttack() > 0){
             return;
         }
-        SporeAttackUtil.INSTANCE.attack(target, mob);
+        SporeAttackUtil.INSTANCE.attack(target, mob, (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE));
     }
 }
