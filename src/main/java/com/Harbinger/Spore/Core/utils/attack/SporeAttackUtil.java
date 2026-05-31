@@ -182,8 +182,11 @@ public final class SporeAttackUtil implements IAttack {
         }else{
             damageSource = attacker.damageSources().mobAttack(attacker);
         }
-        if (!hasCalamityLacerationMutation(attacker)) {
+        double laceration=getCalamityLacerationMutation(attacker);
+        if (laceration<=0.0) {
             damage=damageReduction(target,damage,damageSource);
+        }else{
+            damage+= (float) (0.2 + 0.1 *laceration);
         }
 
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
@@ -191,13 +194,13 @@ public final class SporeAttackUtil implements IAttack {
         dealDamage(target, attacker, damageSource, damage);
     }
 
-    private boolean hasCalamityLacerationMutation(LivingEntity attacker) {
+    private double getCalamityLacerationMutation(LivingEntity attacker) {
         if (attacker instanceof Calamity calamity) {
             AttributeInstance laceration = calamity.getAttribute((Attribute) SAttributes.LACERATION.get());
-            return laceration != null && laceration.getValue() > 0.0D;
+            return laceration != null ?laceration.getValue():0.0;
         }
 
-        return false;
+        return 0.0;
     }
 
     public void dealDamage(LivingEntity target,float damage){
