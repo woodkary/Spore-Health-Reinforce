@@ -4,6 +4,9 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import java.util.List;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -12,6 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -133,10 +137,13 @@ public class ThrownTumor extends ThrowableItemProjectile {
 
    public void freezeTargets(List<Entity> entityList) {
       for(Entity entity : entityList) {
-         if (entity instanceof LivingEntity livingEntity) {
-            MobEffectInstance instance = livingEntity.getEffect((MobEffect)Seffects.FROSTBITE.get());
+         if (entity instanceof LivingEntity target) {
+            MobEffectInstance instance = target.getEffect((MobEffect)Seffects.FROSTBITE.get());
             int intensity = instance == null ? 0 : instance.getAmplifier() + 1;
-            livingEntity.addEffect(new MobEffectInstance((MobEffect)Seffects.FROSTBITE.get(), 600, intensity));
+            target.addEffect(new MobEffectInstance((MobEffect)Seffects.FROSTBITE.get(), 600, intensity));
+            if(SporeJudge.isSporeEntity(target)) {
+               SporeEntityHeeaafastthManager.INSTANCE.hurrt(target,target.damageSources().freeze(),5.0f);
+            }
          }
       }
 
@@ -144,12 +151,18 @@ public class ThrownTumor extends ThrowableItemProjectile {
 
    public void damageTargets(List<Entity> entityList) {
       for(Entity entity : entityList) {
-         if (entity instanceof LivingEntity livingEntity) {
+         if (entity instanceof LivingEntity target) {
             Entity var6 = this.getOwner();
-            if (var6 instanceof LivingEntity living) {
-               livingEntity.hurtTime = 0;
-               livingEntity.invulnerableTime = 0;
-               livingEntity.hurt(this.level().damageSources().mobProjectile(this, living), 10.0F);
+            boolean isTargetOwner=target.equals(var6);
+            if (var6 instanceof LivingEntity owner) {
+               DamageSource source = this.level().damageSources().mobProjectile(this, owner);
+               if(isTargetOwner) {
+                  target.hurt(source, 10.0F);
+               } else {
+                  target.hurtTime = 0;
+                  target.invulnerableTime = 0;
+                  SporeAttackUtil.INSTANCE.dealDamage(target, owner, source, 10.0F);
+               }
             }
          }
       }
