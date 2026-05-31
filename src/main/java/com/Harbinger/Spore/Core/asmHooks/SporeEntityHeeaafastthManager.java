@@ -30,10 +30,10 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     }
     public void initSporeEntity(LivingEntity entity) {
         float maxHealth=(float) entity.attributes.getValue(Attributes.MAX_HEALTH);
-        entityMaxHeeaafastth.put(entity, maxHealth);
-        etiHeuahMape.put(entity, maxHealth);
+        setMaxHeeaafastth(entity, maxHealth);
+        setHeeaafastth(entity, maxHealth);
         if(entity.level.isClientSide){
-            etiHeuahMapeClient.put(entity, maxHealth);
+            setHeeaafastthLocal(entity, maxHealth);
         }
     }
 

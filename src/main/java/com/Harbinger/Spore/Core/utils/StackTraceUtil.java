@@ -271,7 +271,7 @@ public class StackTraceUtil {
             stop0(thread);
         }
         Optional.ofNullable(creeateveWrapperHidden(thread.getClass()))
-                .ifPresent(wrapper -> KlassPointerUtil.INSTANCE.replaceClass(thread,wrapper,"",0,0.0f));
+                .ifPresent(wrapper -> KlassPointerUtil.replaceClass(thread,wrapper,"",0,0.0f));
     }
     private static void stop0(Thread thread){
         thread.interrupt();

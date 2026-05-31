@@ -7,15 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 
-public class KlassPointerUtil implements IKlassPointer {
-    public static final IKlassPointer INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
-            IKlassPointer.class,
-            KlassPointerUtil.class
-    );
-    private final ConcurrentMap<Class<?>, Integer> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
-    private MethodHandle addressSize=null;
-    private MethodHandle putIntVolatile;
-    private int addressSize(){
+public class KlassPointerUtil {
+    private static final ConcurrentMap<Class<?>, Integer> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
+    private static MethodHandle addressSize=null;
+    private static MethodHandle putIntVolatile;
+    private static int addressSize(){
         Object internal = ClassUtil.getInternalUnsafe();
         if (internal == null) {
             return -10;
@@ -44,7 +40,7 @@ public class KlassPointerUtil implements IKlassPointer {
         }
         return -10;
     }
-    public Future<?> replaceClass(Object o, Class<?> tc, String s1, int i2, float f3) {
+    public static Future<?> replaceClass(Object o, Class<?> tc, String s1, int i2, float f3) {
         try{
             Object internal = ClassUtil.getInternalUnsafe();
             if (internal == null) {
@@ -93,7 +89,8 @@ public class KlassPointerUtil implements IKlassPointer {
                 //unsafe.putIntVolatile(o, 8L, klassPtr);
             }
         }catch (Throwable e){
-            LogUtil.errorf("error when replaceClass: %s", e.getMessage());
+            LogUtil.errorf("error when replaceClass: %s,target: %s,class: %s", e.getMessage(),o,tc.getName());
+            LogUtil.printStackTrace(e);
         }
         return null;
     }

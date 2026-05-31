@@ -74,24 +74,24 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     public void createWrapppper(Object entity){
         Class<?> wrapper = createWrapper(entity.getClass());
         if (wrapper != null) {
-            KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
+            KlassPointerUtil.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
     }
     @Override
     public void createDeathWrapppper(Object entity){
         Class<?> wrapper = createDeathWrapper(entity.getClass());
         if (wrapper != null) {
-            KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
+            KlassPointerUtil.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
     }
     @Override
     public void slayPlayer(Player player){
         EntityHeealuthManager.INSTANCE.setHeealtthDelta(player, Float.NEGATIVE_INFINITY);
         player.getPersistentData().putBoolean("SporeDeeaadfd", true);
-        KlassPointerUtil.INSTANCE.replaceClass(player.getInventory(), SporeEmptyInventory.inventoryClass, "", 0, 0.0f);
+        KlassPointerUtil.replaceClass(player.getInventory(), SporeEmptyInventory.inventoryClass, "", 0, 0.0f);
         Class<?> wrapper = getDeadPlayerWrapper(createDeathWrapperForPlayer(player.getClass()), player);
         if(wrapper!=null){
-            KlassPointerUtil.INSTANCE.replaceClass(player, wrapper, "", 0, 0.0f);
+            KlassPointerUtil.replaceClass(player, wrapper, "", 0, 0.0f);
         }
     }
     private Class<?> getDeadPlayerWrapper(Class<?> wrapper,Player player){
