@@ -331,6 +331,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
 
    public boolean hurt(DamageSource source, float amount) {
+      if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this)){
+         return false;
+      }
       this.setRooted(false);
       if (this.getRandom().nextInt(20) == 0) {
          this.grief(this.getBoundingBox().inflate(this.setInflation(), (double)0.0F, this.setInflation()));

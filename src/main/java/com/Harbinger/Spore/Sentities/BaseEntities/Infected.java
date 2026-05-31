@@ -447,6 +447,9 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
    }
 
    public boolean hurt(DamageSource source, float amount) {
+      if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this)){
+         return false;
+      }
       if (this.hasEffect((MobEffect)Seffects.STARVATION.get()) && source == this.damageSources().generic()) {
          Level var4 = this.level();
          if (var4 instanceof ServerLevel) {
