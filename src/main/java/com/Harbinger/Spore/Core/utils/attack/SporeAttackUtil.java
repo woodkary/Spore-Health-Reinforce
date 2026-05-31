@@ -2,10 +2,12 @@ package com.Harbinger.Spore.Core.utils.attack;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -25,6 +27,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -178,12 +182,24 @@ public final class SporeAttackUtil implements IAttack {
         }else{
             damageSource = attacker.damageSources().mobAttack(attacker);
         }
-        damage=damageReduction(target,damage,damageSource);
+        if (!hasCalamityLacerationMutation(attacker)) {
+            damage=damageReduction(target,damage,damageSource);
+        }
 
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
         target.setLastHurtByMob(attacker);
         dealDamage(target, attacker, damageSource, damage);
     }
+
+    private boolean hasCalamityLacerationMutation(LivingEntity attacker) {
+        if (attacker instanceof Calamity calamity) {
+            AttributeInstance laceration = calamity.getAttribute((Attribute) SAttributes.LACERATION.get());
+            return laceration != null && laceration.getValue() > 0.0D;
+        }
+
+        return false;
+    }
+
     public void dealDamage(LivingEntity target,float damage){
         dealDamage(target,null,
                 target.damageSources().fellOutOfWorld(),
