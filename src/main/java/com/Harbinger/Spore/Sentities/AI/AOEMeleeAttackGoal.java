@@ -113,7 +113,6 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
    }
 
    public void tick() {
-      tickASMAttack();
       LivingEntity livingentity = this.mob.getTarget();
       if (livingentity != null) {
          this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
@@ -139,6 +138,7 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
          }
 
          this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
+         tickASMAttack();
          this.checkAndPerformAttack(livingentity, d0);
       }
 

@@ -2,6 +2,7 @@ package com.Harbinger.Spore.sEvents;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Spore;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
@@ -65,13 +66,14 @@ import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeBaseArmor;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import com.Harbinger.Spore.Sitems.Guns.AbstractSporeGun;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+
+import java.util.*;
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
@@ -88,6 +90,7 @@ import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -353,10 +356,51 @@ public class HandlerEvents {
       }
 
    }
+   private static boolean forceKillEntity(Entity entity, Player player) {
+      if (entity == null) {
+         return false;
+      }
+      if (entity instanceof LivingEntity livingEntity) {
+         if (SporeJudge.isSporeEntity(livingEntity)) {
+            SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(livingEntity,0.0f);
+            return true;
+         }
+         DamageSource source = livingEntity.damageSources().fellOutOfWorld();
+         EntityHeealuthManager.INSTANCE.hurt(livingEntity, Float.POSITIVE_INFINITY, source);
+         EntityHeealuthManager.INSTANCE.killEntity(livingEntity, source);
+         return true;
+      }
 
+      entity.remove(Entity.RemovalReason.DISCARDED);
+      return true;
+   }
    @SubscribeEvent
    public static void Command(RegisterCommandsEvent event) {
-      event.getDispatcher().register(Commands.literal("spore:set_area").executes((arguments) -> {
+      CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+      dispatcher.register(Commands.literal("force_kill")
+              .requires(source -> source.hasPermission(2))
+              .then(Commands.argument("targets", EntityArgument.entities())
+                      .executes(ctx -> {
+                         Collection<? extends Entity> targets = EntityArgument.getEntities(ctx, "targets");
+                         Player player = ctx.getSource().getEntity() instanceof Player p ? p : null;
+                         targets=new ArrayList<>(targets);
+                         targets.remove(player);
+                         int killed = 0;
+                         for (Entity entity : targets) {
+                            if (forceKillEntity(entity, player)) {
+                               killed++;
+                            }
+                         }
+                         int total = targets.size();
+                         int finalKilled = killed;
+                         ctx.getSource().sendSuccess(
+                                 () -> Component.literal("force_kill 执行完成: " + finalKilled + "/" + total),
+                                 true
+                         );
+                         return killed;
+                      }))
+      );
+      dispatcher.register(Commands.literal("spore:set_area").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          int x = (int)((CommandSourceStack)arguments.getSource()).getPosition().x();
          int y = (int)((CommandSourceStack)arguments.getSource()).getPosition().y();
@@ -383,7 +427,7 @@ public class HandlerEvents {
 
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:nuke_the_land").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:nuke_the_land").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          int x = (int)((CommandSourceStack)arguments.getSource()).getPosition().x();
          int y = (int)((CommandSourceStack)arguments.getSource()).getPosition().y();
@@ -398,7 +442,7 @@ public class HandlerEvents {
          world.addFreshEntity(nukeEntity);
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:corpse").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:corpse").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          RandomSource randomSource = RandomSource.create();
          int x = (int)((CommandSourceStack)arguments.getSource()).getPosition().x();
@@ -411,7 +455,7 @@ public class HandlerEvents {
          world.addFreshEntity(corpseEntity);
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:erase_the_fungus").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:erase_the_fungus").executes((arguments) -> {
          ServerLevel serverLevel = ((CommandSourceStack)arguments.getSource()).getLevel();
 
          for(Entity entity : serverLevel.getAllEntities()) {
@@ -424,7 +468,7 @@ public class HandlerEvents {
 
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:feed").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:feed").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          Entity entity = ((CommandSourceStack)arguments.getSource()).getEntity();
          if (entity == null) {
@@ -448,7 +492,7 @@ public class HandlerEvents {
 
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:evolve").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:evolve").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          Entity entity = ((CommandSourceStack)arguments.getSource()).getEntity();
          if (entity == null) {
@@ -483,7 +527,7 @@ public class HandlerEvents {
 
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:get_data").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:get_data").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          Entity entity = ((CommandSourceStack)arguments.getSource()).getEntity();
          if (entity instanceof Player player) {
@@ -502,7 +546,7 @@ public class HandlerEvents {
 
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:check_entity").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:check_entity").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          Entity entity = ((CommandSourceStack)arguments.getSource()).getEntity();
          if (entity == null) {
@@ -739,7 +783,7 @@ public class HandlerEvents {
 
          return 1;
       }).requires((s) -> s.hasPermission(1)));
-      event.getDispatcher().register(Commands.literal("spore:check_block_entity").executes((arguments) -> {
+      dispatcher.register(Commands.literal("spore:check_block_entity").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          Entity entity = ((CommandSourceStack)arguments.getSource()).getEntity();
          if (entity == null) {
