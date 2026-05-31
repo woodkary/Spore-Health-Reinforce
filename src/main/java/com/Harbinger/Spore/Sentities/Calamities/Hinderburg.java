@@ -300,6 +300,10 @@ public class Hinderburg extends Calamity implements FlyingInfected, TrueCalamity
    }
 
    public void SummonNuke() {
+      if (this.level().isClientSide) {
+         return;
+      }
+
       TumoroidNuke tnt = new TumoroidNuke(this.level(), this);
       tnt.setOverclocked((Boolean)this.entityData.get(ADAPTATION));
       tnt.setBuster(Math.random() < 0.2);

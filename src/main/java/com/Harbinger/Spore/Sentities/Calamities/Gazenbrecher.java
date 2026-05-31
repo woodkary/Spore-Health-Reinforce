@@ -275,18 +275,16 @@ public class Gazenbrecher extends Calamity implements WaterInfected, RangedAttac
 
    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
       if (calamityMultipart == this.tongue) {
-         if (this.getTongueHp() > 0.0F && value > this.getTongueHp()) {
-            if (this.getTongueHp() > 0.0F && value > this.getTongueHp()) {
-               this.playSound((SoundEvent)Ssounds.LIMB_SLASH.get());
-               this.SummonDetashedTongue();
-            }
-
+         float currentTongueHp = this.getTongueHp();
+         float lostHealth = currentTongueHp - this.getDamageAfterArmorAbsorb(source, value);
+         if (currentTongueHp > 0.0F && lostHealth <= 0.0F) {
             this.playSound((SoundEvent)Ssounds.LIMB_SLASH.get());
+            this.SummonDetashedTongue();
          }
 
          this.hurt(source, value * 1.5F);
          SporeEntityHeeaafastthManager.INSTANCE.hurrt(this,source,value*0.8f);
-         this.setTongueHp(value > this.getTongueHp() ? 0.0F : this.getTongueHp() - value);
+         this.setTongueHp(lostHealth > 0.0F ? lostHealth : 0.0F);
       } else {
          this.hurt(source, value);
       }
@@ -338,6 +336,10 @@ public class Gazenbrecher extends Calamity implements WaterInfected, RangedAttac
    }
 
    private void SummonDetashedTongue() {
+      if (this.level().isClientSide) {
+         return;
+      }
+
       Licker licker = new Licker((EntityType)Sentities.LICKER.get(), this.level());
       Vec3 vec3 = (new Vec3((double)4.0F, (double)0.0F, (double)0.0F)).yRot(-this.getYRot() * ((float)Math.PI / 180F) - ((float)Math.PI / 2F));
       licker.setBurned(this.isAdaptedToFire());

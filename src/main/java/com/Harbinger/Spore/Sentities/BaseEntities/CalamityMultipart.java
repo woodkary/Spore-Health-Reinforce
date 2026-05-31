@@ -54,6 +54,10 @@ public class CalamityMultipart extends PartEntity<Calamity> {
 
 
    public boolean hurt(DamageSource source, float amount) {
+      if (this.level().isClientSide) {
+         return false;
+      }
+
       if (source.getEntity() == this.parentMob) {
          return false;
       } else {

@@ -84,6 +84,10 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
    }
 
    protected void onHitEntity(EntityHitResult result) {
+      if (this.level().isClientSide) {
+         return;
+      }
+
       Entity target = result.getEntity();
       CalamityMultipart severedPart = null;
       if (target instanceof CalamityMultipart multipart) {

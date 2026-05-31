@@ -420,6 +420,10 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    }
 
    public float summonDetashedPart(boolean isRight) {
+      if (this.level().isClientSide) {
+         return 0.0F;
+      }
+
       double offset = isRight ? (double)3.0F : (double)-3.0F;
       Vec3 vec3 = (new Vec3((double)0.0F, (double)0.0F, offset)).yRot(-this.getYRot() * ((float)Math.PI / 180F) - ((float)Math.PI / 2F));
       HowitzerArm arm = new HowitzerArm((EntityType)Sentities.HOWIT_ARM.get(), this.level());

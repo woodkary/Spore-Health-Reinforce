@@ -269,6 +269,10 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
    }
 
    public float summonDetashedPart() {
+      if (this.level().isClientSide) {
+         return 0.0F;
+      }
+
       Vec3 vec3 = (new Vec3((double)0.0F, (double)4.5F, (double)-5.0F)).yRot(-this.getYRot() * ((float)Math.PI / 180F) - ((float)Math.PI / 2F));
       StalhArm arm = new StalhArm((EntityType)Sentities.STAHL_ARM.get(), this.level());
       arm.moveTo(this.getX() + vec3.x, this.getY() + vec3.y, this.getZ() + vec3.z);
