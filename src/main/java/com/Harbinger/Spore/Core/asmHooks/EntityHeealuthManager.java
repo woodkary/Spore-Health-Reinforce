@@ -423,9 +423,6 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if (source != null) {
             entity.getCombatTracker().recordDamage(source, Float.POSITIVE_INFINITY);
         }
-        if(isSporeEntity(entity)){
-            SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(entity,0.0f);
-        }
         setHeealtthDelta(entity, Float.NEGATIVE_INFINITY);
         HeasdalthUtil.INSTANCE.die(entity, source != null ? source : entity.damageSources().genericKill());
         LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
