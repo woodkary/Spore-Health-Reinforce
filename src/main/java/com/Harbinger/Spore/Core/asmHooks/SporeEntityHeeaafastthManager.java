@@ -23,7 +23,6 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     public static final ISporeEntityHealth INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ISporeEntityHealth.class, SporeEntityHeeaafastthManager.class);
     private final Map<LivingEntity, Float> entityMaxHeeaafastth = new WeakHashMap<>();
     private final Map<LivingEntity, Float> etiHeuahMape = new WeakHashMap<>();
-    private final Map<LivingEntity, Float> etiHeuahMapeClient = new WeakHashMap<>();
     private final BiFunction<LivingEntity, Float, Float> entityHealthJudge;
     public SporeEntityHeeaafastthManager() {
         entityHealthJudge= SporeEntityHealthJudge.newInstance(this.entityMaxHeeaafastth);
@@ -87,16 +86,12 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     public void removeSporeEntity(LivingEntity entity) {
         etiHeuahMape.remove(entity);
         entityMaxHeeaafastth.remove(entity);
-        if(entity.level.isClientSide){
-            etiHeuahMapeClient.remove(entity);
-        }
     }
 
     @Override
     public void setHeeaafastth(LivingEntity entity, float health) {
         if(entity.level.isClientSide){
             setHeeaafastthLocal(entity,health);
-            return;
         }
         etiHeuahMape.put(entity,health);
         HealthPacketHandler.sendToClient(new HealthDataPacket(entity.id, health,false));
@@ -104,7 +99,7 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public void setHeeaafastthLocal(LivingEntity entity, float health) {
-        etiHeuahMapeClient.put(entity, health);
+        etiHeuahMape.put(entity, health);
     }
     //假设amount>0
     @Override
@@ -114,7 +109,7 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getHeeaafastth(LivingEntity entity) {
-        return (entity.level.isClientSide?etiHeuahMapeClient:etiHeuahMape).compute(entity,entityHealthJudge);
+        return etiHeuahMape.compute(entity,entityHealthJudge);
     }
 
     @Override

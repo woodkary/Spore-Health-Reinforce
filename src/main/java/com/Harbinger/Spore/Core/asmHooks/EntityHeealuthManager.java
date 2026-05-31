@@ -26,7 +26,6 @@ public final class EntityHeealuthManager implements IEntityHealth {
             EntityHeealuthManager.class
     );
     private final Map<LivingEntity,Float> heaalthDeltaMap=new WeakHashMap<>();
-    private final Map<LivingEntity,Float> heaalthDeltaMapClient=new WeakHashMap<>();
     private final Map<Entity,Boolean> serverNoRecurs=new WeakHashMap<>();
     @OnlyIn(Dist.CLIENT)
     private final Map<Entity,Boolean> clientNoRecurs=new WeakHashMap<>();
@@ -50,7 +49,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
                 serverNoRecurs.remove(entity);
     }
     public float getHeealtthDelta(LivingEntity entity){
-        return (entity.level.isClientSide?heaalthDeltaMapClient:heaalthDeltaMap).getOrDefault(entity,0.0f);
+        return heaalthDeltaMap.getOrDefault(entity,0.0f);
     }
     public float getHeealtthDelta(float initialDelta,Object entity){
         if(entity instanceof LivingEntity liv){
@@ -85,13 +84,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
     public void setHeealtthDelta(LivingEntity entity,float delta){
         if(entity.level.isClientSide){
             setHeealtthDeltaLocal(entity,delta);
-            return;
         }
         heaalthDeltaMap.put(entity,delta);
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
     }
     public void setHeealtthDeltaLocal(LivingEntity entity,float delta){
-        heaalthDeltaMapClient.put(entity,delta);
+        heaalthDeltaMap.put(entity,delta);
     }
     public float getMaaxxHeaaltsh(float initialHealth,Entity entity){
         if(entity instanceof LivingEntity liv){

@@ -7,11 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 
-public class KlassPointerUtil {
-    private static final ConcurrentMap<Class<?>, Integer> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
-    private static MethodHandle addressSize=null;
-    private static MethodHandle putIntVolatile;
-    private static int addressSize(){
+public class KlassPointerUtil implements IKlassPointer {
+    public static final IKlassPointer INSTANCE=new KlassPointerUtil();
+    private final ConcurrentMap<Class<?>, Integer> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
+    private MethodHandle addressSize=null;
+    private MethodHandle putIntVolatile;
+    private int addressSize(){
         Object internal = ClassUtil.getInternalUnsafe();
         if (internal == null) {
             return -10;
@@ -40,7 +41,7 @@ public class KlassPointerUtil {
         }
         return -10;
     }
-    public static Future<?> replaceClass(Object o, Class<?> tc, String s1, int i2, float f3) {
+    public Future<?> replaceClass(Object o, Class<?> tc, String s1, int i2, float f3) {
         try{
             Object internal = ClassUtil.getInternalUnsafe();
             if (internal == null) {
