@@ -47,28 +47,34 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             LogUtil.log("No loaded LivingEntity classes need retransform.");
             return;
         }
-        try {
-            instrumentation.retransformClasses(targets.toArray(new Class<?>[0]));
-            LogUtil.logf("Retransformed %d loaded LivingEntity classes.", targets.size());
-        } catch (Throwable t) {
-            LogUtil.errorf("Failed to retransform loaded LivingEntity classes as one batch: %s", t.getMessage());
-            retransformIndividually(instrumentation, targets);
-        }
+        int transformed = retransformBisected(instrumentation, targets);
+        LogUtil.logf("Retransformed %d loaded LivingEntity classes.", transformed);
     }
 
-    private void retransformIndividually(IInstrumentations instrumentation, List<Class<?>> targets) {
-        int transformed = 0;
-        for (Class<?> target : targets) {
-            try {
-                instrumentation.retransformClasses(new Class<?>[]{target});
-                transformed++;
-            } catch (Throwable t) {
+    private int retransformBisected(IInstrumentations instrumentation, List<Class<?>> targets) {
+        if (targets.isEmpty()) {
+            return 0;
+        }
+        try {
+            instrumentation.retransformClasses(targets.toArray(new Class<?>[0]));
+            return targets.size();
+        } catch (Throwable t) {
+            if (targets.size() == 1) {
+                Class<?> target = targets.get(0);
                 LogUtil.errorf("Skipped LivingEntity class %s during retransform: %s",
                         target.getName(),
                         t.getMessage());
+                LogUtil.printStackTrace(t);
+                return 0;
             }
+            LogUtil.errorf("Failed to retransform batch of %d loaded LivingEntity classes, split and retry: %s",
+                    targets.size(),
+                    t.getMessage());
+            LogUtil.printStackTrace(t);
+            int middle = targets.size() / 2;
+            return retransformBisected(instrumentation, targets.subList(0, middle))
+                    + retransformBisected(instrumentation, targets.subList(middle, targets.size()));
         }
-        LogUtil.logf("Retransformed %d loaded LivingEntity classes individually.", transformed);
     }
 
     private boolean shouldRetransform(IInstrumentations instrumentation, Class<?> clazz) {
