@@ -27,7 +27,7 @@ public interface SporeWeaponData {
       return stack.getDamageValue() < stack.getMaxDamage() - 10;
    }
    default boolean doASMRangeHurtOnSwing(ItemStack stack, LivingEntity attacker){
-      if(!(attacker instanceof Player player)||!(this.getVariant(stack) == SporeToolsMutations.BEZERK)){
+      if(!(attacker instanceof Player player)||this.getVariant(stack) != SporeToolsMutations.BEZERK){
          return false;
       }
       Entity target=SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
@@ -35,7 +35,7 @@ public interface SporeWeaponData {
          return false;
       }
       SporeAttackUtil.INSTANCE.attack(player,target,stack);
-      return true;
+      return false;
    }
 
    default double calculateTrueDamage(ItemStack stack, double meleeDamage) {

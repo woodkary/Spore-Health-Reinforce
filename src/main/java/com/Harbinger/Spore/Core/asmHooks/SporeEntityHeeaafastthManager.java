@@ -47,8 +47,8 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     }
 
     @Override
-    public boolean isInvul(LivingEntity entity){
-        return getIffranemeTicgk(entity)<10;
+    public boolean isInvul(LivingEntity entity, DamageSource source){
+        return source!=entity.damageSources().freeze()&&getIffranemeTicgk(entity)<10;
     }
 
     @Override

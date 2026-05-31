@@ -62,10 +62,12 @@ public class SporeToolsBaseItem extends BaseItem implements IForgeItem, SporeWea
    public boolean isValidRepairItem(ItemStack stack, ItemStack itemStack) {
       return super.isValidRepairItem(stack, itemStack) || itemStack.getItem() == Sitems.BIOMASS.get();
    }
-
+   public double getAttackDamageByDefault(ItemStack stack) {
+       return this.calculateTrueDamage(stack, this.meleeDamage) + this.modifyDamage(stack, this.meleeDamage);
+   }
    public Multimap getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
       ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-      builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(this.BONUS_DAMAGE_MODIFIER_UUID, "Tool modifier", this.calculateTrueDamage(stack, this.meleeDamage) + this.modifyDamage(stack, this.meleeDamage), Operation.ADDITION));
+      builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(this.BONUS_DAMAGE_MODIFIER_UUID, "Tool modifier", this.getAttackDamageByDefault(stack), Operation.ADDITION));
       builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(this.BONUS_RECHARGE_MODIFIER_UUID, "Tool modifier", -this.meleeRecharge + this.modifyRecharge(stack), Operation.ADDITION));
       builder.put((Attribute)ForgeMod.ENTITY_REACH.get(), new AttributeModifier(this.BONUS_REACH_MODIFIER_UUID, "Tool modifier", this.meleeReach + this.modifyRange(stack), Operation.ADDITION));
       return slot == EquipmentSlot.MAINHAND && this.tooHurt(stack) ? builder.build() : ImmutableMultimap.of();

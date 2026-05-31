@@ -3,11 +3,14 @@ package com.Harbinger.Spore.Sitems;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ClientUtils;
 import com.Harbinger.Spore.Sitems.BaseWeapons.DeathRewardingWeapon;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeSwordBase;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +18,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -103,7 +107,12 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
 
             for(LivingEntity target : player.level().getEntitiesOfClass(LivingEntity.class, area, (e) -> e != player && e.isAlive())) {
                this.hurtEnemy(stack, target, player);
-               target.hurt(player.damageSources().playerAttack(player), (float)(Integer)SConfig.SERVER.cleaver_damage.get() / 2.0F);
+               DamageSource source = player.damageSources().playerAttack(player);
+               float v = (float) (Integer) SConfig.SERVER.cleaver_damage.get() / 2.0F;
+               target.hurt(source, v);
+               if(this.getVariant(stack) == SporeToolsMutations.BEZERK) {
+                  SporeAttackUtil.INSTANCE.dealDamage(target, player, source, v);
+               }
                target.hurtTime = 10;
                target.invulnerableTime = 10;
             }

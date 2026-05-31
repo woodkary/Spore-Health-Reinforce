@@ -38,16 +38,22 @@ public interface ICustomLifeCycleEntity {
     }
     default void actualHurt(DamageSource source, float damage) {
         LivingEntity liv=entity();
-        if (!liv.isInvulnerableTo(source)&&!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv)) {
+        if (!liv.isInvulnerableTo(source)&&!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv,source)) {
+            boolean isFreezeDamage = source != liv.damageSources().freeze();
             damage = ForgeHooks.onLivingHurt(liv, source, damage);
-            float reduceRate = 0.4f;
-            damage = Math.min(liv.getMaxHealth() * reduceRate, damage);
+            float reduceRate = 1.0f;
+            if(!isFreezeDamage){
+                reduceRate = 0.4f;
+                damage = Math.min(liv.getMaxHealth() * reduceRate, damage);
+            }
             SporeEntityHeeaafastthManager.INSTANCE.setIffranemeTicgk(liv,0);
             if (damage <= 0.0F) {
                 return;
             }
             liv.hurtArmor(source,damage);
-            damage= SporeAttackUtil.INSTANCE.damageReduction(liv,damage, source);
+            if(!isFreezeDamage){
+                damage= SporeAttackUtil.INSTANCE.damageReduction(liv,damage, source);
+            }
             float f1 = Math.max(damage - liv.getAbsorptionAmount(), 0.0F);
             liv.setAbsorptionAmount(liv.getAbsorptionAmount() - (damage - f1));
             float f = damage - f1;
@@ -62,7 +68,9 @@ public interface ICustomLifeCycleEntity {
             //新的f1不能大于原来的f1
             f1=Math.min(f1,oldF1);
             if (f1 != 0.0F) {
-                f1 = Math.min(liv.getMaxHealth() * reduceRate, f1);
+                if(!isFreezeDamage) {
+                    f1 = Math.min(liv.getMaxHealth() * reduceRate, f1);
+                }
                 liv.getCombatTracker().recordDamage(source, f1);
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv, Mth.clamp(
                         SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(liv) - f1,

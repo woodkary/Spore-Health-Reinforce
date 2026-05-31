@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -150,9 +151,8 @@ public class SporeAttackUtil implements IAttack {
             return;
         }
         Level level = player.level;
-        if (SporeJudge.isSporeTieredItem(i)) {
-            TieredItem ti = (TieredItem) i;
-            float damage = ti.getTier().getAttackDamageBonus();
+        if (i instanceof SporeToolsBaseItem baseItem) {
+            float damage = (float) baseItem.getAttackDamageByDefault(stack);
             float scale = player.getAttackStrengthScale(0.5F);
             damage *= 0.2F + scale * scale * 0.8F;
             boolean isCritical = specialAttack(player, target, level, stack, damage, scale > 0.9f);
@@ -172,7 +172,12 @@ public class SporeAttackUtil implements IAttack {
         if (strength != null) {
             damage += 2*(strength.getAmplifier() + 1);
         }
-        DamageSource damageSource = attacker.damageSources().mobAttack(attacker);
+        DamageSource damageSource;
+        if(attacker instanceof Player player){
+            damageSource = attacker.damageSources().playerAttack(player);
+        }else{
+            damageSource = attacker.damageSources().mobAttack(attacker);
+        }
         damage=damageReduction(target,damage,damageSource);
 
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
