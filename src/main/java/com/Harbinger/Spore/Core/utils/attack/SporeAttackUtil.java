@@ -212,6 +212,9 @@ public final class SporeAttackUtil implements IAttack {
         dealDamage(target,null,damageSource,damage);
     }
     public void dealDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage) {
+        if(attacker instanceof Player player){
+            target.setLastHurtByPlayer(player);
+        }
         float targetHealth = target.getHealth();
         boolean willDie = targetHealth - damage <= 0.0f;
         if(willDie){

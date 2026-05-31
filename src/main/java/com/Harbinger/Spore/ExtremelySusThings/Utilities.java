@@ -3,6 +3,8 @@ package com.Harbinger.Spore.ExtremelySusThings;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
@@ -26,6 +28,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -99,7 +102,12 @@ public class Utilities {
       AABB searchbox = AABB.ofSize(new Vec3((double)pos.getX(), (double)pos.getY(), (double)pos.getZ()), range * (double)2.0F, range * (double)2.0F, range * (double)2.0F);
 
       for(Entity entity : level.getEntities(owner, searchbox, predicate)) {
-         entity.hurt(level.damageSources().mobAttack((LivingEntity)owner), damage);
+         LivingEntity ownerLiving = (LivingEntity) owner;
+         DamageSource source = level.damageSources().mobAttack(ownerLiving);
+         if(!SporeJudge.isSporeEntity(entity)&&entity instanceof LivingEntity liv) {
+            SporeAttackUtil.INSTANCE.dealDamage(liv, ownerLiving,source,damage);
+         }
+         entity.hurt(source, damage);
       }
 
       level.playSound((Player)null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS);

@@ -3,6 +3,9 @@ package com.Harbinger.Spore.Sentities.Utility;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Ssounds;
 import java.util.function.Predicate;
+
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -15,6 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -156,7 +160,12 @@ public class NukeEntity extends Entity {
             if (this.livingEntityPredicate.test(living)) {
                living.setSecondsOnFire(10);
                this.addEffect(living);
-               living.hurt(this.damageSources().inFire(), this.getDamage());
+               DamageSource source = this.damageSources().inFire();
+               float damage = this.getDamage();
+               if(!SporeJudge.isSporeEntity(living)) {
+                  SporeAttackUtil.INSTANCE.dealDamage(living, source, damage);
+               }
+               living.hurt(source, damage);
                living.hurtTime = 10;
                living.invulnerableTime = 10;
             }
