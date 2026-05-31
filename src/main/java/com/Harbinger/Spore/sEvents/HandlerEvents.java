@@ -1,5 +1,7 @@
 package com.Harbinger.Spore.sEvents;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Spore;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
@@ -150,13 +152,13 @@ public class HandlerEvents {
    private static int tickCounter = 0;
    private static final int CHECK_INTERVAL = 1200;
    private static int val;
-
    @SubscribeEvent
    public static void onServerTick(TickEvent.ServerTickEvent event) {
       if (event.phase == Phase.END) {
          ChunkLoaderHelper.tick();
       }
-
+      SporeEntityHeeaafastthManager.INSTANCE.tick();
+      EntityHeealuthManager.INSTANCE.tick();
       if (event.phase == Phase.END) {
          ++tickCounter;
          if (tickCounter >= 1200) {

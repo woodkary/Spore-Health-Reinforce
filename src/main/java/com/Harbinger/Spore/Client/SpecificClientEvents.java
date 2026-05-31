@@ -14,6 +14,8 @@ import com.Harbinger.Spore.Client.MusicManager.MenuMusicPlayer;
 import com.Harbinger.Spore.Client.MusicManager.SporeMusicPlayer;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SporeGunFirePacket;
 import com.Harbinger.Spore.Sitems.CustomModelArmorData;
@@ -56,6 +58,8 @@ public class SpecificClientEvents {
    @SubscribeEvent
    public static void onClientTick(TickEvent.ClientTickEvent event) {
       handleGunTrigger();
+      SporeEntityHeeaafastthManager.INSTANCE.tick();
+      EntityHeealuthManager.INSTANCE.tick();
       if (event.phase == Phase.END) {
          PCIAnimationTracker.tickAll();
          SGAnimationTracker.tickAll();

@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.asmHooks;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
+import com.Harbinger.Spore.Core.utils.ProtectedConcurrentHashMap;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import net.minecraft.nbt.CompoundTag;
@@ -19,10 +20,10 @@ import java.util.function.BiFunction;
 /**
  * @author karywoodOyo
  */
-public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
+public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     public static final ISporeEntityHealth INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ISporeEntityHealth.class, SporeEntityHeeaafastthManager.class);
-    private final Map<LivingEntity, Float> entityMaxHeeaafastth = new WeakHashMap<>();
-    private final Map<LivingEntity, Float> etiHeuahMape = new WeakHashMap<>();
+    private final Map<LivingEntity, Float> entityMaxHeeaafastth = ProtectedConcurrentHashMap.newInstance();
+    private final Map<LivingEntity, Float> etiHeuahMape = ProtectedConcurrentHashMap.newInstance();
     private final BiFunction<LivingEntity, Float, Float> entityHealthJudge;
     public SporeEntityHeeaafastthManager() {
         entityHealthJudge= SporeEntityHealthJudge.newInstance(this.entityMaxHeeaafastth);
@@ -166,6 +167,26 @@ public class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         int iTick = getIffranemeTicgk(entity);
         if(iTick<10) {
             setIffranemeTicgk(entity, iTick + 1);
+        }
+    }
+    // 每隔五秒清除死亡实体
+    private int tickCount = 100;
+
+    @Override
+    public void tick() {
+        tickCount--;
+        if (tickCount <= 0) {
+            Iterator<Map.Entry<LivingEntity, Float>> iterator = etiHeuahMape.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<LivingEntity, Float> entry = iterator.next();
+                LivingEntity entity = entry.getKey();
+                float health = entry.getValue();
+                if (health <= 0.0f&&entity.isRemoved()) {
+                    iterator.remove();
+                    entityMaxHeeaafastth.remove(entity);
+                }
+            }
+            tickCount = 100;
         }
     }
 

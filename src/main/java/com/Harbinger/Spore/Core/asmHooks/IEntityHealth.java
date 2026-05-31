@@ -7,7 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public interface IEntityHealth {
     SynchedEntityData getEmptyEntityData(Entity entity);
-
+    void tick();
     float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth);
     double getMaaxxHeaaltsh(LivingEntity entity, double initialHealth);
     boolean isAlliive(LivingEntity entity, boolean initialValue);

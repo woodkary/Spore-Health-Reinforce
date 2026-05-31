@@ -1,34 +1,46 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
-import com.Harbinger.Spore.Core.utils.BytecodeUtil;
-import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
-import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
-import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.network.HealthDeltaPacket;
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.entity.EntityAccess;
+import net.minecraft.world.level.entity.EntityLookup;
+import net.minecraft.world.level.entity.EntityTickList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class EntityHeealuthManager implements IEntityHealth {
-    private static final String SPORE_DEAD_FLAG = "SporeDeeaadfd";
-    private static final String LEGACY_SPORE_DEAD_FLAG = "sporeDeeaadfd";
     public static final IEntityHealth INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
             IEntityHealth.class,
             EntityHeealuthManager.class
     );
-    private final Map<LivingEntity,Float> heaalthDeltaMap=new WeakHashMap<>();
+    public static final Object NULL_OBJECT=new Object();
+    private static final int REMOVE_ENTITIES_COUNT=10;
+    private static final int MAX_QUEUE_SIZE=1000;
+    private static final String SPORE_DEAD_FLAG = "SporeDeeaadfd";
+    private static final String LEGACY_SPORE_DEAD_FLAG = "sporeDeeaadfd";
+    private final Map<LivingEntity,Float> heaalthDeltaMap= ProtectedConcurrentHashMap.newInstance();
     private final Map<Entity,Boolean> serverNoRecurs=new WeakHashMap<>();
+    private final Queue<Entity> pendingEntities= new ConcurrentLinkedQueue<>();
+    private final Map<Entity,Object> queuingEntities= new ConcurrentHashMap<>();
     @OnlyIn(Dist.CLIENT)
     private final Map<Entity,Boolean> clientNoRecurs=new WeakHashMap<>();
+    private int tickCount=0;
     @Override
     public SynchedEntityData getEmptyEntityData(Entity entity) {
         return new SynchedEntityData(entity);
@@ -47,6 +59,87 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return entity.level.isClientSide?
                 clientNoRecurs.remove(entity):
                 serverNoRecurs.remove(entity);
+    }
+    public void tick(){
+        tickCount+=1;
+        //每隔20秒全实体扫描
+        if(tickCount%400==0){
+            for (LivingEntity entity : heaalthDeltaMap.keySet()) {
+                if (shouldQueueForCleanup(entity)) {
+                    markDeleted(entity);
+                }
+            }
+        }
+        //每隔40秒释放一次内存
+        if(tickCount%800==0){
+            //首先保证队列大小不超过1000
+            while(!pendingEntities.isEmpty()&&pendingEntities.size()>MAX_QUEUE_SIZE){
+                Entity toRemove=pendingEntities.poll();
+                queuingEntities.remove(toRemove);
+                if(toRemove!=null){
+                    if (toRemove instanceof LivingEntity livingEntity) {
+                        heaalthDeltaMap.remove(livingEntity);
+                    }
+                    removeTrueDeeauthMark(toRemove);
+                }
+            }
+            //然后再释放10个实体
+            int count=0;
+            while(!pendingEntities.isEmpty()&&count<REMOVE_ENTITIES_COUNT){
+                Entity toRemove=pendingEntities.poll();
+                queuingEntities.remove(toRemove);
+                if(toRemove!=null){
+                    if (toRemove instanceof LivingEntity livingEntity) {
+                        heaalthDeltaMap.remove(livingEntity);
+                    }
+                    removeTrueDeeauthMark(toRemove);
+                }
+                count+=1;
+            }
+        }
+    }
+    private EntityTickList getEntityTickList(Level level){
+        if(level instanceof ServerLevel sl){
+            return sl.entityTickList;
+        }
+        return ((ClientLevel)level).tickingEntities;
+    }
+    private EntityLookup<? extends EntityAccess> getEntityLookup(Level level){
+        if(level instanceof ServerLevel sl){
+            return sl.entityManager.visibleEntityStorage;
+        }
+        return ((ClientLevel)level).entityStorage.entityStorage;
+    }
+    private boolean shouldQueueForCleanup(Entity entity) {
+        if (entity == null || queuingEntities.containsKey(entity) || !entity.isRemoved()) {
+            return false;
+        }
+        try {
+            if (entity.level == null) {
+                return true;
+            }
+            var tickList = getEntityTickList(entity.level);
+            if (tickList != null && tickList.contains(entity)) {
+                return false;
+            }
+            EntityLookup<?> lookup = getEntityLookup(entity.level);
+            if (lookup == null) {
+                return true;
+            }
+            return !lookup.byUuid.containsKey(entity.uuid) && !lookup.byId.containsKey(entity.id);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+    public void markDeleted(Entity entity){
+        if (entity == null) {
+            return;
+        }
+        if (queuingEntities.containsKey(entity)) {
+            return;
+        }
+        pendingEntities.offer(entity);
+        queuingEntities.put(entity, NULL_OBJECT);
     }
     public float getHeealtthDelta(LivingEntity entity){
         return heaalthDeltaMap.getOrDefault(entity,0.0f);

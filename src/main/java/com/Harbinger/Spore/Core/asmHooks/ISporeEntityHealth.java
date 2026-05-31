@@ -25,4 +25,6 @@ public interface ISporeEntityHealth {
     void hurrt(LivingEntity entity, DamageSource source, float amount);
 
     void updateIFrameTick(LivingEntity entity);
+
+    void tick();
 }
