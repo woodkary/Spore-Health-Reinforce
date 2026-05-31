@@ -21,7 +21,7 @@ public class HealthPacketHandler {
         ENTITY_HEALTH_CHANNEL.messageBuilder(HealthDataPacket.class, ChannelIdHandler.getChannelId(), NetworkDirection.PLAY_TO_CLIENT).encoder(HealthDataPacket::encode).decoder(HealthDataPacket::decode).consumerMainThread(HealthDataPacket::handle).add();
         registered = true;
     }
-    public static <MSG> void sendToClient(HealthDataPacket msg) {
+    public static void sendToClient(HealthDataPacket msg) {
         if (!Thread.currentThread().getName().contains("Render")) {
             ENTITY_HEALTH_CHANNEL.send(PacketDistributor.ALL.noArg(), msg);
         }

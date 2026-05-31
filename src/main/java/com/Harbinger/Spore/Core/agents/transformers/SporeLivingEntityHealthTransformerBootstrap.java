@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Core.agents.transformers;
 
 import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -9,13 +10,13 @@ import java.lang.instrument.ClassFileTransformer;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class SporeLivingEntityHealthTransformerBootstrap {
-    private static volatile boolean installed;
-
-    private SporeLivingEntityHealthTransformerBootstrap() {
-    }
-
-    public static synchronized void installAndRetransform() {
+public final class SporeLivingEntityHealthTransformerBootstrap implements ICommonBootStrap  {
+    public static final ICommonBootStrap INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
+            ICommonBootStrap.class,
+            SporeLivingEntityHealthTransformerBootstrap.class
+    );
+    private volatile boolean installed;
+    public synchronized void installAndRetransform() {
         if (installed) {
             return;
         }
@@ -30,7 +31,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap {
         retransformLoadedLivingEntities(instrumentation);
     }
 
-    private static void retransformLoadedLivingEntities(IInstrumentations instrumentation) {
+    private void retransformLoadedLivingEntities(IInstrumentations instrumentation) {
         if (!instrumentation.isRetransformClassesSupported()) {
             LogUtil.error("RetransformClasses is not supported by current Instrumentation.");
             return;
@@ -55,7 +56,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap {
         }
     }
 
-    private static void retransformIndividually(IInstrumentations instrumentation, List<Class<?>> targets) {
+    private void retransformIndividually(IInstrumentations instrumentation, List<Class<?>> targets) {
         int transformed = 0;
         for (Class<?> target : targets) {
             try {
@@ -70,7 +71,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap {
         LogUtil.logf("Retransformed %d loaded LivingEntity classes individually.", transformed);
     }
 
-    private static boolean shouldRetransform(IInstrumentations instrumentation, Class<?> clazz) {
+    private boolean shouldRetransform(IInstrumentations instrumentation, Class<?> clazz) {
         if (clazz == null
                 || clazz.isHidden()
                 || clazz.isArray()

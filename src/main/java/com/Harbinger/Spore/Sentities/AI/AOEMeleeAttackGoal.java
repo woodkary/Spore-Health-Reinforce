@@ -3,17 +3,18 @@ package com.Harbinger.Spore.Sentities.AI;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.function.Predicate;
+
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 
-public class AOEMeleeAttackGoal extends Goal {
+public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackGoal {
    protected final PathfinderMob mob;
    protected Predicate<LivingEntity> victims;
    private final double speedModifier;
@@ -112,6 +113,7 @@ public class AOEMeleeAttackGoal extends Goal {
    }
 
    public void tick() {
+      tickASMAttack();
       LivingEntity livingentity = this.mob.getTarget();
       if (livingentity != null) {
          this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
@@ -156,7 +158,20 @@ public class AOEMeleeAttackGoal extends Goal {
       }
 
    }
+   @Override
+   public Mob mob() {
+      return this.mob;
+   }
 
+   @Override
+   public double attackReachSqr(LivingEntity target) {
+      return getAttackReachSqr(target);
+   }
+
+   @Override
+   public int ticksUntilNextAttack() {
+      return ticksUntilNextAttack;
+   }
    protected void resetAttackCooldown() {
       this.ticksUntilNextAttack = this.adjustedTickDelay(20);
    }

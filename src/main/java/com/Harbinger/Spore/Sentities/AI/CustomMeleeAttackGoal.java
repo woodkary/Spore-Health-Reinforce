@@ -1,17 +1,18 @@
 package com.Harbinger.Spore.Sentities.AI;
 
 import java.util.EnumSet;
+
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 
-public class CustomMeleeAttackGoal extends Goal {
+public class CustomMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackGoal {
    protected final PathfinderMob mob;
    private final double speedModifier;
    private final boolean followingTargetEvenIfNotSeen;
@@ -100,7 +101,23 @@ public class CustomMeleeAttackGoal extends Goal {
       return true;
    }
 
+   @Override
+   public Mob mob() {
+      return this.mob;
+   }
+
+   @Override
+   public double attackReachSqr(LivingEntity target) {
+      return getAttackReachSqr(target);
+   }
+
+   @Override
+   public int ticksUntilNextAttack() {
+      return ticksUntilNextAttack;
+   }
+
    public void tick() {
+      tickASMAttack();
       LivingEntity livingentity = this.mob.getTarget();
       if (livingentity != null) {
          this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
