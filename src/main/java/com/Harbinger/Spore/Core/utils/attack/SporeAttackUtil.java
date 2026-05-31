@@ -242,7 +242,8 @@ public final class SporeAttackUtil implements IAttack {
                 if(!attacker.level.isClientSide) {
                     attacker.killedEntity((ServerLevel) attacker.level(), target);
                 }
-                attacker.awardKillScore(target, (int) (target.getMaxHealth()*0.5),damageSource);
+                double maxHealth = target.attributes.getValue(Attributes.MAX_HEALTH);
+                attacker.awardKillScore(target, (int) (maxHealth*0.5),damageSource);
             }
             if(flag==1){
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);

@@ -4,11 +4,14 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
@@ -153,6 +156,9 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
          AABB hitbox = entity.getBoundingBox().inflate(this.box);
 
          for(LivingEntity en : entity.level().getEntitiesOfClass(LivingEntity.class, hitbox, this.victims)) {
+            if(!SporeJudge.isSporeEntity(en)){
+               SporeAttackUtil.INSTANCE.attack(en, this.mob, (float) this.mob.attributes.getValue(Attributes.ATTACK_DAMAGE));
+            }
             this.mob.doHurtTarget(en);
          }
       }
