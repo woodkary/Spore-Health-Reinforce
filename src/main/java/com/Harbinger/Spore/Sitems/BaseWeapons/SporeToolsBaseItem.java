@@ -29,7 +29,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -99,7 +98,7 @@ public class SporeToolsBaseItem extends BaseItem implements IForgeItem, SporeWea
          player.getCooldowns().addCooldown(this, 60);
       }
 
-      return false;
+      return doASMRangeHurtOnSwing(stack,entity);
    }
 
    public boolean hurtEnemy(ItemStack stack, LivingEntity living, LivingEntity entity) {

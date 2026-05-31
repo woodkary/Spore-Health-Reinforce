@@ -8,6 +8,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -16,9 +17,11 @@ import javax.annotation.Nullable;
 public interface IAttack {
     void attack(LivingEntity target, Mob attacker);
     void attack(Player player, Entity target);
+    void attack(Player player, Entity t, ItemStack stack);
     void attack(LivingEntity target, LivingEntity attacker,float baseDamage);
     void dealDamage(LivingEntity target, float damage);
     void dealDamage(LivingEntity target, DamageSource source, float damage);
+    void dealDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage);
     float damageReduction(LivingEntity entity, float rawDamage, DamageSource source);
     void playHurtSound(LivingEntity entity, DamageSource source);
     void playSound(Level level, @Nullable Player player, BlockPos blockPos, SoundEvent soundEvent, SoundSource source, float soundVolume, float voicePitch);

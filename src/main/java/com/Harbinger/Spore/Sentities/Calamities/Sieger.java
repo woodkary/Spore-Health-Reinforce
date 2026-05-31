@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
@@ -304,6 +305,9 @@ public class Sieger extends Calamity implements RangedAttackMob, TrueCalamity {
    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
       if (calamityMultipart == this.tail || calamityMultipart == this.tail2) {
          this.hurt(source, this.isAdapted() ? value : value * 2.0F);
+         if(!this.isAdapted()) {
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
+         }
          float lostHealth = this.getTailHp() - this.getDamageAfterArmorAbsorb(source, value);
          this.setTailHp(lostHealth > 0.0F ? lostHealth : (this.getTailHp() != 0.0F ? this.SummonDetashedTail() : 0.0F));
       }

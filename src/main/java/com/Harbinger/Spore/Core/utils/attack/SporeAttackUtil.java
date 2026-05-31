@@ -141,8 +141,10 @@ public class SporeAttackUtil implements IAttack {
         target.setLastHurtByPlayer(player);
         attack(target,player,baseDamage);
     }
-    public void attack(Player player,Entity t){
-        ItemStack stack = player.getMainHandItem();
+    public void attack(Player player,Entity t) {
+        attack(player,t,player.getMainHandItem());
+    }
+    public void attack(Player player,Entity t,ItemStack stack){
         Item i=stack.getItem();
         if(!(t instanceof LivingEntity target)||!target.isAlive()){
             return;
@@ -185,7 +187,7 @@ public class SporeAttackUtil implements IAttack {
     public void dealDamage(LivingEntity target,DamageSource damageSource,float damage){
         dealDamage(target,null,damageSource,damage);
     }
-    private void dealDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage) {
+    public void dealDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage) {
         float targetHealth = target.getHealth();
         boolean willDie = targetHealth - damage <= 0.0f;
         if(willDie){

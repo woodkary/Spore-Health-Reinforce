@@ -1,11 +1,15 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -21,6 +25,17 @@ public interface SporeWeaponData {
 
    default boolean tooHurt(ItemStack stack) {
       return stack.getDamageValue() < stack.getMaxDamage() - 10;
+   }
+   default boolean doASMRangeHurtOnSwing(ItemStack stack, LivingEntity attacker){
+      if(!(attacker instanceof Player player)||!(this.getVariant(stack) == SporeToolsMutations.BEZERK)){
+         return false;
+      }
+      Entity target=SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
+      if(target==null||target instanceof AbstractVillager){
+         return false;
+      }
+      SporeAttackUtil.INSTANCE.attack(player,target,stack);
+      return true;
    }
 
    default double calculateTrueDamage(ItemStack stack, double meleeDamage) {

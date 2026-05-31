@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
@@ -256,8 +257,10 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
       if (calamityMultipart == this.mouth) {
          this.hurt(source, value * 1.25F);
+         SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
       } else if (calamityMultipart == this.swordArm && this.getSwordArmHp() > 0.0F) {
          this.hurt(source, value * 1.5F);
+         SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value*1.1f);
          float lostHealth = this.getSwordArmHp() - this.getDamageAfterArmorAbsorb(source, value);
          this.setSwordtArmHp(lostHealth > 0.0F ? lostHealth : (this.getSwordArmHp() != 0.0F ? this.summonDetashedPart() : 0.0F));
       }

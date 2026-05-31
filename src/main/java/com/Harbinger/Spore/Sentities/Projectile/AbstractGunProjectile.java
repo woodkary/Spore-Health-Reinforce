@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.CalamityMultipart;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
@@ -100,15 +101,14 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
             }
 
             if (severedPart == null) {
-               living.hurt(this.level().damageSources().mobProjectile(this, owner), damage);
+               SporeAttackUtil.INSTANCE.dealDamage(living,owner,this.level().damageSources().mobProjectile(this, owner), damage);
             } else {
                severedPart.hurt(this.level().damageSources().mobProjectile(this, owner), damage);
             }
 
             this.doHitAfterEffects(living, owner);
-            if (living instanceof Player && owner instanceof Player) {
-               Player player = (Player)owner;
-               player.playNotifySound((SoundEvent)Ssounds.BIOGUN_HIT_PLAYER.get(), SoundSource.MASTER, 1.0F, 1.0F);
+            if (living instanceof Player && owner instanceof Player player) {
+                player.playNotifySound((SoundEvent)Ssounds.BIOGUN_HIT_PLAYER.get(), SoundSource.MASTER, 1.0F, 1.0F);
             } else {
                this.playSound(this.entityImpactSound());
             }
