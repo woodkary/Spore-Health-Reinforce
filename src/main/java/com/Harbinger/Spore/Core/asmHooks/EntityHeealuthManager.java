@@ -425,7 +425,6 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }
         if(isSporeEntity(entity)){
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(entity,0.0f);
-            return;
         }
         setHeealtthDelta(entity, Float.NEGATIVE_INFINITY);
         HeasdalthUtil.INSTANCE.die(entity, source != null ? source : entity.damageSources().genericKill());
