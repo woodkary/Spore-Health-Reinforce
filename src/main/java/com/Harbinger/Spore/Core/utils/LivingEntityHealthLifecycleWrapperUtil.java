@@ -12,14 +12,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -50,6 +48,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     private static final String RIDE_TICK_OBF_NAME = "m_6083_";
     private static final String BASE_TICK_NAME = "baseTick";
     private static final String BASE_TICK_OBF_NAME = "m_6075_";
+    private static final String TICK_DEATH_OBF_NAME = "m_6153_";
     private static final String GET_INVENTORY_NAME = "getInventory";
     private static final String GET_INVENTORY_OBF_NAME = "m_150109_";
     private static final String PLAYER_INVENTORY_DESC = "()Lnet/minecraft/world/entity/player/Inventory;";
@@ -195,6 +194,23 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             return null;
         }
     }
+    private void overrideBaseTickMethodToTickDeath(ClassNode node){
+        //node.methods.removeIf(method -> BASE_TICK_OBF_NAME.equals(method.name) && RESPAWN_DESC.equals(method.desc));
+        Iterator<MethodNode> iterator = node.methods.iterator();
+        while(iterator.hasNext()){
+            MethodNode method = iterator.next();
+            if(BASE_TICK_OBF_NAME.equals(method.name) && RESPAWN_DESC.equals(method.desc)){
+                iterator.remove();
+            }
+        }
+        MethodVisitor mv = node.visitMethod(Opcodes.ACC_PUBLIC, BASE_TICK_OBF_NAME, RESPAWN_DESC, null, null);
+        mv.visitCode();
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, LIVING_ENTITY_INTERNAL, TICK_DEATH_OBF_NAME, RESPAWN_DESC, false);
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+    }
     @Override
     public Class<?> buildDeathWrapperClass(Class<?> callback) {
         try {
@@ -213,6 +229,9 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             emitDeathStateMethods(node, callback);
             if(Player.class.isAssignableFrom(callback)){
                 emitPlayerRespawnNoopMethods(node, callback);
+            }
+            if(callback.getName().startsWith("com.jerotes.jerotesvillage.entity.Boss.Biome.VariantZsieinEntity")){
+                overrideBaseTickMethodToTickDeath(node);
             }
             node.visitEnd();
 
