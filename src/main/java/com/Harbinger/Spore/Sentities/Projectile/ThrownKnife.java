@@ -6,7 +6,10 @@ import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import javax.annotation.Nullable;
 import net.minecraft.nbt.CompoundTag;
@@ -147,17 +150,17 @@ public class ThrownKnife extends AbstractArrow {
             return;
          }
 
-         if (entity instanceof LivingEntity) {
-            LivingEntity livingEntity = (LivingEntity)entity;
-            if (entity1 instanceof LivingEntity) {
-               LivingEntity ownerLiving = (LivingEntity)entity1;
-               EnchantmentHelper.doPostHurtEffects(livingEntity, ownerLiving);
-               EnchantmentHelper.doPostDamageEffects(ownerLiving, livingEntity);
-               Item var10 = this.spearItem.getItem();
-               if (var10 instanceof SporeWeaponData) {
-                  SporeWeaponData data = (SporeWeaponData)var10;
-                  data.abstractMutationBuffs(livingEntity, ownerLiving, this.spearItem, data);
-               }
+         if (entity instanceof LivingEntity target) {
+             if (entity1 instanceof LivingEntity ownerLiving) {
+                EnchantmentHelper.doPostHurtEffects(target, ownerLiving);
+                EnchantmentHelper.doPostDamageEffects(ownerLiving, target);
+                Item var10 = this.spearItem.getItem();
+                if (var10 instanceof SporeWeaponData data) {
+                   if(data.getVariant(spearItem) == SporeToolsMutations.BEZERK) {
+                      SporeAttackUtil.INSTANCE.dealDamage(target, ownerLiving, damagesource, f);
+                   }
+                  data.abstractMutationBuffs(target, ownerLiving, this.spearItem, data);
+                }
             }
 
             if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, this.spearItem) > 0) {
@@ -165,8 +168,8 @@ public class ThrownKnife extends AbstractArrow {
                entity.setSecondsOnFire(4 * j);
             }
 
-            abstractEffects(this.spearItem, livingEntity);
-            this.doPostHurtEffects(livingEntity);
+            abstractEffects(this.spearItem, target);
+            this.doPostHurtEffects(target);
          }
       }
 

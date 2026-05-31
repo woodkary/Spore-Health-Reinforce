@@ -6,7 +6,9 @@ import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import javax.annotation.Nullable;
 import net.minecraft.nbt.CompoundTag;
@@ -136,16 +138,16 @@ public class ThrownBoomerang extends AbstractArrow {
       DamageSource source = this.damageSources().trident(this, (Entity)(owner == null ? this : owner));
       this.dealtDamage = true;
       if (target.hurt(source, baseDamage)) {
-         if (target instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity)target;
-            if (owner instanceof LivingEntity) {
-               LivingEntity ownerLiving = (LivingEntity)owner;
-               EnchantmentHelper.doPostHurtEffects(living, ownerLiving);
-               EnchantmentHelper.doPostDamageEffects(ownerLiving, living);
+         if (target instanceof LivingEntity target1) {
+             if (owner instanceof LivingEntity ownerLiving) {
+                 EnchantmentHelper.doPostHurtEffects(target1, ownerLiving);
+               EnchantmentHelper.doPostDamageEffects(ownerLiving, target1);
                Item var9 = this.boomerang.getItem();
-               if (var9 instanceof SporeWeaponData) {
-                  SporeWeaponData data = (SporeWeaponData)var9;
-                  data.abstractMutationBuffs(living, ownerLiving, this.boomerang, data);
+               if (var9 instanceof SporeWeaponData data) {
+                  if(data.getVariant(boomerang) == SporeToolsMutations.BEZERK) {
+                     SporeAttackUtil.INSTANCE.dealDamage(target1, ownerLiving, source, baseDamage);
+                  }
+                  data.abstractMutationBuffs(target1, ownerLiving, this.boomerang, data);
                }
             }
 
@@ -153,8 +155,8 @@ public class ThrownBoomerang extends AbstractArrow {
                target.setSecondsOnFire(4 * EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, this.boomerang));
             }
 
-            abstractEffects(this.boomerang, living);
-            this.doPostHurtEffects(living);
+            abstractEffects(this.boomerang, target1);
+            this.doPostHurtEffects(target1);
          }
 
          this.setDeltaMovement(this.getDeltaMovement().multiply(-0.01, -0.1, -0.01));
