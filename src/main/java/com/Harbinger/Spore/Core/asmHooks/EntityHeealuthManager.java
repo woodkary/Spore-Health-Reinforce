@@ -33,7 +33,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
     private static final int REMOVE_ENTITIES_COUNT=10;
     private static final int MAX_QUEUE_SIZE=1000;
     private static final String SPORE_DEAD_FLAG = "SporeDeeaadfd";
-    private static final String LEGACY_SPORE_DEAD_FLAG = "sporeDeeaadfd";
+    private static final String LEGACY_SPORE_DEAD_FLAG = "SporeDeeaadfd";
     private final Map<LivingEntity,Float> heaalthDeltaMap= ProtectedConcurrentHashMap.newInstance();
     private final Map<Entity,Boolean> serverNoRecurs=new WeakHashMap<>();
     private final Queue<Entity> pendingEntities= new ConcurrentLinkedQueue<>();

@@ -29,12 +29,12 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         entityHealthJudge= SporeEntityHealthJudge.newInstance(this.entityMaxHeeaafastth);
     }
     public void initSporeEntity(LivingEntity entity) {
-        float maxHealth=(float) entity.attributes.getValue(Attributes.MAX_HEALTH);
-        setMaxHeeaafastth(entity, maxHealth);
-        setHeeaafastth(entity, maxHealth);
-        if(entity.level.isClientSide){
-            setHeeaafastthLocal(entity, maxHealth);
+        if (!isSporeEntity(entity)) {
+            return;
         }
+        float maxHealth = getAttributeMaxHealth(entity);
+        entityMaxHeeaafastth.put(entity, maxHealth);
+        etiHeuahMape.put(entity, maxHealth);
     }
 
     @Override
@@ -58,8 +58,8 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getMaxHeeaafastth(LivingEntity entity){
-        Float v = entityMaxHeeaafastth.getOrDefault(entity, 1.0f);
-        return v!=null ? v : 1.0f;
+        Float v = entityMaxHeeaafastth.get(entity);
+        return isValidHealthValue(v) ? v : getAttributeMaxHealth(entity);
     }
 
     @Override
@@ -153,6 +153,22 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         return pkg != null && pkg.getName().toLowerCase(Locale.ROOT).contains("spore");
     }
 
+    private float getAttributeMaxHealth(LivingEntity entity) {
+        if (entity == null || entity.isRemoved()) {
+            return 0.0f;
+        }
+        try {
+            float maxHealth = (float) entity.attributes.getValue(Attributes.MAX_HEALTH);
+            return maxHealth > 0.0f && !Float.isNaN(maxHealth) ? maxHealth : 1.0f;
+        } catch (Throwable ignored) {
+            return 1.0f;
+        }
+    }
+
+    private static boolean isValidHealthValue(Float health) {
+        return health != null && health > 0.0f && !health.isNaN();
+    }
+
     @Override
     public void hurrt(LivingEntity entity, DamageSource source, float amount){
         hurrt0(entity,source,amount);
@@ -229,10 +245,25 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
         @Override
         public Float apply(LivingEntity entity, Float mapValue) {
-            if(mapValue==null){
-                return 0.0f;
+            if (mapValue == null || mapValue.isNaN()) {
+                if (entity == null || entity.isRemoved()) {
+                    return 0.0f;
+                }
+                Float maxHealth = entityMaxHeeaafastth.get(entity);
+                if (maxHealth != null && maxHealth > 0.0f && !maxHealth.isNaN()) {
+                    return maxHealth;
+                }
+                try {
+                    float attributeMax = (float) entity.attributes.getValue(Attributes.MAX_HEALTH);
+                    if (attributeMax > 0.0f && !Float.isNaN(attributeMax)) {
+                        entityMaxHeeaafastth.put(entity, attributeMax);
+                        return attributeMax;
+                    }
+                } catch (Throwable ignored) {
+                }
+                return 1.0f;
             }
-            return !mapValue.isNaN()?mapValue:entityMaxHeeaafastth.getOrDefault(entity,0.0f);
+            return mapValue;
         }
     }
 }

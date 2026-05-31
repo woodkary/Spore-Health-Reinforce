@@ -28,6 +28,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
     private static final String LIVING_ENTITY_INTERNAL = "net/minecraft/world/entity/LivingEntity";
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/SporeEntityHeeaafastthManager";
     private static final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/asmHooks/ISporeEntityHealth";
+    private static final String INIT_METHOD = "initSporeEntity";
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
             (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
                     SporeLivingEntityHealthTransformer.class
@@ -151,7 +152,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
     }
 
     private boolean transformLivingEntity(ClassNode classNode) {
-        boolean modified = false;
+        boolean modified = patchConstructors(classNode);
         List<MethodNode> methods = classNode.methods;
         for (MethodNode method : methods) {
             if (!canPatch(method) || alreadyCallsHook(method)) {
@@ -176,6 +177,59 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
             }
         }
         return modified;
+    }
+
+    private boolean patchConstructors(ClassNode classNode) {
+        boolean modified = false;
+        List<MethodNode> methods = classNode.methods;
+        for (MethodNode method : methods) {
+            if (!"<init>".equals(method.name) || method.instructions == null || constructorAlreadyCallsInit(method)) {
+                continue;
+            }
+            boolean methodModified = false;
+            for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; ) {
+                AbstractInsnNode next = insn.getNext();
+                if (insn.getOpcode() == Opcodes.RETURN) {
+                    InsnList inject = new InsnList();
+                    inject.add(new FieldInsnNode(
+                            Opcodes.GETSTATIC,
+                            HOOK_OWNER,
+                            "INSTANCE",
+                            "L" + HOOK_INTERFACE + ";"
+                    ));
+                    inject.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    inject.add(new MethodInsnNode(
+                            Opcodes.INVOKEINTERFACE,
+                            HOOK_INTERFACE,
+                            INIT_METHOD,
+                            "(L" + LIVING_ENTITY_INTERNAL + ";)V",
+                            true
+                    ));
+                    method.instructions.insertBefore(insn, inject);
+                    methodModified = true;
+                }
+                insn = next;
+            }
+            if (methodModified) {
+                modified = true;
+                LogUtil.logf("Transformed LivingEntity constructor %s.%s%s",
+                        classNode.name,
+                        method.name,
+                        method.desc);
+            }
+        }
+        return modified;
+    }
+
+    private boolean constructorAlreadyCallsInit(MethodNode method) {
+        for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
+            if (insn instanceof MethodInsnNode methodInsn
+                    && HOOK_INTERFACE.equals(methodInsn.owner)
+                    && INIT_METHOD.equals(methodInsn.name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean canPatch(MethodNode method) {

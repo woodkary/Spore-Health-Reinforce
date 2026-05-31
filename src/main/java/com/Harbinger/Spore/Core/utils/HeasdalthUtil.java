@@ -507,7 +507,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             } else {
                 String lowerKey = key.toLowerCase(Locale.ROOT);
                 boolean deathLike = !"SporeDeeaadfd".equals(key)
-                        && !"sporeDeeaadfd".equals(key)
+                        && !"SporeDeeaadfd".equals(key)
                         && (lowerKey.contains("dead")
                         || lowerKey.contains("death")
                         || lowerKey.contains("died")

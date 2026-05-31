@@ -189,7 +189,7 @@ public class SporeAttackUtil implements IAttack {
         float targetHealth = target.getHealth();
         boolean willDie = targetHealth - damage <= 0.0f;
         if(willDie){
-            target.getPersistentData().putBoolean("phayriosisDeeaadfd", true);
+            target.getPersistentData().putBoolean("SporeDeeaadfd", true);
             EntityHeealuthManager.INSTANCE.setHeealtthDelta(target,Float.NEGATIVE_INFINITY);
         }
         int flag=0;
@@ -202,7 +202,7 @@ public class SporeAttackUtil implements IAttack {
         }
         willDie |= target.getHealth() <= 0.0f;
         if(willDie){
-            target.getPersistentData().putBoolean("phayriosisDeeaadfd", true);
+            target.getPersistentData().putBoolean("SporeDeeaadfd", true);
             EntityHeealuthManager.INSTANCE.setHeealtthDelta(target,Float.NEGATIVE_INFINITY);
         }
         this.playHurtSound(target, damageSource);

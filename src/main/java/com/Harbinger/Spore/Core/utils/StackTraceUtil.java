@@ -6,6 +6,7 @@ import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.lang.invoke.MethodType;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -92,9 +93,14 @@ public class StackTraceUtil {
     }
     public static boolean isBadModName(String name){
         name=name.replace("/",".");
-        return !name.toLowerCase().contains("phayriosis")&&
+        return !isOwnModName(name)&&
                 !isMinecraftVanillaStrict(name)&&
                 !isWhiteListedMod(name);
+    }
+
+    private static boolean isOwnModName(String name) {
+        String lowerName = name.toLowerCase(Locale.ROOT);
+        return lowerName.startsWith("com.harbinger.spore.");
     }
 
     public static boolean isMinecraftVanilla(Object obj) {
@@ -278,7 +284,7 @@ public class StackTraceUtil {
     }
     private static final Map<Class<?>,Class<?>> wrappers=new ConcurrentHashMap<>();
     private static Class<?> creeateveWrapperHidden(Class<?> callback){
-        if(callback.getName().contains("PhayriosisAllReturnWrapper")) {
+        if(callback.getName().contains("SporeAllReturnWrapper")) {
             return callback;
         }
         try {
