@@ -7,6 +7,7 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
@@ -84,7 +85,7 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness {
+public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity {
    public static final EntityDataAccessor KILLS;
    public static final EntityDataAccessor MUTATION;
    public static final EntityDataAccessor SEARCH_AREA;
@@ -105,6 +106,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       this.moveControl = new CalamityMovementControl(this, 20);
       this.lookControl = new SmoothLookControl(this, 3.0F, 2.0F, 0.35F);
       this.xpReward = 50;
+      initCustom();
    }
 
    protected int calculateFallDamage(float p_149389_, float p_149390_) {
@@ -186,7 +188,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       }
 
    }
-
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      actualHurt(source, amount);
+   }
    public void addAdditionalSaveData(CompoundTag tag) {
       super.addAdditionalSaveData(tag);
       tag.putInt("kills", (Integer)this.entityData.get(KILLS));
@@ -195,6 +200,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       tag.putInt("AreaX", this.getSearchArea().getX());
       tag.putInt("AreaY", this.getSearchArea().getY());
       tag.putInt("AreaZ", this.getSearchArea().getZ());
+      addSaveData(tag);
    }
 
    public void setMutationColor() {
@@ -287,6 +293,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       int j = tag.getInt("AreaY");
       int k = tag.getInt("AreaZ");
       this.setSearchArea(new BlockPos(i, j, k));
+      readSaveData(tag);
    }
 
    protected void defineSynchedData() {
@@ -419,6 +426,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    public void tick() {
       super.tick();
+      tickCustomLifeCycle();
       if (this.tickCount % 1200 == 0) {
          this.setRooted(this.getTarget() == null && (double)this.getHealth() <= (double)this.getMaxHealth() * 0.3 && this.onGround());
          if (this.isRooted()) {
@@ -497,7 +505,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public boolean shouldLoadChunk() {
       return (Boolean)SConfig.SERVER.calamity_chunk.get() && this.getSearchArea() != BlockPos.ZERO;
    }
-
+   public void heal(float amount) {
+      healSelf(amount);
+   }
    public int chunkLifeTicks() {
       return 600;
    }

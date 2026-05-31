@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
@@ -38,17 +39,23 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fluids.FluidType;
 
-public class Organoid extends UtilityEntity implements Enemy, ColdWeakness {
+public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity {
    public static final EntityDataAccessor BORROW;
    public static final EntityDataAccessor EMERGE;
 
    protected Organoid(EntityType type, Level level) {
       super(type, level);
       this.xpReward = 25;
+      initCustom();
+   }
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      actualHurt(source, amount);
    }
 
    public void tick() {
       super.tick();
+      tickCustomLifeCycle();
       if (this.onGround()) {
          this.makeStuckInBlock(Blocks.AIR.defaultBlockState(), new Vec3((double)0.0F, (double)1.0F, (double)0.0F));
       }
@@ -93,7 +100,17 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness {
    public boolean hurt(DamageSource source, float p_21017_) {
       return !(source.getDirectEntity() instanceof AcidBall) && !(source.getDirectEntity() instanceof Vomit) ? super.hurt(source, p_21017_) : false;
    }
-
+   public void addAdditionalSaveData(CompoundTag tag) {
+      super.addAdditionalSaveData(tag);
+      addSaveData(tag);
+   }
+   public void heal(float amount) {
+      healSelf(amount);
+   }
+   public void readAdditionalSaveData(CompoundTag tag) {
+      super.readAdditionalSaveData(tag);
+      readSaveData(tag);
+   }
    public int getEmerge_tick() {
       return 20;
    }

@@ -98,10 +98,6 @@ public class ClassUtil {
         }
         try{
             Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
-            uns=_new(Unsafe.class,unsafeConstructor);
-            if(uns!=null) {
-                return uns;
-            }
             unsafeConstructor.setAccessible(true);
             uns=unsafeConstructor.newInstance();
             if(uns!=null) {

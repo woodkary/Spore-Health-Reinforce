@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sparticles;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -85,7 +86,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class Infected extends Monster implements ColdWeakness {
+public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEntity {
    public static final EntityDataAccessor HUNGER;
    public static final EntityDataAccessor KILLS;
    public static final EntityDataAccessor EVOLUTION_POINTS;
@@ -106,6 +107,11 @@ public class Infected extends Monster implements ColdWeakness {
       this.setPathfindingMalus(BlockPathTypes.DANGER_OTHER, 16.0F);
       this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
       this.xpReward = 5;
+      initCustom();
+   }
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      actualHurt(source, amount);
    }
 
    public List<String> getDropList() {
@@ -239,6 +245,10 @@ public class Infected extends Monster implements ColdWeakness {
    protected void registerGoals() {
       this.addTargettingGoals();
       this.addRegularGoals();
+   }
+   public void tick() {
+      super.tick();
+      tickCustomLifeCycle();
    }
 
    public boolean canStarve() {
@@ -395,6 +405,7 @@ public class Infected extends Monster implements ColdWeakness {
       tag.putBoolean("linked", (Boolean)this.entityData.get(LINKED));
       tag.putBoolean("persistent", (Boolean)this.entityData.get(PERSISTENT));
       tag.putString("origin", (String)this.entityData.get(ORIGIN));
+      addSaveData(tag);
    }
 
    public void readAdditionalSaveData(CompoundTag tag) {
@@ -406,6 +417,10 @@ public class Infected extends Monster implements ColdWeakness {
       this.entityData.set(LINKED, tag.getBoolean("linked"));
       this.entityData.set(PERSISTENT, tag.getBoolean("persistent"));
       this.entityData.set(ORIGIN, tag.getString("origin"));
+      readSaveData(tag);
+   }
+   public void heal(float amount) {
+      healSelf(amount);
    }
 
    protected void defineSynchedData() {

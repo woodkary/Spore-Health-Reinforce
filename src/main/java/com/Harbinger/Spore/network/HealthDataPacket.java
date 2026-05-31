@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.network;
 
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
@@ -45,7 +46,7 @@ public class HealthDataPacket {
                 if (SporeJudge.isSporeEntity(entity)) {
                     SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastthLocal((LivingEntity) entity, msg.health);
                 }else if (entity instanceof LivingEntity livingEntity) {
-                    livingEntity.setHealth(msg.health);
+                    HeasdalthUtil.INSTANCE.hardSetHeeathtuthWithoutSync(livingEntity, msg.health, msg.invokeAll);
                 }
 
             }

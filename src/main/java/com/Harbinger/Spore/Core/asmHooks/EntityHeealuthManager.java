@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.network.HealthDeltaPacket;
@@ -309,6 +310,11 @@ public final class EntityHeealuthManager implements IEntityHealth {
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(entity,source,damage);
             return;
         }
+        float health = hurt(entity, damage);
+        DamageSource actualSource = source != null ? source : entity.damageSources().generic();
+        if (!HeasdalthUtil.INSTANCE.invokeAllHurtMethods(entity, actualSource, damage, health)) {
+            HeasdalthUtil.INSTANCE.setHeeaatth(entity, Math.max(0.0F, health - damage), true);
+        }
         if(source!=null){
             entity.getCombatTracker().recordDamage(source,damage);
         }
@@ -325,6 +331,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
             return;
         }
         setHeealtthDelta(entity, Float.NEGATIVE_INFINITY);
+        HeasdalthUtil.INSTANCE.die(entity, source != null ? source : entity.damageSources().genericKill());
         LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
         entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
     }
