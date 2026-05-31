@@ -238,8 +238,11 @@ public final class SporeAttackUtil implements IAttack {
         target.hurtTime = target.hurtDuration;
         // ⚡ 目标死亡逻辑
         if (willDie) {
-            if (attacker!=null&&!attacker.level.isClientSide) {
-                attacker.killedEntity((ServerLevel) attacker.level(), target);
+            if (attacker!=null) {
+                if(!attacker.level.isClientSide) {
+                    attacker.killedEntity((ServerLevel) attacker.level(), target);
+                }
+                attacker.awardKillScore(target, (int) (target.getMaxHealth()*0.5),damageSource);
             }
             if(flag==1){
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);
