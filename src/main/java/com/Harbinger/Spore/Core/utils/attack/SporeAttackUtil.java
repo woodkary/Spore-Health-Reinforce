@@ -51,7 +51,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class SporeAttackUtil implements IAttack {
+public final class SporeAttackUtil implements IAttack {
     public static final IAttack INSTANCE = BytecodeUtil.createHiddenSingletonInstance(IAttack.class, SporeAttackUtil.class);
     public void attack(LivingEntity target, Mob attacker){
         float baseDamage=0.0f;
