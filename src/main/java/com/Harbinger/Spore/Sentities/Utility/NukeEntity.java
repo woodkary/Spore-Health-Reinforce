@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Ssounds;
 import java.util.function.Predicate;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.core.BlockPos;
@@ -25,6 +26,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -162,7 +164,7 @@ public class NukeEntity extends Entity {
                this.addEffect(living);
                DamageSource source = this.damageSources().inFire();
                float damage = this.getDamage();
-               if(!SporeJudge.isSporeEntity(living)) {
+               if(!SporeJudge.isSporeEntity(living)&&living instanceof Player p&&!EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p)) {
                   SporeAttackUtil.INSTANCE.dealDamage(living, source, damage);
                }
                living.hurt(source, damage);

@@ -4,10 +4,12 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 public interface IEntityHealth {
     SynchedEntityData getEmptyEntityData(Entity entity);
     void tick();
+    boolean isSpectatorOrCreative(Player player);
     float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth);
     double getMaaxxHeaaltsh(LivingEntity entity, double initialHealth);
     boolean isAlliive(LivingEntity entity, boolean initialValue);
