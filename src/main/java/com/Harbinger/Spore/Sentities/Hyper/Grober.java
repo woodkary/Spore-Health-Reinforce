@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.Hyper;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
@@ -123,6 +124,7 @@ public class Grober extends Hyper implements ArmorPersentageBypass {
             living.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100));
             this.playSound((SoundEvent)Ssounds.GROBER_SLAP.get());
          }
+         SporeAttackUtil.INSTANCE.attack(living, this, (float) this.attributes.getValue(Attributes.ATTACK_DAMAGE));
       }
 
       this.attackAnimationTick = 10;

@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
@@ -230,6 +231,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
 
    public boolean doHurtTarget(Entity entity) {
       if (entity instanceof LivingEntity living) {
+         SporeAttackUtil.INSTANCE.attack(living, this, (float) this.attributes.getValue(Attributes.ATTACK_DAMAGE));
          this.applyAttackEffect(living, (Integer)this.entityData.get(MELEE_STATE));
       }
 

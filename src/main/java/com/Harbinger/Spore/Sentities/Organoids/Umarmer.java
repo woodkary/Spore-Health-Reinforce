@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Organoids;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.VariantKeeper;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
@@ -354,19 +355,19 @@ public class Umarmer extends Organoid implements VariantKeeper {
    }
 
    public boolean doHurtTarget(Entity entity) {
-      if (entity instanceof LivingEntity livingEntity) {
+      if (entity instanceof LivingEntity living) {
          if (this.getVariant() == UmarmerVariants.CHARRED) {
-            livingEntity.setSecondsOnFire(10);
+            living.setSecondsOnFire(10);
          } else if (this.getVariant() == UmarmerVariants.BILE) {
-            livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 0));
-            livingEntity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0));
-            livingEntity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 0));
+            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 0));
+            living.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0));
+            living.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 0));
          } else if (this.getVariant() == UmarmerVariants.CORROSIVE) {
-            livingEntity.addEffect(new MobEffectInstance((MobEffect)Seffects.CORROSION.get(), 600, 1));
+            living.addEffect(new MobEffectInstance((MobEffect)Seffects.CORROSION.get(), 600, 1));
          }
-
-         livingEntity.addEffect(new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 600, 1));
-         livingEntity.knockback((double)1.2F, (double)(-Mth.sin(this.getYRot() * ((float)Math.PI / 180F))), (double)Mth.cos(this.getYRot() * ((float)Math.PI / 180F)));
+         SporeAttackUtil.INSTANCE.attack(living, this, (float) this.attributes.getValue(Attributes.ATTACK_DAMAGE));
+         living.addEffect(new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 600, 1));
+         living.knockback((double)1.2F, (double)(-Mth.sin(this.getYRot() * ((float)Math.PI / 180F))), (double)Mth.cos(this.getYRot() * ((float)Math.PI / 180F)));
       }
 
       return super.doHurtTarget(entity);
