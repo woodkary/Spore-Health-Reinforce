@@ -39,7 +39,7 @@ public interface ICustomLifeCycleEntity {
     default void actualHurt(DamageSource source, float damage) {
         LivingEntity liv=entity();
         if (!liv.isInvulnerableTo(source)&&!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv,source)) {
-            boolean isFreezeDamage = source != liv.damageSources().freeze();
+            boolean isFreezeDamage = source == liv.damageSources().freeze();
             damage = ForgeHooks.onLivingHurt(liv, source, damage);
             float reduceRate = 1.0f;
             if(!isFreezeDamage){
