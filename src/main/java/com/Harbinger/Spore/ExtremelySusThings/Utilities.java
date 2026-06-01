@@ -3,6 +3,7 @@ package com.Harbinger.Spore.ExtremelySusThings;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
@@ -104,7 +105,7 @@ public class Utilities {
       for(Entity entity : level.getEntities(owner, searchbox, predicate)) {
          LivingEntity ownerLiving = (LivingEntity) owner;
          DamageSource source = level.damageSources().mobAttack(ownerLiving);
-         if(!SporeJudge.isSporeEntity(entity)&&entity instanceof LivingEntity liv) {
+         if(!SporeJudge.isSporeEntity(entity)&&entity instanceof LivingEntity liv&&!(liv instanceof Player p&& EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p))) {
             SporeAttackUtil.INSTANCE.dealDamage(liv, ownerLiving,source,damage);
          }
          entity.hurt(source, damage);
