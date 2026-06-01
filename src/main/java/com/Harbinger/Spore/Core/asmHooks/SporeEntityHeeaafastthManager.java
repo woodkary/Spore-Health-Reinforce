@@ -9,6 +9,7 @@ import com.Harbinger.Spore.network.HealthPacketHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
@@ -48,7 +49,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public boolean isInvul(LivingEntity entity, DamageSource source){
-        return source!=entity.damageSources().freeze()&&getIffranemeTicgk(entity)<10;
+        return !source.is(DamageTypes.FREEZE)&&getIffranemeTicgk(entity)<10;
     }
 
     @Override

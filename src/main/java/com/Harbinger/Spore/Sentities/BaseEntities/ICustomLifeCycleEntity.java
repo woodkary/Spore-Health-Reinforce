@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -39,7 +40,7 @@ public interface ICustomLifeCycleEntity {
     default void actualHurt(DamageSource source, float damage) {
         LivingEntity liv=entity();
         if (!liv.isInvulnerableTo(source)&&!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv,source)) {
-            boolean isFreezeDamage = source == liv.damageSources().freeze();
+            boolean isFreezeDamage = source.is(DamageTypes.FREEZE);
             damage = ForgeHooks.onLivingHurt(liv, source, damage);
             float reduceRate = 1.0f;
             if(!isFreezeDamage){
