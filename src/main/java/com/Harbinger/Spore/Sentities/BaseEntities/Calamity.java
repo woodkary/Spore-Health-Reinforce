@@ -438,7 +438,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       super.tick();
       tickCustomLifeCycle();
       if(this.crushingTick>0&&!this.level.isClientSide) {
-         this.crushingTick--;
+         if(this.crushingTick--%20==0){
+            SporeAttackUtil.INSTANCE.playSound(this.level,null,this.getX(),this.getY(),this.getZ(),(SoundEvent)Ssounds.SIEGER_BITE.get(),this.getSoundSource(),1.0f,1.0f);
+         }
          for (LivingEntity living : this.level.getEntitiesOfClass(LivingEntity.class,
                  this.bb.inflate(6.0),
                  liv -> liv.isAlive()&&!SporeJudge.isSporeEntity(liv) &&
