@@ -7,7 +7,10 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
@@ -68,6 +71,7 @@ import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -92,6 +96,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public static final EntityDataAccessor ROOTED;
    protected int breakCounter;
    private int stun = 0;
+   private int crushingTick=0;
    private static final List states;
 
    public Calamity(EntityType type, Level level) {
@@ -426,10 +431,21 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    public void ActivateAdaptation() {
    }
-
+   public void setCrushingTick(int ticks) {
+      this.crushingTick = ticks;
+   }
    public void tick() {
       super.tick();
       tickCustomLifeCycle();
+      if(this.crushingTick>0&&!this.level.isClientSide) {
+         this.crushingTick--;
+         for (LivingEntity living : this.level.getEntitiesOfClass(LivingEntity.class,
+                 this.bb.inflate(6.0),
+                 liv -> liv.isAlive()&&!SporeJudge.isSporeEntity(liv) &&
+                         !(liv instanceof Player p && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p)))) {
+            SporeAttackUtil.INSTANCE.dealDamage(living,this,living.damageSources().mobAttack(this),2.0f);
+         }
+      }
       if (this.tickCount % 1200 == 0) {
          this.setRooted(this.getTarget() == null && (double)this.getHealth() <= (double)this.getMaxHealth() * 0.3 && this.onGround());
          if (this.isRooted()) {

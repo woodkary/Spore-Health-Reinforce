@@ -25,7 +25,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class SporeBurstSupport extends Goal {
    private final Calamity calamity;
-
    public SporeBurstSupport(Calamity calamity) {
       this.calamity = calamity;
    }
@@ -36,6 +35,7 @@ public class SporeBurstSupport extends Goal {
 
    public void start() {
       this.calamity.setStun(60);
+      this.calamity.setCrushingTick(60);
       Calamity var2 = this.calamity;
       if (var2 instanceof TrueCalamity trueCalamity) {
          this.calamity.playSound((SoundEvent)Ssounds.SPORE_BURST.get());
