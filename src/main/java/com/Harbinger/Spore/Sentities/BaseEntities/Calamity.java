@@ -361,6 +361,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
    private static MethodHandle startMethod=null;
    public static void forceStart(Goal goal) {
+      if(goal==null){
+         return;
+      }
       if(startMethod==null){
          try{
             startMethod= ClassUtil.getLookup().findVirtual(
