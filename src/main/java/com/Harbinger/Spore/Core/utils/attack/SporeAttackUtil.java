@@ -190,7 +190,6 @@ public final class SporeAttackUtil implements IAttack {
         }
 
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
-        target.setLastHurtByMob(attacker);
         dealDamage(target, attacker, damageSource, damage);
     }
 
@@ -212,6 +211,9 @@ public final class SporeAttackUtil implements IAttack {
         dealDamage(target,null,damageSource,damage);
     }
     public void dealDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage) {
+        if(attacker!=null){
+            target.setLastHurtByMob(attacker);
+        }
         if(attacker instanceof Player player){
             target.setLastHurtByPlayer(player);
         }
