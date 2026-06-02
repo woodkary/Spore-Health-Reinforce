@@ -24,11 +24,7 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -264,5 +260,10 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
    static {
       BORROW = SynchedEntityData.defineId(Organoid.class, EntityDataSerializers.INT);
       EMERGE = SynchedEntityData.defineId(Organoid.class, EntityDataSerializers.INT);
+   }
+
+   @Override
+   public LivingEntity entity() {
+      return this;
    }
 }

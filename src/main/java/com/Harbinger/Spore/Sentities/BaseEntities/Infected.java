@@ -683,4 +683,9 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
       PERSISTENT = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.BOOLEAN);
       ORIGIN = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.STRING);
    }
+
+   @Override
+   public LivingEntity entity() {
+      return this;
+   }
 }

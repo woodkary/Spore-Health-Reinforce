@@ -16,9 +16,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.common.ForgeHooks;
 
 public interface ICustomLifeCycleEntity {
-    default LivingEntity entity(){
-        return (LivingEntity) this;
-    }
+    LivingEntity entity();
     default void initCustom(){
         LivingEntity entity = entity();
         SporeEntityHeeaafastthManager.INSTANCE.initSporeEntity(entity);

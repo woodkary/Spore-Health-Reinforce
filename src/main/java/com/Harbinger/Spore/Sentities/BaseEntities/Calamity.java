@@ -752,6 +752,11 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       states = List.of(((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState(), ((Block)Sblocks.ROOTED_BIOMASS.get()).defaultBlockState(), ((Block)Sblocks.CALCIFIED_BIOMASS_BLOCK.get()).defaultBlockState(), ((Block)Sblocks.SICKEN_BIOMASS_BLOCK.get()).defaultBlockState(), ((Block)Sblocks.REMAINS.get()).defaultBlockState());
    }
 
+   @Override
+   public LivingEntity entity() {
+      return this;
+   }
+
    public static class GoToLocation extends Goal {
       public final Calamity infected;
       public final double speed;
