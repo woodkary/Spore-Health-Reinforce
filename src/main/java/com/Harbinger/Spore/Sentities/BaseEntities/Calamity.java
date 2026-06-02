@@ -9,6 +9,8 @@ import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.ClassUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
@@ -27,6 +29,9 @@ import com.Harbinger.Spore.Sentities.MovementControls.CalamityMovementControl;
 import com.Harbinger.Spore.Sentities.MovementControls.SmoothLookControl;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
 import com.Harbinger.Spore.Sentities.Utility.CorpseEntity;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -354,15 +359,54 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
          return super.hurt(source, amount);
       }
    }
-
+   private static MethodHandle startMethod=null;
    public static void forceStart(Goal goal) {
-      try {
-         Method m = Goal.class.getDeclaredMethod("start");
-         m.setAccessible(true);
-         m.invoke(goal);
-      } catch (Exception e) {
-         e.printStackTrace();
+      if(startMethod==null){
+         try{
+            startMethod= ClassUtil.getLookup().findVirtual(
+                    Goal.class,
+                    "m_8056_",
+                    MethodType.methodType(void.class)
+            );
+         }catch (Throwable throwable){
+            LogUtil.error("can't find start method with obfuscated name");
+         }
       }
+      if(startMethod==null){
+         try{
+            startMethod= ClassUtil.getLookup().findVirtual(
+                    Goal.class,
+                    "start",
+                    MethodType.methodType(void.class)
+            );
+         }catch (Throwable throwable){
+            LogUtil.error("can't find start method with deobfuscated name");
+         }
+      }
+      if(startMethod!=null){
+         try{
+            startMethod.bindTo(goal).invoke();
+            return;
+         }catch (Throwable throwable){
+            LogUtil.error("can't invoke start method");
+         }
+      }
+      goal.start();
+//      try {
+//         Method m = Goal.class.getDeclaredMethod("m_8056_");
+//         m.setAccessible(true);
+//         m.invoke(goal);
+//         return;
+//      } catch (Exception e) {
+//         e.printStackTrace();
+//      }
+//      try {
+//         Method m = Goal.class.getDeclaredMethod("start");
+//         m.setAccessible(true);
+//         m.invoke(goal);
+//      } catch (Exception e) {
+//         e.printStackTrace();
+//      }
 
    }
 
