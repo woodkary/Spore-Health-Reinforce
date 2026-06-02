@@ -63,9 +63,11 @@ public interface ICustomLifeCycleEntity {
                 }
             }
             float oldF1=f1;
-            ForgeHooks.onLivingDamage(liv, source, f1);
+            f1=ForgeHooks.onLivingDamage(liv, source, f1);
             //新的f1不能大于原来的f1
-            f1=Math.min(f1,oldF1);
+            if(!isFreezeDamage) {
+                f1 = Math.min(f1, oldF1);
+            }
             if (f1 != 0.0F) {
                 if(!isFreezeDamage) {
                     f1 = Math.min(liv.getMaxHealth() * reduceRate, f1);
