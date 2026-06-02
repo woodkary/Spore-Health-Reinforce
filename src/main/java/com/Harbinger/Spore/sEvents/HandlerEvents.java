@@ -379,7 +379,7 @@ public class HandlerEvents {
    @SubscribeEvent
    public static void Command(RegisterCommandsEvent event) {
       CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-      dispatcher.register(Commands.literal("force_kill")
+      dispatcher.register(Commands.literal("spore:force_kill")
               .requires(source -> source.hasPermission(2))
               .then(Commands.argument("targets", EntityArgument.entities())
                       .executes(ctx -> {
