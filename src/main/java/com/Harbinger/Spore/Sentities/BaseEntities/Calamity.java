@@ -485,14 +485,15 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       super.tick();
       tickCustomLifeCycle();
       if(this.crushingTick>0&&!this.level.isClientSide) {
-         if(this.crushingTick--%20==0){
-            SporeAttackUtil.INSTANCE.playSound(this.level,null,this.getX(),this.getY(),this.getZ(),(SoundEvent)Ssounds.SIEGER_BITE.get(),this.getSoundSource(),1.0f,1.0f);
-         }
+         boolean willPlaySound=this.crushingTick--%10==0;
          DamageSource source=getCustomDamage(this);
          for (LivingEntity living : this.level.getEntitiesOfClass(LivingEntity.class,
                  this.bb.inflate(6.0),
                  liv -> liv.isAlive()&&!SporeJudge.isSporeEntity(liv) &&
                          !(liv instanceof Player p && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p)))) {
+            if(willPlaySound) {
+               SporeAttackUtil.INSTANCE.playSound(this.level,null,this.getX(),this.getY(),this.getZ(),(SoundEvent)Ssounds.SIEGER_BITE.get(),this.getSoundSource(),1.0f,1.0f);
+            }
             SporeAttackUtil.INSTANCE.dealDamage(living,this,source,2.0f);
          }
       }
