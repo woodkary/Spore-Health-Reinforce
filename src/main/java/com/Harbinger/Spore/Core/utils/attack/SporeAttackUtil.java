@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
+import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -182,8 +183,8 @@ public final class SporeAttackUtil implements IAttack {
             damageSource=attacker.damageSources().playerAttack(player);
         }else if(attacker instanceof Infected inf){
             damageSource=inf.getCustomDamage(inf);
-        }else if(attacker instanceof Calamity cal){
-            damageSource=cal.getCustomDamage(cal);
+        }else if(attacker instanceof UtilityEntity util){
+            damageSource=util.getCustomDamage(util);
         } else {
             damageSource = attacker.damageSources().mobAttack(attacker);
         }
