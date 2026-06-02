@@ -8,6 +8,9 @@ import net.minecraft.world.entity.player.Player;
 
 public interface IEntityHealth {
     SynchedEntityData getEmptyEntityData(Entity entity);
+
+    void setPlayerAlliive(Player player);
+
     void tick();
     boolean isSpectatorOrCreative(Player player);
     float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth);

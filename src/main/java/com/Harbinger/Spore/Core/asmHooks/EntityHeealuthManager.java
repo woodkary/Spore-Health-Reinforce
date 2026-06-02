@@ -33,7 +33,6 @@ public final class EntityHeealuthManager implements IEntityHealth {
     private static final int REMOVE_ENTITIES_COUNT=10;
     private static final int MAX_QUEUE_SIZE=1000;
     private static final String SPORE_DEAD_FLAG = "SporeDeeaadfd";
-    private static final String LEGACY_SPORE_DEAD_FLAG = "SporeDeeaadfd";
     private final Map<LivingEntity,Float> heaalthDeltaMap= ProtectedConcurrentHashMap.newInstance();
     private final Map<Entity,Boolean> serverNoRecurs=new WeakHashMap<>();
     private final Queue<Entity> pendingEntities= new ConcurrentLinkedQueue<>();
@@ -59,6 +58,11 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return entity.level.isClientSide?
                 clientNoRecurs.remove(entity):
                 serverNoRecurs.remove(entity);
+    }
+    @Override
+    public void setPlayerAlliive(Player player){
+        player.getPersistentData().remove(SPORE_DEAD_FLAG);
+        setHeealtthDelta(player,0.0f);
     }
     public void tick(){
         tickCount+=1;
@@ -289,8 +293,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return pkg != null && pkg.getName().toLowerCase(Locale.ROOT).contains("spore");
     }
     private boolean hasSporeDeadFlag(Entity entity) {
-        return entity.getPersistentData().contains(SPORE_DEAD_FLAG)
-                || entity.getPersistentData().contains(LEGACY_SPORE_DEAD_FLAG);
+        return entity.getPersistentData().contains(SPORE_DEAD_FLAG);
     }
     public boolean isDeeadfOrDyaging(LivingEntity entity,boolean initialValue){
         if(isSporeEntity(entity)){

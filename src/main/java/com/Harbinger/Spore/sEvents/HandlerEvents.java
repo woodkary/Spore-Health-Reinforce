@@ -137,10 +137,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LootingLevelEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.ItemFishedEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
@@ -301,6 +298,11 @@ public class HandlerEvents {
       }
 
    }
+   @SubscribeEvent
+   public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event){
+      EntityHeealuthManager.INSTANCE.setPlayerAlliive(event.getEntity());
+   }
+
 
    @SubscribeEvent
    public static void onLivingSpawned(EntityJoinLevelEvent event) {
