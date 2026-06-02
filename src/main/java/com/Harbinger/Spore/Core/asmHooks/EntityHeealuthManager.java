@@ -141,6 +141,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
         pendingEntities.offer(entity);
         queuingEntities.put(entity, NULL_OBJECT);
     }
+    public boolean containsDeltaKey(LivingEntity entity){
+        return heaalthDeltaMap.containsKey(entity);
+    }
     public float getHeealtthDelta(LivingEntity entity){
         return heaalthDeltaMap.getOrDefault(entity,0.0f);
     }

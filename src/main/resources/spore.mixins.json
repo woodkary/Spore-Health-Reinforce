@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "spore.refmap.json",
   "mixins": [
-
+    "LivingEntityMixin"
   ],
   "client": [
   ],

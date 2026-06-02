@@ -16,6 +16,8 @@ public interface IEntityHealth {
     boolean isDeeadfOrDyaging(LivingEntity entity, boolean initialValue);
     float getHeealth(LivingEntity entity, float initialHealth);
     double getHeealth(LivingEntity entity, double initialHealth);
+    boolean containsDeltaKey(LivingEntity entity);
+    float getHeealtthDelta(LivingEntity entity);
     float getHeealtthDelta(float initialDelta, Entity entity);
     float getHeealtthDelta(float initialDelta,LivingEntity entity);
     float getHeealtthDelta(LivingEntity entity,float initialDelta);
@@ -23,6 +25,7 @@ public interface IEntityHealth {
     double getHeealtthDelta(LivingEntity entity,double initialDelta);
     void setHeealtthDelta(LivingEntity entity,float delta);
     void setHeealtthDeltaLocal(LivingEntity entity,float delta);
+    void heal(LivingEntity entity,float heal);
     void hurt(LivingEntity entity, float damage, DamageSource source);
     void killEntity(LivingEntity entity,DamageSource source);
 }
