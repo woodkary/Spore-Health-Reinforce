@@ -9,7 +9,9 @@ import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
+import com.Harbinger.Spore.Sentities.BaseEntities.Organoid;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
+import com.Harbinger.Spore.Sentities.Utility.Vanguard;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -256,10 +258,20 @@ public final class SporeAttackUtil implements IAttack {
                 double maxHealth = target.attributes.getValue(Attributes.MAX_HEALTH);
                 attacker.awardKillScore(target, target.deathScore+(int) (maxHealth*0.5),damageSource);
             }
+            setKills(attacker,2);
             if(flag==1){
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);
             }
             EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
+        }
+    }
+    private void setKills(LivingEntity attacker,Integer count) {
+        if(attacker instanceof Calamity cal){
+            cal.setKills(count);
+        }else if(attacker instanceof Infected inf){
+            inf.setKills(count);
+        }else if(attacker instanceof Vanguard van){
+            van.setKills(count);
         }
     }
 
