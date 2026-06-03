@@ -17,11 +17,7 @@ import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
-import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
-import com.Harbinger.Spore.Sentities.ChunkLoaderMob;
-import com.Harbinger.Spore.Sentities.ColdEndurance;
-import com.Harbinger.Spore.Sentities.ColdWeakness;
-import com.Harbinger.Spore.Sentities.HitboxesForParts;
+import com.Harbinger.Spore.Sentities.*;
 import com.Harbinger.Spore.Sentities.AI.CalamityPathNavigation;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityVigilCall;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
@@ -32,13 +28,13 @@ import com.Harbinger.Spore.Sentities.Utility.CorpseEntity;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -66,14 +62,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
-import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -94,7 +88,7 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity {
+public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity, AdaptableEntity {
    public static final EntityDataAccessor KILLS;
    public static final EntityDataAccessor MUTATION;
    public static final EntityDataAccessor SEARCH_AREA;
@@ -103,6 +97,14 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    private int stun = 0;
    private int crushingTick=0;
    private static final List states;
+   private int adaptationCount=0;
+
+   public int getAdaptationCount() {
+      return adaptationCount;
+   }
+   public void setAdaptationCount(int adaptationCount) {
+      this.adaptationCount = adaptationCount;
+   }
 
    public Calamity(EntityType type, Level level) {
       super(type, level);
@@ -200,6 +202,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
    @Override
    public void actuallyHurt(DamageSource source, float amount) {
+      if(!source.is(DamageTypes.FREEZE)){
+         amount*=(1.0f-this.getAdaptationCount()*0.02f);
+      }
       actualHurt(source, amount);
    }
    public void addAdditionalSaveData(CompoundTag tag) {
@@ -210,6 +215,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       tag.putInt("AreaX", this.getSearchArea().getX());
       tag.putInt("AreaY", this.getSearchArea().getY());
       tag.putInt("AreaZ", this.getSearchArea().getZ());
+      tag.putInt("adaptationCount",this.getAdaptationCount());
       addSaveData(tag);
    }
 
@@ -303,6 +309,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       int j = tag.getInt("AreaY");
       int k = tag.getInt("AreaZ");
       this.setSearchArea(new BlockPos(i, j, k));
+      if(tag.contains("adaptationCount")){
+         this.setAdaptationCount(tag.getInt("adaptationCount"));
+      }
       readSaveData(tag);
    }
 

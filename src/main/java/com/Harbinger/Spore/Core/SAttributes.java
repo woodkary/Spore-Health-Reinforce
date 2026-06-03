@@ -1,20 +1,21 @@
 package com.Harbinger.Spore.Core;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
 public class SAttributes {
-   public static final DeferredRegister ATTRIBUTES;
-   public static final RegistryObject TOXICITY;
-   public static final RegistryObject REJUVENATION;
-   public static final RegistryObject LOCALIZATION;
-   public static final RegistryObject LACERATION;
-   public static final RegistryObject CORROSIVES;
-   public static final RegistryObject BALLISTIC;
-   public static final RegistryObject GRINDING;
+   public static final DeferredRegister<Attribute> ATTRIBUTES;
+   public static final RegistryObject<Attribute> TOXICITY;
+   public static final RegistryObject<Attribute> REJUVENATION;
+   public static final RegistryObject<Attribute> LOCALIZATION;
+   public static final RegistryObject<Attribute> LACERATION;
+   public static final RegistryObject<Attribute> CORROSIVES;
+   public static final RegistryObject<Attribute> BALLISTIC;
+   public static final RegistryObject<Attribute> GRINDING;
 
    public static void register(IEventBus eventBus) {
       ATTRIBUTES.register(eventBus);

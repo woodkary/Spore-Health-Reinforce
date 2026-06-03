@@ -3,10 +3,12 @@ package com.Harbinger.Spore.Sentities.Organoids;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Recipes.EntityContainer;
 import com.Harbinger.Spore.Recipes.WombRecipe;
 import com.Harbinger.Spore.Screens.AssimilationMenu;
+import com.Harbinger.Spore.Sentities.AdaptableEntity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
 import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
@@ -17,6 +19,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -36,13 +39,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -61,7 +64,7 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-public class Womb extends Organoid implements MenuProvider {
+public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
    private static final EntityDataAccessor COUNTER;
    private static final EntityDataAccessor BIOMASS;
    private static final EntityDataAccessor STATE;
@@ -69,6 +72,7 @@ public class Womb extends Organoid implements MenuProvider {
    private int breakCounter;
    private final List<String> attributeIDs = new ArrayList<>();
    private int eatingTicks = 0;
+   private int pendingAdaptationCounts=0;
 
    public Womb(EntityType type, Level level, TERRAIN terrain, BlockPos pos) {
       super(type, level);
@@ -80,6 +84,14 @@ public class Womb extends Organoid implements MenuProvider {
       super(type, level);
       this.entityData.set(STATE, 0);
       this.setLocation(BlockPos.ZERO);
+   }
+
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      if(!source.is(DamageTypes.FREEZE)){
+         this.pendingAdaptationCounts=Math.min(this.pendingAdaptationCounts+1,10);
+      }
+      super.actuallyHurt(source, amount);
    }
 
    public List<String> getAttributeIDs() {
@@ -168,6 +180,7 @@ public class Womb extends Organoid implements MenuProvider {
       }
 
       tag.put("mutations", teamTag);
+      tag.putInt("adaptationCount",getAdaptationCount());
    }
 
    public boolean isEating() {
@@ -188,6 +201,9 @@ public class Womb extends Organoid implements MenuProvider {
 
       for(int l = 0; l < teamTag.size(); ++l) {
          this.attributeIDs.add(teamTag.getString(l));
+      }
+      if(tag.contains("adaptationCount")) {
+         setAdaptationCount(tag.getInt("adaptationCount"));
       }
 
    }
@@ -271,7 +287,11 @@ public class Womb extends Organoid implements MenuProvider {
    }
 
    public static AttributeSupplier.Builder createAttributes() {
-      return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, (Double)SConfig.SERVER.reconstructor_hp.get() * (Double)SConfig.SERVER.global_health.get()).add(Attributes.ARMOR, (Double)SConfig.SERVER.reconstructor_armor.get() * (Double)SConfig.SERVER.global_armor.get()).add(Attributes.FOLLOW_RANGE, (double)16.0F).add(Attributes.KNOCKBACK_RESISTANCE, (double)1.0F);
+      return Mob.createMobAttributes()
+              .add(Attributes.MAX_HEALTH, (Double)SConfig.SERVER.reconstructor_hp.get() * (Double)SConfig.SERVER.global_health.get())
+              .add(Attributes.ARMOR, (Double)SConfig.SERVER.reconstructor_armor.get() * (Double)SConfig.SERVER.global_armor.get())
+              .add(Attributes.FOLLOW_RANGE, (double)16.0F)
+              .add(Attributes.KNOCKBACK_RESISTANCE, (double)1.0F);
    }
 
    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
@@ -345,13 +365,12 @@ public class Womb extends Organoid implements MenuProvider {
                   spawnedEntity.setPos(entity.getX(), entity.getY(), entity.getZ());
                }
 
-               if (spawnedEntity instanceof Calamity) {
-                  Calamity calamity = (Calamity)spawnedEntity;
-                  calamity.setSearchArea(this.getLocation());
+               if (spawnedEntity instanceof Calamity calamity) {
+                   calamity.setSearchArea(this.getLocation());
 
                   for(String attrId : this.attributeIDs) {
                      ResourceLocation attrLocation = new ResourceLocation(attrId);
-                     Attribute attribute = (Attribute)ForgeRegistries.ATTRIBUTES.getValue(attrLocation);
+                     Attribute attribute = ForgeRegistries.ATTRIBUTES.getValue(attrLocation);
                      if (attribute != null) {
                         AttributeInstance instance = calamity.getAttribute(attribute);
                         if (instance != null) {
@@ -360,10 +379,15 @@ public class Womb extends Organoid implements MenuProvider {
                         }
                      }
                   }
+                  if(this.pendingAdaptationCounts>0){
+                     calamity.setAdaptationCount(this.pendingAdaptationCounts);
+                  }
 
                   if (value) {
                      calamity.setSecondsOnFire(3);
-                     calamity.setHealth(calamity.getMaxHealth() / 2.0F);
+                     float halfMaxHealth = SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(calamity);
+                     SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(calamity, halfMaxHealth);
+                     //calamity.setHealth(halfMaxHealth);
                   }
                }
 
@@ -421,6 +445,17 @@ public class Womb extends Organoid implements MenuProvider {
       STATE = SynchedEntityData.defineId(Womb.class, EntityDataSerializers.INT);
       LOCATION = SynchedEntityData.defineId(Womb.class, EntityDataSerializers.BLOCK_POS);
    }
+
+   @Override
+   public int getAdaptationCount() {
+      return pendingAdaptationCounts;
+   }
+
+   @Override
+   public void setAdaptationCount(int adaptationCount) {
+      pendingAdaptationCounts = adaptationCount;
+   }
+
 
    public static enum TERRAIN {
       GROUND_LEVEL(0, (List)SConfig.SERVER.reconstructor_terrain.get()),
