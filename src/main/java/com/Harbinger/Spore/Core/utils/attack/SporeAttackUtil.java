@@ -3,10 +3,7 @@ package com.Harbinger.Spore.Core.utils.attack;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.SAttributes;
-import com.Harbinger.Spore.Core.utils.BytecodeUtil;
-import com.Harbinger.Spore.Core.utils.LogUtil;
-import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
-import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.BaseEntities.Organoid;
@@ -155,6 +152,7 @@ public final class SporeAttackUtil implements IAttack {
     }
     public void attack(Player player,Entity t,ItemStack stack){
         Item i=stack.getItem();
+        t= ParentUtil.INSTANCE.getUltimateParent(t);
         if(!(t instanceof LivingEntity target)||!target.isAlive()){
             return;
         }
