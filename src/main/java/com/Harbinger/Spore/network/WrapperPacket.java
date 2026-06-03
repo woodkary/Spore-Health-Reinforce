@@ -17,13 +17,11 @@ public final class WrapperPacket {
             HEALTH_WRAPPER, LivingEntityHealthLifecycleWrapperUtil.INSTANCE::createWrapppperLocal,
             DEATH_WRAPPER, LivingEntityHealthLifecycleWrapperUtil.INSTANCE::createDeathWrapppperLocal
             );
+    private static final Consumer<Entity> NO_OP = (entity) -> {};
     private final int entityId;
     private final int option;
 
     public WrapperPacket(int entityId, int option) {
-        if(option<0||option>1){
-            throw new IllegalArgumentException("option must be between 0 and 1");
-        }
         this.entityId = entityId;
         this.option = option;
     }
@@ -41,7 +39,7 @@ public final class WrapperPacket {
             if (mc.level != null) {
                 Entity entity = mc.level.getEntity(msg.entityId);
                 if(entity!=null){
-                    operations.get(msg.option).accept(entity);
+                    operations.getOrDefault(msg.option,NO_OP).accept(entity);
                 }
             }
         });
