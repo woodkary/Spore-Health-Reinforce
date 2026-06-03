@@ -62,7 +62,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
     @Override
     public void setPlayerAlliive(Player player){
         player.getPersistentData().remove(SPORE_DEAD_FLAG);
-        setHeealtthDelta(player,0.0f);
+        if(!player.level.isClientSide){
+            setHeealtthDelta(player,0.0f);
+        }else{
+            setHeealtthDeltaLocal(player,0.0f);
+        }
+
     }
     public void tick(){
         tickCount+=1;

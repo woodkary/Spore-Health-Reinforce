@@ -195,15 +195,15 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         }
     }
     private void overrideBaseTickMethodToTickDeath(ClassNode node){
-        //node.methods.removeIf(method -> BASE_TICK_OBF_NAME.equals(method.name) && RESPAWN_DESC.equals(method.desc));
+        //node.methods.removeIf(method -> TICK_OBF_NAME.equals(method.name) && RESPAWN_DESC.equals(method.desc));
         Iterator<MethodNode> iterator = node.methods.iterator();
         while(iterator.hasNext()){
             MethodNode method = iterator.next();
-            if(BASE_TICK_OBF_NAME.equals(method.name) && RESPAWN_DESC.equals(method.desc)){
+            if(TICK_OBF_NAME.equals(method.name) && RESPAWN_DESC.equals(method.desc)){
                 iterator.remove();
             }
         }
-        MethodVisitor mv = node.visitMethod(Opcodes.ACC_PUBLIC, BASE_TICK_OBF_NAME, RESPAWN_DESC, null, null);
+        MethodVisitor mv = node.visitMethod(Opcodes.ACC_PUBLIC, TICK_OBF_NAME, RESPAWN_DESC, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, LIVING_ENTITY_INTERNAL, TICK_DEATH_OBF_NAME, RESPAWN_DESC, false);
