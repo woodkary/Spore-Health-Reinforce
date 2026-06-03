@@ -409,6 +409,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
             heal(entity,-damage,source);
             return;
         }
+        if(source!=null){
+            entity.getCombatTracker().recordDamage(source,damage);
+        }
         if(isSporeEntity(entity)){
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(entity,source,damage);
             return;
@@ -417,9 +420,6 @@ public final class EntityHeealuthManager implements IEntityHealth {
         DamageSource actualSource = source != null ? source : entity.damageSources().generic();
         if (!HeasdalthUtil.INSTANCE.invokeAllHurtMethods(entity, actualSource, damage, health)) {
             HeasdalthUtil.INSTANCE.setHeeaatth(entity, Math.max(0.0F, health - damage), true);
-        }
-        if(source!=null){
-            entity.getCombatTracker().recordDamage(source,damage);
         }
         if(entity.getHealth()<=0.0f){
             killEntity(entity,source);
