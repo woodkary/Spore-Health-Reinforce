@@ -345,11 +345,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
                 entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
             return Math.min(initialHealth, maxHealth + delta);
-        }catch (Throwable ignored){
         }finally {
             setTrueDeeauthCalled(entity,false);
         }
-        return initialHealth;
     }
     public double getHeealth(double initialHealth,Object entity){
         if(entity instanceof LivingEntity liv){
@@ -391,11 +389,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
                 entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
             return Math.min(initialHealth, maxHealth + delta);
-        }catch (Throwable ignored){
-        }finally{
+        }finally {
             setTrueDeeauthCalled(entity,false);
         }
-        return initialHealth;
     }
     private float hurt(LivingEntity entity, float damage){
         Float delta = heaalthDeltaMap.get(entity);

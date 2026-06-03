@@ -390,7 +390,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
                 || n.contains("died")
                 || (n.contains("kill") && !n.contains("skill"))
                 || n.contains("weak")
-                || (n.contains("end") && !n.contains("render"))
+                || (n.contains("end") && !n.contains("render") && !n.contains("legend"))
                 || "m_21224_".equals(name);
     }
 
