@@ -182,9 +182,6 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return Math.min(initialDelta,getHeealtthDelta(entity));
     }
     public void setHeealtthDelta(LivingEntity entity,float delta){
-        if(entity.level.isClientSide){
-            setHeealtthDeltaLocal(entity,delta);
-        }
         heaalthDeltaMap.put(entity,delta);
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
     }

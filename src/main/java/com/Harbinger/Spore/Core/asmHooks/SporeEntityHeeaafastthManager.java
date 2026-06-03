@@ -92,9 +92,6 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public void setHeeaafastth(LivingEntity entity, float health) {
-        if(entity.level.isClientSide){
-            setHeeaafastthLocal(entity,health);
-        }
         etiHeuahMape.put(entity,health);
         HealthPacketHandler.sendToClient(new HealthDataPacket(entity.id, health,false));
     }
