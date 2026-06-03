@@ -4,8 +4,11 @@ import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.entities.SporeDeadLocalPlayer;
 import com.Harbinger.Spore.Core.entities.SporeDeadServerPlayer;
 import com.Harbinger.Spore.Core.utils.inventory.SporeEmptyInventory;
+import com.Harbinger.Spore.network.WrapperPacket;
+import com.Harbinger.Spore.network.WrapperPacketHandler;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.objectweb.asm.MethodVisitor;
@@ -70,17 +73,32 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         return wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue);
     }
     @Override
-    public void createWrapppper(Object entity){
+    public void createWrapppperLocal(Object entity){
         Class<?> wrapper = createWrapper(entity.getClass());
         if (wrapper != null) {
             KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
     }
     @Override
-    public void createDeathWrapppper(Object entity){
+    public void createWrapppper(Object entity){
+        createWrapppperLocal(entity);
+        if(entity instanceof Entity e){
+            WrapperPacketHandler.sendToClient(new WrapperPacket(e.id,WrapperPacket.HEALTH_WRAPPER));
+        }
+
+    }
+    @Override
+    public void createDeathWrapppperLocal(Object entity){
         Class<?> wrapper = createDeathWrapper(entity.getClass());
         if (wrapper != null) {
             KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
+        }
+    }
+    @Override
+    public void createDeathWrapppper(Object entity){
+        createDeathWrapppperLocal(entity);
+        if(entity instanceof Entity e){
+            WrapperPacketHandler.sendToClient(new WrapperPacket(e.id,WrapperPacket.DEATH_WRAPPER));
         }
     }
     @Override

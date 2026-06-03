@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
 import com.Harbinger.Spore.network.HealthPacketHandler;
+import com.Harbinger.Spore.network.WrapperPacketHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkRegistry;
@@ -38,6 +39,7 @@ public class SporePacketHandler {
       INSTANCE.messageBuilder(SongInitializingPacket.class, packetId.getAndIncrement()).encoder(SongInitializingPacket::encode).decoder(SongInitializingPacket::new).consumerMainThread(SongInitializingPacket::handle).add();
       HealthPacketHandler.register();
       HealthDeltaPacketHandler.register();
+      WrapperPacketHandler.register();
       registered = true;
    }
 
