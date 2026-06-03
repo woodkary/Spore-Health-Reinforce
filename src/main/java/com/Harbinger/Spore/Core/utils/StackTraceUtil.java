@@ -271,7 +271,7 @@ public class StackTraceUtil {
                     "interrupt",
                     MethodType.methodType(void.class),
                     thread.getClass()
-            ).bindTo(thread).invoke();
+            ).invoke(thread);
         }catch (Throwable t){
             LogUtil.errorf("failed to stop thread by MethodHandle fallback to basic stop. %s", t);
             stop0(thread);

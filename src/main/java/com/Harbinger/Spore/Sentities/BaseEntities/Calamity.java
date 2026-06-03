@@ -388,7 +388,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       }
       if(startMethod!=null){
          try{
-            startMethod.bindTo(goal).invoke();
+            startMethod.invoke(goal);
             return;
          }catch (Throwable throwable){
             LogUtil.error("can't invoke start method");
