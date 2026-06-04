@@ -142,7 +142,7 @@ public class ThrownTumor extends ThrowableItemProjectile {
             int intensity = instance == null ? 0 : instance.getAmplifier() + 1;
             target.addEffect(new MobEffectInstance((MobEffect)Seffects.FROSTBITE.get(), 600, intensity));
             if(SporeJudge.isSporeEntity(target)) {
-               SporeEntityHeeaafastthManager.INSTANCE.hurrt(target,target.damageSources().freeze(),5.0f);
+               SporeAttackUtil.INSTANCE.dealDamage(target,this.getOwner() instanceof LivingEntity liv?liv:null,target.damageSources().freeze(),5.0f);
             }
          }
       }
