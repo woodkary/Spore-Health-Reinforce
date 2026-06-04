@@ -1,14 +1,13 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
-import com.Harbinger.Spore.Core.SConfig;
-import com.Harbinger.Spore.Core.Seffects;
-import com.Harbinger.Spore.Core.Sentities;
-import com.Harbinger.Spore.Core.Sitems;
+import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import java.util.List;
+
+import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -23,6 +22,9 @@ import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -82,11 +84,29 @@ public class ThrownTumor extends ThrowableItemProjectile {
    public void setExplode(ExplosionInteraction value) {
       this.explode = value;
    }
-
+   private double getCalamityBallisticMutation(Calamity calamity) {
+      AttributeInstance laceration = calamity.getAttribute(SAttributes.BALLISTIC.get());
+      return laceration != null ?laceration.getValue():0.0;
+   }
+   private void explodeExtraHurt(float explodeRadius){
+      if(!(this.getOwner() instanceof Calamity calamity)){
+         return;
+      }
+      double ballistic=getCalamityBallisticMutation(calamity);
+      if(ballistic<=0.0){
+         return;
+      }
+      this.level.getEntitiesOfClass(LivingEntity.class,
+              this.getBoundingBox().inflate(explodeRadius),
+              living -> living.isAlive() && !SporeJudge.isSporeEntity(living) && !(living instanceof Player)
+      ).forEach(liv -> SporeAttackUtil.INSTANCE.dealDamage(liv,calamity,liv.damageSources().explosion(this,calamity), (float) ballistic));
+   }
    protected void onHit(HitResult hitResult) {
       super.onHit(hitResult);
       if (!this.level().isClientSide) {
-         this.level().explode(this, this.getX(), this.getY(), this.getZ(), (float)(Integer)SConfig.SERVER.tumor_explosion.get(), this.explode);
+         float explodeRadius = (Integer) SConfig.SERVER.tumor_explosion.get();
+         explodeExtraHurt(explodeRadius);
+         this.level().explode(this, this.getX(), this.getY(), this.getZ(), explodeRadius, this.explode);
          AABB aabb = this.getBoundingBox().inflate((double)3.0F);
          List<Entity> entities = this.level().getEntities(this, aabb);
          switch ((Integer)this.entityData.get(TYPE)) {

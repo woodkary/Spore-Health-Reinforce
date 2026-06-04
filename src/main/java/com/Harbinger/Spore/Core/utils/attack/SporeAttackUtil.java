@@ -204,7 +204,7 @@ public final class SporeAttackUtil implements IAttack {
 
     private double getCalamityLacerationMutation(LivingEntity attacker) {
         if (attacker instanceof Calamity calamity) {
-            AttributeInstance laceration = calamity.getAttribute((Attribute) SAttributes.LACERATION.get());
+            AttributeInstance laceration = calamity.getAttribute(SAttributes.LACERATION.get());
             return laceration != null ?laceration.getValue():0.0;
         }
 
