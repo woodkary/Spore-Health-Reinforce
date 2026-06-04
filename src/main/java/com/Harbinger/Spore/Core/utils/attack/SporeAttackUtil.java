@@ -190,11 +190,13 @@ public final class SporeAttackUtil implements IAttack {
             damageSource = attacker.damageSources().mobAttack(attacker);
         }
         double laceration=getCalamityLacerationMutation(attacker);
-        if (laceration<=0.0) {
-            damage=damageReduction(target,damage,damageSource);
-        }else{
-            damage+= (float) (0.2 + 0.1 *laceration);
-        }
+        //将伤害拆成可被减伤和不可被减伤两部分，并对可被减伤部分应用减伤逻辑
+        float damageBypass= (float) (damage*laceration/64.0);
+        float damageReduce=damage-damageBypass;
+        damageReduce=damageReduction(target,damageReduce,damageSource);
+        damage=damageBypass+damageReduce;
+
+        damage+= (float) (0.2 + 0.1 *laceration);
 
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
         dealDamage(target, attacker, damageSource, damage);
