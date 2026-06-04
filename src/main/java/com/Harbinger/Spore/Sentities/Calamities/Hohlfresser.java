@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
@@ -148,10 +149,12 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
          AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
          AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
          AttributeInstance damage = this.getAttribute(Attributes.ATTACK_DAMAGE);
+         float maxHealth = health != null ? (float)(health.getValue() * (double)2.0F) : SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(this) * 2.0F;
          if (health != null) {
-            health.setBaseValue(health.getValue() * (double)2.0F);
+            health.setBaseValue(maxHealth);
          }
 
+         SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, maxHealth);
          if (armor != null) {
             armor.setBaseValue(armor.getValue() * (double)1.5F);
          }
@@ -327,6 +330,7 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
          if (this.tickCount % 20 == 0 && this.parts != null && this.getAdaptation()) {
             float size = 1.2F;
             AttributeInstance hostInstance = this.getAttribute(Attributes.MAX_HEALTH);
+            float hostMaxHealth = hostInstance != null ? (float)hostInstance.getBaseValue() : SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(this);
 
             for(int i = 0; i < this.parts.length; ++i) {
                size -= 0.05F;
@@ -336,9 +340,11 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
                hohlMultipart.setSize(size * 1.4F);
                hohlMultipart.setIsTail(isTail);
                AttributeInstance instance = hohlMultipart.getAttribute(Attributes.MAX_HEALTH);
-               if (instance != null && hostInstance != null && instance.getValue() != hostInstance.getValue()) {
-                  instance.setBaseValue(hostInstance.getBaseValue());
+               if (instance != null && instance.getValue() != hostMaxHealth) {
+                  instance.setBaseValue(hostMaxHealth);
                }
+
+               SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(hohlMultipart, hostMaxHealth);
             }
          }
 

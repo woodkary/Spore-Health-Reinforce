@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.EvolvedInfected;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.VariantKeeper;
@@ -210,6 +211,7 @@ public class Naiad extends EvolvedInfected implements WaterInfected, VariantKeep
          healthAttr.setBaseValue(health);
       }
 
+      SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, (float)health);
       if (armorAttr != null) {
          armorAttr.setBaseValue(armor);
       }

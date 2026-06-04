@@ -328,16 +328,18 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
          }
 
          if (age > 1) {
+            double maxHealth = (Double)SConfig.SERVER.mound_hp.get() * (double)age * (Double)SConfig.SERVER.global_health.get();
             AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
+            if (health != null) {
+               health.setBaseValue(maxHealth);
+            }
 
-            assert health != null;
-
-            health.setBaseValue((Double)SConfig.SERVER.mound_hp.get() * (double)age * (Double)SConfig.SERVER.global_health.get());
+            SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, (float)maxHealth);
             AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
 
-            assert armor != null;
-
-            armor.setBaseValue((Double)SConfig.SERVER.mound_armor.get() * (double)age * (Double)SConfig.SERVER.global_armor.get());
+            if (armor != null) {
+               armor.setBaseValue((Double)SConfig.SERVER.mound_armor.get() * (double)age * (Double)SConfig.SERVER.global_armor.get());
+            }
          }
       }
 
@@ -373,7 +375,14 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
                      Attribute attribute = ForgeRegistries.ATTRIBUTES.getValue(attrLocation);
                      if (attribute != null) {
                         AttributeInstance instance = calamity.getAttribute(attribute);
-                        if (instance != null) {
+                        if (attribute == Attributes.MAX_HEALTH) {
+                           double maxHealth = instance != null ? instance.getValue() + (double)1.0F : SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(calamity) + 1.0F;
+                           if (instance != null) {
+                              instance.setBaseValue(maxHealth);
+                           }
+
+                           SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(calamity, (float)maxHealth);
+                        } else if (instance != null) {
                            double e = instance.getValue();
                            instance.setBaseValue(e + (double)1.0F);
                         }

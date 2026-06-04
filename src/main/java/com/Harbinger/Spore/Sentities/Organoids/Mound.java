@@ -7,6 +7,7 @@ import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.SBlockEntities.ContainerBlockEntity;
 import com.Harbinger.Spore.SBlockEntities.LivingStructureBlocks;
@@ -315,6 +316,7 @@ public class Mound extends Organoid implements FoliageSpread {
             hp.setBaseValue(health);
          }
 
+         SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, (float)health);
          if (def != null) {
             def.setBaseValue(armor);
          }

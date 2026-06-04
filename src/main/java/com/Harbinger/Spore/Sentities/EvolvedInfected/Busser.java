@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.EvolvedInfected;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.Carrier;
 import com.Harbinger.Spore.Sentities.FlyingInfected;
 import com.Harbinger.Spore.Sentities.VariantKeeper;
@@ -340,10 +341,12 @@ public class Busser extends EvolvedInfected implements Carrier, FlyingInfected, 
       if (this.getTypeVariant() == 1) {
          AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
          AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
+         double maxHealth = (Double)SConfig.SERVER.bus_hp.get() * (double)1.5F * (Double)SConfig.SERVER.global_health.get();
          if (health != null) {
-            health.setBaseValue((Double)SConfig.SERVER.bus_hp.get() * (double)1.5F * (Double)SConfig.SERVER.global_health.get());
+            health.setBaseValue(maxHealth);
          }
 
+         SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, (float)maxHealth);
          if (armor != null) {
             armor.setBaseValue((Double)SConfig.SERVER.bus_armor.get() * (double)1.5F * (Double)SConfig.SERVER.global_armor.get());
          }
