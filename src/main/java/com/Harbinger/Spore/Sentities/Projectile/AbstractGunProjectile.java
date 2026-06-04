@@ -103,13 +103,10 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
             if (calculations > damage) {
                damage = calculations;
             }
-
-            if (severedPart == null) {
-               SporeAttackUtil.INSTANCE.dealDamage(living,owner,this.level().damageSources().mobProjectile(this, owner), damage);
-            } else {
+            SporeAttackUtil.INSTANCE.dealDamage(living,owner,this.level().damageSources().mobProjectile(this, owner), damage);
+            if (severedPart != null) {
                severedPart.hurt(this.level().damageSources().mobProjectile(this, owner), damage);
             }
-
             this.doHitAfterEffects(living, owner);
             if (living instanceof Player && owner instanceof Player player) {
                 player.playNotifySound((SoundEvent)Ssounds.BIOGUN_HIT_PLAYER.get(), SoundSource.MASTER, 1.0F, 1.0F);
