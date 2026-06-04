@@ -1,8 +1,12 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
+import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -35,6 +39,15 @@ public interface SporeWeaponData {
          return false;
       }
       SporeAttackUtil.INSTANCE.attack(player,target,stack);
+      if(stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0&&target instanceof LivingEntity liv){
+         DamageSource freeze = liv.damageSources().freeze();
+         freeze.causingEntity=player;
+         freeze.directEntity=player;
+         SporeAttackUtil.INSTANCE.dealDamage(liv,
+                 player,
+                 freeze,
+                 2.0f);
+      }
       return false;
    }
 

@@ -149,6 +149,15 @@ public class ThrownBoomerang extends AbstractArrow {
                   }
                   data.abstractMutationBuffs(target1, ownerLiving, this.boomerang, data);
                }
+               if(this.boomerang.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0) {
+                   DamageSource freeze = target.damageSources().freeze();
+                   freeze.causingEntity=ownerLiving;
+                   freeze.directEntity=this;
+                   SporeAttackUtil.INSTANCE.dealDamage(target1,
+                           ownerLiving,
+                           freeze,
+                           2.0f);
+               }
             }
 
             if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, this.boomerang) > 0) {

@@ -10,6 +10,7 @@ import com.Harbinger.Spore.Senchantments.UnwaveringNature;
 import com.Harbinger.Spore.Senchantments.VoraciousMaw;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -17,16 +18,16 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public class Senchantments {
-   public static final DeferredRegister ENCHANTMENTS;
+   public static final DeferredRegister<Enchantment> ENCHANTMENTS;
    public static final EnchantmentCategory FUNGAL_ITEMS;
-   public static final RegistryObject SYMBIOTIC_RECONSTITUTION;
-   public static final RegistryObject CRYOGENIC_ASPECT;
-   public static final RegistryObject GASTRIC_SPEWAGE;
-   public static final RegistryObject CORROSIVE_POTENCY;
-   public static final RegistryObject SERRATED_THORNS;
-   public static final RegistryObject VORACIOUS_MAW;
-   public static final RegistryObject UNWAVERING_NATURE;
-   public static final RegistryObject MUTAGENIC_REACTANT;
+   public static final RegistryObject<Enchantment> SYMBIOTIC_RECONSTITUTION;
+   public static final RegistryObject<Enchantment> CRYOGENIC_ASPECT;
+   public static final RegistryObject<Enchantment> GASTRIC_SPEWAGE;
+   public static final RegistryObject<Enchantment> CORROSIVE_POTENCY;
+   public static final RegistryObject<Enchantment> SERRATED_THORNS;
+   public static final RegistryObject<Enchantment> VORACIOUS_MAW;
+   public static final RegistryObject<Enchantment> UNWAVERING_NATURE;
+   public static final RegistryObject<Enchantment> MUTAGENIC_REACTANT;
 
    public static void register(IEventBus eventBus) {
       ENCHANTMENTS.register(eventBus);

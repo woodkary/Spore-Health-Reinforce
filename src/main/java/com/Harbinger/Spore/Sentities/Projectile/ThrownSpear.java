@@ -160,6 +160,15 @@ public class ThrownSpear extends AbstractArrow {
                   }
                    data.abstractMutationBuffs(target, ownerLiving, this.spearItem, data);
                }
+                if(this.spearItem.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0) {
+                   DamageSource freeze = target.damageSources().freeze();
+                   freeze.causingEntity=ownerLiving;
+                   freeze.directEntity=this;
+                   SporeAttackUtil.INSTANCE.dealDamage(target,
+                           ownerLiving,
+                           freeze,
+                           2.0f);
+                }
             }
 
             if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, this.spearItem) > 0) {

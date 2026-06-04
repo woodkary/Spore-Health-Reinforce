@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sitems;
 
 import com.Harbinger.Spore.Core.SConfig;
+import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
@@ -12,6 +13,7 @@ import java.util.List;
 
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -19,6 +21,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -112,6 +115,15 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
                target.hurt(source, v);
                if(this.getVariant(stack) == SporeToolsMutations.BEZERK) {
                   SporeAttackUtil.INSTANCE.dealDamage(target, player, source, v);
+               }
+               if(stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0){
+                  DamageSource freeze = target.damageSources().freeze();
+                  freeze.causingEntity=player;
+                  freeze.directEntity=player;
+                  SporeAttackUtil.INSTANCE.dealDamage(target,
+                          player,
+                          freeze,
+                          2.0f);
                }
                target.hurtTime = 10;
                target.invulnerableTime = 10;
