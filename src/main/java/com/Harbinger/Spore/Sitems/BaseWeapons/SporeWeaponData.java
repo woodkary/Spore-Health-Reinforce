@@ -40,9 +40,7 @@ public interface SporeWeaponData {
       }
       SporeAttackUtil.INSTANCE.attack(player,target,stack);
       if(stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0&&target instanceof LivingEntity liv){
-         DamageSource freeze = liv.damageSources().freeze();
-         freeze.causingEntity=player;
-         freeze.directEntity=player;
+         DamageSource freeze = new DamageSource(target.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE),player,player);
          SporeAttackUtil.INSTANCE.dealDamage(liv,
                  player,
                  freeze,

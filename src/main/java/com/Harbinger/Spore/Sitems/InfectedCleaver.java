@@ -117,9 +117,7 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
                   SporeAttackUtil.INSTANCE.dealDamage(target, player, source, v);
                }
                if(stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0){
-                  DamageSource freeze = target.damageSources().freeze();
-                  freeze.causingEntity=player;
-                  freeze.directEntity=player;
+                  DamageSource freeze = new DamageSource(entity.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE),player,player);
                   SporeAttackUtil.INSTANCE.dealDamage(target,
                           player,
                           freeze,

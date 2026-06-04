@@ -11,6 +11,8 @@ import com.Harbinger.Spore.Fluids.BileLiquid;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import javax.annotation.Nullable;
+
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -18,6 +20,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -150,9 +153,7 @@ public class ThrownBoomerang extends AbstractArrow {
                   data.abstractMutationBuffs(target1, ownerLiving, this.boomerang, data);
                }
                if(this.boomerang.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0) {
-                   DamageSource freeze = target.damageSources().freeze();
-                   freeze.causingEntity=ownerLiving;
-                   freeze.directEntity=this;
+                  DamageSource freeze = new DamageSource(target1.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE),this,ownerLiving);
                    SporeAttackUtil.INSTANCE.dealDamage(target1,
                            ownerLiving,
                            freeze,

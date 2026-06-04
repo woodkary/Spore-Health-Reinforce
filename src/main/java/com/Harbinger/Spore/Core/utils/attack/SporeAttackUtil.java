@@ -25,6 +25,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -223,6 +224,10 @@ public final class SporeAttackUtil implements IAttack {
         if(attacker instanceof Player player){
             target.setLastHurtByPlayer(player);
         }
+        boolean isSpore = SporeJudge.isSporeEntity(target);
+        if(damageSource.is(DamageTypes.FREEZE)&& isSpore){
+            damage*=5.0f;
+        }
         float targetHealth = target.getHealth();
         boolean willDie = targetHealth - damage <= 0.0f;
         if(willDie){
@@ -230,7 +235,7 @@ public final class SporeAttackUtil implements IAttack {
             EntityHeealuthManager.INSTANCE.setHeealtthDelta(target,Float.NEGATIVE_INFINITY);
         }
         int flag=0;
-        if(SporeJudge.isSporeEntity(target)){
+        if(isSpore){
             flag=1;
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(target,damageSource,damage);
             target.getCombatTracker().recordDamage(damageSource,damage);
