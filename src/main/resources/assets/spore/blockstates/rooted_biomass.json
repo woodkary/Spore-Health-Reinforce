@@ -1,6 +1,23 @@
 {
   "variants": {
-    "": [
+    "lit=false": [
+      {
+        "model": "spore:block/rooted_biomass"
+      },
+      {
+        "model": "spore:block/rooted_biomass",
+        "y": 90
+      },
+      {
+        "model": "spore:block/rooted_biomass",
+        "y": 180
+      },
+      {
+        "model": "spore:block/rooted_biomass",
+        "y": 270
+      }
+    ],
+    "lit=true": [
       {
         "model": "spore:block/rooted_biomass"
       },
