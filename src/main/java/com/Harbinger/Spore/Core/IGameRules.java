@@ -1,7 +1,9 @@
 package com.Harbinger.Spore.Core;
 
-import net.minecraft.world.level.Level;
-
 public interface IGameRules {
-    boolean casingLightAllowed(Level level);
+    void setCasingLightNot();
+    void enableCasingLight();
+    void disableCasingLight();
+    void setCasingLightValue(boolean value);
+    boolean casingLightAllowed();
 }

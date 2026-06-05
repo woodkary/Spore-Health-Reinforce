@@ -1,15 +1,10 @@
 package com.Harbinger.Spore.sEvents;
 
+import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Spore;
-import com.Harbinger.Spore.Core.SConfig;
-import com.Harbinger.Spore.Core.Seffects;
-import com.Harbinger.Spore.Core.Senchantments;
-import com.Harbinger.Spore.Core.Sentities;
-import com.Harbinger.Spore.Core.Sitems;
-import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
@@ -67,7 +62,7 @@ import com.Harbinger.Spore.Sitems.BaseWeapons.SporeBaseArmor;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import com.Harbinger.Spore.Sitems.Guns.AbstractSporeGun;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 
 import java.util.*;
 
@@ -402,6 +397,18 @@ public class HandlerEvents {
                          return killed;
                       }))
       );
+      dispatcher.register(Commands.literal("spore:enable_light")
+              .requires(source -> source.hasPermission(2))
+              .then(Commands.argument("light", BoolArgumentType.bool())
+              .executes(ctx->{
+                 boolean value=BoolArgumentType.getBool(ctx,"light");
+                 SGameRules.INSTANCE.setCasingLightValue(value);
+                 Entity entity = (ctx.getSource()).getEntity();
+                 if(entity instanceof Player player){
+                     player.sendSystemMessage(Component.literal("proto casing light has "+(value?"enabled":"disabled")+"."));
+                 }
+                 return 1;
+              })));
       dispatcher.register(Commands.literal("spore:set_area").executes((arguments) -> {
          ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
          int x = (int)((CommandSourceStack)arguments.getSource()).getPosition().x();

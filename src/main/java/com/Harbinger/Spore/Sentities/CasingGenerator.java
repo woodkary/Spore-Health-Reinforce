@@ -55,7 +55,7 @@ public interface CasingGenerator {
 
       BlockState unlitState = (BlockState)state.setValue(CasingBiomassBlock.LIT, false);
       Level level = this.getProtoLevel();
-      if (level != null && SGameRules.INSTANCE.casingLightAllowed(level) && source.nextFloat() < 0.3F) {
+      if (level != null && SGameRules.INSTANCE.casingLightAllowed() && source.nextFloat() < 0.3F) {
          return (BlockState)unlitState.setValue(CasingBiomassBlock.LIT, true);
       }
 
