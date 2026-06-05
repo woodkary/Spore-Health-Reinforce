@@ -1,8 +1,8 @@
 package com.Harbinger.Spore.Sentities;
 
 import com.Harbinger.Spore.Core.SConfig;
-import com.Harbinger.Spore.Core.SGameRules;
 import com.Harbinger.Spore.Core.Sblocks;
+import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.Sblocks.CasingBiomassBlock;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -55,7 +56,7 @@ public interface CasingGenerator {
 
       BlockState unlitState = (BlockState)state.setValue(CasingBiomassBlock.LIT, false);
       Level level = this.getProtoLevel();
-      if (level != null && SGameRules.INSTANCE.casingLightAllowed() && source.nextFloat() < 0.3F) {
+      if (level instanceof ServerLevel serverLevel && SporeSavedData.get(serverLevel).isCasingLightAllowed() && source.nextFloat() < 0.3F) {
          return (BlockState)unlitState.setValue(CasingBiomassBlock.LIT, true);
       }
 

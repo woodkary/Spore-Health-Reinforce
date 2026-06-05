@@ -402,11 +402,11 @@ public class HandlerEvents {
               .then(Commands.argument("light", BoolArgumentType.bool())
               .executes(ctx->{
                  boolean value=BoolArgumentType.getBool(ctx,"light");
-                 SGameRules.INSTANCE.setCasingLightValue(value);
-                 Entity entity = (ctx.getSource()).getEntity();
-                 if(entity instanceof Player player){
-                     player.sendSystemMessage(Component.literal("proto casing light has "+(value?"enabled":"disabled")+"."));
-                 }
+                 SporeSavedData.get(ctx.getSource().getLevel()).setCasingLightAllowed(value);
+                 ctx.getSource().sendSuccess(
+                         () -> Component.literal("proto casing light has "+(value?"enabled":"disabled")+"."),
+                         true
+                 );
                  return 1;
               })));
       dispatcher.register(Commands.literal("spore:set_area").executes((arguments) -> {

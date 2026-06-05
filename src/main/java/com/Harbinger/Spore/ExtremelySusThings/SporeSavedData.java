@@ -16,8 +16,10 @@ import org.jetbrains.annotations.NotNull;
 public class SporeSavedData extends SavedData {
    public static final Map<String, ChunkLoadRequest> activeRequests = new HashMap<>();
    public static final String NAME = "spore_world_data";
+   private static final String CASING_LIGHT_ALLOWED = "CasingLightAllowed";
    private static final List protectorList = new ArrayList();
    private static final List protos = new ArrayList();
+   private boolean casingLightAllowed;
 
    public static void addProtector(Protector protector) {
       protectorList.add(protector);
@@ -55,6 +57,17 @@ public class SporeSavedData extends SavedData {
       return (SporeSavedData)level.getDataStorage().computeIfAbsent(SporeSavedData::load, SporeSavedData::new, "spore_world_data");
    }
 
+   public boolean isCasingLightAllowed() {
+      return this.casingLightAllowed;
+   }
+
+   public void setCasingLightAllowed(boolean casingLightAllowed) {
+      if (this.casingLightAllowed != casingLightAllowed) {
+         this.casingLightAllowed = casingLightAllowed;
+         this.setDirty();
+      }
+   }
+
    public void addRequest(ChunkLoadRequest request) {
       activeRequests.put(request.getRequestID(), request);
       this.setDirty();
@@ -81,6 +94,8 @@ public class SporeSavedData extends SavedData {
          }
       }
 
+      data.casingLightAllowed = tag.getBoolean(CASING_LIGHT_ALLOWED);
+
       return data;
    }
 
@@ -92,6 +107,7 @@ public class SporeSavedData extends SavedData {
       }
 
       tag.put("ChunkRequests", listTag);
+      tag.putBoolean(CASING_LIGHT_ALLOWED, this.casingLightAllowed);
       return tag;
    }
 }
