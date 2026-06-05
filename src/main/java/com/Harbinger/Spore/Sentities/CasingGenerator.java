@@ -49,6 +49,13 @@ public interface CasingGenerator {
       return values;
    }
 
+   default List<BlockState> fungalStalkBlocks() {
+      List<BlockState> values = new ArrayList<>();
+      values.add(((Block)Sblocks.MYCELIUM_BLOCK.get()).defaultBlockState());
+      values.add(((Block)Sblocks.FUNGAL_SHELL.get()).defaultBlockState());
+      return values;
+   }
+
    private BlockState withCasingLight(BlockState state, RandomSource source) {
       if (!state.hasProperty(CasingBiomassBlock.LIT)) {
          return state;
@@ -178,12 +185,7 @@ public interface CasingGenerator {
 
    default void createFungalStalks(BlockPos pos, Level level, RandomSource source, boolean down) {
       int random = down ? -source.nextInt(4, 16) : source.nextInt(4, 16);
-      List<BlockState> states = new ArrayList() {
-         {
-            this.add(((Block)Sblocks.MYCELIUM_BLOCK.get()).defaultBlockState());
-            this.add(((Block)Sblocks.FUNGAL_SHELL.get()).defaultBlockState());
-         }
-      };
+      List<BlockState> states = this.fungalStalkBlocks();
 
       for(int i = 0; i <= random; ++i) {
          BlockState state = (BlockState)states.get(source.nextInt(states.size()));

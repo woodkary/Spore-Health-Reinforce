@@ -95,6 +95,21 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
          this.add("spore:hevoker");
       }
    };
+   private final List<BlockState> casingBlocks = List.of(
+           ((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState(),
+           ((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState(),
+           ((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState(),
+           ((Block)Sblocks.ROOTED_BIOMASS.get()).defaultBlockState(),
+           ((Block)Sblocks.ROOTED_BIOMASS.get()).defaultBlockState(),
+           ((Block)Sblocks.ROOTED_BIOMASS.get()).defaultBlockState(),
+           ((Block)Sblocks.CALCIFIED_BIOMASS_BLOCK.get()).defaultBlockState(),
+           ((Block)Sblocks.SICKEN_BIOMASS_BLOCK.get()).defaultBlockState(),
+           ((Block)Sblocks.GASTRIC_BIOMASS.get()).defaultBlockState()
+   );
+   private final List<BlockState> fungalStalkBlocks = List.of(
+           ((Block)Sblocks.MYCELIUM_BLOCK.get()).defaultBlockState(),
+           ((Block)Sblocks.FUNGAL_SHELL.get()).defaultBlockState()
+   );
    private int summonDefense = 0;
    private static final int INPUT_SIZE = 4;
    private static final int OUTPUT_SIZE = 4;
@@ -1040,5 +1055,15 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    @Override
    public Level getProtoLevel() {
       return this.level();
+   }
+
+   @Override
+   public List<BlockState> possibleBlocks() {
+      return this.casingBlocks;
+   }
+
+   @Override
+   public List<BlockState> fungalStalkBlocks() {
+      return this.fungalStalkBlocks;
    }
 }
