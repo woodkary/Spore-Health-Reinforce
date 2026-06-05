@@ -91,7 +91,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class Vanguard extends UtilityEntity implements CrossbowAttackMob, Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness {
    private static final EntityDataAccessor IS_CHARGING_CROSSBOW;
-   private static final EntityDataAccessor KILLS;
+   private static final EntityDataAccessor<Integer> KILLS;
    private static final EntityDataAccessor RAID_TIME_OUT;
    private static final EntityDataAccessor VILLAGE;
    private int attackAnimationTick;
@@ -159,6 +159,9 @@ public class Vanguard extends UtilityEntity implements CrossbowAttackMob, Enemy,
 
    public void setKills(int val) {
       this.entityData.set(KILLS, val);
+   }
+   public void addKills(int val) {
+      this.entityData.set(KILLS, this.entityData.get(KILLS)+val);
    }
 
    protected void defineSynchedData() {

@@ -30,9 +30,10 @@ public interface CasingGenerator {
       boolean properzx4 = level.getBlockState(blockpos.west()).isSolidRender(level, blockpos);
       return propery1 || propery2 || properzx1 || properzx2 || properzx3 || properzx4;
    }
+   Level getProtoLevel();
 
-   default List possibleBlocks() {
-      List<BlockState> values = new ArrayList();
+   default List<BlockState> possibleBlocks() {
+      List<BlockState> values = new ArrayList<>();
       values.add(((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState());
       values.add(((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState());
       values.add(((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState());

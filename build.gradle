@@ -167,6 +167,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     compileOnly files("libs/[JEI物品管理器] jei-1.20.1-forge-15.20.0.130.jar")
     compileOnly files("libs/[村庄革新] village_mod-1.4.2-fix.jar")
+    compileOnly files("libs/[传奇怪物] legendarymonsters-2.1.12 MC 1.20.1.jar")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

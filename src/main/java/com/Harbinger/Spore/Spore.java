@@ -1,23 +1,6 @@
 package com.Harbinger.Spore;
 
-import com.Harbinger.Spore.Core.SAttributes;
-import com.Harbinger.Spore.Core.SConfig;
-import com.Harbinger.Spore.Core.SMenu;
-import com.Harbinger.Spore.Core.SblockEntities;
-import com.Harbinger.Spore.Core.Sblocks;
-import com.Harbinger.Spore.Core.ScreativeTab;
-import com.Harbinger.Spore.Core.Seffects;
-import com.Harbinger.Spore.Core.Senchantments;
-import com.Harbinger.Spore.Core.Sentities;
-import com.Harbinger.Spore.Core.Sfeatures;
-import com.Harbinger.Spore.Core.Sfluids;
-import com.Harbinger.Spore.Core.Sitems;
-import com.Harbinger.Spore.Core.Spaintings;
-import com.Harbinger.Spore.Core.Sparticles;
-import com.Harbinger.Spore.Core.Spotion;
-import com.Harbinger.Spore.Core.Srecipes;
-import com.Harbinger.Spore.Core.Ssounds;
-import com.Harbinger.Spore.Core.SticketType;
+import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
@@ -83,6 +66,7 @@ public class Spore {
    }
 
    public void commonSetup(FMLCommonSetupEvent event) {
+      SGameRules.class.toString();
       SporePacketHandler.registerPackets();
       SporeLivingEntityHealthTransformerBootstrap.INSTANCE.installAndRetransform();
       event.enqueueWork(Sfluids::postInit);

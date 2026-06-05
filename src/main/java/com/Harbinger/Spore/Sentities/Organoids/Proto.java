@@ -1036,4 +1036,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       BIOMASS = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.INT);
       NODE = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.BLOCK_POS);
    }
+
+   @Override
+   public Level getProtoLevel() {
+      return this.level();
+   }
 }

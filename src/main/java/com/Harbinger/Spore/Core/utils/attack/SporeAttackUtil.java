@@ -263,20 +263,20 @@ public final class SporeAttackUtil implements IAttack {
                 double maxHealth = target.attributes.getValue(Attributes.MAX_HEALTH);
                 attacker.awardKillScore(target, target.deathScore+(int) (maxHealth*0.5),damageSource);
             }
-            setKills(attacker,2);
+            addKills(attacker,2);
             if(flag==1){
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);
             }
             EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
         }
     }
-    private void setKills(LivingEntity attacker,Integer count) {
+    private void addKills(LivingEntity attacker,Integer count) {
         if(attacker instanceof Calamity cal){
-            cal.setKills(count);
+            cal.setKills(cal.getKills()+count);
         }else if(attacker instanceof Infected inf){
-            inf.setKills(count);
+            inf.setKills(inf.getKills()+count);
         }else if(attacker instanceof Vanguard van){
-            van.setKills(count);
+            van.addKills(count);
         }
     }
 
