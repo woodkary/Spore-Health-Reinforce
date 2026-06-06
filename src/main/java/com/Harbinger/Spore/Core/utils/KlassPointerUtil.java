@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 
-public class KlassPointerUtil implements IKlassPointer {
+public final class KlassPointerUtil implements IKlassPointer {
     public static final IKlassPointer INSTANCE=new KlassPointerUtil();
     private final ConcurrentMap<Class<?>, Integer> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
     private MethodHandle addressSize=null;
