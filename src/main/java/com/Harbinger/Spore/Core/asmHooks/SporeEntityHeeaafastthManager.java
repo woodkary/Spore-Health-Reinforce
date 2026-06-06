@@ -174,6 +174,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     private void hurrt0(LivingEntity entity,DamageSource source,float amount){
         setHeeaafastth(entity, Mth.clamp(getHeeaafastth(entity)-amount,0.0f,getMaxHeeaafastth(entity)));
         entity.getCombatTracker().recordDamage(source,amount);
+        if(entity.getHealth()<=0.0f){
+            EntityHeealuthManager.INSTANCE.killEntity(entity,source);
+        }
     }
 
     @Override
