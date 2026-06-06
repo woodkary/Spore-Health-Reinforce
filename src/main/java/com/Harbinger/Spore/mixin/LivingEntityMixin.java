@@ -20,7 +20,9 @@ public class LivingEntityMixin {
                     target = "Lnet/minecraft/world/entity/LivingEntity;setHealth(F)V"))
     public void setHealthOnHeal(LivingEntity instance, float newHealth,float healAmount) {
         instance.setHealth(newHealth);
-        EntityHeealuthManager.INSTANCE.heal(instance,healAmount);
+        if(instance instanceof Player) {
+            EntityHeealuthManager.INSTANCE.heal(instance,healAmount);
+        }
     }
     @Inject(method="addAdditionalSaveData",at=@At("RETURN"))
     public void addAdditionalHeealtthDalta(CompoundTag compoundTag, CallbackInfo ci){
