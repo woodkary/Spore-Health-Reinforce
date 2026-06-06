@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
@@ -32,16 +33,25 @@ public interface ICustomLifeCycleEntity {
 
         }
     }
+    default boolean isProtoOrCalamity(){
+        LivingEntity entity = entity();
+        return entity instanceof Proto||entity instanceof Calamity;
+    }
     default void tickCustomLifeCycle(){
         SporeEntityHeeaafastthManager.INSTANCE.updateIFrameTick(entity());
     }
     default void actualHurt(DamageSource source, float damage) {
         LivingEntity liv=entity();
-        if (!liv.isInvulnerableTo(source)&&!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv,source)) {
+        boolean isProtoOrCalamity = isProtoOrCalamity();
+        //普通生物可以直接受伤，Proto和Calamity需要经过无敌帧
+        if (!liv.isInvulnerableTo(source)&&
+                (!isProtoOrCalamity||!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv,source))) {
             boolean isFreezeDamage = source.is(DamageTypes.FREEZE);
+            //Proto和Calamity会有限伤
+            boolean shouldLimitDamage = isProtoOrCalamity && !isFreezeDamage;
             damage = ForgeHooks.onLivingHurt(liv, source, damage);
             float reduceRate = 1.0f;
-            if(!isFreezeDamage){
+            if(shouldLimitDamage){
                 reduceRate = 0.4f;
                 damage = Math.min(liv.getMaxHealth() * reduceRate, damage);
             }
@@ -65,11 +75,11 @@ public interface ICustomLifeCycleEntity {
             float oldF1=f1;
             f1=ForgeHooks.onLivingDamage(liv, source, f1);
             //新的f1不能大于原来的f1
-            if(!isFreezeDamage) {
+            if(shouldLimitDamage) {
                 f1 = Math.min(f1, oldF1);
             }
             if (f1 != 0.0F) {
-                if(!isFreezeDamage) {
+                if(shouldLimitDamage) {
                     f1 = Math.min(liv.getMaxHealth() * reduceRate, f1);
                 }
                 liv.getCombatTracker().recordDamage(source, f1);

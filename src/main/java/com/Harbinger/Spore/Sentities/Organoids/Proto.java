@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -619,6 +620,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    }
 
    public boolean hurt(DamageSource source, float amount) {
+      if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){
+         return false;
+      }
       if ((double)amount > (Double)SConfig.SERVER.proto_dpsr.get() && (Double)SConfig.SERVER.proto_dpsr.get() > (double)0.0F) {
          return super.hurt(source, (float)((Double)SConfig.SERVER.proto_dpsr.get() * (double)1.0F));
       } else {
@@ -1065,5 +1069,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    @Override
    public List<BlockState> fungalStalkBlocks() {
       return this.fungalStalkBlocks;
+   }
+   @Override
+   public boolean isProtoOrCalamity(){
+      return true;
    }
 }

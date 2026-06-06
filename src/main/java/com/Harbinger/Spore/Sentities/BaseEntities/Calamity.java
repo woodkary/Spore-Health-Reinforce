@@ -765,6 +765,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public LivingEntity entity() {
       return this;
    }
+   @Override
+   public boolean isProtoOrCalamity(){
+      return true;
+   }
 
    public static class GoToLocation extends Goal {
       public final Calamity infected;
