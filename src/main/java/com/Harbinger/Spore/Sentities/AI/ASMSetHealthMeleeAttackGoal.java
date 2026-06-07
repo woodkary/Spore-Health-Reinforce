@@ -10,6 +10,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public interface ASMSetHealthMeleeAttackGoal {
     Mob mob();
     double attackReachSqr(LivingEntity target);
+    default float getBonus(){
+        return 0.0f;
+    }
     int ticksUntilNextAttack();
     default void tickASMAttack(){
         Mob mob = mob();
@@ -26,9 +29,7 @@ public interface ASMSetHealthMeleeAttackGoal {
             return;
         }
         float attackDamage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE);
-        if(mob instanceof Inquisitor inquisitor) {
-            attackDamage+=inquisitor.getBonusDamage();
-        }
+        attackDamage+=getBonus();
         SporeAttackUtil.INSTANCE.attack(target, mob, attackDamage);
     }
 }

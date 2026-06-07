@@ -71,7 +71,12 @@ public class Inquisitor extends Hyper {
 
    protected void addRegularGoals() {
       super.addRegularGoals();
-      this.goalSelector.addGoal(3, new AOEMeleeAttackGoal(this, 1.2, true, 1.2, 3.0F, (livingEntity) -> this.TARGET_SELECTOR.test(livingEntity)));
+      this.goalSelector.addGoal(3, new AOEMeleeAttackGoal(this, 1.2, true, 1.2, 3.0F, (livingEntity) -> this.TARGET_SELECTOR.test(livingEntity)){
+         @Override
+         public float getBonus() {
+            return Inquisitor.this.getBonusDamage();
+         }
+      });
       this.goalSelector.addGoal(3, new LeapAtTargetGoal(this, 0.4F));
       this.goalSelector.addGoal(6, new RandomStrollGoal(this, 0.8));
       this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));

@@ -156,9 +156,7 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
          this.mob.doHurtTarget(entity);
          AABB hitbox = entity.getBoundingBox().inflate(this.box);
          float attackDamage = (float) this.mob.attributes.getValue(Attributes.ATTACK_DAMAGE);
-         if(this.mob instanceof Inquisitor inquisitor) {
-            attackDamage+=inquisitor.getBonusDamage();
-         }
+         attackDamage+=getBonus();
          for(LivingEntity en : entity.level().getEntitiesOfClass(LivingEntity.class, hitbox, this.victims)) {
             if(!SporeJudge.isSporeEntity(en)){
                SporeAttackUtil.INSTANCE.attack(en, this.mob, attackDamage);
