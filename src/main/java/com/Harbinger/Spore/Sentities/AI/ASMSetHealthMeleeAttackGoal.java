@@ -26,7 +26,9 @@ public interface ASMSetHealthMeleeAttackGoal {
             return;
         }
         float attackDamage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE);
-        attackDamage+=mob.entityData.get(Inquisitor.DAMAGE_BONUS);
+        if(mob instanceof Inquisitor inquisitor) {
+            attackDamage+=inquisitor.getBonusDamage();
+        }
         SporeAttackUtil.INSTANCE.attack(target, mob, attackDamage);
     }
 }
