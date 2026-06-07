@@ -1,6 +1,5 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
-import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
@@ -109,9 +108,6 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getHeeaafastth(LivingEntity entity) {
-        if(entity.getType()== Sentities.SCENT.get()){
-            return 1.0f;
-        }
         return etiHeuahMape.compute(entity,entityHealthJudge);
     }
 
