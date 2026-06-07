@@ -6,6 +6,7 @@ import java.util.function.Predicate;
 
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Sentities.Hyper.Inquisitor;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -157,7 +158,9 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
 
          for(LivingEntity en : entity.level().getEntitiesOfClass(LivingEntity.class, hitbox, this.victims)) {
             if(!SporeJudge.isSporeEntity(en)){
-               SporeAttackUtil.INSTANCE.attack(en, this.mob, (float) this.mob.attributes.getValue(Attributes.ATTACK_DAMAGE));
+               float attackDamage = (float) this.mob.attributes.getValue(Attributes.ATTACK_DAMAGE);
+               attackDamage+=this.mob.entityData.get(Inquisitor.DAMAGE_BONUS);
+               SporeAttackUtil.INSTANCE.attack(en, this.mob, attackDamage);
             }
             this.mob.doHurtTarget(en);
          }

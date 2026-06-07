@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.AI;
 
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Sentities.Hyper.Inquisitor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -24,6 +25,8 @@ public interface ASMSetHealthMeleeAttackGoal {
         if(distanceSquared > d0||ticksUntilNextAttack() > 0){
             return;
         }
-        SporeAttackUtil.INSTANCE.attack(target, mob, (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE));
+        float attackDamage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE);
+        attackDamage+=mob.entityData.get(Inquisitor.DAMAGE_BONUS);
+        SporeAttackUtil.INSTANCE.attack(target, mob, attackDamage);
     }
 }

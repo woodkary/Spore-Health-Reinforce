@@ -25,7 +25,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 
 public class Inquisitor extends Hyper {
-   public static final EntityDataAccessor DAMAGE_BONUS;
+   public static final EntityDataAccessor<Integer> DAMAGE_BONUS;
 
    public Inquisitor(EntityType type, Level level) {
       super(type, level);
@@ -61,7 +61,7 @@ public class Inquisitor extends Hyper {
    }
 
    public int getBonusDamage() {
-      return (Integer)this.entityData.get(DAMAGE_BONUS);
+      return this.entityData.get(DAMAGE_BONUS);
    }
 
    public void awardKillScore(Entity entity, int i, DamageSource damageSource) {
