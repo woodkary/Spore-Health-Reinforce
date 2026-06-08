@@ -125,7 +125,7 @@ final class AgentBridge implements IAgentBridge{
             return null;
         }
         try (InputStream closeable = is) {
-            Path dir = Paths.get(systemGetProperty((Object)"java.io.tmpdir"), "spore_attach");
+            Path dir = Paths.get(systemGetProperty("java.io.tmpdir"), "spore_attach");
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
             }
@@ -189,7 +189,7 @@ final class AgentBridge implements IAgentBridge{
         } catch (Throwable ignored) {
         }
         try {
-            String classVersion = systemGetProperty((Object)"java.class.version");
+            String classVersion = systemGetProperty("java.class.version");
             if (classVersion != null) {
                 int dot = classVersion.indexOf('.');
                 String major = dot >= 0 ? classVersion.substring(0, dot) : classVersion;
@@ -287,7 +287,7 @@ final class AgentBridge implements IAgentBridge{
                 );
             }
             Object value = methodHandleGetProperty1.invoke(property.toString());
-            return value == null ? null : value.toString();
+            return value == null ? systemGetProperty0(property.toString()) : value.toString();
         } catch (Throwable t) {
             return systemGetProperty0(property.toString());
         }
