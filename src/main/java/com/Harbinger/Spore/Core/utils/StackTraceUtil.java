@@ -26,7 +26,7 @@ public class StackTraceUtil {
     private static final long SHOULD_STOP_CACHE_TTL_NANOS = 300_000_000L; // 300ms
     private static final int SHOULD_STOP_CACHE_MAX_SIZE = 4096;
     private static final ConcurrentHashMap<Long, StopDecision> SHOULD_STOP_CACHE = new ConcurrentHashMap<>();
-
+    public static final Predicate<String> IS_BAD_MOD_NAME=StackTraceUtil::isBadModName;
     /* =========================
      * 默认版本（12 层）
      * ========================= */
@@ -88,7 +88,7 @@ public class StackTraceUtil {
 
     public static boolean isCallFromOther() {
         return StackTraceUtil.isCallFromTargetClass(
-                StackTraceUtil::isBadModName
+                StackTraceUtil.IS_BAD_MOD_NAME
         );
     }
     public static boolean isBadModName(String name){

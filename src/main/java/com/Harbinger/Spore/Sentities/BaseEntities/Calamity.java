@@ -12,6 +12,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
@@ -98,6 +99,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    private int crushingTick=0;
    private static final List states;
    private int adaptationCount=0;
+   private LivingEntity sporeTarget;
 
    public int getAdaptationCount() {
       return adaptationCount;
@@ -105,6 +107,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public void setAdaptationCount(int adaptationCount) {
       this.adaptationCount = adaptationCount;
    }
+
 
    public Calamity(EntityType type, Level level) {
       super(type, level);
@@ -154,9 +157,16 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
          return Math.random() < (double)0.5F ? SdamageTypes.calamity_damage2(this) : SdamageTypes.calamity_damage3(this);
       }
    }
-
+   @Override
+   public LivingEntity getTarget() {
+      return this.sporeTarget;
+   }
+   @Override
    public void setTarget(@Nullable LivingEntity p_21544_) {
-      super.setTarget(p_21544_);
+      if(SporeJudge.isSporeEntity(p_21544_)){
+         return;
+      }
+      this.sporeTarget = p_21544_;
       if (this.isRooted()) {
          this.setRooted(false);
       }

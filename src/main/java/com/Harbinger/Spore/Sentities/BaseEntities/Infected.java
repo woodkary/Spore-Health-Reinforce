@@ -5,6 +5,8 @@ import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -98,6 +100,7 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
    private BlockPos searchPos;
    @Nullable
    private LivingEntity partner;
+   private LivingEntity sporeTarget;
    public Predicate<LivingEntity> TARGET_SELECTOR = (entity) -> Utilities.TARGET_SELECTOR.Test(entity);
 
    public Infected(EntityType type, Level level) {
@@ -203,6 +206,17 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
          }
       }
 
+   }
+   @Override
+   public LivingEntity getTarget() {
+      return this.sporeTarget;
+   }
+   @Override
+   public void setTarget(@Nullable LivingEntity p_21544_) {
+      if (SporeJudge.isSporeEntity(p_21544_)) {
+         return;
+      }
+      this.sporeTarget = p_21544_;
    }
 
    public DamageSource getCustomDamage(LivingEntity entity) {
@@ -484,7 +498,7 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
       }
    }
 
-   public boolean addEffect(MobEffectInstance effectInstance, @org.jetbrains.annotations.Nullable Entity entity) {
+   public boolean addEffect(MobEffectInstance effectInstance, @Nullable Entity entity) {
       if ((Integer)this.entityData.get(HUNGER) >= (Integer)SConfig.SERVER.hunger.get() && (effectInstance.getEffect() == MobEffects.HEAL || effectInstance.getEffect() == MobEffects.REGENERATION)) {
          this.setHunger(0);
       }
@@ -558,7 +572,7 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
 
    }
 
-   public @org.jetbrains.annotations.Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_21435_, MobSpawnType p_21436_, @org.jetbrains.annotations.Nullable SpawnGroupData p_21437_, @org.jetbrains.annotations.Nullable CompoundTag p_21438_) {
+   public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_21435_, MobSpawnType p_21436_, @Nullable SpawnGroupData p_21437_, @Nullable CompoundTag p_21438_) {
       this.setDefaultLinkage(serverLevelAccessor);
       this.spawnWithPoints();
       if (!(this instanceof Experiment) && (Boolean)SConfig.SERVER.daytime_spawn.get() && p_21436_ == MobSpawnType.NATURAL) {

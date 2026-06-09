@@ -2,6 +2,8 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
@@ -38,7 +40,7 @@ import net.minecraftforge.fluids.FluidType;
 public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity {
    public static final EntityDataAccessor BORROW;
    public static final EntityDataAccessor EMERGE;
-
+   private LivingEntity sporeTarget;
    protected Organoid(EntityType type, Level level) {
       super(type, level);
       this.xpReward = 25;
@@ -48,7 +50,17 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
    public void actuallyHurt(DamageSource source, float amount) {
       actualHurt(source, amount);
    }
-
+   @Override
+   public LivingEntity getTarget() {
+      return this.sporeTarget;
+   }
+   @Override
+   public void setTarget(@Nullable LivingEntity p_21544_) {
+      if (SporeJudge.isSporeEntity(p_21544_)) {
+         return;
+      }
+      this.sporeTarget = p_21544_;
+   }
    public void tick() {
       super.tick();
       tickCustomLifeCycle();
@@ -237,7 +249,7 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
       return false;
    }
 
-   public boolean addEffect(MobEffectInstance instance, @org.jetbrains.annotations.Nullable Entity entity) {
+   public boolean addEffect(MobEffectInstance instance, @Nullable Entity entity) {
       return instance.getEffect().getCategory() == MobEffectCategory.HARMFUL && instance.getAmplifier() < 1 ? false : super.addEffect(instance, entity);
    }
 
