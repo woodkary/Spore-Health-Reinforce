@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -655,6 +656,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    }
 
    public void die(DamageSource source) {
+      if(this.getHealth()>0.0f){
+         return;
+      }
       super.die(source);
       Level var3 = this.level();
       if (var3 instanceof ServerLevel serverLevel) {

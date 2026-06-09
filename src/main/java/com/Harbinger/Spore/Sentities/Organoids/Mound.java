@@ -334,12 +334,11 @@ public class Mound extends Organoid implements FoliageSpread {
    public EntityDimensions getDimensions(Pose pose) {
       return super.getDimensions(pose).scale(this.getAge() >= 1 ? 1.0F * (float)this.getAge() : 1.0F);
    }
-   @Override
-   public void tickDeath() {
-      this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
-   }
 
    public void die(DamageSource source) {
+      if (this.getHealth()>0.0f) {
+         return;
+      }
       if (this.getLinked() && this.getAge() > 3 && source.getEntity() != null) {
          if (this.isInPowderSnow || this.Cold() || this.getLastDamageSource() != null && this.getLastDamageSource().is(DamageTypes.FREEZE)) {
             return;

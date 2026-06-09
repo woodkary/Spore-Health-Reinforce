@@ -611,6 +611,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
 
    public void die(DamageSource source) {
+      if(this.getHealth()>0.0f){
+         return;
+      }
       Level var3 = this.level();
       if (var3 instanceof ServerLevel serverLevel) {
          double x0 = this.getX() - ((double)this.random.nextFloat() - 0.1) * 3.2;

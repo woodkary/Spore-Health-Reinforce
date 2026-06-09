@@ -126,6 +126,19 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
    public int getBorrow_tick() {
       return 20;
    }
+   public void tickDeath(){
+      if(this.getHealth()>0.0f){
+         return;
+      }
+      super.tickDeath();
+   }
+   public void die(DamageSource source) {
+      if (this.getHealth()>0.0f) {
+         return;
+      }
+      super.die(source);
+   }
+
 
    public boolean isEmerging() {
       return (Integer)this.entityData.get(EMERGE) > 0;

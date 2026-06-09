@@ -313,6 +313,9 @@ public class Protector extends EvolvedInfected implements ArmedInfected, HasUsab
    }
 
    public void die(DamageSource source) {
+      if (this.getHealth()>0.0f) {
+         return;
+      }
       super.die(source);
       SporeSavedData.removeProtector(this);
    }

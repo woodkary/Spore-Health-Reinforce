@@ -416,8 +416,10 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
          }
       }
    }
-
    public void die(DamageSource p_21014_) {
+      if (this.getHealth()>0.0f) {
+         return;
+      }
       if (this.getBiomass() > (Integer)SConfig.SERVER.reconstructor_biomass.get() / 2) {
          this.summon(this, true);
       }

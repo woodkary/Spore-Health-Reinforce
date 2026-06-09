@@ -505,8 +505,16 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
 
       return super.addEffect(effectInstance, entity);
    }
-
+   public void tickDeath(){
+      if(this.getHealth()>0.0f){
+         return;
+      }
+      super.tickDeath();
+   }
    public void die(DamageSource source) {
+      if (this.getHealth()>0.0f) {
+         return;
+      }
       this.placeRemains(source);
       this.placeFrozenRemains();
       if ((Boolean)this.entityData.get(PERSISTENT)) {

@@ -525,6 +525,9 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
    }
 
    public void die(DamageSource source) {
+      if(this.getHealth()>0.0f){
+         return;
+      }
       super.die(source);
 
       LeviathanMultipart var10000;
