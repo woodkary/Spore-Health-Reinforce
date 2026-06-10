@@ -327,6 +327,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity);
         }
+        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
+            return Math.max(20.0f,player.getMaxHealth());
+        }
+        if(isTrueDeeauthCalled(entity)){
+            return initialHealth;
+        }
         try{
             setTrueDeeauthCalled(entity,true);
             float maxHealth = entity.getMaxHealth();
@@ -367,6 +373,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
     public double getHeealth(LivingEntity entity,double initialHealth){
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity);
+        }
+        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
+            return Math.max(20.0f,player.getMaxHealth());
         }
         if(isTrueDeeauthCalled(entity)){
             return initialHealth;
