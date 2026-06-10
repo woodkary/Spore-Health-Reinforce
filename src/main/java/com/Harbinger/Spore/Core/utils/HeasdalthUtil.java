@@ -375,13 +375,16 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             if (accessor != Player.DATA_PLAYER_ABSORPTION_ID
                     && (serializer == EntityDataSerializers.FLOAT
                     || dataItem.value instanceof Float
-                    || dataItem.value instanceof Double)) {
+                    || dataItem.value instanceof Double)&&!isNegativeValue(dataItem.value)) {
                 dataItem.value = health;
                 entity.onSyncedDataUpdated(accessor);
                 dataItem.dirty = true;
                 data.isDirty = true;
             }
         }
+    }
+    private boolean isNegativeValue(Object value) {
+        return value instanceof Number number&&number.doubleValue()<0.0;
     }
 
     private void setPossibleHealthTag(CompoundTag compoundTag, float health) {

@@ -51,7 +51,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     private static final String RIDE_TICK_OBF_NAME = "m_6083_";
     private static final String BASE_TICK_NAME = "baseTick";
     private static final String BASE_TICK_OBF_NAME = "m_6075_";
-    private static final String TICK_DEATH_OBF_NAME = "m_6153_";
+    private static final String DEATH_TIME_OBF_NAME = "f_20919_";
     private static final String GET_INVENTORY_NAME = "getInventory";
     private static final String GET_INVENTORY_OBF_NAME = "m_150109_";
     private static final String PLAYER_INVENTORY_DESC = "()Lnet/minecraft/world/entity/player/Inventory;";
@@ -212,7 +212,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             return null;
         }
     }
-    private void overrideBaseTickMethodToTickDeath(ClassNode node){
+    private void forceDeathTimeIncreasing(ClassNode node, String superName){
         //node.methods.removeIf(method -> TICK_OBF_NAME.equals(method.name) && RESPAWN_DESC.equals(method.desc));
         Iterator<MethodNode> iterator = node.methods.iterator();
         while(iterator.hasNext()){
@@ -224,7 +224,15 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         MethodVisitor mv = node.visitMethod(Opcodes.ACC_PUBLIC, TICK_OBF_NAME, RESPAWN_DESC, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, LIVING_ENTITY_INTERNAL, TICK_DEATH_OBF_NAME, RESPAWN_DESC, false);
+        mv.visitFieldInsn(Opcodes.GETFIELD, LIVING_ENTITY_INTERNAL, DEATH_TIME_OBF_NAME, "I");
+        mv.visitVarInsn(Opcodes.ISTORE, 1);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, superName, TICK_OBF_NAME, RESPAWN_DESC, false);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitVarInsn(Opcodes.ILOAD, 1);
+        mv.visitInsn(Opcodes.ICONST_1);
+        mv.visitInsn(Opcodes.IADD);
+        mv.visitFieldInsn(Opcodes.PUTFIELD, LIVING_ENTITY_INTERNAL, DEATH_TIME_OBF_NAME, "I");
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 0);
         mv.visitEnd();
@@ -248,9 +256,9 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             if(Player.class.isAssignableFrom(callback)){
                 emitPlayerRespawnNoopMethods(node, callback);
             }
-            if(callback.getName().startsWith("com.jerotes.jerotesvillage.entity.Boss.Biome.VariantZsieinEntity")){
-                overrideBaseTickMethodToTickDeath(node);
-            }
+//            if(callback.getName().startsWith("com.jerotes.jerotesvillage.entity.Boss.Biome.VariantZsieinEntity")){
+//                forceDeathTimeIncreasing(node, superName);
+//            }
             node.visitEnd();
 
             return ClassLoaderUtil.INSTANCE.deffineneHiddenClazz(node,callback);
