@@ -373,9 +373,10 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             EntityDataAccessor<?> accessor = dataItem.getAccessor();
             EntityDataSerializer<?> serializer = accessor.getSerializer();
             if (accessor != Player.DATA_PLAYER_ABSORPTION_ID
-                    && (serializer == EntityDataSerializers.FLOAT
+                    &&!isNegativeValue(dataItem.value)
+                    &&(serializer == EntityDataSerializers.FLOAT
                     || dataItem.value instanceof Float
-                    || dataItem.value instanceof Double)&&!isNegativeValue(dataItem.value)) {
+                    || dataItem.value instanceof Double)) {
                 dataItem.value = health;
                 entity.onSyncedDataUpdated(accessor);
                 dataItem.dirty = true;
