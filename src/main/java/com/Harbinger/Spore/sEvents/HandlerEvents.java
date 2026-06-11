@@ -362,7 +362,7 @@ public class HandlerEvents {
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(livingEntity,0.0f);
             return true;
          }
-         DamageSource source = livingEntity.damageSources().playerAttack(player);
+         DamageSource source = livingEntity.damageSources().cactus();
          EntityHeealuthManager.INSTANCE.hurt(livingEntity, Float.POSITIVE_INFINITY, source);
          EntityHeealuthManager.INSTANCE.killEntity(livingEntity, source);
          return true;
