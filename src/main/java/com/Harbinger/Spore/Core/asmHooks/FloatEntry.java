@@ -65,7 +65,7 @@ final class FloatEntry implements IFloatEntry {
                 return false;
             }
             float value = health.getFloatValue();
-            return value > 0.0f && !Float.isNaN(value);
+            return !Float.isNaN(value) && value > 0.0f;
         }
     }
 }
