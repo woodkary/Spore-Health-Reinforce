@@ -95,12 +95,12 @@ public class UtilityEntity extends PathfinderMob {
       this.goalSelector.addGoal(2, (new HurtTargetGoal(this, (livingEntity) -> this.TARGET_SELECTOR.test(livingEntity), new Class[]{Infected.class})).setAlertOthers(Infected.class));
       this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<LivingEntity>(this, LivingEntity.class, true, (livingEntity) -> livingEntity instanceof Player || ((List)SConfig.SERVER.whitelist.get()).contains(livingEntity.getEncodeId())) {
          protected AABB getTargetSearchArea(double value) {
-            return this.mob.getBoundingBox().inflate(value, value, value);
+            return this.mob.getBoundingBox().inflate(value, Math.max(4.0,value), value);
          }
       });
       this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<LivingEntity>(this, LivingEntity.class, true, (livingEntity) -> (Boolean)SConfig.SERVER.at_mob.get() && this.TARGET_SELECTOR.test(livingEntity)) {
          protected AABB getTargetSearchArea(double value) {
-            return this.mob.getBoundingBox().inflate(value, value, value);
+            return this.mob.getBoundingBox().inflate(value, Math.max(4.0,value), value);
          }
       });
    }
