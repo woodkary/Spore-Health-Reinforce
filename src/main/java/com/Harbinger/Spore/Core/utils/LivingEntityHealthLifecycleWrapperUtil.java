@@ -194,7 +194,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             String superName = Type.getInternalName(callback);
             String wrapperName = buildWrapperInternalName(callback, WRAPPER_SUFFIX);
 
-            node.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, wrapperName, null, superName, null);
+            node.visit(Opcodes.V17, Opcodes.ACC_PUBLIC|Opcodes.ACC_FINAL, wrapperName, null, superName, null);
             node.visitSource(".dynamic", null);
 
             boolean hasCtor = emitConstructors(node, callback, superName);
@@ -244,7 +244,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             String superName = Type.getInternalName(callback);
             String wrapperName = buildWrapperInternalName(callback, DEATH_WRAPPER_SUFFIX);
 
-            node.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, wrapperName, null, superName, null);
+            node.visit(Opcodes.V17, Opcodes.ACC_PUBLIC|Opcodes.ACC_FINAL, wrapperName, null, superName, null);
             node.visitSource(".dynamic", null);
 
             boolean hasCtor = emitConstructors(node, callback, superName);

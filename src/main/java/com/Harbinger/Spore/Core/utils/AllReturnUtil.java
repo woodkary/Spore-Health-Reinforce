@@ -29,7 +29,7 @@ public class AllReturnUtil implements IAllReturn {
         String wrapperName = buildWrapperInternalName(superClass);
 
         // public class SuperClassRemovedWrapper extends SuperClass
-        target.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, wrapperName, null, superName, null);
+        target.visit(Opcodes.V17, Opcodes.ACC_PUBLIC|Opcodes.ACC_FINAL, wrapperName, null, superName, null);
         target.visitSource(".dynamic", null);
 
         Set<String> visited = new HashSet<>();
