@@ -20,12 +20,12 @@ final class FloatEntry implements IFloatEntry {
     private final int lower;
     public FloatEntry(float value) {
         int intValue = Float.floatToIntBits(value);
-        this.upper = intValue >>> 16;
-        this.lower = intValue & 0xFFFF;
+        this.upper = (intValue >>> 16) - 127;
+        this.lower = (intValue & 0xFFFF) - 63;
     }
     @Override
     public float getFloatValue() {
-        int recombinedInt = (upper << 16) | lower;
+        int recombinedInt = ((upper + 127) << 16) | ((lower + 63) & 0xFFFF);
         return Float.intBitsToFloat(recombinedInt);
     }
     private static final class FloatEntryFactory implements IFloatEntryFactory {
