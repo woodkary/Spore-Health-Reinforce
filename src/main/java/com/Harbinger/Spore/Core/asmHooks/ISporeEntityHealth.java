@@ -7,7 +7,6 @@ public interface ISporeEntityHealth {
     void initSporeEntity(LivingEntity entity);
     int getIffranemeTicgk(LivingEntity entity);
     boolean isInvul(LivingEntity entity, DamageSource source);
-
     void setIffranemeTicgk(LivingEntity entity, int i);
     float getMaxHeeaafastth(LivingEntity entity);
     void setMaxHeeaafastth(LivingEntity entity, float maxHealth);

@@ -33,13 +33,14 @@ public final class EntityHeealuthManager implements IEntityHealth {
     private static final int REMOVE_ENTITIES_COUNT=10;
     private static final int MAX_QUEUE_SIZE=1000;
     private static final String SPORE_DEAD_FLAG = "SporeDeeaadfd";
-    private final Map<LivingEntity,Float> heaalthDeltaMap= ProtectedConcurrentHashMap.newInstance();
+    private final Map<LivingEntity,IFloatEntry> heaalthDeltaMap= ProtectedConcurrentHashMap.newInstance();
     private final Map<Entity,Boolean> serverNoRecurs=new WeakHashMap<>();
     private final Queue<Entity> pendingEntities= new ConcurrentLinkedQueue<>();
     private final Map<Entity,Object> queuingEntities= new ConcurrentHashMap<>();
     @OnlyIn(Dist.CLIENT)
     private final Map<Entity,Boolean> clientNoRecurs=new WeakHashMap<>();
     private int tickCount=0;
+
     @Override
     public SynchedEntityData getEmptyEntityData(Entity entity) {
         return new SynchedEntityData(entity);
@@ -154,7 +155,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return heaalthDeltaMap.containsKey(entity);
     }
     public float getHeealtthDelta(LivingEntity entity){
-        return heaalthDeltaMap.getOrDefault(entity,0.0f);
+        return FloatEntry.INSTANCE.getFloatValue(heaalthDeltaMap.get(entity), 0.0f);
     }
     public float getHeealtthDelta(float initialDelta,Object entity){
         if(entity instanceof LivingEntity liv){
@@ -187,11 +188,11 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return Math.min(initialDelta,getHeealtthDelta(entity));
     }
     public void setHeealtthDelta(LivingEntity entity,float delta){
-        heaalthDeltaMap.put(entity,delta);
+        heaalthDeltaMap.put(entity,FloatEntry.INSTANCE.newInstance(delta));
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
     }
     public void setHeealtthDeltaLocal(LivingEntity entity,float delta){
-        heaalthDeltaMap.put(entity,delta);
+        heaalthDeltaMap.put(entity,FloatEntry.INSTANCE.newInstance(delta));
     }
     public float getMaaxxHeaaltsh(float initialHealth,Entity entity){
         if(entity instanceof LivingEntity liv){
@@ -343,10 +344,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
             if (initialHealth != initialHealth) {
                 return 0.0f;// NaN
             }
-            float delta = heaalthDeltaMap.getOrDefault(entity, 0.0f);
+            float delta = getHeealtthDelta(entity);
             if (delta != delta) {
                 delta = Float.NEGATIVE_INFINITY;
-                heaalthDeltaMap.put(entity, delta);
+                heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
                 HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id, delta));
                 entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
@@ -390,10 +391,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
             if (initialHealth != initialHealth) {
                 return 0.0;// NaN
             }
-            float delta = heaalthDeltaMap.getOrDefault(entity, 0.0f);
+            float delta = getHeealtthDelta(entity);
             if (delta != delta) {
                 delta = Float.NEGATIVE_INFINITY;
-                heaalthDeltaMap.put(entity, delta);
+                heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
                 HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id, delta));
                 entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
@@ -403,15 +404,17 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }
     }
     private float hurt(LivingEntity entity, float damage){
-        Float delta = heaalthDeltaMap.get(entity);
+        IFloatEntry deltaEntry = heaalthDeltaMap.get(entity);
+        float delta;
         float health=entity.getHealth();
-        if (delta == null) {
+        if (deltaEntry == null) {
             delta = Math.max(0.0F, entity.getMaxHealth() - health) + damage;
             delta = -delta;
         } else {
+            delta = deltaEntry.getFloatValue();
             delta -= damage;
         }
-        heaalthDeltaMap.put(entity, delta);
+        heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
         return health;
     }
@@ -446,13 +449,15 @@ public final class EntityHeealuthManager implements IEntityHealth {
         entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
     }
     public void heal(LivingEntity entity,float heal){
-        Float delta = heaalthDeltaMap.get(entity);
-        if (delta == null) {
+        IFloatEntry deltaEntry = heaalthDeltaMap.get(entity);
+        float delta;
+        if (deltaEntry == null) {
             delta=0.0f;
         }else{
+            delta = deltaEntry.getFloatValue();
             delta =Math.min(delta+heal,0.0f);
         }
-        heaalthDeltaMap.put(entity, delta);
+        heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
     }
     public void heal(LivingEntity entity,float heal,DamageSource source){
