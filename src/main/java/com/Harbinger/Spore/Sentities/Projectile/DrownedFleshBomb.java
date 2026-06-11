@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Projectile;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import java.util.List;
 import net.minecraft.core.particles.ParticleTypes;
@@ -14,11 +15,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.RandomSequence;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -31,7 +35,7 @@ public class DrownedFleshBomb extends AbstractArrow {
    private static final EntityDataAccessor BOMB_TIME;
    private static final EntityDataAccessor EFFECT;
    private static final EntityDataAccessor FLOAT;
-
+   private final RandomSource random=RandomSource.create();
    public DrownedFleshBomb(Level level) {
       super((EntityType)Sentities.DROWNED_FLESH_BOMB.get(), level);
    }
@@ -75,6 +79,9 @@ public class DrownedFleshBomb extends AbstractArrow {
                   }
 
                   living.addEffect(new MobEffectInstance(effect, 200, 0));
+                  if(!(living instanceof Player)) {
+                     SporeAttackUtil.INSTANCE.dealDamage(living, living, this.level().damageSources().mobProjectile(this, living), random.nextFloat() * 5.0f);
+                  }
                }
             }
          }
