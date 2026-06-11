@@ -23,7 +23,6 @@ import java.util.function.BiFunction;
  */
 public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     public static final ISporeEntityHealth INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ISporeEntityHealth.class, SporeEntityHeeaafastthManager.class);
-    private static final FloatEntry FLOAT_ENTRY_FACTORY = new FloatEntry(0.0f);
     private final Map<LivingEntity, IFloatEntry> entityMaxHeeaafastth = ProtectedConcurrentHashMap.newInstance();
     private final Map<LivingEntity, IFloatEntry> etiHeuahMape = ProtectedConcurrentHashMap.newInstance();
     private final BiFunction<LivingEntity, IFloatEntry, IFloatEntry> entityHealthJudge;
