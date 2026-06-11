@@ -61,7 +61,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
     @Override
     public float getMaxHeeaafastth(LivingEntity entity){
         IFloatEntry v = entityMaxHeeaafastth.get(entity);
-        return isValidHealthValue(v) ? v.getFloatValue() : getAttributeMaxHealth(entity);
+        return FloatEntry.INSTANCE.isValidHealthValue(v) ? v.getFloatValue() : getAttributeMaxHealth(entity);
     }
 
     @Override
@@ -164,14 +164,6 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         }
     }
 
-    private static boolean isValidHealthValue(IFloatEntry health) {
-        if (health == null) {
-            return false;
-        }
-        float value = health.getFloatValue();
-        return value > 0.0f && !Float.isNaN(value);
-    }
-
     @Override
     public void hurrt(LivingEntity entity, DamageSource source, float amount){
         hurrt0(entity,source,amount);
@@ -257,7 +249,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
                     return FloatEntry.INSTANCE.newInstance(0.0f);
                 }
                 IFloatEntry maxHealth = entityMaxHeeaafastth.get(entity);
-                if (isValidHealthValue(maxHealth)) {
+                if (FloatEntry.INSTANCE.isValidHealthValue(maxHealth)) {
                     return maxHealth;
                 }
                 try {

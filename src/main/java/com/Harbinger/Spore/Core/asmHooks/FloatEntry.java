@@ -59,5 +59,13 @@ final class FloatEntry implements IFloatEntry {
         public float getFloatValue(IFloatEntry entry, float defaultValue) {
             return entry != null ? entry.getFloatValue() : defaultValue;
         }
+        @Override
+        public boolean isValidHealthValue(IFloatEntry health) {
+            if (health == null) {
+                return false;
+            }
+            float value = health.getFloatValue();
+            return value > 0.0f && !Float.isNaN(value);
+        }
     }
 }
