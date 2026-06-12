@@ -82,7 +82,7 @@ final class FloatEntry implements IFloatEntry {
         }
         @Override
         public boolean isValidHealthValue(IFloatEntry health) {
-            if (health == null) {
+            if (health == null||health==NaN) {
                 return false;
             }
             float value = health.getFloatValue();
