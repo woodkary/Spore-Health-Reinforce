@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.ParentUtil;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Fluids.BileLiquid;
@@ -126,7 +127,7 @@ public class VomitHohlBall extends AbstractArrow {
    }
 
    protected void onHitEntity(EntityHitResult hitResult) {
-      Entity var3 = hitResult.getEntity();
+      Entity var3 = ParentUtil.INSTANCE.getUltimateParent(hitResult.getEntity());
       if (var3 instanceof LivingEntity living) {
          if (Utilities.TARGET_SELECTOR.Test(living)) {
             super.onHitEntity(hitResult);
