@@ -2,6 +2,9 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
@@ -349,7 +352,11 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       float damage = (float)((Double)SConfig.SERVER.hohl_damage.get() * (Double)SConfig.SERVER.global_damage.get() / (double)2.0F);
 
       for(Entity entity : entities) {
-         entity.hurt(this.level().damageSources().mobAttack(this), damage);
+         DamageSource source = this.level().damageSources().mobAttack(this);
+         entity.hurt(source, damage);
+         if(entity instanceof LivingEntity living&&!SporeJudge.isSporeEntity(living)&&!(living instanceof Player p&& EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p))) {
+            SporeAttackUtil.INSTANCE.dealDamage(living, source, damage);
+         }
       }
 
    }
