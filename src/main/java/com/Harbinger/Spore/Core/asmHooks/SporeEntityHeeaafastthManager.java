@@ -62,8 +62,12 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getMaxHeeaafastth(LivingEntity entity){
-        IFloatEntry v = entityMaxHeeaafastth.get(entity);
-        return FloatEntry.INSTANCE.isValidHealthValue(v) ? v.getFloatValue() : getAttributeMaxHealth(entity);
+        LivingEntity healthOwner = getHealthOwner(entity);
+        if (healthOwner == null) {
+            return 0.0f;
+        }
+        IFloatEntry v = entityMaxHeeaafastth.get(healthOwner);
+        return FloatEntry.INSTANCE.isValidHealthValue(v) ? v.getFloatValue() : getAttributeMaxHealth(healthOwner);
     }
 
     @Override
@@ -111,10 +115,11 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getHeeaafastth(LivingEntity entity) {
-        if(entity instanceof HohlMultipart hohlPart&&hohlPart.getHeadEntity() instanceof Hohlfresser hohl){
-            FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(hohl,entityHealthJudge), 0.0f);
+        LivingEntity healthOwner = getHealthOwner(entity);
+        if (healthOwner == null) {
+            return 0.0f;
         }
-        return FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(entity,entityHealthJudge), 0.0f);
+        return FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(healthOwner,entityHealthJudge), 0.0f);
     }
 
     @Override
@@ -155,6 +160,16 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         }
         Package pkg = entity.getClass().getPackage();
         return pkg != null && pkg.getName().toLowerCase(Locale.ROOT).contains("spore");
+    }
+
+    private LivingEntity getHealthOwner(LivingEntity entity) {
+        if (entity instanceof HohlMultipart hohlPart) {
+            Hohlfresser head = hohlPart.getHohlfresserHead();
+            if (head != null) {
+                return head;
+            }
+        }
+        return entity;
     }
 
     private float getAttributeMaxHealth(LivingEntity entity) {

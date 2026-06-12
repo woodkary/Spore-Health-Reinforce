@@ -212,7 +212,8 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       return source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.FALL);
    }
    public void heal(float amount) {
-      if(this.getHeadEntity() instanceof Hohlfresser hohl){
+      Hohlfresser hohl = this.getHohlfresserHead();
+      if(hohl != null){
          hohl.healSelf(amount);
       }
    }
@@ -278,6 +279,49 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       return this.level().getEntity(this.headEntityId);
    }
 
+   @Nullable
+   public Hohlfresser getHohlfresserHead() {
+      Entity head = this.getHeadEntity();
+      if (head instanceof Hohlfresser hohlfresser) {
+         return hohlfresser;
+      }
+
+      Entity current = this.getHohlParentEntity();
+      for(int i = 0; i < 32 && current != null; ++i) {
+         if (current instanceof Hohlfresser hohlfresser) {
+            return hohlfresser;
+         }
+
+         if (!(current instanceof HohlMultipart currentPart)) {
+            return null;
+         }
+
+         head = currentPart.getHeadEntity();
+         if (head instanceof Hohlfresser hohlfresser) {
+            return hohlfresser;
+         }
+
+         Entity next = currentPart.getHohlParentEntity();
+         if (next == current) {
+            return null;
+         }
+         current = next;
+      }
+
+      return null;
+   }
+
+   @Nullable
+   private Entity getHohlParentEntity() {
+      Entity parent = this.getParentSafe();
+      if (parent != null) {
+         return parent;
+      }
+
+      int parentId = this.getParentIntId();
+      return parentId >= 0 ? this.level().getEntity(parentId) : null;
+   }
+
    public boolean hurt(DamageSource source, float damage) {
       if (!this.isTail() && this.getSegmentVariant() == SegmentVariants.ORGAN) {
          damage *= 2.5F;
@@ -311,11 +355,9 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    }
 
    public boolean hurtHeadId(DamageSource source, float damage) {
-      if (this.headEntityId != -1) {
-         Entity e = this.getHeadEntity();
-         if (e instanceof Hohlfresser) {
-            return e.hurt(source, damage);
-         }
+      Hohlfresser hohl = this.getHohlfresserHead();
+      if (hohl != null) {
+         return hohl.hurt(source, damage);
       }
 
       return true;
