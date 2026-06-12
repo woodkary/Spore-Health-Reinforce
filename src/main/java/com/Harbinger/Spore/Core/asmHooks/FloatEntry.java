@@ -42,7 +42,7 @@ final class FloatEntry implements IFloatEntry {
                 new Class<?>[]{float.class},
                 0.0f
         );
-        private final IFloatEntry NAN=BytecodeUtil.createHiddenSingletonInstance(
+        private final IFloatEntry NaN=BytecodeUtil.createHiddenSingletonInstance(
                 IFloatEntry.class,
                 FloatEntry.class,
                 new Class<?>[]{float.class},
@@ -65,7 +65,7 @@ final class FloatEntry implements IFloatEntry {
                 return ZERO;
             }
             if(Float.isNaN(value)){
-                return NAN;
+                return NaN;
             }
             constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
                     constructor,
