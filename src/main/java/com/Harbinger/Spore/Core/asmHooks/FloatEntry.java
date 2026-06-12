@@ -15,6 +15,18 @@ final class FloatEntry implements IFloatEntry {
             FloatEntry.class,
             float.class
     );
+    static final IFloatEntry NEGATIVE_INFINITY=BytecodeUtil.createHiddenSingletonInstance(
+            IFloatEntry.class,
+            FloatEntry.class,
+            new Class<?>[]{float.class},
+            Float.NEGATIVE_INFINITY
+    );
+    static final IFloatEntry ZERO=BytecodeUtil.createHiddenSingletonInstance(
+            IFloatEntry.class,
+            FloatEntry.class,
+            new Class<?>[]{float.class},
+            0.0f
+    );
 
     private final int upper;
     private final int lower;
@@ -40,6 +52,12 @@ final class FloatEntry implements IFloatEntry {
         }
         @Override
         public IFloatEntry newInstance(float value) {
+            if(value==Float.NEGATIVE_INFINITY){
+                return FloatEntry.NEGATIVE_INFINITY;
+            }
+            if(Math.abs(value)<=1e-8){
+                return FloatEntry.ZERO;
+            }
             constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
                     constructor,
                     entryClass,
