@@ -2,11 +2,10 @@ package com.Harbinger.Spore.Core.utils.attack;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
-import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.utils.*;
+import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Organoid;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.Utility.Vanguard;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
@@ -29,14 +28,11 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
@@ -189,26 +185,17 @@ public final class SporeAttackUtil implements IAttack {
         } else {
             damageSource = attacker.damageSources().mobAttack(attacker);
         }
-        double laceration=getCalamityLacerationMutation(attacker);
         //将伤害拆成可被减伤和不可被减伤两部分，并对可被减伤部分应用减伤逻辑
-        float damageBypass= (float) (damage*laceration/64.0);
+        float damageBypass=0;
+        if(attacker instanceof ArmorPersentageBypass bypass){
+            damageBypass=bypass.amountOfDamage(damage);
+        }
         float damageReduce=damage-damageBypass;
         damageReduce=damageReduction(target,damageReduce,damageSource);
         damage=damageBypass+damageReduce;
 
-        damage+= (float) (0.2 + 0.1 *laceration);
-
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
         dealDamage(target, attacker, damageSource, damage);
-    }
-
-    private double getCalamityLacerationMutation(LivingEntity attacker) {
-        if (attacker instanceof Calamity calamity) {
-            AttributeInstance laceration = calamity.getAttribute(SAttributes.LACERATION.get());
-            return laceration != null ?laceration.getValue():0.0;
-        }
-
-        return 0.0;
     }
 
     public void dealDamage(LivingEntity target,float damage){
