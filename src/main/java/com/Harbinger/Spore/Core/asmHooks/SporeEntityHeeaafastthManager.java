@@ -4,6 +4,8 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.ProtectedConcurrentHashMap;
+import com.Harbinger.Spore.Sentities.BaseEntities.HohlMultipart;
+import com.Harbinger.Spore.Sentities.Calamities.Hohlfresser;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import net.minecraft.nbt.CompoundTag;
@@ -109,6 +111,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getHeeaafastth(LivingEntity entity) {
+        if(entity instanceof HohlMultipart hohlPart&&hohlPart.getHeadEntity() instanceof Hohlfresser hohl){
+            FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(hohl,entityHealthJudge), 0.0f);
+        }
         return FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(entity,entityHealthJudge), 0.0f);
     }
 

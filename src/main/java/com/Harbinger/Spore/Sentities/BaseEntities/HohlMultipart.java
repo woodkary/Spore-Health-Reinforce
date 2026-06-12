@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
+import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.Calamities.Hohlfresser;
 import java.util.Arrays;
@@ -47,7 +48,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraftforge.fluids.FluidType;
 
-public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWeakness {
+public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity {
    private double prevHeight = (double)0.0F;
    private int headEntityId = -1;
    private static final EntityDataAccessor CHILD_UUID;
@@ -63,6 +64,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    public HohlMultipart(EntityType p_20966_, Level p_20967_) {
       super(p_20966_, p_20967_);
       this.setMaxUpStep(1.5F);
+      initCustom();
    }
 
    public SoundEvent getHurtSound(DamageSource p_34327_) {
@@ -105,7 +107,13 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    public int getParentIntId() {
       return (Integer)this.entityData.get(PARENT_ID);
    }
+   public boolean isProtoOrCalamity(){
+      return true;
+   }
+   @Override
+   public void actuallyHurt(DamageSource source, float damage) {
 
+   }
    public void tick() {
       super.tick();
       this.isInsidePortal = false;
@@ -115,17 +123,15 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
             label36: {
                if (parent != null && !parent.isRemoved()) {
                   label33: {
-                     if (parent instanceof Hohlfresser) {
-                        Hohlfresser leviathan = (Hohlfresser)parent;
-                        if (!Objects.equals(leviathan.getChildId(), this.uuid)) {
+                     if (parent instanceof Hohlfresser hohlfresser) {
+                         if (!Objects.equals(hohlfresser.getChildId(), this.uuid)) {
                            break label33;
                         }
                      }
 
                      if (!(parent.distanceTo(this) > 25.0F)) {
-                        if (parent instanceof LivingEntity) {
-                           LivingEntity living = (LivingEntity)parent;
-                           this.hurtTime = living.hurtTime;
+                        if (parent instanceof LivingEntity living) {
+                            this.hurtTime = living.hurtTime;
                            this.deathTime = living.deathTime;
                         }
                         break label36;
@@ -205,6 +211,11 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    public boolean isInvulnerableTo(DamageSource source) {
       return source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.FALL);
    }
+   public void heal(float amount) {
+      if(this.getHeadEntity() instanceof Hohlfresser hohl){
+         hohl.healSelf(amount);
+      }
+   }
 
    public boolean isOpaqueBlockAt(double x, double y, double z) {
       if (this.noPhysics) {
@@ -262,6 +273,10 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       float result = source + delta;
       return Mth.wrapDegrees(result);
    }
+   @Nullable
+   public Entity getHeadEntity() {
+      return this.level().getEntity(this.headEntityId);
+   }
 
    public boolean hurt(DamageSource source, float damage) {
       if (!this.isTail() && this.getSegmentVariant() == SegmentVariants.ORGAN) {
@@ -297,7 +312,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
 
    public boolean hurtHeadId(DamageSource source, float damage) {
       if (this.headEntityId != -1) {
-         Entity e = this.level().getEntity(this.headEntityId);
+         Entity e = this.getHeadEntity();
          if (e instanceof Hohlfresser) {
             return e.hurt(source, damage);
          }
@@ -310,9 +325,8 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       UUID id = this.getParentId();
       if (id != null) {
          Level var3 = this.level();
-         if (var3 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var3;
-            Entity parent = serverLevel.getEntity(id);
+         if (var3 instanceof ServerLevel serverLevel) {
+             Entity parent = serverLevel.getEntity(id);
             if (parent == null) {
                return null;
             }
@@ -403,6 +417,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       tag.putInt("color", (Integer)this.entityData.get(COLOR));
       tag.putBoolean("tail", (Boolean)this.entityData.get(IS_TAIL));
       tag.putBoolean("adapted", (Boolean)this.entityData.get(ADAPTED));
+      addSaveData(tag);
    }
 
    public void readAdditionalSaveData(CompoundTag tag) {
@@ -420,6 +435,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       this.entityData.set(COLOR, tag.getInt("color"));
       this.entityData.set(IS_TAIL, tag.getBoolean("tail"));
       this.entityData.set(ADAPTED, tag.getBoolean("adapted"));
+      readSaveData(tag);
    }
 
    public void setAdapted(boolean val) {
@@ -508,6 +524,11 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       IS_TAIL = SynchedEntityData.defineId(HohlMultipart.class, EntityDataSerializers.BOOLEAN);
       PARENT_ID = SynchedEntityData.defineId(HohlMultipart.class, EntityDataSerializers.INT);
       ADAPTED = SynchedEntityData.defineId(HohlMultipart.class, EntityDataSerializers.BOOLEAN);
+   }
+
+   @Override
+   public LivingEntity entity() {
+      return this;
    }
 
    public static enum SegmentVariants {
