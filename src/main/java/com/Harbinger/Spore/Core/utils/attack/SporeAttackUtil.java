@@ -185,15 +185,13 @@ public final class SporeAttackUtil implements IAttack {
         } else {
             damageSource = attacker.damageSources().mobAttack(attacker);
         }
-        //将伤害拆成可被减伤和不可被减伤两部分，并对可被减伤部分应用减伤逻辑
-        float damageBypass=0.0f;
+        damage=damageReduction(target,damage,damageSource);
         if(attacker instanceof ArmorPersentageBypass bypass){
-            damageBypass=bypass.amountOfDamage(damage);
+            float recalculatedDamage=bypass.amountOfDamage(damage);
+            if (recalculatedDamage >= 0.0F && damage < recalculatedDamage) {
+                damage = recalculatedDamage;
+            }
         }
-        float damageReduce=damage-damageBypass;
-        damageReduce=damageReduction(target,damageReduce,damageSource);
-        damage=damageBypass+damageReduce;
-
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
         dealDamage(target, attacker, damageSource, damage);
     }
