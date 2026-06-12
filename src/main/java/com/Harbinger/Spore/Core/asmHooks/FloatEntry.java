@@ -32,21 +32,15 @@ final class FloatEntry implements IFloatEntry {
         private MethodHandle constructor;
         private final IFloatEntry NEGATIVE_INFINITY=BytecodeUtil.createHiddenSingletonInstance(
                 IFloatEntry.class,
-                FloatEntry.class,
-                new Class<?>[]{float.class},
-                Float.NEGATIVE_INFINITY
+                NegativeInfinity.class
         );
         private final IFloatEntry ZERO=BytecodeUtil.createHiddenSingletonInstance(
                 IFloatEntry.class,
-                FloatEntry.class,
-                new Class<?>[]{float.class},
-                0.0f
+                Zero.class
         );
         private final IFloatEntry NaN=BytecodeUtil.createHiddenSingletonInstance(
                 IFloatEntry.class,
-                FloatEntry.class,
-                new Class<?>[]{float.class},
-                Float.NaN
+                NaN.class
         );
         public FloatEntryFactory() {
             constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
