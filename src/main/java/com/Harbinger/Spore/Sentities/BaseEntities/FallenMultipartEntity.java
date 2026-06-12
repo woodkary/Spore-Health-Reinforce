@@ -21,6 +21,7 @@ import net.minecraftforge.fluids.FluidType;
 public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity {
    public FallenMultipartEntity(EntityType type, Level level) {
       super(type, level);
+      initCustom();
    }
 
    public void tick() {
