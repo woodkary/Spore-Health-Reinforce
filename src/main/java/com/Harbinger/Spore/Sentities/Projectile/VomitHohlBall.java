@@ -3,6 +3,8 @@ package com.Harbinger.Spore.Sentities.Projectile;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sparticles;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import net.minecraft.core.particles.ParticleOptions;
@@ -16,6 +18,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -128,6 +131,14 @@ public class VomitHohlBall extends AbstractArrow {
          if (Utilities.TARGET_SELECTOR.Test(living)) {
             super.onHitEntity(hitResult);
             this.addStuff(living);
+            if(!(living instanceof Player player&& EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))){
+               Entity owner = this.getOwner();
+               SporeAttackUtil.INSTANCE.dealDamage(living,
+                       owner instanceof LivingEntity livOwner?livOwner:null,
+                       this.damageSources().arrow(this, owner!=null?owner:this),
+                       (float)this.getBaseDamage()
+               );
+            }
          }
       }
 
