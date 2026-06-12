@@ -55,7 +55,7 @@ final class FloatEntry implements IFloatEntry {
             if(value==Float.NEGATIVE_INFINITY){
                 return NEGATIVE_INFINITY;
             }
-            if(Math.abs(value)<=1e-8){
+            if(Math.abs(value)<=1e-8f){
                 return ZERO;
             }
             if(Float.isNaN(value)){
