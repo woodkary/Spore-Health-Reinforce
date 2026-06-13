@@ -69,7 +69,10 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       this.setMaxUpStep(1.5F);
       initCustom();
    }
-
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
    public SoundEvent getHurtSound(DamageSource p_34327_) {
       return (SoundEvent)Ssounds.CALAMITY_DAMAGE.get();
    }
@@ -110,6 +113,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    public int getParentIntId() {
       return (Integer)this.entityData.get(PARENT_ID);
    }
+   @Override
    public boolean isProtoOrCalamity(){
       return true;
    }
@@ -214,6 +218,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    public boolean isInvulnerableTo(DamageSource source) {
       return source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.FALL);
    }
+   @Override
    public void heal(float amount) {
       Hohlfresser hohl = this.getHohlfresserHead();
       if(hohl != null){

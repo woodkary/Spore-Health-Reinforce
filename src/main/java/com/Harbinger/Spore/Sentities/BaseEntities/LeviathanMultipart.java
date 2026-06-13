@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Sentities.Calamities.Hohlfresser;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
@@ -41,7 +42,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraftforge.fluids.FluidType;
 
-public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness {
+public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity {
    private double prevHeight = (double)0.0F;
    private int headEntityId = -1;
    private final IkLeviLeg[] legs;
@@ -59,6 +60,7 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       IkLeviLeg backRightLeg = new IkLeviLeg(this, 4, LEG_POSITIONS.BACK_RIGHT_TENTACLE.bodySet, LEG_POSITIONS.BACK_RIGHT_TENTACLE.offset, 2.0F);
       IkLeviLeg backLeftLeg = new IkLeviLeg(this, 4, LEG_POSITIONS.BACK_LEFT_TENTACLE.bodySet, LEG_POSITIONS.BACK_LEFT_TENTACLE.offset, 2.0F);
       this.legs = new IkLeviLeg[]{frontLeftLeg, frontRightLeg, backLeftLeg, backRightLeg};
+      initCustom();
    }
 
    public IkLeviLeg[] getLegs() {
@@ -261,6 +263,29 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       float result = source + delta;
       return Mth.wrapDegrees(result);
    }
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
+   @Override
+   public LivingEntity entity() {
+      return this;
+   }
+   @Override
+   public boolean isProtoOrCalamity(){
+      return true;
+   }
+   @Override
+   public void actuallyHurt(DamageSource source, float damage) {
+
+   }
+   @Override
+   public void heal(float amount) {
+      Hohlfresser hohl = this.getHohlfresserHead();
+      if(hohl != null){
+         hohl.healSelf(amount);
+      }
+   }
 
    public boolean hurt(DamageSource source, float damage) {
       this.hurtMarked = true;
@@ -449,7 +474,8 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       IS_TAIL = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.BOOLEAN);
    }
 
-   static enum LEG_POSITIONS {
+
+   enum LEG_POSITIONS {
       BACK_LEFT_TENTACLE(new Vec3((double)-1.5F, (double)0.5F, (double)0.25F), new Vec3((double)-2.5F, (double)-1.0F, (double)4.0F)),
       BACK_RIGHT_TENTACLE(new Vec3((double)-1.5F, (double)0.5F, (double)-0.25F), new Vec3((double)-2.5F, (double)-1.0F, (double)-4.0F)),
       FRONT_LEFT_TENTACLE(new Vec3((double)0.5F, (double)0.5F, (double)0.75F), new Vec3((double)-1.5F, (double)-1.0F, (double)6.0F)),

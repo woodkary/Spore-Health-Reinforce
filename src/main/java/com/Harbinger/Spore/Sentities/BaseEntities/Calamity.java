@@ -127,6 +127,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    protected int calculateFallDamage(float p_149389_, float p_149390_) {
       return super.calculateFallDamage(p_149389_, p_149390_) - 25;
    }
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
 
    public void setStun(int i) {
       this.stun = i;

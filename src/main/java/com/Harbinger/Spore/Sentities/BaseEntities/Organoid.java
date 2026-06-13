@@ -108,6 +108,10 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
    public boolean hurt(DamageSource source, float p_21017_) {
       return !(source.getDirectEntity() instanceof AcidBall) && !(source.getDirectEntity() instanceof Vomit) ? super.hurt(source, p_21017_) : false;
    }
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
    public void addAdditionalSaveData(CompoundTag tag) {
       super.addAdditionalSaveData(tag);
       addSaveData(tag);

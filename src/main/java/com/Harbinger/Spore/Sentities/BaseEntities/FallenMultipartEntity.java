@@ -23,7 +23,10 @@ public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdW
       super(type, level);
       initCustom();
    }
-
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
    public void tick() {
       super.tick();
       tickCustomLifeCycle();

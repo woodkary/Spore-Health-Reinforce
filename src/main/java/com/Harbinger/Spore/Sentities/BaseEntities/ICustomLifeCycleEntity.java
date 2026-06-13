@@ -23,6 +23,9 @@ public interface ICustomLifeCycleEntity {
         SporeEntityHeeaafastthManager.INSTANCE.initSporeEntity(entity);
         LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createWrapppper(entity);
     }
+    default void onRemoved(){
+        SporeEntityHeeaafastthManager.INSTANCE.removeSporeEntity(entity());
+    }
     default void healSelf(float amount) {
         LivingEntity entity = entity();
         if (amount > 0.0F) {

@@ -116,7 +116,10 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
    public void actuallyHurt(DamageSource source, float amount) {
       actualHurt(source, amount);
    }
-
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
    public List<String> getDropList() {
       return null;
    }
