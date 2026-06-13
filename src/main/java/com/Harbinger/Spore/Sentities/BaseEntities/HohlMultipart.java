@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
+import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
@@ -10,7 +11,6 @@ import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
-import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.Calamities.Hohlfresser;
 import java.util.Arrays;
@@ -22,8 +22,6 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
-import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
-import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,7 +44,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.Entity.RemovalReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -85,9 +82,10 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
               !ModList.get().isLoaded("l2hostility")){
          return opt;
       }
-      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
-         traitCap.traits.keySet().forEach(trait -> {
-            if(trait.getClass()== KillerAuraTrait.class){
+      T traitCap = opt.resolve().get();
+      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
+         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
+            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
                KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
             }
          });

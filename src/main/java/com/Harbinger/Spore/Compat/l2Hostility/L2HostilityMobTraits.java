@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
 import dev.xkmc.l2hostility.content.traits.base.MobTrait;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.ModList;
 
@@ -26,6 +27,15 @@ public final class L2HostilityMobTraits implements IMobTraits {
         MobTraitCap cap = opt.resolve().get();
         return cap.traits;
     }
+    public Map<?,?> getTraits(Object c){
+        if(!ModList.get().isLoaded("l2hostility")){
+            return Map.of();
+        }
+        if(c instanceof MobTraitCap cap){
+            return cap.traits;
+        }
+        return Map.of();
+    }
     public int getTraitLevel(LivingEntity liv, String traitName){
         if(!ModList.get().isLoaded("l2hostility")){
             return 0;
@@ -37,5 +47,11 @@ public final class L2HostilityMobTraits implements IMobTraits {
             }
         }
         return 0;
+    }
+    public <T> boolean isMobTraitCapClass(T obj){
+        if(!ModList.get().isLoaded("l2hostility")){
+            return false;
+        }
+        return MobTraitCap.class.isAssignableFrom(obj.getClass());
     }
 }

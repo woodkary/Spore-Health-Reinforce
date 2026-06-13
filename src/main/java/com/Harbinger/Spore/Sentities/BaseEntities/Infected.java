@@ -1,14 +1,13 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
+import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sparticles;
-import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
-import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -29,13 +28,10 @@ import com.Harbinger.Spore.Sentities.AI.LocHiv.SearchAreaGoal;
 import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
 import com.Harbinger.Spore.Sentities.Projectile.Vomit;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
-import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
-import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Plane;
@@ -144,9 +140,10 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
               !ModList.get().isLoaded("l2hostility")){
          return opt;
       }
-      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
-         traitCap.traits.keySet().forEach(trait -> {
-            if(trait.getClass()==KillerAuraTrait.class){
+      T traitCap = opt.resolve().get();
+      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
+         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
+            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
                KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
             }
          });

@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
+import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
@@ -77,9 +78,10 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
               !ModList.get().isLoaded("l2hostility")){
          return opt;
       }
-      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
-         traitCap.traits.keySet().forEach(trait -> {
-            if(trait.getClass()== KillerAuraTrait.class){
+      T traitCap = opt.resolve().get();
+      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
+         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
+            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
                KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
             }
          });

@@ -119,9 +119,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
               !ModList.get().isLoaded("l2hostility")){
          return opt;
       }
-      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
-         traitCap.traits.keySet().forEach(trait -> {
-            if(trait.getClass()== KillerAuraTrait.class){
+      T traitCap = opt.resolve().get();
+      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
+         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
+            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
                KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
             }
          });

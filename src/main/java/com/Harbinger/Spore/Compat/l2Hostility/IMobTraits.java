@@ -7,4 +7,6 @@ import java.util.Map;
 
 public interface IMobTraits {
     int getTraitLevel(LivingEntity liv, String traitName);
+    Map<?,?> getTraits(Object c);
+    <T> boolean isMobTraitCapClass(T obj);
 }

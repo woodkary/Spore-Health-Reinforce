@@ -1,13 +1,11 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
+import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
-import com.Harbinger.Spore.Sentities.Organoids.Proto;
-import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
-import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -15,7 +13,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -44,9 +41,10 @@ public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdW
               !ModList.get().isLoaded("l2hostility")){
          return opt;
       }
-      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
-         traitCap.traits.keySet().forEach(trait -> {
-            if(trait.getClass()== KillerAuraTrait.class){
+      T traitCap = opt.resolve().get();
+      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
+         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
+            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
                KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
             }
          });
