@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
@@ -216,10 +217,21 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
    @Override
    public void actuallyHurt(DamageSource source, float amount) {
+      float lastHealth=0.0f;
       if(!source.is(DamageTypes.FREEZE)){
          amount*=(1.0f-this.getAdaptationCount()*0.02f);
+         lastHealth=this.getHealth();
       }
       actualHurt(source, amount);
+      int master = L2HostilityMobTraits.INSTANCE.getTraitLevel(this, "master");
+      //受到伤害大于一定值
+      if(master>0&&lastHealth-this.getHealth()>=50.0f){
+         BlockPos blockPos = this.blockPosition();
+         this.level().getEntitiesOfClass(Calamity.class,
+                 new AABB(blockPos).inflate(32.0*master),
+                 calamity -> !this.equals(calamity)&&calamity.getSearchArea()==BlockPos.ZERO).forEach(calamity ->
+                 calamity.setSearchArea(blockPos));
+      }
    }
    public void addAdditionalSaveData(CompoundTag tag) {
       super.addAdditionalSaveData(tag);
@@ -296,6 +308,13 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    public void setSearchArea(BlockPos blockPos) {
       this.entityData.set(SEARCH_AREA, blockPos);
+   }
+
+   public void setSearchAreaIfAbsent(BlockPos blockPos){
+      BlockPos searchArea = getSearchArea();
+      if(searchArea==BlockPos.ZERO){
+         this.setSearchArea(blockPos);
+      }
    }
 
    public BlockPos getSearchArea() {
