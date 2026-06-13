@@ -1,7 +1,9 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
@@ -12,7 +14,11 @@ import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
 import com.Harbinger.Spore.Sentities.Projectile.Vomit;
 import java.util.List;
 import javax.annotation.Nullable;
+
+import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
+import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -35,7 +41,11 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fml.ModList;
+import org.jetbrains.annotations.NotNull;
 
 public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity {
    public static final EntityDataAccessor BORROW;
@@ -53,6 +63,21 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
    @Override
    public LivingEntity getTarget() {
       return this.sporeTarget;
+   }
+   public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+      LazyOptional<T> opt=super.getCapability(cap, side);
+      if(opt.resolve().isEmpty()||
+              !ModList.get().isLoaded("l2hostility")){
+         return opt;
+      }
+      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
+         traitCap.traits.keySet().forEach(trait -> {
+            if(trait.getClass()== KillerAuraTrait.class){
+               KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
+            }
+         });
+      }
+      return opt;
    }
    @Override
    public void setTarget(@Nullable LivingEntity p_21544_) {

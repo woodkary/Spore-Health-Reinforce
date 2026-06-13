@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
@@ -10,10 +11,7 @@ import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
-import com.Harbinger.Spore.Core.utils.ClassUtil;
-import com.Harbinger.Spore.Core.utils.LogUtil;
-import com.Harbinger.Spore.Core.utils.SporeJudge;
-import com.Harbinger.Spore.Core.utils.StackTraceUtil;
+import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
@@ -37,7 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
+import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.nbt.CompoundTag;
@@ -84,10 +85,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity, AdaptableEntity {
@@ -108,7 +113,21 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public void setAdaptationCount(int adaptationCount) {
       this.adaptationCount = adaptationCount;
    }
-
+   public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @javax.annotation.Nullable Direction side) {
+      LazyOptional<T> opt=super.getCapability(cap, side);
+      if(opt.resolve().isEmpty()||
+              !ModList.get().isLoaded("l2hostility")){
+         return opt;
+      }
+      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
+         traitCap.traits.keySet().forEach(trait -> {
+            if(trait.getClass()== KillerAuraTrait.class){
+               KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
+            }
+         });
+      }
+      return opt;
+   }
 
    public Calamity(EntityType type, Level level) {
       super(type, level);

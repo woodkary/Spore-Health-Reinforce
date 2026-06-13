@@ -1,6 +1,8 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
@@ -12,7 +14,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
+
+import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
+import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -39,7 +45,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fml.ModList;
+import org.jetbrains.annotations.NotNull;
 
 public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity, ICalamityMultipart {
    private double prevHeight = (double)0.0F;
@@ -61,7 +71,21 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       this.legs = new IkLeviLeg[]{frontLeftLeg, frontRightLeg, backLeftLeg, backRightLeg};
       initCustom();
    }
-
+   public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+      LazyOptional<T> opt=super.getCapability(cap, side);
+      if(opt.resolve().isEmpty()||
+              !ModList.get().isLoaded("l2hostility")){
+         return opt;
+      }
+      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
+         traitCap.traits.keySet().forEach(trait -> {
+            if(trait.getClass()== KillerAuraTrait.class){
+               KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
+            }
+         });
+      }
+      return opt;
+   }
    public IkLeviLeg[] getLegs() {
       return this.legs;
    }

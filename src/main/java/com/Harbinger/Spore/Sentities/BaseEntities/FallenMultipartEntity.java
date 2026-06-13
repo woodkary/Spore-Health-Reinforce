@@ -1,10 +1,15 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Core.Sblocks;
+import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.Organoids.Proto;
+import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
+import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -16,7 +21,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fml.ModList;
+import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity {
    public FallenMultipartEntity(EntityType type, Level level) {
@@ -26,6 +37,21 @@ public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdW
    @Override
    public void onRemovedFromWorld() {
       onRemoved();
+   }
+   public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+      LazyOptional<T> opt=super.getCapability(cap, side);
+      if(opt.resolve().isEmpty()||
+              !ModList.get().isLoaded("l2hostility")){
+         return opt;
+      }
+      if(opt.resolve().get() instanceof MobTraitCap traitCap) {
+         traitCap.traits.keySet().forEach(trait -> {
+            if(trait.getClass()== KillerAuraTrait.class){
+               KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
+            }
+         });
+      }
+      return opt;
    }
    public void tick() {
       super.tick();
