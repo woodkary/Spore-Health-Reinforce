@@ -115,6 +115,13 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    public static AttributeSupplier.Builder createAttributes() {
       return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, (Double)SConfig.SERVER.howit_hp.get() * (Double)SConfig.SERVER.global_health.get()).add(Attributes.MOVEMENT_SPEED, 0.2).add(Attributes.ATTACK_DAMAGE, (Double)SConfig.SERVER.howit_damage.get() * (Double)SConfig.SERVER.global_damage.get()).add(Attributes.ARMOR, (Double)SConfig.SERVER.howit_armor.get() * (Double)SConfig.SERVER.global_armor.get()).add(Attributes.FOLLOW_RANGE, (double)128.0F).add(Attributes.KNOCKBACK_RESISTANCE, (double)1.0F).add(Attributes.ATTACK_KNOCKBACK, (double)2.0F).add((Attribute)SAttributes.TOXICITY.get(), (double)0.0F).add((Attribute)SAttributes.REJUVENATION.get(), (double)0.0F).add((Attribute)SAttributes.LOCALIZATION.get(), (double)0.0F).add((Attribute)SAttributes.LACERATION.get(), (double)0.0F).add((Attribute)SAttributes.CORROSIVES.get(), (double)0.0F).add((Attribute)SAttributes.BALLISTIC.get(), (double)0.0F).add((Attribute)SAttributes.GRINDING.get(), (double)0.0F);
    }
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      if(this.getSelfDetonation()>0){
+         return;
+      }
+      super.actuallyHurt(source, amount);
+   }
 
    public boolean doHurtTarget(Entity entity) {
       this.playSound((SoundEvent)Ssounds.LANDING.get(), 0.5F, 0.5F);
@@ -264,6 +271,9 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    }
 
    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
+      if(this.getSelfDetonation()>0){
+         return false;
+      }
       if (calamityMultipart == this.mouth) {
          this.hurt(source, value * 2.0F);
          SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.8f);
@@ -286,7 +296,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
    public boolean hurt(DamageSource source, float amount) {
       if (source.getEntity() != null && this.random.nextFloat() < 0.2F) {
-         this.setTarget((LivingEntity)null);
+         this.setTarget(null);
       }
 
       if (source.is(DamageTypes.FREEZE)) {
