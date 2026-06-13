@@ -75,11 +75,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob {
-   public static final EntityDataAccessor RIGHT_ARM;
-   public static final EntityDataAccessor LEFT_ARM;
-   public static final EntityDataAccessor ORES;
-   public static final EntityDataAccessor NUKE;
-   public static final EntityDataAccessor SELF_DETONATION;
+   public static final EntityDataAccessor<Float> RIGHT_ARM;
+   public static final EntityDataAccessor<Float> LEFT_ARM;
+   public static final EntityDataAccessor<Integer> ORES;
+   public static final EntityDataAccessor<Integer> NUKE;
+   public static final EntityDataAccessor<Integer> SELF_DETONATION;
    private final CalamityMultipart[] subEntities;
    public final CalamityMultipart rightArm;
    public final CalamityMultipart leftArm;
@@ -197,38 +197,35 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
       super.aiStep();
    }
+   private void releaseFinalNuke(){
+      NukeEntity nukeEntity = new NukeEntity((EntityType)Sentities.NUKE.get(), this.level());
+      nukeEntity.setInitRange(3.0F);
+      nukeEntity.setRange((float)((Double)SConfig.SERVER.nuke_range.get() * (double)2.0F));
+      nukeEntity.setInitDuration(0);
+      nukeEntity.setDuration((Integer)SConfig.SERVER.nuke_time.get());
+      nukeEntity.setDamage((float)((Double)SConfig.SERVER.nuke_damage.get() * (double)1.0F));
+      nukeEntity.isFinalAttack(true);
+      nukeEntity.livingEntityPredicate = this.TARGET_SELECTOR;
+      nukeEntity.setPos(this.getX(), this.getY(), this.getZ());
+      this.level().addFreshEntity(nukeEntity);
+      Level var3 = this.level();
+      if (var3 instanceof ServerLevel) {
+         ServerLevel serverLevel = (ServerLevel)var3;
+         Utilities.explodeCircle(serverLevel, this, this.getOnPos(), 15.0, (float)((Double)SConfig.SERVER.howit_damage.get() * 1.0), 8.0, (entity) -> {
+             if (entity instanceof LivingEntity livingEntity) {
+                return this.TARGET_SELECTOR.test(livingEntity);
+            }
 
+             return false;
+         });
+      }
+   }
    public void tickDetonation() {
-      if ((Integer)this.entityData.get(SELF_DETONATION) >= 30) {
-         NukeEntity nukeEntity = new NukeEntity((EntityType)Sentities.NUKE.get(), this.level());
-         nukeEntity.setInitRange(3.0F);
-         nukeEntity.setRange((float)((Double)SConfig.SERVER.nuke_range.get() * (double)2.0F));
-         nukeEntity.setInitDuration(0);
-         nukeEntity.setDuration((Integer)SConfig.SERVER.nuke_time.get());
-         nukeEntity.setDamage((float)((Double)SConfig.SERVER.nuke_damage.get() * (double)1.0F));
-         nukeEntity.livingEntityPredicate = this.TARGET_SELECTOR;
-         nukeEntity.setPos(this.getX(), this.getY(), this.getZ());
-         this.level().addFreshEntity(nukeEntity);
-         Level var3 = this.level();
-         if (var3 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var3;
-            Utilities.explodeCircle(serverLevel, this, this.getOnPos(), (double)15.0F, (float)((Double)SConfig.SERVER.howit_damage.get() * (double)1.0F), (double)8.0F, (entity) -> {
-               boolean var10000;
-               if (entity instanceof LivingEntity livingEntity) {
-                  if (this.TARGET_SELECTOR.test(livingEntity)) {
-                     var10000 = true;
-                     return var10000;
-                  }
-               }
-
-               var10000 = false;
-               return var10000;
-            });
-         }
-
+      if (this.entityData.get(SELF_DETONATION) >= 30) {
+         releaseFinalNuke();
          this.discard();
       } else {
-         this.entityData.set(SELF_DETONATION, (Integer)this.entityData.get(SELF_DETONATION) + 1);
+         this.entityData.set(SELF_DETONATION, this.entityData.get(SELF_DETONATION) + 1);
       }
 
    }

@@ -36,12 +36,13 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public class NukeEntity extends Entity {
-   private static final EntityDataAccessor INIT_RANGE;
-   private static final EntityDataAccessor RANGE;
-   private static final EntityDataAccessor INIT_DURATION;
-   private static final EntityDataAccessor DURATION;
-   private static final EntityDataAccessor DAMAGE;
-   public Predicate livingEntityPredicate = (entity) -> true;
+   private static final EntityDataAccessor<Float> INIT_RANGE;
+   private static final EntityDataAccessor<Float> RANGE;
+   private static final EntityDataAccessor<Integer> INIT_DURATION;
+   private static final EntityDataAccessor<Integer> DURATION;
+   private static final EntityDataAccessor<Float> DAMAGE;
+   private static final EntityDataAccessor<Boolean> IS_HOWIZER_FINAL_ATTACK;
+   public Predicate<LivingEntity> livingEntityPredicate = (entity) -> true;
 
    public NukeEntity(EntityType type, Level level) {
       super(type, level);
@@ -71,6 +72,12 @@ public class NukeEntity extends Entity {
    public void setDamage(float value) {
       this.entityData.set(DAMAGE, value);
    }
+   public void isFinalAttack(boolean value) {
+      this.entityData.set(IS_HOWIZER_FINAL_ATTACK,value);
+   }
+   public boolean isFinalAttack() {
+      return this.entityData.get(IS_HOWIZER_FINAL_ATTACK);
+   }
 
    public float getInitRange() {
       return (Float)this.entityData.get(INIT_RANGE);
@@ -98,6 +105,7 @@ public class NukeEntity extends Entity {
       this.entityData.define(INIT_DURATION, 0);
       this.entityData.define(DURATION, 600);
       this.entityData.define(DAMAGE, 10.0F);
+      this.entityData.define(IS_HOWIZER_FINAL_ATTACK,false);
    }
 
    protected void readAdditionalSaveData(CompoundTag compoundTag) {
@@ -126,9 +134,11 @@ public class NukeEntity extends Entity {
          if (this.getInitDuration() >= this.getDuration()) {
             this.discard();
          }
-
-         if (this.tickCount % 10 == 0) {
+         boolean shouldAttack = this.tickCount % 10 == 0;
+         if(this.isFinalAttack()||shouldAttack){
             this.hurtEntities();
+         }
+         if(shouldAttack) {
             this.damageAround(this.level(), (double)(this.getInitRange() + 4.0F), this.getOnPos());
          }
 
@@ -226,5 +236,6 @@ public class NukeEntity extends Entity {
       INIT_DURATION = SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.INT);
       DURATION = SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.INT);
       DAMAGE = SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.FLOAT);
+      IS_HOWIZER_FINAL_ATTACK=SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.BOOLEAN);
    }
 }
