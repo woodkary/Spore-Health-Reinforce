@@ -117,7 +117,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    }
    @Override
    public void actuallyHurt(DamageSource source, float amount) {
-      if(this.getSelfDetonation()>0){
+      if(this.getSelfDetonation()>0&&!source.is(DamageTypes.FREEZE)){
          return;
       }
       super.actuallyHurt(source, amount);
@@ -271,7 +271,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    }
 
    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-      if(this.getSelfDetonation()>0){
+      if(this.getSelfDetonation()>0&&!source.is(DamageTypes.FREEZE)){
          return false;
       }
       if (calamityMultipart == this.mouth) {
@@ -295,6 +295,9 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    }
 
    public boolean hurt(DamageSource source, float amount) {
+      if(this.getSelfDetonation()>0&&!source.is(DamageTypes.FREEZE)){
+         return false;
+      }
       if (source.getEntity() != null && this.random.nextFloat() < 0.2F) {
          this.setTarget(null);
       }
