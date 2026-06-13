@@ -1,7 +1,6 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.Ssounds;
-import com.Harbinger.Spore.Sentities.Calamities.Hohlfresser;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
@@ -42,7 +41,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraftforge.fluids.FluidType;
 
-public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity {
+public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity, ICalamityMultipart {
    private double prevHeight = (double)0.0F;
    private int headEntityId = -1;
    private final IkLeviLeg[] legs;
@@ -281,10 +280,59 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
    }
    @Override
    public void heal(float amount) {
-      Hohlfresser hohl = this.getHohlfresserHead();
-      if(hohl != null){
-         hohl.healSelf(amount);
+      Calamity calamity = this.getCalamityHead();
+      if(calamity != null){
+         calamity.healSelf(amount);
       }
+   }
+
+   @Nullable
+   public Entity getHeadEntity() {
+      return this.level().getEntity(this.headEntityId);
+   }
+
+   @Nullable
+   @Override
+   public Calamity getCalamityHead() {
+      Entity head = this.getHeadEntity();
+      if (head instanceof Leviathan leviathan) {
+         return leviathan;
+      }
+
+      Entity current = this.getLeviathanParentEntity();
+      for(int i = 0; i < 32 && current != null; ++i) {
+         if (current instanceof Leviathan leviathan) {
+            return leviathan;
+         }
+
+         if (!(current instanceof LeviathanMultipart currentPart)) {
+            return null;
+         }
+
+         head = currentPart.getHeadEntity();
+         if (head instanceof Leviathan leviathan) {
+            return leviathan;
+         }
+
+         Entity next = currentPart.getLeviathanParentEntity();
+         if (next == current) {
+            return null;
+         }
+         current = next;
+      }
+
+      return null;
+   }
+
+   @Nullable
+   private Entity getLeviathanParentEntity() {
+      Entity parent = this.getParentSafe();
+      if (parent != null) {
+         return parent;
+      }
+
+      int parentId = this.getParentIntId();
+      return parentId >= 0 ? this.level().getEntity(parentId) : null;
    }
 
    public boolean hurt(DamageSource source, float damage) {
@@ -294,11 +342,9 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
    }
 
    public boolean hurtHeadId(DamageSource source, float damage) {
-      if (this.headEntityId != -1) {
-         Entity e = this.level().getEntity(this.headEntityId);
-         if (e instanceof LivingEntity) {
-            return e.hurt(source, damage);
-         }
+      Calamity calamity = this.getCalamityHead();
+      if (calamity != null) {
+         return calamity.hurt(source, damage);
       }
 
       return true;
@@ -406,7 +452,7 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       for(int e = 0; e < this.legs.length; ++e) {
          this.legs[e].writeVariants(tag, e);
       }
-
+      addSaveData(tag);
    }
 
    public void readAdditionalSaveData(CompoundTag tag) {
@@ -426,7 +472,7 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       for(int e = 0; e < this.legs.length; ++e) {
          this.legs[e].readVariants(tag, e);
       }
-
+      readSaveData(tag);
    }
 
    public void setAdapted(boolean val) {

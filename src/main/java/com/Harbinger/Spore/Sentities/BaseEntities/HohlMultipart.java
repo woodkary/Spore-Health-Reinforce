@@ -51,7 +51,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraftforge.fluids.FluidType;
 
-public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity {
+public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity, ICalamityMultipart {
    private double prevHeight = (double)0.0F;
    private int headEntityId = -1;
    private static final EntityDataAccessor CHILD_UUID;
@@ -220,9 +220,9 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    }
    @Override
    public void heal(float amount) {
-      Hohlfresser hohl = this.getHohlfresserHead();
-      if(hohl != null){
-         hohl.healSelf(amount);
+      Calamity calamity = this.getCalamityHead();
+      if(calamity != null){
+         calamity.healSelf(amount);
       }
    }
 
@@ -288,7 +288,8 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    }
 
    @Nullable
-   public Hohlfresser getHohlfresserHead() {
+   @Override
+   public Calamity getCalamityHead() {
       Entity head = this.getHeadEntity();
       if (head instanceof Hohlfresser hohlfresser) {
          return hohlfresser;
@@ -367,9 +368,9 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    }
 
    public boolean hurtHeadId(DamageSource source, float damage) {
-      Hohlfresser hohl = this.getHohlfresserHead();
-      if (hohl != null) {
-         return hohl.hurt(source, damage);
+      Calamity calamity = this.getCalamityHead();
+      if (calamity != null) {
+         return calamity.hurt(source, damage);
       }
 
       return true;

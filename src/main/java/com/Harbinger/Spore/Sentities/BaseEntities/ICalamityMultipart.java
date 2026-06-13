@@ -1,7 +1,8 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
-import net.minecraft.world.entity.LivingEntity;
+import javax.annotation.Nullable;
 
 public interface ICalamityMultipart {
+    @Nullable
     Calamity getCalamityHead();
 }
