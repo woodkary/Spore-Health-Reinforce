@@ -228,7 +228,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       if(master>0&&lastHealth-this.getHealth()>=50.0f){
          BlockPos blockPos = this.blockPosition();
          this.level().getEntitiesOfClass(Calamity.class,
-                 new AABB(blockPos).inflate(32.0*master),
+                 new AABB(blockPos).inflate(300.0*master),
                  calamity -> !this.equals(calamity)&&calamity.getSearchArea()==BlockPos.ZERO).forEach(calamity ->
                  calamity.setSearchArea(blockPos));
       }
