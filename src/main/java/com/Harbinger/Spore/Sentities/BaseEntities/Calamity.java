@@ -21,6 +21,7 @@ import com.Harbinger.Spore.Sentities.*;
 import com.Harbinger.Spore.Sentities.AI.CalamityPathNavigation;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityVigilCall;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
+import com.Harbinger.Spore.Sentities.Calamities.Howitzer;
 import com.Harbinger.Spore.Sentities.MovementControls.CalamityMovementControl;
 import com.Harbinger.Spore.Sentities.MovementControls.SmoothLookControl;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
@@ -554,7 +555,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
                  liv -> liv.isAlive()&&!SporeJudge.isSporeEntity(liv) &&
                          !(liv instanceof Player p && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p)))) {
             if(willPlaySound) {
-               SporeAttackUtil.INSTANCE.playSound(this.level,null,this.getX(),this.getY(),this.getZ(),(SoundEvent)Ssounds.SIEGER_BITE.get(),this.getSoundSource(),1.0f,1.0f);
+               SporeAttackUtil.INSTANCE.playSound(this.level,null,this.getX(),this.getY(),this.getZ(),this instanceof Howitzer?(SoundEvent)Ssounds.LANDING.get():(SoundEvent)Ssounds.SIEGER_BITE.get(),this.getSoundSource(),1.0f,1.0f);
             }
             SporeAttackUtil.INSTANCE.dealDamage(living,this,source,2.0f);
          }
