@@ -30,7 +30,6 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         if(clazz[0]!=null){
             eventBusClass=clazz[0];
         }
-        Map<Object, List<IEventListener>> listeners= (Map<Object, List<IEventListener>>) ClassUtil.getFieldValueFromHierarchy(MinecraftForge.EVENT_BUS, "listeners");
         for(Field f : EventBus.class.getDeclaredFields()) {
             ClassUtil.setFieldValue(f,
                     evb,
