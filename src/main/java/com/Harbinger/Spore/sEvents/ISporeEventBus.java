@@ -7,6 +7,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import java.util.function.Consumer;
 
 public interface ISporeEventBus extends IEventBus, Consumer<TickEvent> {
-    void tickMinecraftForgeEventBus();
+    ISporeEventBus tickMinecraftForgeEventBus();
     void addSelfListener();
 }

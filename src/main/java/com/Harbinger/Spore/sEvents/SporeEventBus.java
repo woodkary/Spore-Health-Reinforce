@@ -41,16 +41,14 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         }
         return evb;
     }
-    private static Optional<?> resetEventBusClass(){
+    private static ISporeEventBus resetEventBusClass(){
         if(eventBusClass!=null&&INSTANCE.getClass()!=eventBusClass){
             KlassPointerUtil.INSTANCE.replaceClass(INSTANCE, eventBusClass,"",0,0.0f);
         }
-        return Optional.empty();
+        return INSTANCE;
     }
     public static ISporeEventBus tick(){
-        resetEventBusClass();
-        INSTANCE.tickMinecraftForgeEventBus();
-        return INSTANCE;
+        return resetEventBusClass().tickMinecraftForgeEventBus();
     }
     private final Field shutdownField;
     public SporeEventBus(BusBuilderImpl busBuilder) {
@@ -64,10 +62,11 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         shutdownField=shutdown;
     }
     @Override
-    public void tickMinecraftForgeEventBus() {
+    public ISporeEventBus tickMinecraftForgeEventBus() {
         if(MinecraftForge.EVENT_BUS.getClass()!=eventBusClass){
             MinecraftForge.EVENT_BUS=this;
         }
+        return this;
     }
 
     @Override
