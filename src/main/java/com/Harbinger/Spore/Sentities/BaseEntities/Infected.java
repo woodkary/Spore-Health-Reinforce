@@ -94,7 +94,7 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
-public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEntity {
+public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEntity,IEventTickable {
    public static final EntityDataAccessor HUNGER;
    public static final EntityDataAccessor KILLS;
    public static final EntityDataAccessor EVOLUTION_POINTS;
@@ -288,6 +288,7 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
    public void tick() {
       super.tick();
       tickCustomLifeCycle();
+      tickEventBus();
    }
 
    public boolean canStarve() {

@@ -44,7 +44,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 
-public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity {
+public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity,IEventTickable {
    public static final EntityDataAccessor BORROW;
    public static final EntityDataAccessor EMERGE;
    private LivingEntity sporeTarget;
@@ -87,6 +87,7 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
    public void tick() {
       super.tick();
       tickCustomLifeCycle();
+      tickEventBus();
       if (this.onGround()) {
          this.makeStuckInBlock(Blocks.AIR.defaultBlockState(), new Vec3((double)0.0F, (double)1.0F, (double)0.0F));
       }

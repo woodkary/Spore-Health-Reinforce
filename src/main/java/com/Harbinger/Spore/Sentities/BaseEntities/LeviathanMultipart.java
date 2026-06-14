@@ -52,7 +52,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 
-public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity, ICalamityMultipart {
+public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, ICalamityMultipart {
    private double prevHeight = (double)0.0F;
    private int headEntityId = -1;
    private final IkLeviLeg[] legs;
@@ -141,7 +141,7 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
 
    public void tick() {
       super.tick();
-
+      tickEventBus();
       for(IkLeviLeg leg : this.legs) {
          leg.refreshLegStandingPoint();
          leg.applyIK();

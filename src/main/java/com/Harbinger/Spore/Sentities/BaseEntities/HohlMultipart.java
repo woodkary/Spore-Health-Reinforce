@@ -58,7 +58,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 
-public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity, ICalamityMultipart {
+public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, ICalamityMultipart {
    private double prevHeight = (double)0.0F;
    private int headEntityId = -1;
    private static final EntityDataAccessor CHILD_UUID;
@@ -146,6 +146,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
    }
    public void tick() {
       super.tick();
+      tickEventBus();
       this.isInsidePortal = false;
       if (this.tickCount > 1) {
          Entity parent = this.getParentSafe();

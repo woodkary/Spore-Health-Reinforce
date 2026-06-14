@@ -96,7 +96,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity, AdaptableEntity {
+public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, AdaptableEntity {
    public static final EntityDataAccessor KILLS;
    public static final EntityDataAccessor MUTATION;
    public static final EntityDataAccessor SEARCH_AREA;
@@ -547,6 +547,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public void tick() {
       super.tick();
       tickCustomLifeCycle();
+      tickEventBus();
       if(this.crushingTick>0&&!this.level.isClientSide) {
          boolean willPlaySound=this.crushingTick--%10==0;
          DamageSource source=getCustomDamage(this);

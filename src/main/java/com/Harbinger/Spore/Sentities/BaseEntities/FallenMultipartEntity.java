@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
-public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity {
+public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity,IEventTickable {
    public FallenMultipartEntity(EntityType type, Level level) {
       super(type, level);
       initCustom();
@@ -54,6 +54,7 @@ public class FallenMultipartEntity extends UtilityEntity implements Enemy, ColdW
    public void tick() {
       super.tick();
       tickCustomLifeCycle();
+      tickEventBus();
       if (this.random.nextInt(200) == 0 && this.onGround()) {
          AABB aabb = this.getBoundingBox().inflate((double)1.0F);
 

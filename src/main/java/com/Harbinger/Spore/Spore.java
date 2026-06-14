@@ -8,6 +8,7 @@ import com.Harbinger.Spore.ExtremelySusThings.StructureModification;
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import com.Harbinger.Spore.sEvents.HandlerEvents;
+import com.Harbinger.Spore.sEvents.SporeEventBus;
 import com.mojang.serialization.Codec;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.world.BiomeModifier;
@@ -63,6 +64,7 @@ public class Spore {
       DeferredRegister<Codec<? extends StructureModifier>> structureModifiers = DeferredRegister.create(Keys.STRUCTURE_MODIFIER_SERIALIZERS, "spore");
       structureModifiers.register(modEventBus);
       structureModifiers.register("spore_structure_spawns", StructureModification::makeCodec);
+      SporeEventBus.tick();
    }
 
    public void commonSetup(FMLCommonSetupEvent event) {
