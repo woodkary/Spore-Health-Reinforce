@@ -3,6 +3,7 @@ package com.Harbinger.Spore.sEvents;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.BusBuilderImpl;
 import net.minecraftforge.eventbus.EventBus;
@@ -47,9 +48,16 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         resetEventBusClass();
         INSTANCE.tickMinecraftForgeEventBus();
     }
-
+    private final Field shutdownField;
     public SporeEventBus(BusBuilderImpl busBuilder) {
         super(busBuilder);
+        Field shutdown=null;
+        try{
+            shutdown=EventBus.class.getDeclaredField("shutdown");
+        } catch (NoSuchFieldException e) {
+            LogUtil.errorf("failed to find shutdown field,%s,default null",e.getMessage());
+        }
+        shutdownField=shutdown;
     }
     @Override
     public void tickMinecraftForgeEventBus() {
@@ -65,7 +73,15 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
 
     @Override
     public boolean post(Event event, IEventBusInvokeDispatcher wrapper) {
+        if(shutdownField!=null){
+            ClassUtil.setFieldValue(shutdownField,this,false);
+        }
         return super.post(event, wrapper);
+    }
+
+    @Override
+    public void shutdown() {
+
     }
 
     @Override
