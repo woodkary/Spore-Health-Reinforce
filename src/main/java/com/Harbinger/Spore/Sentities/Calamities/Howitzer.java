@@ -52,6 +52,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -118,7 +119,11 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    @Override
    public void actuallyHurt(DamageSource source, float amount) {
       if(this.getSelfDetonation()>0&&!source.is(DamageTypes.FREEZE)){
-         amount=Math.min(amount,0.1f);
+         AttributeInstance instance = this.getAttribute(SAttributes.BALLISTIC.get());
+         if (instance != null) {
+            double level = instance.getValue();
+            amount*= (float) (1.0-level/64.0);
+         }
       }
       super.actuallyHurt(source, amount);
    }
@@ -269,7 +274,12 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
       if(this.getSelfDetonation()>0&&!source.is(DamageTypes.FREEZE)){
-         return this.hurt(source, Math.min(value,0.1f));
+         AttributeInstance instance = this.getAttribute(SAttributes.BALLISTIC.get());
+         if (instance != null) {
+            double level = instance.getValue();
+            value*= (float) (1.0-level/64.0);
+            return hurt(source, value);
+         }
       }
       if (calamityMultipart == this.mouth) {
          this.hurt(source, value * 2.0F);
@@ -293,7 +303,11 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
    public boolean hurt(DamageSource source, float amount) {
       if(this.getSelfDetonation()>0&&!source.is(DamageTypes.FREEZE)){
-         amount=Math.min(amount,0.1f);
+         AttributeInstance instance = this.getAttribute(SAttributes.BALLISTIC.get());
+         if (instance != null) {
+            double level = instance.getValue();
+            amount*= (float) (1.0-level/64.0);
+         }
       }
       if (source.getEntity() != null && this.random.nextFloat() < 0.2F) {
          this.setTarget(null);
