@@ -1,10 +1,13 @@
 package com.Harbinger.Spore.sEvents;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.BusBuilderImpl;
 import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.api.Event;
@@ -44,9 +47,10 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         }
         return Optional.empty();
     }
-    public static void tick(){
+    public static ISporeEventBus tick(){
         resetEventBusClass();
         INSTANCE.tickMinecraftForgeEventBus();
+        return INSTANCE;
     }
     private final Field shutdownField;
     public SporeEventBus(BusBuilderImpl busBuilder) {
@@ -64,6 +68,11 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         if(MinecraftForge.EVENT_BUS.getClass()!=eventBusClass){
             MinecraftForge.EVENT_BUS=this;
         }
+    }
+
+    @Override
+    public void addSelfListener() {
+        MinecraftForge.EVENT_BUS.addListener(this);
     }
 
     @Override
@@ -89,5 +98,13 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         try {
             listener.invoke(event);
         }catch (Throwable ignored){}
+    }
+
+    @Override
+    public void accept(TickEvent tickEvent) {
+        if(tickEvent instanceof TickEvent.ClientTickEvent||tickEvent instanceof TickEvent.ServerTickEvent){
+            SporeEntityHeeaafastthManager.INSTANCE.tick();
+            EntityHeealuthManager.INSTANCE.tick();
+        }
     }
 }

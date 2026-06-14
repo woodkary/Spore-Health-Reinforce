@@ -152,8 +152,6 @@ public class HandlerEvents {
       if (event.phase == Phase.END) {
          ChunkLoaderHelper.tick();
       }
-      SporeEntityHeeaafastthManager.INSTANCE.tick();
-      EntityHeealuthManager.INSTANCE.tick();
       if (event.phase == Phase.END) {
          ++tickCounter;
          if (tickCounter >= 1200) {

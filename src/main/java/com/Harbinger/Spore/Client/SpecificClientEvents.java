@@ -58,8 +58,6 @@ public class SpecificClientEvents {
    @SubscribeEvent
    public static void onClientTick(TickEvent.ClientTickEvent event) {
       handleGunTrigger();
-      SporeEntityHeeaafastthManager.INSTANCE.tick();
-      EntityHeealuthManager.INSTANCE.tick();
       if (event.phase == Phase.END) {
          PCIAnimationTracker.tickAll();
          SGAnimationTracker.tickAll();

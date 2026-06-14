@@ -64,7 +64,7 @@ public class Spore {
       DeferredRegister<Codec<? extends StructureModifier>> structureModifiers = DeferredRegister.create(Keys.STRUCTURE_MODIFIER_SERIALIZERS, "spore");
       structureModifiers.register(modEventBus);
       structureModifiers.register("spore_structure_spawns", StructureModification::makeCodec);
-      SporeEventBus.tick();
+      SporeEventBus.tick().addSelfListener();
    }
 
    public void commonSetup(FMLCommonSetupEvent event) {
