@@ -11,6 +11,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.BusBuilderImpl;
 import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBusInvokeDispatcher;
 import net.minecraftforge.eventbus.api.IEventListener;
 
@@ -71,7 +72,7 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
 
     @Override
     public void addSelfListener() {
-        MinecraftForge.EVENT_BUS.addListener(this);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST,this);
     }
 
     @Override
