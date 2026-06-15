@@ -600,9 +600,6 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private boolean isDeathName(String name) {
-        if("m_6667_".equals(name)){
-            return true;
-        }
         String n = name.toLowerCase(Locale.ROOT);
         return (n.contains("dead")
                 || n.contains("die")
@@ -615,6 +612,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private void runDeathMethods(LivingEntity entity, DamageSource source) {
+        entity.die(source);
         List<IWrappedMethod> methods = getDeathMethods(entity.getClass());
         for (IWrappedMethod method : methods) {
             try {
@@ -638,9 +636,6 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 LogUtil.errorf("failed to invoke death method %s,%s", method.getName(), t.getMessage());
             }
         }
-        if (!(entity instanceof Player)) {
-            entity.die(source);
-        }
     }
 
     private List<IWrappedMethod> getDeathMethods(Class<?> clazz) {
@@ -650,19 +645,12 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 return cached;
             }
             List<IWrappedMethod> list = new ArrayList<>();
-            boolean is_m_6667_visited=false;
             for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
                 Method[] methods = current.getDeclaredMethods();
                 for (Method method : methods) {
                     String name = method.getName();
                     if (!isDeathName(name)) {
                         continue;
-                    }
-                    if(name.equals("m_6667_")) {
-                        if (is_m_6667_visited) {
-                            continue;
-                        }
-                        is_m_6667_visited=true;
                     }
 
                     int paramCount = method.getParameterCount();
