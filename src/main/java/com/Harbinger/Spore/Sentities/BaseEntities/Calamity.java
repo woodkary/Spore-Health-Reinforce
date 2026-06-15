@@ -98,7 +98,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, AdaptableEntity {
+public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, AdaptableEntity,IDieWithDiscardEntity {
    public static final EntityDataAccessor KILLS;
    public static final EntityDataAccessor MUTATION;
    public static final EntityDataAccessor SEARCH_AREA;
@@ -659,11 +659,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public void tickDeath() {
       this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
    }
-
-   public void die(DamageSource source) {
-      if(this.getHealth()>0.0f){
-         return;
-      }
+   public void specialDie(DamageSource source) {
       Level var3 = this.level();
       if (var3 instanceof ServerLevel serverLevel) {
          double x0 = this.getX() - ((double)this.random.nextFloat() - 0.1) * 3.2;
@@ -675,6 +671,12 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       this.playSound((SoundEvent)Ssounds.CALAMITY_DEATH.get());
       super.die(source);
       this.summonBiomass();
+   }
+   public void die(DamageSource source) {
+      if(this.getHealth()>0.0f){
+         return;
+      }
+      specialDie(source);
       this.discard();
    }
 

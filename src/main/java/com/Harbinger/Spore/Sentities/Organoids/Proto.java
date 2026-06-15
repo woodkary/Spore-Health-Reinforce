@@ -12,6 +12,7 @@ import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sblocks.BrainRemnants;
 import com.Harbinger.Spore.Sblocks.CDUBlock;
+import com.Harbinger.Spore.Sentities.BaseEntities.*;
 import com.Harbinger.Spore.Sentities.CasingGenerator;
 import com.Harbinger.Spore.Sentities.ChunkLoaderMob;
 import com.Harbinger.Spore.Sentities.FoliageSpread;
@@ -19,11 +20,6 @@ import com.Harbinger.Spore.Sentities.Signal;
 import com.Harbinger.Spore.Sentities.VariantKeeper;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.NeuralProcessing.ProtoAIs.ProtoTargeting;
-import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
-import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
-import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Organoid;
 import com.Harbinger.Spore.Sentities.EvolvedInfected.Scamper;
 import com.Harbinger.Spore.Sentities.Utility.GastGeber;
 import com.Harbinger.Spore.Sentities.Utility.ScentEntity;
@@ -82,7 +78,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class Proto extends Organoid implements CasingGenerator, FoliageSpread, ChunkLoaderMob {
+public class Proto extends Organoid implements CasingGenerator, FoliageSpread, ChunkLoaderMob, IDieWithDiscardEntity {
    private static final EntityDataAccessor HOSTS;
    private static final EntityDataAccessor BIOMASS;
    public static final EntityDataAccessor NODE;
@@ -654,11 +650,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    public void tickDeath() {
       this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
    }
-
-   public void die(DamageSource source) {
-      if(this.getHealth()>0.0f){
-         return;
-      }
+   public void specialDie(DamageSource source) {
       super.die(source);
       Level var3 = this.level();
       if (var3 instanceof ServerLevel serverLevel) {
@@ -668,6 +660,12 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
       this.spreadBlocksAroundDeath();
       this.affectNearbyEntities();
+   }
+   public void die(DamageSource source) {
+      if(this.getHealth()>0.0f){
+         return;
+      }
+      specialDie(source);
       this.discard();
    }
 
