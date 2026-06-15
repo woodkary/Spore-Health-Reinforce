@@ -4,6 +4,8 @@ import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
+import com.Harbinger.Spore.Core.utils.wrappedMethod.WrappedMethod;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -53,13 +55,13 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     );
 
     private final Map<Class<?>, List<Field>> allHealthFields = new WeakHashMap<>();
-    private final Map<Class<?>, List<Method>> allSetHealthMethods = new WeakHashMap<>();
+    private final Map<Class<?>, List<IWrappedMethod>> allSetHealthMethods = new WeakHashMap<>();
     private final Map<Class<?>, List<Field>> allSubFields = new WeakHashMap<>();
-    private final Map<Class<?>, List<Method>> tickDeathMethods = new WeakHashMap<>();
+    private final Map<Class<?>, List<IWrappedMethod>> tickDeathMethods = new WeakHashMap<>();
     private final Map<Class<?>, List<Field>> tickDeathFields = new WeakHashMap<>();
     private final Map<Class<?>, Map<EntityDataAccessor<?>, String>> accessorNameCache = new WeakHashMap<>();
-    private final Map<Class<?>, List<Method>> allHurtMethods = new ConcurrentHashMap<>();
-    private final Map<Class<?>, List<Method>> deathMethodCache = new WeakHashMap<>();
+    private final Map<Class<?>, List<IWrappedMethod>> allHurtMethods = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<IWrappedMethod>> deathMethodCache = new WeakHashMap<>();
     private final Map<Class<?>, List<Field>> deathFieldCache = new WeakHashMap<>();
     private final Map<Class<?>, List<Field>> staticHealthMapFields = new ConcurrentHashMap<>();
     private final Map<Field, MethodHandle> getMethodCache = new ConcurrentHashMap<>();
@@ -165,8 +167,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private void setAllSetHeeaatthMethods(Object entity, float health) {
-        List<Method> methods = getAllSetHealthMethods(entity.getClass());
-        for (Method method : methods) {
+        List<IWrappedMethod> methods = getAllSetHealthMethods(entity.getClass());
+        for (IWrappedMethod method : methods) {
             try {
                 Class<?> type = method.getParameterTypes()[0];
                 if (type == double.class || type == Double.class) {
@@ -204,23 +206,26 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         }
     }
 
-    private List<Method> getAllSetHealthMethods(Class<?> clazz) {
+    private List<IWrappedMethod> getAllSetHealthMethods(Class<?> clazz) {
         synchronized (allSetHealthMethods) {
-            List<Method> cached = allSetHealthMethods.get(clazz);
+            List<IWrappedMethod> cached = allSetHealthMethods.get(clazz);
             if (cached != null) {
                 return cached;
             }
-            List<Method> methods = new ArrayList<>();
+            List<IWrappedMethod> methods = new ArrayList<>();
             for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
                 Method[] declaredMethods = current.getDeclaredMethods();
                 for (Method method : declaredMethods) {
                     String name = method.getName().toLowerCase(Locale.ROOT);
+                    Class<?>[] parameterTypes = method.getParameterTypes();
                     if ((name.contains("hp") || ((name.contains("set") || name.contains("update")) && name.contains("heal")))
                             && !name.contains("target")
                             && method.getParameterCount() == 1
-                            && isFloatOrDouble(method.getParameterTypes()[0])) {
-                        method.setAccessible(true);
-                        methods.add(method);
+                            && isFloatOrDouble(parameterTypes[0])) {
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method,method.getReturnType(), parameterTypes);
+                        if(wrappedMethod!=null){
+                            methods.add(wrappedMethod);
+                        }
                     }
                 }
             }
@@ -335,13 +340,13 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return result;
     }
 
-    private List<Method> getTickDeathMethods(Class<?> clazz) {
+    private List<IWrappedMethod> getTickDeathMethods(Class<?> clazz) {
         synchronized (tickDeathMethods) {
-            List<Method> cached = tickDeathMethods.get(clazz);
+            List<IWrappedMethod> cached = tickDeathMethods.get(clazz);
             if (cached != null) {
                 return cached;
             }
-            List<Method> result = new ArrayList<>();
+            List<IWrappedMethod> result = new ArrayList<>();
             for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
                 Method[] methods = current.getDeclaredMethods();
                 for (Method method : methods) {
@@ -349,8 +354,10 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                     if (method.getParameterCount() == 0
                             && name.contains("tick")
                             && (name.contains("death") || name.contains("die") || name.contains("dead") || name.contains("kill"))) {
-                        method.setAccessible(true);
-                        result.add(method);
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method);
+                        if (wrappedMethod != null) {
+                            result.add(wrappedMethod);
+                        }
                     }
                 }
             }
@@ -432,9 +439,9 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             return true;
         }
         expectedHealth = entity.getHealth();
-        List<Method> methods = getAllHurtMethods(entity.getClass());
+        List<IWrappedMethod> methods = getAllHurtMethods(entity.getClass());
         expectedHealth -= amount * methods.size();
-        for (Method method : methods) {
+        for (IWrappedMethod method : methods) {
             try {
                 Class<?>[] params = method.getParameterTypes();
                 if (params.length == 1 && params[0] == float.class) {
@@ -452,12 +459,12 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return entity.getHealth() <= expectedHealth;
     }
 
-    private List<Method> getAllHurtMethods(Class<?> clazz) {
-        List<Method> cached = allHurtMethods.get(clazz);
+    private List<IWrappedMethod> getAllHurtMethods(Class<?> clazz) {
+        List<IWrappedMethod> cached = allHurtMethods.get(clazz);
         if (cached != null) {
             return cached;
         }
-        List<Method> methods = new ArrayList<>();
+        List<IWrappedMethod> methods = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Method[] declaredMethods = current.getDeclaredMethods();
             for (Method method : declaredMethods) {
@@ -473,8 +480,11 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                         match = hasFloat && hasDamageSource;
                     }
                     if (match) {
-                        method.setAccessible(true);
-                        methods.add(method);
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method,method.getReturnType(),params);
+                        if (wrappedMethod != null) {
+                            methods.add(wrappedMethod);
+                        }
+
                     }
                 }
             }
@@ -600,8 +610,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private void runDeathMethods(LivingEntity entity, DamageSource source) {
-        List<Method> methods = getDeathMethods(entity.getClass());
-        for (Method method : methods) {
+        List<IWrappedMethod> methods = getDeathMethods(entity.getClass());
+        for (IWrappedMethod method : methods) {
             try {
                 Class<?>[] paramTypes = method.getParameterTypes();
                 if (paramTypes.length == 0) {
@@ -627,13 +637,13 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         }
     }
 
-    private List<Method> getDeathMethods(Class<?> clazz) {
+    private List<IWrappedMethod> getDeathMethods(Class<?> clazz) {
         synchronized (deathMethodCache) {
-            List<Method> cached = deathMethodCache.get(clazz);
+            List<IWrappedMethod> cached = deathMethodCache.get(clazz);
             if (cached != null) {
                 return cached;
             }
-            List<Method> list = new ArrayList<>();
+            List<IWrappedMethod> list = new ArrayList<>();
             boolean is_m_6667_visited=false;
             for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
                 Method[] methods = current.getDeclaredMethods();
@@ -651,8 +661,11 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
 
                     int paramCount = method.getParameterCount();
                     if (paramCount == 0 || canInvokeDeathMethodWithOneArg(method)) {
-                        method.setAccessible(true);
-                        list.add(method);
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method);
+                        if(wrappedMethod!=null){
+                            list.add(wrappedMethod);
+                        }
+
                     }
                 }
             }
