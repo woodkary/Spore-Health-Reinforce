@@ -2,6 +2,8 @@ package com.Harbinger.Spore;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
+import com.Harbinger.Spore.Core.entityStorages.SporeClientEntityCallback;
+import com.Harbinger.Spore.Core.entityStorages.SporeServerEntityCallback;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.ExtremelySusThings.StructureModification;

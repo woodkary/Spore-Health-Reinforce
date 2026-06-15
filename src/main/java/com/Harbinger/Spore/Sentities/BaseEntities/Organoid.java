@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
@@ -56,7 +57,7 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
       initCustom();
    }
    public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
+      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
    }
    @Override
    public void actuallyHurt(DamageSource source, float amount) {

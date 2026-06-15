@@ -11,6 +11,7 @@ import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
@@ -133,7 +134,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       return opt;
    }
    public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
+      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
    }
 
    public Calamity(EntityType type, Level level) {

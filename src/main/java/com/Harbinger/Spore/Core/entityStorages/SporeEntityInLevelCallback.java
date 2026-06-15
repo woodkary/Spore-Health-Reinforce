@@ -24,7 +24,7 @@ public final class SporeEntityInLevelCallback implements EntityInLevelCallback {
             LivingEntity.class,
             EntityInLevelCallback.class
     );
-    public static EntityInLevelCallback newInstance(LivingEntity entity, EntityInLevelCallback owner){
+    static EntityInLevelCallback newInstance(LivingEntity entity, EntityInLevelCallback owner){
         constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 callbackClass,

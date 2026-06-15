@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sparticles;
+import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
@@ -132,7 +133,7 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
       return null;
    }
    public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
+      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
    }
    @Nullable
    public BlockPos getSearchPos() {

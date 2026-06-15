@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
@@ -79,7 +80,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
       initCustom();
    }
    public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
+      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
    }
    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
       LazyOptional<T> opt=super.getCapability(cap, side);

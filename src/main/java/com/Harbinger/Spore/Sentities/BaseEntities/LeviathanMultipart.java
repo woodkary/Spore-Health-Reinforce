@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
@@ -75,7 +76,7 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       initCustom();
    }
    public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
+      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
    }
    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
       LazyOptional<T> opt=super.getCapability(cap, side);
