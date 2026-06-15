@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.utils;
 import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -581,9 +582,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             if (level instanceof ServerLevel serverLevel) {
                 if (entity == null || entity.killedEntity(serverLevel, target)) {
                     target.gameEvent(GameEvent.ENTITY_DIE);
-                    if (!(target instanceof Player)) {
-                        target.dropAllDeathLoot(actualSource);
-                    }
+                    SporeAttackUtil.INSTANCE.dropAllDeathLoot(target,target.position,actualSource,actualSource.causingEntity instanceof Player player?player:null);
+                    //target.dropAllDeathLoot(actualSource);
                 }
                 target.level().broadcastEntityEvent(target, (byte) 3);
             }

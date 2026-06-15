@@ -359,7 +359,7 @@ public final class SporeAttackUtil implements IAttack {
         HitResult result = player.level().clip(context);
         return result.getType() != HitResult.Type.MISS;
     }
-    public void dropAllDeathLoot(LivingEntity liv,Vec3 position,DamageSource source,Player player) {
+    public void dropAllDeathLoot(LivingEntity liv,Vec3 position,DamageSource source,@Nullable Player player) {
         if(liv.level.isClientSide){
             return;
         }
@@ -371,7 +371,7 @@ public final class SporeAttackUtil implements IAttack {
         liv.dropCustomDeathLoot(source, i, flag);
 
         liv.dropEquipment();
-        dropExperience(liv,position,player);
+        dropExperience(liv,position);
         for (ItemEntity e : captureDrops(liv)) {
             liv.level.addFreshEntity(e);
         }
@@ -395,7 +395,7 @@ public final class SporeAttackUtil implements IAttack {
         LootParams lootparams = lootparams$builder.create(LootContextParamSets.ENTITY);
         loottable.getRandomItems(lootparams, liv.getLootTableSeed(), RandomItemConsumer.newInstance(liv));
     }
-    private void dropExperience(LivingEntity liv,Vec3 position,Player player) {
+    private void dropExperience(LivingEntity liv,Vec3 position) {
         if (liv.level instanceof ServerLevel serverLevel&& !liv.wasExperienceConsumed()) {
             int reward = liv.getExperienceReward();
             ExperienceOrb.award(serverLevel, position, reward);
