@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
@@ -52,6 +54,9 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICust
       super(type, level);
       this.xpReward = 25;
       initCustom();
+   }
+   public void setLevelCallback(EntityInLevelCallback callback) {
+      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
    }
    @Override
    public void actuallyHurt(DamageSource source, float amount) {

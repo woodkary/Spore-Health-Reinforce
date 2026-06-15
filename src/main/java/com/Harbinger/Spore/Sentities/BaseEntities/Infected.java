@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sparticles;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Damage.SdamageTypes;
@@ -81,6 +82,7 @@ import net.minecraft.world.level.block.AbstractGlassBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -129,7 +131,9 @@ public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEn
    public List<String> getDropList() {
       return null;
    }
-
+   public void setLevelCallback(EntityInLevelCallback callback) {
+      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
+   }
    @Nullable
    public BlockPos getSearchPos() {
       return this.searchPos;

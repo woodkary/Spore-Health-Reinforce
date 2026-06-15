@@ -11,6 +11,7 @@ import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
@@ -83,6 +84,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -129,6 +131,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
          });
       }
       return opt;
+   }
+   public void setLevelCallback(EntityInLevelCallback callback) {
+      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
    }
 
    public Calamity(EntityType type, Level level) {

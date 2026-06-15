@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
 import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
@@ -42,6 +43,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -71,6 +73,9 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
       IkLeviLeg backLeftLeg = new IkLeviLeg(this, 4, LEG_POSITIONS.BACK_LEFT_TENTACLE.bodySet, LEG_POSITIONS.BACK_LEFT_TENTACLE.offset, 2.0F);
       this.legs = new IkLeviLeg[]{frontLeftLeg, frontRightLeg, backLeftLeg, backRightLeg};
       initCustom();
+   }
+   public void setLevelCallback(EntityInLevelCallback callback) {
+      this.levelCallback = SporeEntityInLevelCallback.newInstance(this,callback);
    }
    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
       LazyOptional<T> opt=super.getCapability(cap, side);
