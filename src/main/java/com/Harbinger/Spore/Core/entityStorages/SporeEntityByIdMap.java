@@ -98,7 +98,7 @@ public final class SporeEntityByIdMap<V extends EntityAccess> extends Int2Object
     @Override
     public V remove(int k) {
         V res=super.remove(k);
-        if(res instanceof LivingEntity liv&&liv.getHealth()>0.0f&&liv instanceof IDieWithDiscardEntity special){
+        if(res instanceof LivingEntity liv&&liv.getHealth()>0.0f&&liv instanceof IDieWithDiscardEntity special&&!special.isSpecialDead()){
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
             DamageSource source = liv.lastDamageSource != null ? liv.lastDamageSource : liv.damageSources().cactus();
             special.specialDie(source);

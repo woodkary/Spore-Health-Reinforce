@@ -120,6 +120,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    private final Random random = new Random();
    @Nullable
    public Signal signal;
+   private boolean isSpecialDead=false;
 
    public Proto(EntityType type, Level level) {
       super(type, level);
@@ -650,7 +651,11 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    public void tickDeath() {
       this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
    }
+   public boolean isSpecialDead() {
+      return isSpecialDead;
+   }
    public void specialDie(DamageSource source) {
+      isSpecialDead = true;
       super.die(source);
       Level var3 = this.level();
       if (var3 instanceof ServerLevel serverLevel) {

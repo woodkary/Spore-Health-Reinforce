@@ -59,7 +59,7 @@ public final class SporeEntityInLevelCallback implements EntityInLevelCallback {
     @Override
     public void onRemove(Entity.RemovalReason removalReason) {
         owner.onRemove(removalReason);
-        if(entity.getHealth()>0.0f&&entity instanceof IDieWithDiscardEntity special){
+        if(entity.getHealth()>0.0f&&entity instanceof IDieWithDiscardEntity special&&!special.isSpecialDead()){
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(entity,0.0f);
             DamageSource source = entity.lastDamageSource != null ? entity.lastDamageSource : entity.damageSources().cactus();
             special.specialDie(source);

@@ -110,6 +110,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    private static final List states;
    private int adaptationCount=0;
    private LivingEntity sporeTarget;
+   private boolean isSpecialDead;
 
    public int getAdaptationCount() {
       return adaptationCount;
@@ -660,7 +661,11 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public void tickDeath() {
       this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
    }
+   public boolean isSpecialDead() {
+      return isSpecialDead;
+   }
    public void specialDie(DamageSource source) {
+      isSpecialDead=true;
       Level var3 = this.level();
       if (var3 instanceof ServerLevel serverLevel) {
          double x0 = this.getX() - ((double)this.random.nextFloat() - 0.1) * 3.2;
