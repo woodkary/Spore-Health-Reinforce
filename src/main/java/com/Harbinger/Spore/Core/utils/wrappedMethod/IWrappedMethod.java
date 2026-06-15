@@ -4,6 +4,9 @@ import java.lang.invoke.MethodHandle;
 
 public interface IWrappedMethod {
     MethodHandle getMethod();
+
+    String getName();
+
     Class<?> getReturnType();
     Class<?>[] getParameterTypes();
 

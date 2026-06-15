@@ -8,11 +8,13 @@ import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public final class WrappedMethod implements IWrappedMethod{
     private static final Class<? extends IWrappedMethod> clazz= (Class<? extends IWrappedMethod>) BytecodeUtil.resolveHiddenClassOrSelf(
             WrappedMethod.class,
             MethodHandle.class,
+            String.class,
             Class.class,
             Class[].class
     );
@@ -21,6 +23,7 @@ public final class WrappedMethod implements IWrappedMethod{
             clazz,
             WrappedMethod.class,
             MethodHandle.class,
+            String.class,
             Class.class,
             Class[].class
     );
@@ -34,10 +37,13 @@ public final class WrappedMethod implements IWrappedMethod{
         return of(declaringClass, method, rType, method.getParameterTypes());
     }
     public static IWrappedMethod of(Class<?> declaringClass,Method method,Class<?> rType,Class<?>[] paraTypes){
+        return of(declaringClass,method,method.getName(), rType, paraTypes);
+    }
+    public static IWrappedMethod of(Class<?> declaringClass,Method method,String methodName,Class<?> rType,Class<?>[] paraTypes){
         try {
             MethodHandle handle = ClassUtil.getLookup().findVirtual(
                     declaringClass,
-                    method.getName(),
+                    methodName,
                     MethodType.methodType(rType, paraTypes)
             );
             constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
@@ -45,29 +51,32 @@ public final class WrappedMethod implements IWrappedMethod{
                     clazz,
                     WrappedMethod.class,
                     MethodHandle.class,
+                    String.class,
                     Class.class,
                     Class[].class
             );
             if(constructor!=null){
                 try{
-                    return (IWrappedMethod) constructor.invoke(handle,rType,paraTypes);
+                    return (IWrappedMethod) constructor.invoke(handle,methodName,rType,paraTypes);
                 }catch(Throwable e){
                     LogUtil.errorf("failed to invoke WrappedMethod constructor %s",e.getMessage());
                 }
             }
-            return new WrappedMethod(handle,rType,paraTypes);
+            return new WrappedMethod(handle, methodName,rType, paraTypes);
         }catch (Throwable t){
-            LogUtil.errorf("failed to build MethodHandle of Method %s,%s", method.getName(),t.getMessage());
+            LogUtil.errorf("failed to build MethodHandle of Method %s,%s", methodName,t.getMessage());
         }
         return null;
     }
 
     private final MethodHandle handle;
+    private final String methodName;
     private final Class<?> returnType;
     private final Class<?>[] parameterTypes;
 
-    public WrappedMethod(MethodHandle handle, Class<?> returnType, Class<?>... parameterTypes) {
+    public WrappedMethod(MethodHandle handle, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
         this.handle = handle;
+        this.methodName = methodName;
         this.returnType = returnType;
         this.parameterTypes = parameterTypes;
     }
@@ -76,10 +85,24 @@ public final class WrappedMethod implements IWrappedMethod{
     public MethodHandle getMethod() {
         return handle;
     }
+    @Override
+    public String getName() {
+        return methodName;
+    }
 
     @Override
     public Class<?> getReturnType() {
         return returnType;
+    }
+
+    @Override
+    public String toString() {
+        return "WrappedMethod{" +
+                "handle=" + handle +
+                ", methodName='" + methodName + '\'' +
+                ", returnType=" + returnType +
+                ", parameterTypes=" + Arrays.toString(parameterTypes) +
+                '}';
     }
 
     @Override

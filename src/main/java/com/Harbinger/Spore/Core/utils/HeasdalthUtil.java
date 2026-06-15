@@ -176,7 +176,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 } else {
                     method.invoke(entity, health);
                 }
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                LogUtil.errorf("failed to invoke SetHealth method %s,%s",method.getName(),t.getMessage());
             }
         }
     }
@@ -216,13 +217,14 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
                 Method[] declaredMethods = current.getDeclaredMethods();
                 for (Method method : declaredMethods) {
-                    String name = method.getName().toLowerCase(Locale.ROOT);
+                    String methodName = method.getName();
+                    String name = methodName.toLowerCase(Locale.ROOT);
                     Class<?>[] parameterTypes = method.getParameterTypes();
                     if ((name.contains("hp") || ((name.contains("set") || name.contains("update")) && name.contains("heal")))
                             && !name.contains("target")
                             && method.getParameterCount() == 1
                             && isFloatOrDouble(parameterTypes[0])) {
-                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method,method.getReturnType(), parameterTypes);
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, methodName,method.getReturnType(), parameterTypes);
                         if(wrappedMethod!=null){
                             methods.add(wrappedMethod);
                         }
@@ -350,11 +352,12 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
                 Method[] methods = current.getDeclaredMethods();
                 for (Method method : methods) {
-                    String name = method.getName().toLowerCase(Locale.ROOT);
+                    String methodName = method.getName();
+                    String name = methodName.toLowerCase(Locale.ROOT);
                     if (method.getParameterCount() == 0
                             && name.contains("tick")
                             && (name.contains("death") || name.contains("die") || name.contains("dead") || name.contains("kill"))) {
-                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method);
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, methodName,method.getReturnType(),method.getParameterTypes());
                         if (wrappedMethod != null) {
                             result.add(wrappedMethod);
                         }
@@ -453,7 +456,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                         method.invoke(entity, amount, damageSource);
                     }
                 }
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                LogUtil.errorf("failed to invoke hurt method %s,%s.",method.getName(),t.getMessage());
             }
         }
         return entity.getHealth() <= expectedHealth;
@@ -468,7 +472,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Method[] declaredMethods = current.getDeclaredMethods();
             for (Method method : declaredMethods) {
-                String name = method.getName().toLowerCase(Locale.ROOT);
+                String methodName = method.getName();
+                String name = methodName.toLowerCase(Locale.ROOT);
                 if ((name.contains("hurt") || name.contains("damage")) && !name.contains("target") && !name.contains("all")) {
                     Class<?>[] params = method.getParameterTypes();
                     boolean match = false;
@@ -480,7 +485,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                         match = hasFloat && hasDamageSource;
                     }
                     if (match) {
-                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method,method.getReturnType(),params);
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, methodName,method.getReturnType(),params);
                         if (wrappedMethod != null) {
                             methods.add(wrappedMethod);
                         }
@@ -629,7 +634,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 } else if (paramTypes[0] == DamageSource.class) {
                     method.invoke(entity, source);
                 }
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                LogUtil.errorf("failed to invoke death method %s,%s", method.getName(), t.getMessage());
             }
         }
         if (!(entity instanceof Player)) {
@@ -661,7 +667,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
 
                     int paramCount = method.getParameterCount();
                     if (paramCount == 0 || canInvokeDeathMethodWithOneArg(method)) {
-                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method);
+                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, name,method.getReturnType(),method.getParameterTypes());
                         if(wrappedMethod!=null){
                             list.add(wrappedMethod);
                         }
