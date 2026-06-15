@@ -2,9 +2,11 @@ package com.Harbinger.Spore.Core.entityStorages;
 
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.entity.EntityInLevelCallback;
@@ -59,7 +61,9 @@ public final class SporeEntityInLevelCallback implements EntityInLevelCallback {
         owner.onRemove(removalReason);
         if(entity.getHealth()>0.0f&&entity instanceof IDieWithDiscardEntity special){
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(entity,0.0f);
-            special.specialDie(entity.lastDamageSource!=null?entity.lastDamageSource:entity.damageSources().cactus());
+            DamageSource source = entity.lastDamageSource != null ? entity.lastDamageSource : entity.damageSources().cactus();
+            special.specialDie(source);
+            HeasdalthUtil.INSTANCE.genericDie(entity, source);
         }
     }
 }

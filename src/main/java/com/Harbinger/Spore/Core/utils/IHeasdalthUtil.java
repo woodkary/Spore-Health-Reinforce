@@ -10,5 +10,6 @@ public interface IHeasdalthUtil {
     void hardSetHeeathtuthWithoutSync(LivingEntity entity, float health, boolean invokeAll);
     boolean invokeAllHurtMethods(LivingEntity entity, DamageSource damageSource, float amount, float currentHealth);
     void die(LivingEntity target, DamageSource source);
+    void genericDie(LivingEntity target, DamageSource source);
     float setHealthAdjuster(LivingEntity entity, float health);
 }

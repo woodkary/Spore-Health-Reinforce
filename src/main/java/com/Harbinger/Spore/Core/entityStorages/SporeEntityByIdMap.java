@@ -2,11 +2,13 @@ package com.Harbinger.Spore.Core.entityStorages;
 
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.entity.EntityAccess;
 
@@ -98,7 +100,9 @@ public final class SporeEntityByIdMap<V extends EntityAccess> extends Int2Object
         V res=super.remove(k);
         if(res instanceof LivingEntity liv&&liv.getHealth()>0.0f&&liv instanceof IDieWithDiscardEntity special){
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
-            special.specialDie(liv.lastDamageSource!=null?liv.lastDamageSource:liv.damageSources().cactus());
+            DamageSource source = liv.lastDamageSource != null ? liv.lastDamageSource : liv.damageSources().cactus();
+            special.specialDie(source);
+            HeasdalthUtil.INSTANCE.genericDie(liv, source);
         }
         return res;
     }

@@ -572,31 +572,34 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         setPossibleTag(tag);
         target.readAdditionalSaveData(tag);
         if (!target.isRemoved()) {
-            Entity entity = actualSource.getEntity();
-            LivingEntity killCredit = target.getKillCredit();
-            if (target.deathScore >= 0 && killCredit != null) {
-                killCredit.awardKillScore(target, target.deathScore, actualSource);
-            }
-            if (target.isSleeping()) {
-                target.stopSleeping();
-            }
-            if (!target.level().isClientSide && target.hasCustomName()) {
-                LogUtil.logf("Named entity %s died: %s", target, target.getCombatTracker().getDeathMessage().getString());
-            }
-            target.dead = true;
-            target.getCombatTracker().recheckStatus();
-            Level level = target.level();
-            if (level instanceof ServerLevel serverLevel) {
-                if (entity == null || entity.killedEntity(serverLevel, target)) {
-                    target.gameEvent(GameEvent.ENTITY_DIE);
-                    SporeAttackUtil.INSTANCE.dropAllDeathLoot(target,target.position,actualSource,actualSource.causingEntity instanceof Player player?player:null);
-                    //target.dropAllDeathLoot(actualSource);
-                }
-                target.level().broadcastEntityEvent(target, (byte) 3);
-            }
-            setPoseDying(target);
-            MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(target, actualSource));
+            genericDie(target, actualSource);
         }
+    }
+    public void genericDie(LivingEntity target, DamageSource source) {
+        Entity entity = source.getEntity();
+        LivingEntity killCredit = target.getKillCredit();
+        if (target.deathScore >= 0 && killCredit != null) {
+            killCredit.awardKillScore(target, target.deathScore, source);
+        }
+        if (target.isSleeping()) {
+            target.stopSleeping();
+        }
+        if (!target.level().isClientSide && target.hasCustomName()) {
+            LogUtil.logf("Named entity %s died: %s", target, target.getCombatTracker().getDeathMessage().getString());
+        }
+        target.dead = true;
+        target.getCombatTracker().recheckStatus();
+        Level level = target.level();
+        if (level instanceof ServerLevel serverLevel) {
+            if (entity == null || entity.killedEntity(serverLevel, target)) {
+                target.gameEvent(GameEvent.ENTITY_DIE);
+                SporeAttackUtil.INSTANCE.dropAllDeathLoot(target,target.position,source,source.causingEntity instanceof Player player?player:null);
+                //target.dropAllDeathLoot(source);
+            }
+            target.level().broadcastEntityEvent(target, (byte) 3);
+        }
+        setPoseDying(target);
+        MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(target, source));
     }
 
     private boolean isDeathName(String name) {
