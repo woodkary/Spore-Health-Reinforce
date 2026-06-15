@@ -172,9 +172,9 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             try {
                 Class<?> type = method.getParameterTypes()[0];
                 if (type == double.class || type == Double.class) {
-                    method.invoke(entity, (double) health);
+                    method.getMethod().invoke(entity, (double) health);
                 } else {
-                    method.invoke(entity, health);
+                    method.getMethod().invoke(entity, health);
                 }
             } catch (Throwable t) {
                 LogUtil.errorf("failed to invoke SetHealth method %s,%s",method.getName(),t.getMessage());
@@ -448,12 +448,12 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             try {
                 Class<?>[] params = method.getParameterTypes();
                 if (params.length == 1 && params[0] == float.class) {
-                    method.invoke(entity, amount);
+                    method.getMethod().invoke(entity, amount);
                 } else if (params.length == 2) {
                     if (isDamageSourceClass(params[0])) {
-                        method.invoke(entity, damageSource, amount);
+                        method.getMethod().invoke(entity, damageSource, amount);
                     } else {
-                        method.invoke(entity, amount, damageSource);
+                        method.getMethod().invoke(entity, amount, damageSource);
                     }
                 }
             } catch (Throwable t) {
@@ -620,19 +620,19 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             try {
                 Class<?>[] paramTypes = method.getParameterTypes();
                 if (paramTypes.length == 0) {
-                    method.invoke(entity);
+                    method.getMethod().invoke(entity);
                 } else if (paramTypes[0] == boolean.class) {
-                    method.invoke(entity, true);
+                    method.getMethod().invoke(entity, true);
                 } else if (paramTypes[0] == int.class) {
-                    method.invoke(entity, 1);
+                    method.getMethod().invoke(entity, 1);
                 } else if (paramTypes[0] == long.class) {
-                    method.invoke(entity, 1L);
+                    method.getMethod().invoke(entity, 1L);
                 } else if (paramTypes[0] == float.class) {
-                    method.invoke(entity, 1f);
+                    method.getMethod().invoke(entity, 1f);
                 } else if (paramTypes[0] == double.class) {
-                    method.invoke(entity, 1.0);
+                    method.getMethod().invoke(entity, 1.0);
                 } else if (paramTypes[0] == DamageSource.class) {
-                    method.invoke(entity, source);
+                    method.getMethod().invoke(entity, source);
                 }
             } catch (Throwable t) {
                 LogUtil.errorf("failed to invoke death method %s,%s", method.getName(), t.getMessage());

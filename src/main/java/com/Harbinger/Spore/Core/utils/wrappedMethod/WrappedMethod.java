@@ -111,6 +111,6 @@ public final class WrappedMethod implements IWrappedMethod{
     }
     @Override
     public Object invoke(Object... args) throws Throwable {
-        return handle.invoke(args);
+        return handle.invokeWithArguments(args);
     }
 }
