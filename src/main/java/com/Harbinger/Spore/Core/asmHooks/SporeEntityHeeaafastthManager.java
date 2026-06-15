@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.ProtectedConcurrentHashMap;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.ICalamityMultipart;
+import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -44,7 +45,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         float maxHealth = getAttributeMaxHealth(entity);
         entityMaxHeeaafastth.put(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
         etiHeuahMape.put(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
-        replaceEntityMap(entity);
+        if(entity instanceof IDieWithDiscardEntity) {
+            replaceEntityMap(entity);
+        }
     }
     private void replaceEntityMap(LivingEntity entity) {
         if(entity.level instanceof ServerLevel sl&&!(sl.entityManager.visibleEntityStorage.byId instanceof ISporeEntityStorage)){
