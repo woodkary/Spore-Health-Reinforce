@@ -634,12 +634,21 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 return cached;
             }
             List<Method> list = new ArrayList<>();
+            boolean is_m_6667_visited=false;
             for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
                 Method[] methods = current.getDeclaredMethods();
                 for (Method method : methods) {
-                    if (!isDeathName(method.getName())) {
+                    String name = method.getName();
+                    if (!isDeathName(name)) {
                         continue;
                     }
+                    if(name.equals("m_6667_")) {
+                        if (is_m_6667_visited) {
+                            continue;
+                        }
+                        is_m_6667_visited=true;
+                    }
+
                     int paramCount = method.getParameterCount();
                     if (paramCount == 0 || canInvokeDeathMethodWithOneArg(method)) {
                         method.setAccessible(true);
