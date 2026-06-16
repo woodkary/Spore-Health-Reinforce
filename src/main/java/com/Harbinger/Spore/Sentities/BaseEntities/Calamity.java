@@ -31,12 +31,7 @@ import com.Harbinger.Spore.Sentities.Utility.CorpseEntity;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
 import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
@@ -100,14 +95,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, AdaptableEntity,IDieWithDiscardEntity {
-   public static final EntityDataAccessor KILLS;
-   public static final EntityDataAccessor MUTATION;
-   public static final EntityDataAccessor SEARCH_AREA;
-   public static final EntityDataAccessor ROOTED;
+   public static final EntityDataAccessor<Integer> KILLS;
+   public static final EntityDataAccessor<Integer> MUTATION;
+   public static final EntityDataAccessor<BlockPos> SEARCH_AREA;
+   public static final EntityDataAccessor<Boolean> ROOTED;
    protected int breakCounter;
    private int stun = 0;
    private int crushingTick=0;
-   private static final List states;
+   private static final List<BlockState> states;
    private int adaptationCount=0;
    private LivingEntity sporeTarget;
    private boolean isSpecialDead;
@@ -263,9 +258,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
    public void addAdditionalSaveData(CompoundTag tag) {
       super.addAdditionalSaveData(tag);
-      tag.putInt("kills", (Integer)this.entityData.get(KILLS));
-      tag.putInt("mutation", (Integer)this.entityData.get(MUTATION));
-      tag.putBoolean("rooted", (Boolean)this.entityData.get(ROOTED));
+      tag.putInt("kills", this.entityData.get(KILLS));
+      tag.putInt("mutation", this.entityData.get(MUTATION));
+      tag.putBoolean("rooted", this.entityData.get(ROOTED));
       tag.putInt("AreaX", this.getSearchArea().getX());
       tag.putInt("AreaY", this.getSearchArea().getY());
       tag.putInt("AreaZ", this.getSearchArea().getZ());
@@ -284,13 +279,13 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    Map colorMap() {
       Map<Integer, Float> values = new HashMap();
-      float toxic = this.getAtLevel(this.getAttribute((Attribute)SAttributes.TOXICITY.get()));
-      float rejuvenation = this.getAtLevel(this.getAttribute((Attribute)SAttributes.REJUVENATION.get()));
-      float local = this.getAtLevel(this.getAttribute((Attribute)SAttributes.LOCALIZATION.get()));
-      float laceration = this.getAtLevel(this.getAttribute((Attribute)SAttributes.LACERATION.get()));
-      float corrosive = this.getAtLevel(this.getAttribute((Attribute)SAttributes.CORROSIVES.get()));
-      float ballistic = this.getAtLevel(this.getAttribute((Attribute)SAttributes.BALLISTIC.get()));
-      float grinding = this.getAtLevel(this.getAttribute((Attribute)SAttributes.GRINDING.get()));
+      float toxic = this.getAtLevel(this.getAttribute(SAttributes.TOXICITY.get()));
+      float rejuvenation = this.getAtLevel(this.getAttribute(SAttributes.REJUVENATION.get()));
+      float local = this.getAtLevel(this.getAttribute(SAttributes.LOCALIZATION.get()));
+      float laceration = this.getAtLevel(this.getAttribute(SAttributes.LACERATION.get()));
+      float corrosive = this.getAtLevel(this.getAttribute(SAttributes.CORROSIVES.get()));
+      float ballistic = this.getAtLevel(this.getAttribute(SAttributes.BALLISTIC.get()));
+      float grinding = this.getAtLevel(this.getAttribute(SAttributes.GRINDING.get()));
       if (toxic > 0.0F) {
          values.put(-16751104, toxic);
       }
@@ -346,7 +341,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
 
    public BlockPos getSearchArea() {
-      return (BlockPos)this.entityData.get(SEARCH_AREA);
+      return this.entityData.get(SEARCH_AREA);
    }
 
    public void setKills(Integer count) {
@@ -354,7 +349,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
 
    public int getKills() {
-      return (Integer)this.entityData.get(KILLS);
+      return this.entityData.get(KILLS);
    }
 
    public Packet getAddEntityPacket() {
@@ -611,7 +606,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    }
 
    private int calculateHealing() {
-      AttributeInstance toxic = this.getAttribute((Attribute)SAttributes.REJUVENATION.get());
+      AttributeInstance toxic = this.getAttribute(SAttributes.REJUVENATION.get());
       if (toxic != null) {
          double level = toxic.getValue();
          return level < (double)1.0F ? 0 : (int)level;
@@ -626,7 +621,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    public float amountOfDamage(float value) {
       float extra = 0.0F;
-      AttributeInstance penetration = this.getAttribute((Attribute)SAttributes.LACERATION.get());
+      AttributeInstance penetration = this.getAttribute(SAttributes.LACERATION.get());
       if (penetration != null) {
          double e = penetration.getValue();
          if (e >= (double)1.0F) {
@@ -769,10 +764,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
          List<HitboxesForParts> partList = this.parts();
          if (!partList.isEmpty() && !loot.isEmpty()) {
             int partCount = partList.size();
-            List<List<ItemStack>> distributedLoot = new ArrayList();
-
+            List<ItemStack>[] distributedLoot = new ArrayList[partCount];
             for(int i = 0; i < partCount; ++i) {
-               distributedLoot.add(new ArrayList());
+               distributedLoot[i]=new ArrayList<>();
             }
 
             for(ItemStack stack : loot) {
@@ -782,7 +776,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
                for(int i = 0; i < partCount; ++i) {
                   int amount = baseAmount + (i < remainder ? 1 : 0);
                   if (amount > 0) {
-                     ((List)distributedLoot.get(i)).add(stack.copyWithCount(amount));
+                     (distributedLoot[i]).add(stack.copyWithCount(amount));
                   }
                }
             }
@@ -792,11 +786,11 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       }
    }
 
-   public void summonCorpsePart(int partCount, List distributedLoot, List partList) {
+   public void summonCorpsePart(int partCount, List<ItemStack>[] distributedLoot, List<HitboxesForParts> partList) {
       for(int i = 0; i < partCount; ++i) {
          CorpseEntity partEntity = new CorpseEntity((EntityType)Sentities.CORPSE_PIECE.get(), this.level());
 
-         for(ItemStack stack : (List<ItemStack>)distributedLoot.get(i)) {
+         for(ItemStack stack : distributedLoot[i]) {
             partEntity.addToInventory(stack);
          }
 
