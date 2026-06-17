@@ -689,7 +689,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       if(Double.isNaN(this.position.x)||Double.isNaN(this.position.y)||Double.isNaN(this.position.z)) {
          return false;
       }
-      return this.lastLegalPosition.distanceTo(this.position) <= 5000.0F;
+      return this.lastLegalPosition().distanceTo(this.position) <= 5000.0F;
    }
    @Override
    public void setLegalPosition(Vec3 position){

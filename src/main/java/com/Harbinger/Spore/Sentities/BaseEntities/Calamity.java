@@ -679,7 +679,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       if(Double.isNaN(this.position.x)||Double.isNaN(this.position.y)||Double.isNaN(this.position.z)) {
          return false;
       }
-      return this.lastLegalPosition.distanceTo(this.position) <= 5000.0F;
+      return this.lastLegalPosition().distanceTo(this.position) <= 5000.0F;
    }
 
    @Override
