@@ -105,7 +105,7 @@ public class Utilities {
       for(Entity entity : level.getEntities(owner, searchbox, predicate)) {
          LivingEntity ownerLiving = (LivingEntity) owner;
          DamageSource source = level.damageSources().mobAttack(ownerLiving);
-         if(!SporeJudge.isSporeEntity(entity)&&entity instanceof LivingEntity liv&&!(liv instanceof Player p&& EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p))) {
+         if(!SporeJudge.isSporeEntity(entity)&&entity instanceof LivingEntity liv&&liv.isAlive()&&!(liv instanceof Player p&& EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(p))) {
             SporeAttackUtil.INSTANCE.dealDamage(liv, ownerLiving,source,damage);
          }
          entity.hurt(source, damage);
