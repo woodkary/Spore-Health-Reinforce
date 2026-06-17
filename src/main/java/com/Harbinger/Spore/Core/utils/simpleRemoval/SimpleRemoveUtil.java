@@ -166,12 +166,12 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         MethodHandleUtil.INSTANCE.fastRemove(manager.visibleEntityStorage.byId,entity.id);
         //manager.visibleEntityStorage.byId.remove(entity.id);
         MethodHandleUtil.INSTANCE.javaMapRemove(manager.visibleEntityStorage.byUuid,entity.uuid);
-        manager.visibleEntityStorage.byUuid.remove(entity.uuid);
+        //manager.visibleEntityStorage.byUuid.remove(entity.uuid);
 
         serverLevel.getScoreboard().entityRemoved(entity);
 
-
-        manager.knownUuids.remove(entity.uuid);
+        MethodHandleUtil.INSTANCE.javaCollectionRemove(manager.knownUuids,entity.uuid);
+        //manager.knownUuids.remove(entity.uuid);
         entity.levelCallback=EntityInLevelCallback.NULL;
         if (section.isEmpty()) {
             manager.sectionStorage.sections.remove(currentSectionKey);
