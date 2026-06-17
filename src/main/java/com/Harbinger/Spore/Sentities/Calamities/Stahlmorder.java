@@ -57,9 +57,9 @@ import net.minecraftforge.entity.PartEntity;
 import org.jetbrains.annotations.Nullable;
 
 public class Stahlmorder extends Calamity implements TrueCalamity {
-   public static final EntityDataAccessor SWORD_ARM;
-   public static final EntityDataAccessor MELEE_STATE;
-   public static final EntityDataAccessor JUMP_OFFSET;
+   public static final EntityDataAccessor<Float> SWORD_ARM;
+   public static final EntityDataAccessor<Integer> MELEE_STATE;
+   public static final EntityDataAccessor<Integer> JUMP_OFFSET;
    private final CalamityMultipart[] subEntities;
    public final CalamityMultipart swordArm;
    public final CalamityMultipart mouth;
@@ -236,6 +236,13 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
       }
 
       return super.doHurtTarget(entity);
+   }
+   public SoundEvent getAttackSound() {
+       return switch (this.entityData.get(MELEE_STATE)) {
+           case 0 -> (SoundEvent) Ssounds.STAHL_SLASH.get();
+           case 1 -> (SoundEvent) Ssounds.STAHL_SLAP.get();
+           default -> (SoundEvent) Ssounds.STAHL_KICK.get();
+       };
    }
 
    private void applyAttackEffect(LivingEntity target, int animation) {
