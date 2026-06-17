@@ -23,13 +23,13 @@ public interface IDieWithDiscardEntity {
     }
     default void addAdditionalLegalPositionData(CompoundTag tag){
         Vec3 pos = lastLegalPosition();
-        tag.putDouble("lastX", pos.x);
-        tag.putDouble("lastY", pos.y);
-        tag.putDouble("lastZ", pos.z);
+        tag.putDouble("spore:lastLegalX", pos.x);
+        tag.putDouble("spore:lastLegalY", pos.y);
+        tag.putDouble("spore:lastLegalZ", pos.z);
     }
     default void readAdditionalLegalPositionData(CompoundTag tag){
-        if(tag.contains("lastX")&&tag.contains("lastY")&&tag.contains("lastZ")){
-            setLegalPosition(tag.getDouble("lastX"),tag.getDouble("lastY"),tag.getDouble("lastZ"));
+        if(tag.contains("spore:lastLegalX")&&tag.contains("spore:lastLegalY")&&tag.contains("spore:lastLegalZ")){
+            setLegalPosition(tag.getDouble("spore:lastLegalX"),tag.getDouble("spore:lastLegalY"),tag.getDouble("spore:lastLegalZ"));
         }
     }
 
