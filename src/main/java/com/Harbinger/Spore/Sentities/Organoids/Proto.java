@@ -712,7 +712,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
    private void spreadBlocksAroundDeath() {
       if(!hasLegalPosition()){
-         this.setPos(this.lastLegalPosition);
+         this.setPos(this.lastLegalPosition());
       }
       AABB area = this.getBoundingBox().inflate((double)2.5F);
       BlockPos.betweenClosed(Mth.floor(area.minX), Mth.floor(area.minY), Mth.floor(area.minZ), Mth.floor(area.maxX), Mth.floor(area.maxY), Mth.floor(area.maxZ)).forEach(this::trySpreadBlockAt);

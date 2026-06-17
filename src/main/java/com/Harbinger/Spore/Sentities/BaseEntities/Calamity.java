@@ -845,7 +845,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    private void summonBiomass() {
       if (!this.level().isClientSide) {
          if(!hasLegalPosition()){
-            this.setPos(this.lastLegalPosition);
+            this.setPos(this.lastLegalPosition());
          }
          AABB aabb = this.getBoundingBox().inflate((double)1.0F);
 
