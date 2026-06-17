@@ -239,7 +239,8 @@ public class StackTraceUtil {
             return name.startsWith("net.optifine.")||
                     name.startsWith("mezz.jei.")||
                     name.startsWith("fi.dy.masa.tweakeroo")||
-                    name.startsWith("oshi.");
+                    name.startsWith("oshi.")||
+                    name.startsWith("io.github.flemmli97.mobbattle.");
         }
     }
     public static boolean isServerThread() {

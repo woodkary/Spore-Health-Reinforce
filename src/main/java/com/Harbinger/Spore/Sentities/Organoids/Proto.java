@@ -112,6 +112,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    private static final int INPUT_SIZE = 4;
    private static final int OUTPUT_SIZE = 4;
    private double[] weights;
+   private Vec3 lastLegalPosition;
    public List<String> team_1 = new ArrayList<>();
    public List<String> team_2 = new ArrayList<>();
    public List<String> team_3 = new ArrayList<>();
@@ -126,6 +127,11 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       super(type, level);
       this.setPersistenceRequired();
       this.initializeValues();
+      this.setLegalPosition(Vec3.ZERO);
+   }
+   @Override
+   public Vec3 lastLegalPosition() {
+      return this.lastLegalPosition;
    }
 
    private void fillDefaultTeams(List<String> team, List<String> CONFIG) {
@@ -142,6 +148,10 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
          }
 
       }
+   }
+   @Override
+   public LivingEntity self(){
+      return this;
    }
 
    protected void initializeValues() {
@@ -327,6 +337,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
    public void tick() {
       super.tick();
+      tickLegalPosition();
       if (!this.level().isClientSide) {
          if (this.tickCount % 6000 == 0 && (Boolean)SConfig.SERVER.mound_foliage.get() && this.entityData.get(NODE) != BlockPos.ZERO) {
             this.SpreadInfection(this.level(), (Double)SConfig.SERVER.mound_range_age4.get() * (double)2.0F, (BlockPos)this.entityData.get(NODE));
@@ -567,7 +578,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
          tag.put("team_" + (i + 1), teamTag);
       }
-
+      addAdditionalLegalPositionData(tag);
    }
 
    public void readAdditionalSaveData(CompoundTag tag) {
@@ -599,7 +610,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             ((List)teams.get(i)).add(teamTag.getString(j));
          }
       }
-
+      readAdditionalLegalPositionData(tag);
    }
 
    protected void defineSynchedData() {
@@ -673,6 +684,17 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       specialDie(source);
       this.discard();
    }
+   @Override
+   public boolean hasLegalPosition() {
+      if(Double.isNaN(this.position.x)||Double.isNaN(this.position.y)||Double.isNaN(this.position.z)) {
+         return false;
+      }
+      return this.lastLegalPosition.distanceTo(this.position) <= 5000.0F;
+   }
+   @Override
+   public void setLegalPosition(Vec3 position){
+      this.lastLegalPosition = position;
+   }
 
    private void spawnDeathParticles(ServerLevel level) {
       double x = this.getX() - ((double)this.random.nextFloat() - 0.1) * 1.2;
@@ -689,6 +711,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    }
 
    private void spreadBlocksAroundDeath() {
+      if(!hasLegalPosition()){
+         this.setPos(this.lastLegalPosition);
+      }
       AABB area = this.getBoundingBox().inflate((double)2.5F);
       BlockPos.betweenClosed(Mth.floor(area.minX), Mth.floor(area.minY), Mth.floor(area.minZ), Mth.floor(area.maxX), Mth.floor(area.maxY), Mth.floor(area.maxZ)).forEach(this::trySpreadBlockAt);
    }
@@ -848,6 +873,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       }
 
       this.entityData.set(NODE, this.getOnPos());
+      this.setLegalPosition(this.position);
       return super.finalizeSpawn(serverLevelAccessor, p_33283_, p_33284_, p_33285_, p_33286_);
    }
 

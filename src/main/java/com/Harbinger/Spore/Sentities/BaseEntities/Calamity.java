@@ -107,6 +107,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    private int adaptationCount=0;
    private LivingEntity sporeTarget;
    private boolean isSpecialDead;
+   private Vec3 lastLegalPosition;
 
    public int getAdaptationCount() {
       return adaptationCount;
@@ -146,6 +147,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       this.moveControl = new CalamityMovementControl(this, 20);
       this.lookControl = new SmoothLookControl(this, 3.0F, 2.0F, 0.35F);
       this.xpReward = 50;
+      this.setLegalPosition(Vec3.ZERO);
       initCustom();
    }
 
@@ -204,6 +206,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    protected void tickPart(CalamityMultipart part, double e, double i, double o) {
       part.setPos(this.getX() + e, this.getY() + i, this.getZ() + o);
+   }
+   @Override
+   public LivingEntity self(){
+      return this;
    }
 
    protected void tickPart(CalamityMultipart part, Vec3 vec3i) {
@@ -267,6 +273,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       tag.putInt("AreaZ", this.getSearchArea().getZ());
       tag.putInt("adaptationCount",this.getAdaptationCount());
       addSaveData(tag);
+      addAdditionalLegalPositionData(tag);
    }
 
    public void setMutationColor() {
@@ -370,6 +377,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
          this.setAdaptationCount(tag.getInt("adaptationCount"));
       }
       readSaveData(tag);
+      readAdditionalLegalPositionData(tag);
    }
 
    protected void defineSynchedData() {
@@ -551,6 +559,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       super.tick();
       tickCustomLifeCycle();
       tickEventBus();
+      tickLegalPosition();
       if(this.crushingTick>0&&!this.level.isClientSide) {
          boolean willPlaySound=this.crushingTick--%10==0;
          DamageSource source=getCustomDamage(this);
@@ -664,6 +673,25 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public boolean isSpecialDead() {
       return isSpecialDead;
    }
+
+   @Override
+   public boolean hasLegalPosition() {
+      if(Double.isNaN(this.position.x)||Double.isNaN(this.position.y)||Double.isNaN(this.position.z)) {
+         return false;
+      }
+      return this.lastLegalPosition.distanceTo(this.position) <= 5000.0F;
+   }
+
+   @Override
+   public Vec3 lastLegalPosition() {
+      return this.lastLegalPosition;
+   }
+
+   @Override
+   public void setLegalPosition(Vec3 position){
+      this.lastLegalPosition = position;
+   }
+
    public void specialDie(DamageSource source) {
       isSpecialDead=true;
       Level var3 = this.level();
@@ -700,6 +728,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_21435_, MobSpawnType p_21436_, @Nullable SpawnGroupData p_21437_, @Nullable CompoundTag p_21438_) {
       this.setDefaultAdaptation(serverLevelAccessor);
       this.setMutationColor();
+      this.setLegalPosition(this.position);
       return super.finalizeSpawn(serverLevelAccessor, p_21435_, p_21436_, p_21437_, p_21438_);
    }
 
@@ -815,6 +844,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    private void summonBiomass() {
       if (!this.level().isClientSide) {
+         if(!hasLegalPosition()){
+            this.setPos(this.lastLegalPosition);
+         }
          AABB aabb = this.getBoundingBox().inflate((double)1.0F);
 
          for(BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
