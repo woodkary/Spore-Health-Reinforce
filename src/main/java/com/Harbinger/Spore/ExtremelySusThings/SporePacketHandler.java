@@ -10,6 +10,7 @@ import com.Harbinger.Spore.ExtremelySusThings.Package.SporeGunFireSyncPacket;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SyncAdvancementPacket;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.Harbinger.Spore.network.DespawnPacketHandler;
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import com.Harbinger.Spore.network.WrapperPacketHandler;
@@ -40,6 +41,7 @@ public class SporePacketHandler {
       HealthPacketHandler.register();
       HealthDeltaPacketHandler.register();
       WrapperPacketHandler.register();
+      DespawnPacketHandler.register();
       registered = true;
    }
 
