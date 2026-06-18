@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author karywoodOyo
  */
-public class ClassLoaderUtil extends ClassLoader implements IClassLoader {
+public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
     public static final IClassLoader INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
             IClassLoader.class,
             ClassLoaderUtil.class,

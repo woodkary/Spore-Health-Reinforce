@@ -15,7 +15,7 @@ import java.util.function.Function;
 /**
  * @author karywoodOyo
  */
-public class ParentUtil implements IParents,Function<Class<?>, List<MethodHandle>> {
+public final class ParentUtil implements IParents,Function<Class<?>, List<MethodHandle>> {
     public static final IParents INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
             IParents.class,
             ParentUtil.class

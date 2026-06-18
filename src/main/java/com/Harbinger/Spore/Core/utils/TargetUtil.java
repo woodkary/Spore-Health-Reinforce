@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.UUID;
 
-public class TargetUtil implements ITarget {
+public final class TargetUtil implements ITarget {
     public static final ITarget INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
             ITarget.class,
             TargetUtil.class

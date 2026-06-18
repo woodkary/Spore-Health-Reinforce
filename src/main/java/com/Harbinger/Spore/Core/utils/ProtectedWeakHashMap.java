@@ -10,7 +10,7 @@ import java.util.function.Function;
 /**
  * @author karywoodOyo
  */
-public class ProtectedWeakHashMap<K, V> extends WeakHashMap<K, V> {
+public final class ProtectedWeakHashMap<K, V> extends WeakHashMap<K, V> {
     public static final Class<? extends Map<?,?>> weakHashMapClass;
     public static MethodHandle constructorNoArgs;
     public static MethodHandle constructorWithCapacity;

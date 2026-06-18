@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-public class MethodHandleUtil implements IMethodHandle {
+public final class MethodHandleUtil implements IMethodHandle {
     public static IMethodHandle INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
             IMethodHandle.class,
             MethodHandleUtil.class
