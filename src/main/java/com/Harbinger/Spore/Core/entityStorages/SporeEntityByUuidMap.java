@@ -10,6 +10,7 @@ import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.entity.EntityAccess;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.util.*;
@@ -61,7 +62,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
         }
         return new SporeEntityByUuidMap<>(m);
     }
-    private transient ProtectedEntrySet protectedEntries;
+    private transient ProtectedEntrySet<T> protectedEntries;
     private transient Set<UUID> protectedKeys;
     private transient Collection<T> protectedValues;
     public SporeEntityByUuidMap() {
@@ -82,6 +83,53 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
         }
         return res;
     }
+
+    @Override
+    public T getOrDefault(Object key, @Nullable T defaultValue) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key)){
+            return defaultValue;
+        }
+        T res=super.getOrDefault(key, defaultValue);
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res)){
+            return defaultValue;
+        }
+        return res;
+    }
+
+    @Override
+    public T get(Object key) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key)){
+            return null;
+        }
+        T res=super.get(key);
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res)){
+            return null;
+        }
+        return res;
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key)){
+            return false;
+        }
+        T res=super.get(key);
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res);
+    }
+
+    @Override
+    public Set<Entry<UUID, T>> entrySet() {
+        if (protectedEntries == null) {
+            protectedEntries = new ProtectedEntrySet<>(this, super.entrySet());
+        }
+        return protectedEntries;
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(value)&&super.containsValue(value);
+    }
+
     @Override
     public void putAll(Map<? extends UUID, ? extends T> m) {
         if (m instanceof ProtectedUUIDHashMapBase<?> protectedMap) {
@@ -110,24 +158,24 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
         }
         return super.put(key, value);
     }
-    private static final class ProtectedEntrySet extends AbstractSet<Entry<UUID, EntityAccess>> {
-        private final ProtectedUUIDHashMapBase owner;
-        private final Set<Entry<UUID, EntityAccess>> delegate;
+    private static final class ProtectedEntrySet<T extends EntityAccess> extends AbstractSet<Entry<UUID, T>> {
+        private final ProtectedUUIDHashMapBase<T> owner;
+        private final Set<Entry<UUID, T>> delegate;
 
-        ProtectedEntrySet(ProtectedUUIDHashMapBase owner, Set<Entry<UUID, EntityAccess>> delegate) {
+        ProtectedEntrySet(ProtectedUUIDHashMapBase<T> owner, Set<Entry<UUID, T>> delegate) {
             this.owner = owner;
             this.delegate = delegate;
         }
 
         @Override
-        public Iterator<Entry<UUID, EntityAccess>> iterator() {
+        public Iterator<Entry<UUID, T>> iterator() {
             return ProtectedEntryIterator.newInstance(owner, delegate.iterator());
         }
 
         @Override
         public int size() {
             int count = 0;
-            Iterator<Entry<UUID, EntityAccess>> it = iterator();
+            Iterator<Entry<UUID, T>> it = iterator();
             while (it.hasNext()) {
                 it.next();
                 count++;
@@ -137,7 +185,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
 
         @Override
         public void clear() {
-            Iterator<Entry<UUID, EntityAccess>> it = iterator();
+            Iterator<Entry<UUID, T>> it = iterator();
             while (it.hasNext()) {
                 it.next();
                 it.remove(); // 走我们自己的 remove
@@ -151,11 +199,11 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
         }
 
         @Override
-        public boolean removeIf(Predicate<? super Entry<UUID, EntityAccess>> filter) {
+        public boolean removeIf(Predicate<? super Entry<UUID, T>> filter) {
             boolean modified = false;
-            Iterator<Entry<UUID, EntityAccess>> it = iterator();
+            Iterator<Entry<UUID, T>> it = iterator();
             while (it.hasNext()) {
-                Entry<UUID, EntityAccess> e = it.next();
+                Entry<UUID, T> e = it.next();
                 if (filter.test(e)) {
                     it.remove();
                     modified = true;
@@ -167,7 +215,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
 
 
 
-    private static final class ProtectedEntryIterator implements Iterator<Entry<UUID, EntityAccess>> {
+    private static final class ProtectedEntryIterator<T extends EntityAccess> implements Iterator<Entry<UUID, T>> {
         private static final Class<? extends Iterator<?>> iteratorClass =
                 (Class<? extends Iterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(
                         ProtectedEntryIterator.class,
@@ -190,9 +238,9 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
             }
         }
 
-        public static Iterator<Entry<UUID, EntityAccess>> newInstance(
-                ProtectedUUIDHashMapBase owner,
-                Iterator<Entry<UUID, EntityAccess>> delegate
+        public static <T extends EntityAccess> Iterator<Entry<UUID, T>> newInstance(
+                ProtectedUUIDHashMapBase<T> owner,
+                Iterator<Entry<UUID, T>> delegate
         ) {
             constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                     null,
@@ -203,21 +251,21 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
             );
             if (constructor != null) {
                 try {
-                    return (Iterator<Entry<UUID, EntityAccess>>) constructor.invoke(owner, delegate);
+                    return (Iterator<Entry<UUID, T>>) constructor.invoke(owner, delegate);
                 } catch (Throwable t) {
                     LogUtil.errorf("failed to create hidden ProtectedEntryIterator, %s", t.getMessage());
                 }
             }
-            return new ProtectedEntryIterator(owner, delegate);
+            return new ProtectedEntryIterator<>(owner, delegate);
         }
 
-        private final ProtectedUUIDHashMapBase owner;
-        private final Iterator<Entry<UUID, EntityAccess>> delegate;
-        private Entry<UUID, EntityAccess> last;
-        private Entry<UUID, EntityAccess> nextCandidate;
+        private final ProtectedUUIDHashMapBase<T> owner;
+        private final Iterator<Entry<UUID, T>> delegate;
+        private Entry<UUID, T> last;
+        private Entry<UUID, T> nextCandidate;
         private boolean nextReady;
 
-        ProtectedEntryIterator(ProtectedUUIDHashMapBase owner, Iterator<Entry<UUID, EntityAccess>> delegate) {
+        ProtectedEntryIterator(ProtectedUUIDHashMapBase<T> owner, Iterator<Entry<UUID, T>> delegate) {
             this.owner = owner;
             this.delegate = delegate;
         }
@@ -228,7 +276,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
                 return true;
             }
             while (delegate.hasNext()) {
-                Entry<UUID, EntityAccess> e = delegate.next();
+                Entry<UUID, T> e = delegate.next();
                 if (owner.shouldExposeValue(e.getValue())) {
                     nextCandidate = e;
                     nextReady = true;
@@ -239,7 +287,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
         }
 
         @Override
-        public Entry<UUID, EntityAccess> next() {
+        public Entry<UUID, T> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -262,7 +310,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
     @Override
     public Set<UUID> keySet() {
         if (protectedKeys == null) {
-            protectedKeys = new ProtectedKeySet(this);
+            protectedKeys = new ProtectedKeySet<>(this);
         }
         return protectedKeys;
     }
@@ -327,7 +375,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
                     LogUtil.errorf("failed to create hidden ProtectedKeyIterator, %s", t.getMessage());
                 }
             }
-            return new ProtectedKeyIterator(entryIt);
+            return new ProtectedKeyIterator<>(entryIt);
         }
 
         private final Iterator<Entry<UUID, T>> entryIt;

@@ -207,6 +207,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     @Override
     public boolean checkIsRemovedAndUpdate(Object target){
+        if(target instanceof ChunkMap.TrackedEntity entity){
+            return checkIsRemovedAndUpdate(entity);
+        }
         if(target instanceof Entity entity){
             return checkIsRemovedAndUpdate(entity);
         }
@@ -255,6 +258,14 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         return Collections.unmodifiableCollection(entities);
     }
     @Override
+    public boolean checkIsRemovedAndUpdate(ChunkMap.TrackedEntity entity){
+        if(isRemoved(entity)){
+            updateNotSpawning(entity);
+            return true;
+        }
+        return false;
+    }
+    @Override
     public boolean checkIsRemovedAndUpdate(Entity entity){
         if(isRemoved(entity)){
             updateNotSpawning(entity);
@@ -291,6 +302,10 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             return isRemoved(uuid);
         }
         return false;
+    }
+    @Override
+    public boolean isRemoved(ChunkMap.TrackedEntity entity){
+        return isRemoved(entity.serverEntity.entity);
     }
     @Override
     public boolean isRemoved(Entity entity){
@@ -346,6 +361,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     private void updateUuidNotSpawning(UUID uuid){
         (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).put(uuid,100);
+    }
+    private void updateNotSpawning(ChunkMap.TrackedEntity entity){
+        updateNotSpawning(entity.serverEntity.entity);
     }
     private void updateNotSpawning(Entity entity){
         Map<Class<?>,Integer> map=entity.level.isClientSide?clientNotSpawning:serverNotSpawning;

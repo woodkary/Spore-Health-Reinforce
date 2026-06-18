@@ -148,6 +148,45 @@ public final class SporeEntityByIdMap<V extends EntityAccess> extends ProtectedE
         }
         return super.put(k, t);
     }
+
+    @Override
+    public V get(int k) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(k)){
+            return null;
+        }
+        V res=super.get(k);
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res)){
+            return null;
+        }
+        return res;
+    }
+
+    @Override
+    public boolean containsKey(int k) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(k)){
+            return false;
+        }
+        V res=super.get(k);
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res);
+    }
+
+    @Override
+    public V getOrDefault(int k, V defaultValue) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(k)){
+            return defaultValue;
+        }
+        V res=super.get(k);
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res)){
+            return defaultValue;
+        }
+        return res;
+    }
+
+    @Override
+    public boolean containsValue(Object v) {
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(v)&&super.containsValue(v);
+    }
+
     @Override
     public FastSortedEntrySet<V> int2ObjectEntrySet() {
         if (protectedEntries == null) {

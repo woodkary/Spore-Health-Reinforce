@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.utils.simpleRemoval;
 
+import net.minecraft.server.level.ChunkMap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
@@ -21,6 +22,8 @@ public interface ISimpleRemoval {
 
     <T extends EntityAccess> Collection<T> getAllEntities(Level level, Predicate<T> filter);
 
+    boolean checkIsRemovedAndUpdate(ChunkMap.TrackedEntity entity);
+
     boolean checkIsRemovedAndUpdate(Entity entity);
 
     boolean checkIsRemovedAndUpdate(Integer id);
@@ -28,6 +31,9 @@ public interface ISimpleRemoval {
     boolean checkIsRemovedAndUpdate(UUID uuid);
 
     boolean isRemoved(Object key);
+
+    boolean isRemoved(ChunkMap.TrackedEntity entity);
+
     boolean isRemoved(Entity entity);
     boolean isRemoved(Integer id);
     boolean isRemoved(UUID uuid);
