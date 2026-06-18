@@ -17,17 +17,21 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.Util;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ClassInstanceMultiMap;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.*;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.entity.PartEntity;
@@ -53,7 +57,10 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private final Map<Class<?>,Integer> clientNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<Integer,Integer> clientIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<UUID,Integer> clientUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
-    private final Vec3 NaN=new Vec3(Double.NaN,Double.NaN,Double.NaN);
+    private final AABB NaNAABB=NaNAABBClass.INSTANCE;
+    private final Vec3 NaN=NaNVec3.INSTANCE;
+    private final BlockPos INF_BLOCK_POS=new  BlockPos(Integer.MIN_VALUE,Integer.MAX_VALUE,Integer.MIN_VALUE);
+    private final ChunkPos INF_CHUNK_POS=new  ChunkPos(Integer.MAX_VALUE,Integer.MIN_VALUE);
     private final Map<Class<?>,Class<?>> wrapperToOriginal=new ConcurrentHashMap<>();
     @Override
     public void tickServer() {
@@ -125,6 +132,67 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
                 entry.setValue(timeLeft-1);
             }
         }
+    }
+    private void setPosRawNaN(Entity target){
+        target.position = NaN;
+        target.blockPosition = INF_BLOCK_POS;
+        target.feetBlockState = null;
+        target.chunkPosition = INF_CHUNK_POS;
+        try {
+            target.levelCallback.onMove();
+        }catch (Exception e) {}
+
+        if (target.isAddedToWorld && !target.level().isClientSide && !target.isRemoved()) {
+            target.level().getChunk(Integer.MAX_VALUE, Integer.MIN_VALUE);
+        }
+    }
+    private void setPosRaw(Entity target, double x, double y, double z) {
+        if (target.position.x != x || target.position.y != y|| target.position.z != z) {
+            target.position = new Vec3(x, y, z);
+            int i = Mth.floor(x);
+            int j = Mth.floor(y);
+            int k = Mth.floor(z);
+            if (i != target.blockPosition.getX() || j != target.blockPosition.getY() || k != target.blockPosition.getZ()) {
+                target.blockPosition = new BlockPos(i, j, k);
+                target.feetBlockState = null;
+                if (SectionPos.blockToSectionCoord(i) != target.chunkPosition.x || SectionPos.blockToSectionCoord(k) != target.chunkPosition.z) {
+                    target.chunkPosition = new ChunkPos(target.blockPosition);
+                }
+            }
+            try {
+                target.levelCallback.onMove();
+            }catch (Exception e) {}
+        }
+        if (target.isAddedToWorld && !target.level().isClientSide && !target.isRemoved()) {
+            target.level().getChunk((int)Math.floor(x) >> 4, (int)Math.floor(z) >> 4);
+        }
+
+    }
+    private void setPosNaN(Entity target){
+        setPosRawNaN(target);
+        target.bb=makeBoundingBoxNaN();
+        for(Class<?> current=getOrginalClass(target.getClass());current!=null&&current!=Object.class;current=current.getSuperclass()){
+            for (Field field : current.getDeclaredFields()) {
+                if(Vec3.class.isAssignableFrom(field.getType())) {
+                    ClassUtil.setFieldValue(field,target,NaNVec3.INSTANCE);
+                }
+            }
+        }
+    }
+    private void setPos(Entity target, double x, double y, double z) {
+        setPosRaw(target,x,y,z);
+        target.bb=makeBoundingBox(target);
+    }
+    private void setPosField(Entity target, double x, double y, double z) {
+
+    }
+    private AABB makeBoundingBoxNaN() {
+        return NaNAABB;
+    }
+    private AABB makeBoundingBox(Entity target) {
+        float $$3 = target.dimensions.width / 2.0F;
+        float $$4 = target.dimensions.height;
+        return new AABB(target.position.x - (double)$$3, target.position.y, target.position.z - (double)$$3, target.position.x + (double)$$3, target.position.y + (double)$$4, target.position.z + (double)$$3);
     }
     @Override
     public Vec3 getNaNPosition() {
@@ -269,6 +337,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         } catch (Throwable ignored) {}
         SporeEntityHeeaafastthManager.INSTANCE.replaceEntityMap(entity);
         SporeEventBus.tick();
+        setPosNaN(entity);
         createWrapppper(entity);
         return entity;
     }
