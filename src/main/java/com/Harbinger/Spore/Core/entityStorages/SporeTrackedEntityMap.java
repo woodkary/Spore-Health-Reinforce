@@ -13,7 +13,6 @@ import it.unimi.dsi.fastutil.objects.AbstractObjectCollection;
 import it.unimi.dsi.fastutil.objects.AbstractObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.minecraft.server.level.ChunkMap;
 
 import java.lang.invoke.MethodHandle;
@@ -21,7 +20,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
-public final class SporeTrackedEntityMap extends Int2ObjectOpenHashMap<ChunkMap.TrackedEntity> implements ISporeEntityStorage {
+public final class SporeTrackedEntityMap extends ProtectedTrackedEntityMapBase implements ISporeEntityStorage {
     private static final Class<? extends Int2ObjectMap<ChunkMap.TrackedEntity>> mapClass =
             (Class<? extends Int2ObjectMap<ChunkMap.TrackedEntity>>) BytecodeUtil.resolveHiddenClassOrSelf(
                     SporeTrackedEntityMap.class
@@ -119,7 +118,7 @@ public final class SporeTrackedEntityMap extends Int2ObjectOpenHashMap<ChunkMap.
 
     @Override
     public void putAll(Map<? extends Integer, ? extends ChunkMap.TrackedEntity> m) {
-        if (m instanceof SporeTrackedEntityMap trackedEntityMap) {
+        if (m instanceof ProtectedTrackedEntityMapBase trackedEntityMap) {
             ObjectIterator<Entry<ChunkMap.TrackedEntity>> it = trackedEntityMap.superEntryIterator();
             while (it.hasNext()) {
                 Entry<ChunkMap.TrackedEntity> entry = it.next();
@@ -198,20 +197,12 @@ public final class SporeTrackedEntityMap extends Int2ObjectOpenHashMap<ChunkMap.
         return protectedKeys;
     }
 
-    private boolean shouldExposeValue(ChunkMap.TrackedEntity value) {
-        return value != null && !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(value);
-    }
-
-    private ObjectIterator<Entry<ChunkMap.TrackedEntity>> superEntryIterator() {
-        return super.int2ObjectEntrySet().iterator();
-    }
-
     private static final class ProtectedEntrySet
             extends AbstractObjectSet<Entry<ChunkMap.TrackedEntity>>
             implements FastEntrySet<ChunkMap.TrackedEntity> {
-        private final SporeTrackedEntityMap owner;
+        private final ProtectedTrackedEntityMapBase owner;
 
-        private ProtectedEntrySet(SporeTrackedEntityMap owner) {
+        private ProtectedEntrySet(ProtectedTrackedEntityMapBase owner) {
             this.owner = owner;
         }
 
@@ -275,26 +266,26 @@ public final class SporeTrackedEntityMap extends Int2ObjectOpenHashMap<ChunkMap.
         private static final Class<? extends ObjectIterator<?>> iteratorClass =
                 (Class<? extends ObjectIterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(
                         ProtectedEntryIterator.class,
-                        SporeTrackedEntityMap.class,
+                        ProtectedTrackedEntityMapBase.class,
                         ObjectIterator.class
                 );
         private static MethodHandle constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                 null,
                 iteratorClass,
                 ProtectedEntryIterator.class,
-                SporeTrackedEntityMap.class,
+                ProtectedTrackedEntityMapBase.class,
                 ObjectIterator.class
         );
 
         public static ObjectIterator<Entry<ChunkMap.TrackedEntity>> newInstance(
-                SporeTrackedEntityMap owner,
+                ProtectedTrackedEntityMapBase owner,
                 ObjectIterator<Entry<ChunkMap.TrackedEntity>> delegate
         ) {
             constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                     constructor,
                     iteratorClass,
                     ProtectedEntryIterator.class,
-                    SporeTrackedEntityMap.class,
+                    ProtectedTrackedEntityMapBase.class,
                     ObjectIterator.class
             );
             if (constructor != null) {
@@ -307,13 +298,13 @@ public final class SporeTrackedEntityMap extends Int2ObjectOpenHashMap<ChunkMap.
             return new ProtectedEntryIterator(owner, delegate);
         }
 
-        private final SporeTrackedEntityMap owner;
+        private final ProtectedTrackedEntityMapBase owner;
         private final ObjectIterator<Entry<ChunkMap.TrackedEntity>> delegate;
         private Entry<ChunkMap.TrackedEntity> lastReturned;
         private Entry<ChunkMap.TrackedEntity> nextCandidate;
         private boolean nextReady;
 
-        private ProtectedEntryIterator(SporeTrackedEntityMap owner, ObjectIterator<Entry<ChunkMap.TrackedEntity>> delegate) {
+        private ProtectedEntryIterator(ProtectedTrackedEntityMapBase owner, ObjectIterator<Entry<ChunkMap.TrackedEntity>> delegate) {
             this.owner = owner;
             this.delegate = delegate;
         }
@@ -357,9 +348,9 @@ public final class SporeTrackedEntityMap extends Int2ObjectOpenHashMap<ChunkMap.
     }
 
     private static final class ProtectedValuesView extends AbstractObjectCollection<ChunkMap.TrackedEntity> {
-        private final SporeTrackedEntityMap owner;
+        private final ProtectedTrackedEntityMapBase owner;
 
-        private ProtectedValuesView(SporeTrackedEntityMap owner) {
+        private ProtectedValuesView(ProtectedTrackedEntityMapBase owner) {
             this.owner = owner;
         }
 
@@ -435,9 +426,9 @@ public final class SporeTrackedEntityMap extends Int2ObjectOpenHashMap<ChunkMap.
     }
 
     private static final class ProtectedKeySet extends AbstractIntSet {
-        private final SporeTrackedEntityMap owner;
+        private final ProtectedTrackedEntityMapBase owner;
 
-        private ProtectedKeySet(SporeTrackedEntityMap owner) {
+        private ProtectedKeySet(ProtectedTrackedEntityMapBase owner) {
             this.owner = owner;
         }
 
