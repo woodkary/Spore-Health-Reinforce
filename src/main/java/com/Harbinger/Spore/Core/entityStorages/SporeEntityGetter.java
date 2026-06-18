@@ -66,11 +66,11 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
     }
     @Override
     public @Nullable T get(int id) {
-        if(SimpleRemoveUtil.INSTANCE.isRemoved(id)){
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(id)){
             return null;
         }
         T entity=owner.get(id);
-        if (SimpleRemoveUtil.INSTANCE.isRemoved(entity)) {
+        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
             return null;
         }
         return entity;
@@ -78,11 +78,11 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
 
     @Override
     public @Nullable T get(UUID uuid) {
-        if(SimpleRemoveUtil.INSTANCE.isRemoved(uuid)){
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(uuid)){
             return null;
         }
         T entity=owner.get(uuid);
-        if (SimpleRemoveUtil.INSTANCE.isRemoved(entity)) {
+        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
             return null;
         }
         return entity;
@@ -213,7 +213,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
             }
             while (delegate.hasNext()) {
                 E candidate = delegate.next();
-                if (candidate == null || SimpleRemoveUtil.INSTANCE.isRemoved(candidate)) {
+                if (candidate == null || SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(candidate)) {
                     continue;
                 }
                 next = candidate;

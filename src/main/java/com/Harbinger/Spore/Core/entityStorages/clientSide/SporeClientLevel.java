@@ -50,7 +50,7 @@ public final class SporeClientLevel extends ClientLevel {
     }
     @Override
     public void tickNonPassenger(Entity p_104640_) {
-        if (SimpleRemoveUtil.INSTANCE.isRemoved(p_104640_)) {
+        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(p_104640_)) {
             return;
         }
         super.tickNonPassenger(p_104640_);
@@ -84,7 +84,7 @@ public final class SporeClientLevel extends ClientLevel {
     private record ClientTickingEntityConsumer(ClientLevel level) implements Consumer<Entity> {
         @Override
             public void accept(Entity entity) {
-                if (!entity.isRemoved() && !entity.isPassenger() && !SimpleRemoveUtil.INSTANCE.isRemoved(entity)) {
+                if (!entity.isRemoved() && !entity.isPassenger() && !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
                     level.guardEntityTick(level::tickNonPassenger, entity);
                 }
             }

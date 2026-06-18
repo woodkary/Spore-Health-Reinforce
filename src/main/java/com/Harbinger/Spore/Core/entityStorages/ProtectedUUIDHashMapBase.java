@@ -9,7 +9,7 @@ import java.util.UUID;
 
 abstract class ProtectedUUIDHashMapBase<V extends EntityAccess> extends HashMap<UUID, V> {
     protected boolean shouldExposeValue(V value) {
-        return !SimpleRemoveUtil.INSTANCE.isRemoved(value);
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(value);
     }
 
     public ProtectedUUIDHashMapBase() {

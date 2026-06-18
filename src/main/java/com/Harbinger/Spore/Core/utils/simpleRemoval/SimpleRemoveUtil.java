@@ -2,6 +2,8 @@ package com.Harbinger.Spore.Core.utils.simpleRemoval;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntitySection;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntitySectionStorage;
 import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeClientLevel;
 import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeTransientEntitySectionManager;
 import com.Harbinger.Spore.Core.entityStorages.serverSide.SporePersistentEntitySectionManager;
@@ -20,12 +22,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ClassInstanceMultiMap;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.*;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
@@ -276,6 +274,24 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private void updateNotSpawning(Entity entity){
         (entity.level.isClientSide?clientNotSpawning:serverNotSpawning).put(entity.getClass(),100);
     }
+    private <T extends EntityAccess> void replaceSectionStorage(PersistentEntitySectionManager<T> manager){
+        for (Long2ObjectMap.Entry<EntitySection<T>> entry : manager.sectionStorage.sections.long2ObjectEntrySet()) {
+            EntitySection<T> value = entry.getValue();
+            if(value.getClass()!=SporeEntitySection.class){
+                entry.setValue(new SporeEntitySection<>(value));
+            }
+        }
+        KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass,"",0,0.0f);
+    }
+    private <T extends EntityAccess> void replaceSectionStorage(TransientEntitySectionManager<T> manager){
+        for (Long2ObjectMap.Entry<EntitySection<T>> entry : manager.sectionStorage.sections.long2ObjectEntrySet()) {
+            EntitySection<T> value = entry.getValue();
+            if(value.getClass()!=SporeEntitySection.class){
+                entry.setValue(new SporeEntitySection<>(value));
+            }
+        }
+        KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass,"",0,0.0f);
+    }
     private void onRemove(Entity entity, Entity.RemovalReason reason){
         if(entity.level instanceof ServerLevel serverlevel){
             onRemoveServer(entity,reason,serverlevel,serverlevel.entityManager);
@@ -284,6 +300,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             serverUuidNotSpawning.put(entity.uuid,100);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel, SporeServerLevel.levelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel.entityManager, SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
+            replaceSectionStorage(serverlevel.entityManager);
         }else if(entity.level instanceof ClientLevel clientlevel){
             onRemoveClient(entity,reason,clientlevel,clientlevel.entityStorage);
             clientNotSpawning.put(entity.getClass(),100);
@@ -291,6 +308,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             clientUuidNotSpawning.put(entity.uuid,100);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel, SporeClientLevel.clientLevelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel.entityStorage, SporeTransientEntitySectionManager.transientEntitySectionManagerClass,"",0,0.0f);
+            replaceSectionStorage(clientlevel.entityStorage);
         }
     }
     private void createWrapppper(Object entity){

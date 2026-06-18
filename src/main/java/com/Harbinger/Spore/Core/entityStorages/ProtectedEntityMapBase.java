@@ -21,7 +21,7 @@ abstract class ProtectedEntityMapBase<V> extends Int2ObjectLinkedOpenHashMap<V> 
     }
 
     protected boolean shouldExposeValue(V value) {
-        return !SimpleRemoveUtil.INSTANCE.isRemoved(value);
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(value);
     }
 
     protected ObjectBidirectionalIterator<Entry<V>> superEntryIterator() {

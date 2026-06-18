@@ -60,8 +60,8 @@ public final class SporeEntityByIdMap<V extends EntityAccess> extends ProtectedE
         return new SporeEntityByIdMap<>(m);
     }
 
-    public SporeEntityByIdMap() {
-    }public static <V extends EntityAccess> Int2ObjectMap<V> newInstance(){
+    public SporeEntityByIdMap() {}
+    public static <V extends EntityAccess> Int2ObjectMap<V> newInstance(){
         noArg= MethodHandleUtil.INSTANCE.ensureConstructor(
                 noArg,
                 mapClass,
@@ -100,7 +100,13 @@ public final class SporeEntityByIdMap<V extends EntityAccess> extends ProtectedE
     public SporeEntityByIdMap(Int2ObjectMap<V> m) {
         super(m);
     }
-
+    @Override
+    public ObjectCollection<V> values() {
+        if (protectedValues == null) {
+            protectedValues = new ProtectedValuesView<>(this);
+        }
+        return protectedValues;
+    }
     @Override
     public V remove(int k) {
         V res=super.remove(k);
@@ -384,6 +390,88 @@ public final class SporeEntityByIdMap<V extends EntityAccess> extends ProtectedE
             if (lastReturned == null) throw new IllegalStateException();
             delegate.remove();
             lastReturned = null;
+        }
+    }
+    private static final class ProtectedValuesView<V> extends AbstractObjectCollection<V> {
+        private final ProtectedEntityMapBase<V> owner;
+
+        private ProtectedValuesView(ProtectedEntityMapBase<V> owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public ObjectIterator<V> iterator() {
+            return ProtectedValuesIterator.newInstance(owner.int2ObjectEntrySet().iterator());
+        }
+
+        @Override
+        public int size() {
+            int count = 0;
+            ObjectIterator<V> it = iterator();
+            while (it.hasNext()) {
+                it.next();
+                count++;
+            }
+            return count;
+        }
+    }
+    private static final class ProtectedValuesIterator<V> implements ObjectIterator<V> {
+        private static final Class<? extends ObjectIterator<?>> iteratorClass =
+                (Class<? extends ObjectIterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(
+                        ProtectedValuesIterator.class,
+                        ObjectBidirectionalIterator.class
+                );
+        private static MethodHandle constructor;
+        static {
+            try {
+                constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                        null,
+                        iteratorClass,
+                        ProtectedValuesIterator.class,
+                        ObjectBidirectionalIterator.class
+                );
+            } catch (Throwable t) {
+                constructor = null;
+                LogUtil.errorf("failed to eager init hidden ProtectedValuesIterator constructor, %s", t.getMessage());
+            }
+        }
+
+        public static <V> ObjectIterator<V> newInstance(ObjectBidirectionalIterator<Entry<V>> entryIt) {
+            constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                    constructor,
+                    iteratorClass,
+                    ProtectedValuesIterator.class,
+                    ObjectBidirectionalIterator.class
+            );
+            if (constructor != null) {
+                try {
+                    return (ObjectIterator<V>) constructor.invoke(entryIt);
+                } catch (Throwable t) {
+                    LogUtil.errorf("failed to create hidden ProtectedValuesIterator, %s", t.getMessage());
+                }
+            }
+            return new ProtectedValuesIterator<>(entryIt);
+        }
+
+        private final ObjectBidirectionalIterator<Entry<V>> entryIt;
+
+        private ProtectedValuesIterator(ObjectBidirectionalIterator<Entry<V>> entryIt) {
+            this.entryIt = entryIt;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return entryIt.hasNext();
+        }
+
+        @Override
+        public V next() {
+            return entryIt.next().getValue();
+        }
+
+        @Override
+        public void remove() {
+            entryIt.remove();
         }
     }
 }

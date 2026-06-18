@@ -139,7 +139,7 @@ public final class SporeServerLevel extends ServerLevel {
     }
     @Override
     public void tickNonPassenger(Entity p_8648_) {
-        if (SimpleRemoveUtil.INSTANCE.isRemoved(p_8648_)) {
+        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(p_8648_)) {
             return;
         }
         super.tickNonPassenger(p_8648_);
@@ -157,7 +157,7 @@ public final class SporeServerLevel extends ServerLevel {
     }
     @Override
     public @Nullable Entity getEntity(int id) {
-        if(SimpleRemoveUtil.INSTANCE.isRemoved(id)){
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(id)){
             return null;
         }
         return this.getEntities().get(id);
@@ -178,7 +178,7 @@ public final class SporeServerLevel extends ServerLevel {
                                           ProfilerFiller profilerfiller) implements Consumer<Entity> {
         @Override
             public void accept(Entity e0) {
-                if (!e0.isRemoved()&&!SimpleRemoveUtil.INSTANCE.isRemoved(e0)) {
+                if (!e0.isRemoved()&&!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(e0)) {
                     if (this.level.shouldDiscardEntity(e0)) {
                         e0.discard();
                     } else {
