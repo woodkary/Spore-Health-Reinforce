@@ -472,8 +472,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private void onTrackingEnd(ClientLevel level,Entity entity) {
         entity.unRide();
         level.players.remove(entity);
-        entity.onRemovedFromWorld();
-        MinecraftForge.EVENT_BUS.post(new EntityLeaveLevelEvent(entity, level));
+        entity.isAddedToWorld=false;
         if (entity.isMultipartEntity()) {
             for(PartEntity<?> part : entity.getParts()) {
                 if (part != null) {
