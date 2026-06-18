@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.asmHooks;
 import com.Harbinger.Spore.Core.entityStorages.ISporeEntityStorage;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityByIdMap;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityByUuidMap;
+import com.Harbinger.Spore.Core.entityStorages.SporeKnownUuidsHashSet;
 import com.Harbinger.Spore.Core.entityStorages.SporeTrackedEntityMap;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
@@ -57,6 +58,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
             if (!(sl.entityManager.visibleEntityStorage.byId instanceof ISporeEntityStorage)) {
                 sl.entityManager.visibleEntityStorage.byId= SporeEntityByIdMap.newInstance(sl.entityManager.visibleEntityStorage.byId);
                 sl.entityManager.visibleEntityStorage.byUuid= SporeEntityByUuidMap.newInstance(sl.entityManager.visibleEntityStorage.byUuid);
+            }
+            if (!(sl.entityManager.knownUuids instanceof ISporeEntityStorage)) {
+                sl.entityManager.knownUuids= SporeKnownUuidsHashSet.newInstance(sl.entityManager.knownUuids);
             }
             if (!(sl.getChunkSource().chunkMap.entityMap instanceof ISporeEntityStorage)) {
                 sl.getChunkSource().chunkMap.entityMap= SporeTrackedEntityMap.newInstance(sl.getChunkSource().chunkMap.entityMap);
