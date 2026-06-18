@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * @author karywoodOyo
  */
-public class AllReturnUtil implements IAllReturn {
+public final class AllReturnUtil implements IAllReturn {
     public static final IAllReturn INSTANCE = BytecodeUtil.createHiddenSingletonInstance(IAllReturn.class, AllReturnUtil.class);
     private static final String WRAPPER_SUFFIX = "SporeAllReturnWrapper";
     private static final String HIDDEN_NAME_SEGMENT = "/0x";
