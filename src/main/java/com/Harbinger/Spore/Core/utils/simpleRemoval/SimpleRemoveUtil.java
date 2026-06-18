@@ -59,8 +59,8 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private final Map<UUID,Integer> clientUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final AABB NaNAABB=NaNAABBClass.INSTANCE;
     private final Vec3 NaN=NaNVec3.INSTANCE;
-    private final BlockPos INF_BLOCK_POS=new  BlockPos(Integer.MIN_VALUE,Integer.MAX_VALUE,Integer.MIN_VALUE);
-    private final ChunkPos INF_CHUNK_POS=new  ChunkPos(Integer.MAX_VALUE,Integer.MIN_VALUE);
+    private final BlockPos INF_BLOCK_POS=new BlockPos(Integer.MIN_VALUE,Integer.MAX_VALUE,Integer.MIN_VALUE);
+    private final ChunkPos INF_CHUNK_POS=new ChunkPos(Integer.MAX_VALUE,Integer.MIN_VALUE);
     private final Map<Class<?>,Class<?>> wrapperToOriginal=new ConcurrentHashMap<>();
     @Override
     public void tickServer() {
