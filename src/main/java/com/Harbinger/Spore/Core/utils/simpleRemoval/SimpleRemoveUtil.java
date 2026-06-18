@@ -33,9 +33,7 @@ import net.minecraft.world.level.entity.*;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.entity.PartEntity;
-import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
@@ -183,9 +181,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         setPosRaw(target,x,y,z);
         target.bb=makeBoundingBox(target);
     }
-    private void setPosField(Entity target, double x, double y, double z) {
 
-    }
     private AABB makeBoundingBoxNaN() {
         return NaNAABB;
     }
