@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.utils.simpleRemoval;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -13,6 +14,8 @@ public interface ISimpleRemoval {
     void tickServer();
 
     void tickClient();
+
+    Vec3 getNaNPosition();
 
     boolean checkIsRemovedAndUpdate(Object entity);
 

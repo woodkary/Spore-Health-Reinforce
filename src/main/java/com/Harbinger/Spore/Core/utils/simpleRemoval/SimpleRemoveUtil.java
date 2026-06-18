@@ -11,6 +11,7 @@ import com.Harbinger.Spore.Core.entityStorages.serverSide.SporeServerLevel;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.network.DespawnPacket;
 import com.Harbinger.Spore.network.DespawnPacketHandler;
+import com.Harbinger.Spore.sEvents.SporeEventBus;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -27,6 +28,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.*;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
@@ -51,7 +53,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private final Map<Class<?>,Integer> clientNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<Integer,Integer> clientIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<UUID,Integer> clientUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
-
+    private final Vec3 NaN=new Vec3(Double.NaN,Double.NaN,Double.NaN);
     private final Map<Class<?>,Class<?>> wrapperToOriginal=new ConcurrentHashMap<>();
     @Override
     public void tickServer() {
@@ -123,6 +125,10 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
                 entry.setValue(timeLeft-1);
             }
         }
+    }
+    @Override
+    public Vec3 getNaNPosition() {
+        return NaN;
     }
     private Class<?> getOrginalClass(Class<?> wrapperValue){
         //通过value找回第一个key
@@ -262,6 +268,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             entity.invalidateCaps();
         } catch (Throwable ignored) {}
         SporeEntityHeeaafastthManager.INSTANCE.replaceEntityMap(entity);
+        SporeEventBus.tick();
         createWrapppper(entity);
         return entity;
     }
@@ -272,7 +279,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).put(uuid,100);
     }
     private void updateNotSpawning(Entity entity){
-        (entity.level.isClientSide?clientNotSpawning:serverNotSpawning).put(entity.getClass(),100);
+        (entity.level.isClientSide?clientNotSpawning:serverNotSpawning).put(getOrginalClass(entity.getClass()),100);
     }
     private <T extends EntityAccess> void replaceSectionStorage(PersistentEntitySectionManager<T> manager){
         for (Long2ObjectMap.Entry<EntitySection<T>> entry : manager.sectionStorage.sections.long2ObjectEntrySet()) {

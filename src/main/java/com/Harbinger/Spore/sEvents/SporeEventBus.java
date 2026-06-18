@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.eventbus.BusBuilderImpl;
 import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.api.Event;
@@ -85,6 +86,9 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
     public boolean post(Event event, IEventBusInvokeDispatcher wrapper) {
         if(shutdownField!=null){
             ClassUtil.setFieldValue(shutdownField,this,false);
+        }
+        if(event instanceof EntityEvent entityEvent&&SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entityEvent.getEntity())){
+            return true;
         }
         return super.post(event, wrapper);
     }

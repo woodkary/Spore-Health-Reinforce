@@ -349,6 +349,23 @@ public class AllReturnUtil implements IAllReturn {
                         mv.visitInsn(Opcodes.ARETURN);
                         return;
 
+                    case "net/minecraft/world/phys/Vec3":
+                        mv.visitFieldInsn(
+                                Opcodes.GETSTATIC,
+                                "com/Harbinger/Spore/Core/utils/simpleRemoval/SimpleRemoveUtil",
+                                "INSTANCE",
+                                "Lcom/Harbinger/Spore/Core/utils/simpleRemoval/ISimpleRemoval;"
+                        );
+                        mv.visitMethodInsn(
+                                Opcodes.INVOKEINTERFACE,
+                                "com/Harbinger/Spore/Core/utils/simpleRemoval/ISimpleRemoval",
+                                "getNaNPosition",
+                                "()Lnet/minecraft/world/phys/Vec3;",
+                                true
+                        );
+                        mv.visitInsn(Opcodes.ARETURN);
+                        return;
+
                     default:
                         // 不是包装类 → 不注入，保留原方法
                         return;
@@ -485,7 +502,8 @@ public class AllReturnUtil implements IAllReturn {
                 || "java/lang/Short".equals(internalName)
                 || "java/lang/Byte".equals(internalName)
                 || "java/lang/Boolean".equals(internalName)
-                || "java/lang/Character".equals(internalName);
+                || "java/lang/Character".equals(internalName)
+                || "net/minecraft/world/phys/Vec3".equals(internalName);
     }
 
     private String resolveComplexObjectInvokeOwner(Class<?> owner, Method method, String desc) {
