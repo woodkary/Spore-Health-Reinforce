@@ -422,7 +422,7 @@ public class HandlerEvents {
       dispatcher.register(Commands.literal("spore:force_remove_all")
               .requires(source -> source.hasPermission(2))
                       .executes(ctx -> {
-                         Collection<? extends Entity> targets = SimpleRemoveUtil.INSTANCE.getAllEntities(ctx.getSource().getEntity().level,(entity)->entity instanceof Player);
+                         Collection<? extends Entity> targets = SimpleRemoveUtil.INSTANCE.getAllEntities(ctx.getSource().getLevel(),(entity)->entity instanceof Player);
                          int killed = 0;
                          for (Entity entity : targets) {
                             if (SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)) {
