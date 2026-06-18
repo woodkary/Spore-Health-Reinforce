@@ -279,7 +279,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).put(uuid,100);
     }
     private void updateNotSpawning(Entity entity){
-        (entity.level.isClientSide?clientNotSpawning:serverNotSpawning).put(getOrginalClass(entity.getClass()),100);
+        Map<Class<?>,Integer> map=entity.level.isClientSide?clientNotSpawning:serverNotSpawning;
+        map.put(getOrginalClass(entity.getClass()),100);
+        map.put(entity.getClass(),100);
     }
     private <T extends EntityAccess> void replaceSectionStorage(PersistentEntitySectionManager<T> manager){
         for (Long2ObjectMap.Entry<EntitySection<T>> entry : manager.sectionStorage.sections.long2ObjectEntrySet()) {
