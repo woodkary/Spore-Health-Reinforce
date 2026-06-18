@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.utils.simpleRemoval;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeClientLevel;
 import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeTransientEntitySectionManager;
 import com.Harbinger.Spore.Core.entityStorages.serverSide.SporePersistentEntitySectionManager;
@@ -20,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ClassInstanceMultiMap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
@@ -239,6 +241,13 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     @Override
     public Entity removeLocal(Entity entity, Entity.RemovalReason removalReason) {
+        if(SporeJudge.isSporeEntity(entity)){
+            if(entity instanceof LivingEntity liv) {
+                SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
+            }
+            entity.remove(removalReason);
+            return entity;
+        }
         if (entity.removalReason == null) {
             entity.removalReason = removalReason;
         }
@@ -254,7 +263,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         try {
             entity.invalidateCaps();
         } catch (Throwable ignored) {}
-
+        SporeEntityHeeaafastthManager.INSTANCE.replaceEntityMap(entity);
         createWrapppper(entity);
         return entity;
     }
