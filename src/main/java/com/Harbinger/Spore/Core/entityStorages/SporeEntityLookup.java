@@ -84,8 +84,9 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
             return null;
         }
 
-        // Always harden backing maps first, but keep the original receiver type
-        // for third-party subclasses that declare extra signatures like add(Entity).
+        // Always harden backing maps in-place. Entity managers keep a separate
+        // LevelEntityGetterAdapter that points at this lookup object; replacing the
+        // lookup instance leaves that getter reading the stale storage.
         try {
             if (!(lookup.byId instanceof SporeEntityByIdMap)) {
                 lookup.byId = SporeEntityByIdMap.newInstance(lookup.byId);
@@ -103,22 +104,19 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
                     lookup.getClass().getName(), t.getMessage());
         }
 
-        // If this is already our lookup, keep it.
         if (lookup.getClass() == entityLookupClass || lookup instanceof SporeEntityLookup) {
             return lookup;
         }
 
-        // Only replace vanilla base EntityLookup. For custom subclasses we must
-        // keep receiver type, otherwise invokevirtual sites whose owner is that
-        // subclass can fail with AbstractMethodError.
+        // Only replace vanilla base EntityLookup in-place. For custom subclasses
+        // we keep receiver type, otherwise invokevirtual sites whose owner is
+        // that subclass can fail with AbstractMethodError.
         if (lookup.getClass() != EntityLookup.class) {
             return lookup;
         }
 
-        EntityLookup<T> res = SporeEntityLookup.newInstance();
-        res.byId.putAll(lookup.byId);
-        res.byUuid.putAll(lookup.byUuid);
-        return res;
+        KlassPointerUtil.INSTANCE.replaceClass(lookup, entityLookupClass, "", 0, 0.0f);
+        return lookup;
     }
     @Override
     public void remove(EntityAccess entity) {

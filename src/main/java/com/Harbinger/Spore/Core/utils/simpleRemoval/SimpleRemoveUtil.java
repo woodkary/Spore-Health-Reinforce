@@ -87,11 +87,11 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }
 
         Iterator<Map.Entry<UUID, Integer>> uuidIterator = serverUuidNotSpawning.entrySet().iterator();
-        while (iterator.hasNext()) {
+        while (uuidIterator.hasNext()) {
             Map.Entry<UUID, Integer> entry = uuidIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                iterator.remove();
+                uuidIterator.remove();
             }else{
                 entry.setValue(timeLeft-1);
             }
@@ -123,11 +123,11 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }
 
         Iterator<Map.Entry<UUID, Integer>> uuidIterator = clientUuidNotSpawning.entrySet().iterator();
-        while (iterator.hasNext()) {
+        while (uuidIterator.hasNext()) {
             Map.Entry<UUID, Integer> entry = uuidIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                iterator.remove();
+                uuidIterator.remove();
             }else {
                 entry.setValue(timeLeft-1);
             }
