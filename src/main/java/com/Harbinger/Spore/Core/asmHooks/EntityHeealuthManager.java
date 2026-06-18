@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.asmHooks;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.network.HealthDeltaPacket;
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.EntityLookup;
+import net.minecraft.world.level.entity.EntitySection;
 import net.minecraft.world.level.entity.EntityTickList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -108,17 +110,32 @@ public final class EntityHeealuthManager implements IEntityHealth {
             }
         }
     }
-    private EntityTickList getEntityTickList(Level level){
+    @Override
+    public EntityTickList getEntityTickList(Level level){
         if(level instanceof ServerLevel sl){
             return sl.entityTickList;
+        }else if(level instanceof ClientLevel cl){
+            return cl.tickingEntities;
         }
-        return ((ClientLevel)level).tickingEntities;
+        return null;
     }
-    private EntityLookup<? extends EntityAccess> getEntityLookup(Level level){
+    @Override
+    public EntityLookup<? extends EntityAccess> getEntityLookup(Level level){
         if(level instanceof ServerLevel sl){
             return sl.entityManager.visibleEntityStorage;
+        }else if(level instanceof ClientLevel cl){
+            return cl.entityStorage.entityStorage;
         }
-        return ((ClientLevel)level).entityStorage.entityStorage;
+        return null;
+    }
+    @Override
+    public Long2ObjectMap<EntitySection<Entity>> getEntitySections(Level level) {
+        if(level instanceof ServerLevel sl){
+            return sl.entityManager.sectionStorage.sections;
+        }else if(level instanceof ClientLevel cl){
+            return cl.entityStorage.sectionStorage.sections;
+        }
+        return null;
     }
     private boolean shouldQueueForCleanup(Entity entity) {
         if (entity == null || queuingEntities.containsKey(entity) || !entity.isRemoved()) {

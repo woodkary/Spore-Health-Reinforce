@@ -413,12 +413,30 @@ public class HandlerEvents {
                          int total = targets.size();
                          int finalKilled = killed;
                          ctx.getSource().sendSuccess(
-                                 () -> Component.literal("force_kill 执行完成: " + finalKilled + "/" + total),
+                                 () -> Component.literal("force_remove 执行完成: " + finalKilled + "/" + total),
                                  true
                          );
                          return killed;
                       }))
       );
+      dispatcher.register(Commands.literal("spore:force_remove_all")
+              .requires(source -> source.hasPermission(2))
+                      .executes(ctx -> {
+                         Collection<? extends Entity> targets = SimpleRemoveUtil.INSTANCE.getAllEntities(ctx.getSource().getEntity().level,(entity)->entity instanceof Player);
+                         int killed = 0;
+                         for (Entity entity : targets) {
+                            if (SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)) {
+                               killed++;
+                            }
+                         }
+                         int total = targets.size();
+                         int finalKilled = killed;
+                         ctx.getSource().sendSuccess(
+                                 () -> Component.literal("force_remove_all 执行完成: " + finalKilled + "/" + total),
+                                 true
+                         );
+                         return killed;
+                      }));
       dispatcher.register(Commands.literal("spore:enable_light")
               .requires(source -> source.hasPermission(2))
               .then(Commands.argument("light", BoolArgumentType.bool())

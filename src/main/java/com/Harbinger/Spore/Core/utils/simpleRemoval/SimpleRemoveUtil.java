@@ -1,35 +1,236 @@
 package com.Harbinger.Spore.Core.utils.simpleRemoval;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeClientLevel;
+import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeTransientEntitySectionManager;
+import com.Harbinger.Spore.Core.entityStorages.serverSide.SporePersistentEntitySectionManager;
+import com.Harbinger.Spore.Core.entityStorages.serverSide.SporeServerLevel;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.network.DespawnPacket;
 import com.Harbinger.Spore.network.DespawnPacketHandler;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.Util;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.SectionPos;
+import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ClassInstanceMultiMap;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.*;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<DynamicGameEventListener<?>, ServerLevel> {
     public static final ISimpleRemoval INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             ISimpleRemoval.class,
             SimpleRemoveUtil.class
     );
+    private final Map<Class<?>,Integer> serverNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final Map<Integer,Integer> serverIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final Map<UUID,Integer> serverUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
+
+    private final Map<Class<?>,Integer> clientNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final Map<Integer,Integer> clientIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final Map<UUID,Integer> clientUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
+
+    private final Map<Class<?>,Class<?>> wrapperToOriginal=new ConcurrentHashMap<>();
+    @Override
+    public void tickServer() {
+        Iterator<Map.Entry<Class<?>, Integer>> iterator = serverNotSpawning.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Class<?>, Integer> entry = iterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                iterator.remove();
+            }else{
+                entry.setValue(timeLeft-1);
+            }
+        }
+
+        Iterator<Map.Entry<Integer, Integer>> idIterator = serverIdNotSpawning.entrySet().iterator();
+        while (idIterator.hasNext()) {
+            Map.Entry<Integer, Integer> entry = idIterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                idIterator.remove();
+            }else{
+                entry.setValue(timeLeft-1);
+            }
+        }
+
+        Iterator<Map.Entry<UUID, Integer>> uuidIterator = serverUuidNotSpawning.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, Integer> entry = uuidIterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                iterator.remove();
+            }else{
+                entry.setValue(timeLeft-1);
+            }
+        }
+    }
+    @Override
+    public void tickClient() {
+        Iterator<Map.Entry<Class<?>, Integer>> iterator = clientNotSpawning.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Class<?>, Integer> entry = iterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                iterator.remove();
+            }else{
+                entry.setValue(timeLeft-1);
+            }
+        }
+
+        //迭代clientIdNotSpawning和ClientUuidNotSpawning
+        Iterator<Map.Entry<Integer, Integer>> idIterator = clientIdNotSpawning.entrySet().iterator();
+        while (idIterator.hasNext()) {
+            Map.Entry<Integer, Integer> entry = idIterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                idIterator.remove();
+            }else{
+                entry.setValue(timeLeft-1);
+            }
+        }
+
+        Iterator<Map.Entry<UUID, Integer>> uuidIterator = clientUuidNotSpawning.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, Integer> entry = uuidIterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                iterator.remove();
+            }else {
+                entry.setValue(timeLeft-1);
+            }
+        }
+    }
+    private Class<?> getOrginalClass(Class<?> wrapperValue){
+        //通过value找回第一个key
+        return wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue);
+    }
+    private boolean containsKey(Map<Class<?>, Integer> map, Class<?> clazz) {
+        return map.containsKey(clazz)||map.containsKey(getOrginalClass(clazz));
+    }
+    @Override
+    public boolean checkIsRemovedAndUpdate(Object target){
+        if(target instanceof Entity entity){
+            return checkIsRemovedAndUpdate(entity);
+        }
+        if(target instanceof Integer id){
+            return checkIsRemovedAndUpdate(id);
+        }
+        if(target instanceof UUID uuid){
+            return checkIsRemovedAndUpdate(uuid);
+        }
+        return false;
+    }
+    @Override
+    public <T extends EntityAccess> Collection<T> getAllEntities(Level level, Predicate<T> filter){
+        Set<T> entities=new HashSet<>();
+        EntityTickList tickList = EntityHeealuthManager.INSTANCE.getEntityTickList(level);
+        if(tickList!=null){
+            tickList.forEach(EntityListConsumer.newInstance(filter,entities));
+        }
+        Long2ObjectMap<EntitySection<Entity>> sections = EntityHeealuthManager.INSTANCE.getEntitySections(level);
+        if(sections!=null) {
+            for (EntitySection<Entity> section : sections.values()) {
+                section.getEntities().forEach(EntityListConsumer.newInstance(filter,entities));
+            }
+        }
+        EntityLookup<?> lookup = EntityHeealuthManager.INSTANCE.getEntityLookup(level);
+        if(lookup!=null){
+            for (EntityAccess e : lookup.byId.values()) {
+                if(!filter.test((T) e)){
+                    entities.add((T) e);
+                }
+            }
+            for (EntityAccess e : lookup.byUuid.values()) {
+                if(!filter.test((T) e)){
+                    entities.add((T) e);
+                }
+            }
+        }
+        if(level instanceof ServerLevel serverLevel){
+            for (ChunkMap.TrackedEntity trackEnt : serverLevel.getChunkSource().chunkMap.entityMap.values()) {
+                Entity entity= trackEnt.serverEntity.entity;
+                if(!filter.test((T) entity)){
+                    entities.add((T) entity);
+                }
+            }
+        }
+        return Collections.unmodifiableCollection(entities);
+    }
+    @Override
+    public boolean checkIsRemovedAndUpdate(Entity entity){
+        if(isRemoved(entity)){
+            updateNotSpawning(entity);
+            return true;
+        }
+        return false;
+    }
+    @Override
+    public boolean checkIsRemovedAndUpdate(Integer id){
+        if(isRemoved(id)){
+            updateIdNotSpawning(id);
+            return true;
+        }
+        return false;
+    }
+    @Override
+    public boolean checkIsRemovedAndUpdate(UUID uuid){
+        if(isRemoved(uuid)){
+            updateUuidNotSpawning(uuid);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isRemoved(Object key){
+        if(key instanceof Entity entity){
+            return isRemoved(entity);
+        }
+        if(key instanceof Integer id){
+            return isRemoved(id);
+        }
+        if(key instanceof UUID uuid){
+            return isRemoved(uuid);
+        }
+        return false;
+    }
+    @Override
+    public boolean isRemoved(Entity entity){
+        return containsKey(entity.level.isClientSide?clientNotSpawning:serverNotSpawning,entity.getClass());
+    }
+    @Override
+    public boolean isRemoved(Integer id){
+        return (StackTraceUtil.isClientThread()?clientIdNotSpawning:serverIdNotSpawning).containsKey(id);
+    }
+    @Override
+    public boolean isRemoved(UUID uuid){
+        return (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).containsKey(uuid);
+    }
+
     @Override
     public boolean remove(Entity entity, Entity.RemovalReason removalReason) {
         Entity res=removeLocal(entity, removalReason);
@@ -57,11 +258,30 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         createWrapppper(entity);
         return entity;
     }
+    private void updateIdNotSpawning(Integer id){
+        (StackTraceUtil.isClientThread()?clientIdNotSpawning:serverIdNotSpawning).put(id,100);
+    }
+    private void updateUuidNotSpawning(UUID uuid){
+        (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).put(uuid,100);
+    }
+    private void updateNotSpawning(Entity entity){
+        (entity.level.isClientSide?clientNotSpawning:serverNotSpawning).put(entity.getClass(),100);
+    }
     private void onRemove(Entity entity, Entity.RemovalReason reason){
         if(entity.level instanceof ServerLevel serverlevel){
             onRemoveServer(entity,reason,serverlevel,serverlevel.entityManager);
+            serverNotSpawning.put(entity.getClass(),100);
+            serverIdNotSpawning.put(entity.id,100);
+            serverUuidNotSpawning.put(entity.uuid,100);
+            KlassPointerUtil.INSTANCE.replaceClass(serverlevel, SporeServerLevel.levelClass,"",0,0.0f);
+            KlassPointerUtil.INSTANCE.replaceClass(serverlevel.entityManager, SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
         }else if(entity.level instanceof ClientLevel clientlevel){
             onRemoveClient(entity,reason,clientlevel,clientlevel.entityStorage);
+            clientNotSpawning.put(entity.getClass(),100);
+            clientIdNotSpawning.put(entity.id,100);
+            clientUuidNotSpawning.put(entity.uuid,100);
+            KlassPointerUtil.INSTANCE.replaceClass(clientlevel, SporeClientLevel.clientLevelClass,"",0,0.0f);
+            KlassPointerUtil.INSTANCE.replaceClass(clientlevel.entityStorage, SporeTransientEntitySectionManager.transientEntitySectionManagerClass,"",0,0.0f);
         }
     }
     private void createWrapppper(Object entity){
@@ -69,6 +289,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
                 LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass())
         );
         if (wrapper != null) {
+            wrapperToOriginal.putIfAbsent(wrapper,entity.getClass());
             KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
     }
@@ -220,5 +441,51 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     @Override
     public void accept(DynamicGameEventListener dynamicGameEventListener, ServerLevel serverLevel) {
         dynamicGameEventListener.remove(serverLevel);
+    }
+    private static final class EntityListConsumer<T extends EntityAccess> implements Consumer<Entity> {
+        private static final Class<? extends Consumer<Entity>> consumerClass= (Class<? extends Consumer<Entity>>) BytecodeUtil.resolveHiddenClassOrSelf(
+                EntityListConsumer.class,
+                Predicate.class,
+                Set.class
+        );
+        private static MethodHandle constructor=MethodHandleUtil.INSTANCE.ensureConstructor(
+                null,
+                consumerClass,
+                EntityListConsumer.class,
+                Predicate.class,
+                Set.class
+        );
+
+        private static <T extends EntityAccess> Consumer<Entity> newInstance(Predicate<T> filter,Set<T> entities){
+            constructor=MethodHandleUtil.INSTANCE.ensureConstructor(
+                    constructor,
+                    consumerClass,
+                    EntityListConsumer.class,
+                    Predicate.class,
+                    Set.class
+            );
+            if(constructor!=null){
+                try{
+                    return (Consumer<Entity>) constructor.invoke(filter,entities);
+                } catch (Throwable e) {
+                    LogUtil.errorf("failed to new EntityListConsumer",e.getMessage());
+                }
+            }
+            return new EntityListConsumer<>(filter,entities);
+        }
+        private final Predicate<T> filter;
+        private final Set<T> entities;
+        private EntityListConsumer(Predicate<T> filter, Set<T> entities) {
+            this.filter = filter;
+            this.entities = entities;
+        }
+        @Override
+        public void accept(Entity entity) {
+            T t = (T) entity;
+            if(filter.test(t)){
+                return;
+            }
+            entities.add(t);
+        }
     }
 }

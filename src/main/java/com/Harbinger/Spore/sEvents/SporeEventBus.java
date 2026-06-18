@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
+import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.BusBuilderImpl;
@@ -103,6 +104,11 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
     @Override
     public void accept(TickEvent tickEvent) {
         if(tickEvent instanceof TickEvent.ClientTickEvent||tickEvent instanceof TickEvent.ServerTickEvent){
+            if(tickEvent instanceof TickEvent.ServerTickEvent){
+                SimpleRemoveUtil.INSTANCE.tickServer();
+            }else{
+                SimpleRemoveUtil.INSTANCE.tickClient();
+            }
             SporeEntityHeeaafastthManager.INSTANCE.tick();
             EntityHeealuthManager.INSTANCE.tick();
         }
