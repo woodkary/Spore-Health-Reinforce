@@ -5,18 +5,17 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
+import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.entity.EntityAccess;
 
 import java.lang.invoke.MethodHandle;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Predicate;
 
-public final class SporeEntityByUuidMap<T extends EntityAccess> extends HashMap<UUID, T> implements ISporeEntityStorage {
+public final class SporeEntityByUuidMap<T extends EntityAccess> extends ProtectedUUIDHashMapBase<T> implements ISporeEntityStorage {
     private static final Class<? extends HashMap<UUID,? extends EntityAccess>> mapClass= (Class<? extends HashMap<UUID,? extends EntityAccess>>) BytecodeUtil.resolveHiddenClassOrSelf(
             SporeEntityByUuidMap.class
     );
@@ -62,6 +61,9 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends HashMap<
         }
         return new SporeEntityByUuidMap<>(m);
     }
+    private transient ProtectedEntrySet protectedEntries;
+    private transient Set<UUID> protectedKeys;
+    private transient Collection<T> protectedValues;
     public SporeEntityByUuidMap() {
     }
 
@@ -79,5 +81,372 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends HashMap<
             HeasdalthUtil.INSTANCE.genericDie(liv, source);
         }
         return res;
+    }
+    @Override
+    public void putAll(Map<? extends UUID, ? extends T> m) {
+        if (m instanceof ProtectedUUIDHashMapBase<?> protectedMap) {
+            for (Entry<UUID, ?> entry : protectedMap.entrySet()) {
+                UUID key1 = entry.getKey();
+                Object value1 = entry.getValue();
+                if(!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key1)&&!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(value1)){
+                    super.put(key1, (T) value1);
+                }
+            }
+            return;
+        }
+        for (Entry<? extends UUID, ? extends T> entry : m.entrySet()) {
+            UUID key1 = entry.getKey();
+            T value1 = entry.getValue();
+            if(!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key1)&&!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(value1)){
+                super.put(key1, value1);
+            }
+        }
+
+    }
+    @Override
+    public T put(UUID key, T value) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key)){
+            return value;
+        }
+        return super.put(key, value);
+    }
+    private static final class ProtectedEntrySet extends AbstractSet<Entry<UUID, EntityAccess>> {
+        private final ProtectedUUIDHashMapBase owner;
+        private final Set<Entry<UUID, EntityAccess>> delegate;
+
+        ProtectedEntrySet(ProtectedUUIDHashMapBase owner, Set<Entry<UUID, EntityAccess>> delegate) {
+            this.owner = owner;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Iterator<Entry<UUID, EntityAccess>> iterator() {
+            return ProtectedEntryIterator.newInstance(owner, delegate.iterator());
+        }
+
+        @Override
+        public int size() {
+            int count = 0;
+            Iterator<Entry<UUID, EntityAccess>> it = iterator();
+            while (it.hasNext()) {
+                it.next();
+                count++;
+            }
+            return count;
+        }
+
+        @Override
+        public void clear() {
+            Iterator<Entry<UUID, EntityAccess>> it = iterator();
+            while (it.hasNext()) {
+                it.next();
+                it.remove(); // 走我们自己的 remove
+            }
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (!(o instanceof Entry<?, ?> e)) return false;
+            return delegate.remove(o);
+        }
+
+        @Override
+        public boolean removeIf(Predicate<? super Entry<UUID, EntityAccess>> filter) {
+            boolean modified = false;
+            Iterator<Entry<UUID, EntityAccess>> it = iterator();
+            while (it.hasNext()) {
+                Entry<UUID, EntityAccess> e = it.next();
+                if (filter.test(e)) {
+                    it.remove();
+                    modified = true;
+                }
+            }
+            return modified;
+        }
+    }
+
+
+
+    private static final class ProtectedEntryIterator implements Iterator<Entry<UUID, EntityAccess>> {
+        private static final Class<? extends Iterator<?>> iteratorClass =
+                (Class<? extends Iterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(
+                        ProtectedEntryIterator.class,
+                        ProtectedUUIDHashMapBase.class,
+                        Iterator.class
+                );
+        private static MethodHandle constructor;
+        static {
+            try {
+                constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                        null,
+                        iteratorClass,
+                        ProtectedEntryIterator.class,
+                        ProtectedUUIDHashMapBase.class,
+                        Iterator.class
+                );
+            } catch (Throwable t) {
+                constructor = null;
+                LogUtil.errorf("failed to eager init hidden ProtectedEntryIterator constructor, %s", t.getMessage());
+            }
+        }
+
+        public static Iterator<Entry<UUID, EntityAccess>> newInstance(
+                ProtectedUUIDHashMapBase owner,
+                Iterator<Entry<UUID, EntityAccess>> delegate
+        ) {
+            constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                    null,
+                    iteratorClass,
+                    ProtectedEntryIterator.class,
+                    ProtectedUUIDHashMapBase.class,
+                    Iterator.class
+            );
+            if (constructor != null) {
+                try {
+                    return (Iterator<Entry<UUID, EntityAccess>>) constructor.invoke(owner, delegate);
+                } catch (Throwable t) {
+                    LogUtil.errorf("failed to create hidden ProtectedEntryIterator, %s", t.getMessage());
+                }
+            }
+            return new ProtectedEntryIterator(owner, delegate);
+        }
+
+        private final ProtectedUUIDHashMapBase owner;
+        private final Iterator<Entry<UUID, EntityAccess>> delegate;
+        private Entry<UUID, EntityAccess> last;
+        private Entry<UUID, EntityAccess> nextCandidate;
+        private boolean nextReady;
+
+        ProtectedEntryIterator(ProtectedUUIDHashMapBase owner, Iterator<Entry<UUID, EntityAccess>> delegate) {
+            this.owner = owner;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (nextReady) {
+                return true;
+            }
+            while (delegate.hasNext()) {
+                Entry<UUID, EntityAccess> e = delegate.next();
+                if (owner.shouldExposeValue(e.getValue())) {
+                    nextCandidate = e;
+                    nextReady = true;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public Entry<UUID, EntityAccess> next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            last = nextCandidate;
+            nextCandidate = null;
+            nextReady = false;
+            return last;
+        }
+
+        @Override
+        public void remove() {
+            if (last == null) {
+                throw new IllegalStateException();
+            }
+            delegate.remove();
+            last = null;
+        }
+    }
+
+    @Override
+    public Set<UUID> keySet() {
+        if (protectedKeys == null) {
+            protectedKeys = new ProtectedKeySet(this);
+        }
+        return protectedKeys;
+    }
+
+
+    private static final class ProtectedKeySet<V extends EntityAccess> extends AbstractSet<UUID> {
+        private final ProtectedUUIDHashMapBase<V> owner;
+
+        private ProtectedKeySet(ProtectedUUIDHashMapBase<V> owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public Iterator<UUID> iterator() {
+            return ProtectedKeyIterator.newInstance(owner.entrySet().iterator());
+        }
+
+        @Override
+        public int size() {
+            int count = 0;
+            Iterator<UUID> it = iterator();
+            while (it.hasNext()) {
+                it.next();
+                count++;
+            }
+            return count;
+        }
+    }
+
+    private static final class ProtectedKeyIterator<T extends EntityAccess> implements Iterator<UUID> {
+        private static final Class<? extends Iterator<?>> iteratorClass =
+                (Class<? extends Iterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(
+                        ProtectedKeyIterator.class,
+                        Iterator.class
+                );
+        private static MethodHandle constructor;
+        static {
+            try {
+                constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                        null,
+                        iteratorClass,
+                        ProtectedKeyIterator.class,
+                        Iterator.class
+                );
+            } catch (Throwable t) {
+                constructor = null;
+                LogUtil.errorf("failed to eager init hidden ProtectedKeyIterator constructor, %s", t.getMessage());
+            }
+        }
+
+        public static <T extends EntityAccess> Iterator<UUID> newInstance(Iterator<Entry<UUID, T>> entryIt) {
+            constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                    constructor,
+                    iteratorClass,
+                    ProtectedKeyIterator.class,
+                    Iterator.class
+            );
+            if (constructor != null) {
+                try {
+                    return (Iterator<UUID>) constructor.invoke(entryIt);
+                } catch (Throwable t) {
+                    LogUtil.errorf("failed to create hidden ProtectedKeyIterator, %s", t.getMessage());
+                }
+            }
+            return new ProtectedKeyIterator(entryIt);
+        }
+
+        private final Iterator<Entry<UUID, T>> entryIt;
+        private Entry<UUID, T> last;
+
+        private ProtectedKeyIterator(Iterator<Entry<UUID, T>> entryIt) {
+            this.entryIt = entryIt;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return entryIt.hasNext();
+        }
+
+        @Override
+        public UUID next() {
+            last = entryIt.next();
+            return last.getKey();
+        }
+
+        @Override
+        public void remove() {
+            if (last == null) {
+                throw new IllegalStateException();
+            }
+            entryIt.remove();
+            last = null;
+        }
+    }
+
+    @Override
+    public Collection<T> values() {
+        if (protectedValues == null) {
+            protectedValues = new ProtectedValuesView<>(this);
+        }
+        return protectedValues;
+    }
+
+    private static final class ProtectedValuesView<T extends EntityAccess> extends AbstractCollection<T> {
+        private final ProtectedUUIDHashMapBase<T> owner;
+
+        private ProtectedValuesView(ProtectedUUIDHashMapBase<T> owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            return ProtectedValuesIterator.newInstance(owner.entrySet().iterator());
+        }
+
+        @Override
+        public int size() {
+            int count = 0;
+            Iterator<T> it = iterator();
+            while (it.hasNext()) {
+                it.next();
+                count++;
+            }
+            return count;
+        }
+    }
+
+    private static final class ProtectedValuesIterator<T extends EntityAccess> implements Iterator<T> {
+        private static final Class<? extends Iterator<?>> iteratorClass =
+                (Class<? extends Iterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(
+                        ProtectedValuesIterator.class,
+                        Iterator.class
+                );
+        private static MethodHandle constructor;
+        static {
+            try {
+                constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                        null,
+                        iteratorClass,
+                        ProtectedValuesIterator.class,
+                        Iterator.class
+                );
+            } catch (Throwable t) {
+                constructor = null;
+                LogUtil.errorf("failed to eager init hidden ProtectedValuesIterator constructor, %s", t.getMessage());
+            }
+        }
+
+        public static <T extends EntityAccess> Iterator<T> newInstance(Iterator<Entry<UUID, T>> entryIt) {
+            constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
+                    constructor,
+                    iteratorClass,
+                    ProtectedValuesIterator.class,
+                    Iterator.class
+            );
+            if (constructor != null) {
+                try {
+                    return (Iterator<T>) constructor.invoke(entryIt);
+                } catch (Throwable t) {
+                    LogUtil.errorf("failed to create hidden ProtectedValuesIterator, %s", t.getMessage());
+                }
+            }
+            return new ProtectedValuesIterator<>(entryIt);
+        }
+
+        private final Iterator<Entry<UUID, T>> entryIt;
+
+        private ProtectedValuesIterator(Iterator<Entry<UUID, T>> entryIt) {
+            this.entryIt = entryIt;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return entryIt.hasNext();
+        }
+
+        @Override
+        public T next() {
+            return entryIt.next().getValue();
+        }
+
+        @Override
+        public void remove() {
+            entryIt.remove();
+        }
     }
 }

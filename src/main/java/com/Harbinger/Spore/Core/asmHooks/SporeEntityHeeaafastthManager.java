@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
@@ -49,7 +50,8 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
             replaceEntityMap(entity);
         }
     }
-    private void replaceEntityMap(LivingEntity entity) {
+    @Override
+    public void replaceEntityMap(Entity entity) {
         if(entity.level instanceof ServerLevel sl&&!(sl.entityManager.visibleEntityStorage.byId instanceof ISporeEntityStorage)){
             sl.entityManager.visibleEntityStorage.byId= SporeEntityByIdMap.newInstance(sl.entityManager.visibleEntityStorage.byId);
             sl.entityManager.visibleEntityStorage.byUuid= SporeEntityByUuidMap.newInstance(sl.entityManager.visibleEntityStorage.byUuid);

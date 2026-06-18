@@ -178,7 +178,7 @@ public final class SporeServerLevel extends ServerLevel {
                                           ProfilerFiller profilerfiller) implements Consumer<Entity> {
         @Override
             public void accept(Entity e0) {
-                if (!e0.isRemoved()) {
+                if (!e0.isRemoved()&&!SimpleRemoveUtil.INSTANCE.isRemoved(e0)) {
                     if (this.level.shouldDiscardEntity(e0)) {
                         e0.discard();
                     } else {

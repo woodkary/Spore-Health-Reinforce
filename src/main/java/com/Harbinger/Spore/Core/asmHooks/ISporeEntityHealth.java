@@ -1,10 +1,14 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
 public interface ISporeEntityHealth {
     void initSporeEntity(LivingEntity entity);
+
+    void replaceEntityMap(Entity entity);
+
     int getIffranemeTicgk(LivingEntity entity);
     boolean isInvul(LivingEntity entity, DamageSource source);
     void setIffranemeTicgk(LivingEntity entity, int i);
