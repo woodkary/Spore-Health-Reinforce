@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.Util;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,12 +49,20 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         for (Entity passenger : entity.getPassengers()) {
             passenger.stopRiding();
         }
-        entity.levelCallback.onRemove(removalReason);
-        if(!entity.level.isClientSide){
+        onRemove(entity,removalReason);
+        try {
             entity.invalidateCaps();
-        }
+        } catch (Throwable ignored) {}
+
         createWrapppper(entity);
         return entity;
+    }
+    private void onRemove(Entity entity, Entity.RemovalReason reason){
+        if(entity.level instanceof ServerLevel serverlevel){
+            onRemoveServer(entity,reason,serverlevel,serverlevel.entityManager);
+        }else if(entity.level instanceof ClientLevel clientlevel){
+            onRemoveClient(entity,reason,clientlevel,clientlevel.entityStorage);
+        }
     }
     private void createWrapppper(Object entity){
         Class<?> wrapper = ClassLoaderUtil.INSTANCE.creeateveWrapperHidden(
@@ -74,6 +83,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             if (($$2.getKey()).isInstance(entity)) {
                 List<T> $$3 = (List<T>) $$2.getValue();
                 $$1 |= MethodHandleUtil.INSTANCE.javaCollectionRemove($$3,entity);
+                $$1 |= $$3.remove(entity);
             }
         }
 
@@ -115,6 +125,19 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }
 
     }
+    private void onTrackingEnd(ClientLevel level,Entity entity) {
+        entity.unRide();
+        level.players.remove(entity);
+        entity.onRemovedFromWorld();
+        MinecraftForge.EVENT_BUS.post(new EntityLeaveLevelEvent(entity, level));
+        if (entity.isMultipartEntity()) {
+            for(PartEntity<?> part : entity.getParts()) {
+                if (part != null) {
+                    level.partEntities.remove(part.id);
+                }
+            }
+        }
+    }
     private void onTrackingEnd(ServerLevel level,Entity entity) {
         level.getChunkSource().removeEntity(entity);
         if (entity instanceof ServerPlayer serverplayer) {
@@ -141,18 +164,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         entity.updateDynamicGameEventListener(this);
         entity.isAddedToWorld=false;
     }
-    private <T extends EntityAccess> void onRemoveServer(Entity entity,Entity.RemovalReason reason,PersistentEntitySectionManager<T> manager) {
-        if(!(entity.level instanceof ServerLevel serverLevel)){
-            return;//todo： 改为onRemoveClient
-        }
+    private <T extends EntityAccess> void onRemoveServer(Entity entity,Entity.RemovalReason reason,ServerLevel serverLevel,PersistentEntitySectionManager<T> manager) {
         EntitySection<EntityAccess> section = getEntitySection(entity);
-        if(section==null){
-            return;
-        }
         long currentSectionKey = getCurrentSectionKey(entity);
-        if(currentSectionKey==-1){
-            return;
-        }
         if (!removeEntitySection(section,entity)) {
             PersistentEntitySectionManager.LOGGER.warn("Entity {} wasn't found in section {} (destroying due to {})",entity, SectionPos.of(currentSectionKey), reason);
         }
@@ -173,7 +187,31 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         MethodHandleUtil.INSTANCE.javaCollectionRemove(manager.knownUuids,entity.uuid);
         //manager.knownUuids.remove(entity.uuid);
         entity.levelCallback=EntityInLevelCallback.NULL;
-        if (section.isEmpty()) {
+        if (section!=null&&currentSectionKey!=-1&&section.isEmpty()) {
+            manager.sectionStorage.sections.remove(currentSectionKey);
+            manager.sectionStorage.sectionIds.remove(currentSectionKey);
+        }
+    }
+    private <T extends EntityAccess> void onRemoveClient(Entity entity,Entity.RemovalReason reason,ClientLevel clientLevel,TransientEntitySectionManager<T> manager) {
+        EntitySection<EntityAccess> section = getEntitySection(entity);
+        long currentSectionKey = getCurrentSectionKey(entity);
+        if (!removeEntitySection(section,entity)) {
+            TransientEntitySectionManager.LOGGER.warn("Entity {} wasn't found in section {} (destroying due to {})", entity, SectionPos.of(currentSectionKey), reason);
+        }
+
+        EntityTickList entityTickList = clientLevel.tickingEntities;
+        ensureActiveIsNotIterated(entityTickList);
+        MethodHandleUtil.INSTANCE.fastRemove(entityTickList.active,entity.id);
+        
+
+        onTrackingEnd(clientLevel,entity);
+        manager.callbacks.onDestroyed((T) entity);
+        MethodHandleUtil.INSTANCE.fastRemove(manager.entityStorage.byId,entity.id);
+        //manager.entityStorage.byId.remove(entity.id);
+        MethodHandleUtil.INSTANCE.javaMapRemove(manager.entityStorage.byUuid,entity.uuid);
+        //manager.entityStorage.byUuid.remove(entity.uuid);
+        entity.setLevelCallback(EntityInLevelCallback.NULL);
+        if (section!=null&&currentSectionKey!=-1&&section.isEmpty()) {
             manager.sectionStorage.sections.remove(currentSectionKey);
             manager.sectionStorage.sectionIds.remove(currentSectionKey);
         }

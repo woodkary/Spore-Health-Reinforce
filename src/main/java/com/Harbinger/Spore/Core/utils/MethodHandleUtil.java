@@ -8,6 +8,7 @@ import java.lang.invoke.MethodType;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class MethodHandleUtil implements IMethodHandle {
     public static IMethodHandle INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
@@ -39,7 +40,7 @@ public class MethodHandleUtil implements IMethodHandle {
 
     private volatile MethodHandles.Lookup cachedLookup;
 
-    private MethodHandles.Lookup getLookup() {
+    public MethodHandles.Lookup getLookup() {
         MethodHandles.Lookup lookup = cachedLookup;
         if (lookup == null) {
             synchronized (MethodHandleUtil.class) {
@@ -66,15 +67,7 @@ public class MethodHandleUtil implements IMethodHandle {
     public <V> Object fastRemove(Int2ObjectMap<V> map, int key) {
         Class<?> cls = map.getClass();
         try {
-            MethodHandle mh = FASTUTIL_REMOVE_CACHE.computeIfAbsent(cls, c -> {
-                try {
-                    return getLookup().findVirtual(c, "remove",
-                            MethodType.methodType(Object.class, int.class));
-                } catch (Throwable e) {
-                    LogUtil.errorf("Failed to find method handle for FastUtil remove method: %s", e.toString());
-                    return null;
-                }
-            });
+            MethodHandle mh = FASTUTIL_REMOVE_CACHE.computeIfAbsent(cls,MethodHandleJundingFunction.newInstance("remove",MethodType.methodType(Object.class, int.class)));
             if (mh != null) {
                 return mh.bindTo(map).invokeWithArguments(key);
             }
@@ -87,15 +80,7 @@ public class MethodHandleUtil implements IMethodHandle {
     public <V> Object fastPut(Int2ObjectMap<V> map, int key, V value) {
         Class<?> cls = map.getClass();
         try {
-            MethodHandle mh = FASTUTIL_PUT_CACHE.computeIfAbsent(cls, c -> {
-                try {
-                    return getLookup().findVirtual(c, "put",
-                            MethodType.methodType(Object.class, int.class, Object.class));
-                } catch (Throwable e) {
-                    LogUtil.errorf("Failed to find method handle for FastUtil put method: %s", e.toString());
-                    return null;
-                }
-            });
+            MethodHandle mh = FASTUTIL_PUT_CACHE.computeIfAbsent(cls,MethodHandleJundingFunction.newInstance("put",MethodType.methodType(Object.class, int.class, Object.class)));
             if (mh != null) {
                 return mh.bindTo(map).invokeWithArguments(key, value);
             }
@@ -108,15 +93,7 @@ public class MethodHandleUtil implements IMethodHandle {
     public void fastClear(Int2ObjectMap<?> map) {
         Class<?> cls = map.getClass();
         try {
-            MethodHandle mh = FASTUTIL_CLEAR_CACHE.computeIfAbsent(cls, c -> {
-                try {
-                    return getLookup().findVirtual(c, "clear",
-                            MethodType.methodType(void.class));
-                } catch (Throwable e) {
-                    LogUtil.errorf("Failed to find method handle for FastUtil clear method: %s", e.toString());
-                    return null;
-                }
-            });
+            MethodHandle mh = FASTUTIL_CLEAR_CACHE.computeIfAbsent(cls,MethodHandleJundingFunction.newInstance("clear",MethodType.methodType(void.class)));
             if (mh != null) {
                 mh.bindTo(map).invokeWithArguments();
                 return;
@@ -134,15 +111,7 @@ public class MethodHandleUtil implements IMethodHandle {
     public <K, V> Object javaMapRemove(Map<K, V> map, Object key) {
         Class<?> cls = map.getClass();
         try {
-            MethodHandle mh = JAVA_MAP_REMOVE_CACHE.computeIfAbsent(cls, c -> {
-                try {
-                    return getLookup().findVirtual(c, "remove",
-                            MethodType.methodType(Object.class, Object.class));
-                } catch (Throwable e) {
-                    LogUtil.errorf("Failed to find method handle for Java Map remove method: %s", e.toString());
-                    return null;
-                }
-            });
+            MethodHandle mh = JAVA_MAP_REMOVE_CACHE.computeIfAbsent(cls,MethodHandleJundingFunction.newInstance("remove",MethodType.methodType(Object.class, Object.class)));
             if (mh != null) {
                 return mh.bindTo(map).invokeWithArguments(key);
             }
@@ -155,15 +124,7 @@ public class MethodHandleUtil implements IMethodHandle {
     public <K, V> Object javaMapPut(Map<K, V> map, K key, V value) {
         Class<?> cls = map.getClass();
         try {
-            MethodHandle mh = JAVA_MAP_PUT_CACHE.computeIfAbsent(cls, c -> {
-                try {
-                    return getLookup().findVirtual(c, "put",
-                            MethodType.methodType(Object.class, Object.class, Object.class));
-                } catch (Throwable e) {
-                    LogUtil.errorf("Failed to find method handle for Java Map put method: %s", e.toString());
-                    return null;
-                }
-            });
+            MethodHandle mh = JAVA_MAP_PUT_CACHE.computeIfAbsent(cls,MethodHandleJundingFunction.newInstance("put",MethodType.methodType(Object.class, Object.class, Object.class)));
             if (mh != null) {
                 return mh.bindTo(map).invokeWithArguments(key, value);
             }
@@ -176,15 +137,7 @@ public class MethodHandleUtil implements IMethodHandle {
     public void javaMapClear(Map<?, ?> map) {
         Class<?> cls = map.getClass();
         try {
-            MethodHandle mh = JAVA_MAP_CLEAR_CACHE.computeIfAbsent(cls, c -> {
-                try {
-                    return getLookup().findVirtual(c, "clear",
-                            MethodType.methodType(void.class));
-                } catch (Throwable e) {
-                    LogUtil.errorf("Failed to find method handle for Java Map clear method: %s", e.toString());
-                    return null;
-                }
-            });
+            MethodHandle mh = JAVA_MAP_CLEAR_CACHE.computeIfAbsent(cls,MethodHandleJundingFunction.newInstance("clear",MethodType.methodType(void.class)));
             if (mh != null) {
                 mh.bindTo(map).invokeWithArguments();
                 return;
@@ -202,15 +155,7 @@ public class MethodHandleUtil implements IMethodHandle {
     public <T> boolean javaCollectionRemove(Collection<T> collection, Object element) {
         Class<?> cls = collection.getClass();
         try {
-            MethodHandle mh = JAVA_COLLECTION_REMOVE_CACHE.computeIfAbsent(cls, c -> {
-                try {
-                    return getLookup().findVirtual(c, "remove",
-                            MethodType.methodType(boolean.class, Object.class));
-                } catch (Throwable e) {
-                    LogUtil.errorf("Failed to find method handle for Java Collection remove method: %s", e.toString());
-                    return null;
-                }
-            });
+            MethodHandle mh = JAVA_COLLECTION_REMOVE_CACHE.computeIfAbsent(cls,MethodHandleJundingFunction.newInstance("remove",MethodType.methodType(boolean.class, Object.class)));
             if (mh != null) {
                 return (boolean) mh.bindTo(collection).invokeWithArguments(element);
             }
@@ -259,6 +204,56 @@ public class MethodHandleUtil implements IMethodHandle {
             LogUtil.errorf("failed to ensure constructor for %s: %s",
                     originalClass != null ? originalClass.getName() : "unknown",
                     t.getMessage());
+            return null;
+        }
+    }
+    private static final class MethodHandleJundingFunction implements Function<Class<?>, MethodHandle> {
+        private static final Class<? extends Function<Class<?>, MethodHandle>> funcClass= (Class<? extends Function<Class<?>, MethodHandle>>) BytecodeUtil.resolveHiddenClassOrSelf(
+                MethodHandleJundingFunction.class,
+                String.class,
+                MethodType.class
+        );
+        private static MethodHandle constructor=INSTANCE.ensureConstructor(
+                null,
+                funcClass,
+                MethodHandleJundingFunction.class,
+                String.class,
+                MethodType.class
+        );
+        private static Function<Class<?>, MethodHandle> newInstance(String methodName, MethodType methodType){
+            constructor=INSTANCE.ensureConstructor(
+                    constructor,
+                    funcClass,
+                    MethodHandleJundingFunction.class,
+                    String.class,
+                    MethodType.class
+            );
+            if(constructor!=null){
+                try{
+                    return (Function<Class<?>, MethodHandle>) constructor.invoke(methodName,methodType);
+                } catch (Throwable e) {
+                    LogUtil.errorf("failed to new MappingFunction. %s",e.getMessage());
+                }
+            }
+            return new MethodHandleJundingFunction(methodName,methodType);
+        }
+        private final String methodName;
+        private final MethodType methodType;
+
+        private MethodHandleJundingFunction(String methodName, MethodType methodType) {
+            this.methodName = methodName;
+            this.methodType = methodType;
+        }
+
+        @Override
+        public MethodHandle apply(Class<?> c) {
+            try {
+                return INSTANCE.getLookup().findVirtual(
+                        c,methodName,methodType
+                );
+            } catch (Throwable e) {
+                LogUtil.errorf("failed to find method %s of %s. %s", methodName, c.getName(),e.getMessage());
+            }
             return null;
         }
     }

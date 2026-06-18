@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Spore;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
@@ -383,6 +384,29 @@ public class HandlerEvents {
                          int killed = 0;
                          for (Entity entity : targets) {
                             if (forceKillEntity(entity, player)) {
+                               killed++;
+                            }
+                         }
+                         int total = targets.size();
+                         int finalKilled = killed;
+                         ctx.getSource().sendSuccess(
+                                 () -> Component.literal("force_kill 执行完成: " + finalKilled + "/" + total),
+                                 true
+                         );
+                         return killed;
+                      }))
+      );
+      dispatcher.register(Commands.literal("spore:force_remove")
+              .requires(source -> source.hasPermission(2))
+              .then(Commands.argument("targets", EntityArgument.entities())
+                      .executes(ctx -> {
+                         Collection<? extends Entity> targets = EntityArgument.getEntities(ctx, "targets");
+                         Player player = ctx.getSource().getEntity() instanceof Player p ? p : null;
+                         targets=new ArrayList<>(targets);
+                         targets.remove(player);
+                         int killed = 0;
+                         for (Entity entity : targets) {
+                            if (SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)) {
                                killed++;
                             }
                          }
