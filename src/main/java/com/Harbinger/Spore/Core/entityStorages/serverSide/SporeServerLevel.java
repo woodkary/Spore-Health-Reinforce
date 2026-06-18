@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.entityStorages.serverSide;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
+import com.Harbinger.Spore.sEvents.SporeEventBus;
 import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -76,6 +77,7 @@ public final class SporeServerLevel extends ServerLevel {
     }
     @Override
     public void tick(BooleanSupplier p_8794_) {
+        SporeEventBus.tick();
         ProfilerFiller profilerfiller = this.getProfiler();
         this.handlingTick = true;
         profilerfiller.push("world border");

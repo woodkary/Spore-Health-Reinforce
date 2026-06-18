@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.entityStorages.clientSide;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
+import com.Harbinger.Spore.sEvents.SporeEventBus;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.entity.LevelEntityGetter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -79,6 +81,11 @@ public final class SporeClientLevel extends ClientLevel {
         this.tickingEntities.forEach(new ClientTickingEntityConsumer(this));
         profilerfiller.pop();
         this.tickBlockEntities();
+    }
+    @Override
+    public void tick(BooleanSupplier p_104727_) {
+        SporeEventBus.tick();
+        super.tick(p_104727_);
     }
 
     private record ClientTickingEntityConsumer(ClientLevel level) implements Consumer<Entity> {
