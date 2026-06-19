@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Compat.l2Hostility;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
 import dev.xkmc.l2hostility.content.logic.TraitEffectCache;
@@ -97,7 +98,7 @@ public final class ASMHurtKillerAuraTrait extends KillerAuraTrait {
 
         @Override
         public boolean test(LivingEntity e) {
-            return (e instanceof Player pl&&!pl.getAbilities().instabuild||
+            return !SporeJudge.isSporeEntity(e)&&(e instanceof Player pl&&!pl.getAbilities().instabuild||
                     e instanceof Mob target&& self.equals(target.getTarget())||
                     self instanceof Mob mob&&e.equals(mob.getTarget()))&&
                     !(e.distanceTo(self) > range);
