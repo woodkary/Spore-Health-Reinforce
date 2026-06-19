@@ -283,6 +283,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity)>0.0f&&!entity.isRemoved();
         }
+        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
+            return true;
+        }
         boolean deadFlag=trueDeeauth(entity);
         if(deadFlag){
             return false;
@@ -318,6 +321,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
     public boolean isDeeadfOrDyaging(LivingEntity entity,boolean initialValue){
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity)<=0.0f;
+        }
+        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
+            return false;
         }
         boolean deadFlag=trueDeeauth(entity);
         if(deadFlag){
@@ -393,7 +399,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity);
         }
         if(entity instanceof Player player&&isSpectatorOrCreative(player)){
-            return Math.max(20.0f,player.getMaxHealth());
+            return Math.max(20.0,player.getMaxHealth());
         }
         if(isTrueDeeauthCalled(entity)){
             return initialHealth;
