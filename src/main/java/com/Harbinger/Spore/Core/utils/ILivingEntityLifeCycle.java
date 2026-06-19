@@ -14,4 +14,6 @@ public interface ILivingEntityLifeCycle {
 
     Class<?> buildWrapperClass(Class<?> callback);
     Class<?> buildDeathWrapperClass(Class<?> callback);
+
+    boolean nameLooksLikeIsDeadOrDying(String name);
 }

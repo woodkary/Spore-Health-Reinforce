@@ -221,8 +221,8 @@ public final class AllReturnUtil implements IAllReturn {
             case Type.SHORT:
             case Type.INT:
                 if(name.equals("m_213877_")||
-                        name.equals("m_21224_")||
-                        name.equals("m_58901_")){
+                        name.equals("m_58901_")||
+                        LivingEntityHealthLifecycleWrapperUtil.INSTANCE.nameLooksLikeIsDeadOrDying(name)){
                     mv.visitInsn(Opcodes.ICONST_1);
                 }else{
                     mv.visitInsn(Opcodes.ICONST_0);

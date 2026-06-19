@@ -711,8 +711,8 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         String n = name.toLowerCase(Locale.ROOT);
         return (n.contains("max") && n.contains("heal")) || "m_21233_".equals(name);
     }
-
-    private boolean nameLooksLikeIsDeadOrDying(String name) {
+    @Override
+    public boolean nameLooksLikeIsDeadOrDying(String name) {
         String n = name.toLowerCase(Locale.ROOT);
         return n.contains("dead")
                 || n.contains("die")
