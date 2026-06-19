@@ -429,6 +429,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
          return;
       }
       specialDie(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
+      super.tickDeath();
    }
    public void die(DamageSource p_21014_) {
       if (this.getHealth()>0.0f) {
