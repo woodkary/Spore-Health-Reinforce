@@ -27,6 +27,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ClassInstanceMultiMap;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.ChunkPos;
@@ -51,10 +52,12 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             SimpleRemoveUtil.class
     );
     private final Map<Class<?>,Integer> serverNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final Map<EntityType<?>,Integer> serverTypeNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<Integer,Integer> serverIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<UUID,Integer> serverUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
 
     private final Map<Class<?>,Integer> clientNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final Map<EntityType<?>,Integer> clientTypeNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<Integer,Integer> clientIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final Map<UUID,Integer> clientUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final AABB NaNAABB=NaNAABBClass.INSTANCE;
@@ -71,6 +74,17 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             if(timeLeft==null||timeLeft<=0) {
                 iterator.remove();
             }else{
+                entry.setValue(timeLeft-1);
+            }
+        }
+
+        Iterator<Map.Entry<EntityType<?>, Integer>> typeIterator = serverTypeNotSpawning.entrySet().iterator();
+        while (typeIterator.hasNext()) {
+            Map.Entry<EntityType<?>, Integer> entry = typeIterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                typeIterator.remove();
+            }else {
                 entry.setValue(timeLeft-1);
             }
         }
@@ -106,6 +120,17 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             if(timeLeft==null||timeLeft<=0) {
                 iterator.remove();
             }else{
+                entry.setValue(timeLeft-1);
+            }
+        }
+
+        Iterator<Map.Entry<EntityType<?>, Integer>> typeIterator = clientTypeNotSpawning.entrySet().iterator();
+        while (typeIterator.hasNext()) {
+            Map.Entry<EntityType<?>, Integer> entry = typeIterator.next();
+            Integer timeLeft=entry.getValue();
+            if(timeLeft==null||timeLeft<=0) {
+                typeIterator.remove();
+            }else {
                 entry.setValue(timeLeft-1);
             }
         }
@@ -199,6 +224,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     private boolean containsKey(Map<Class<?>, Integer> map, Class<?> clazz) {
         return map.containsKey(clazz)||map.containsKey(getOrginalClass(clazz));
+    }
+    private boolean containsKey(Map<EntityType<?>, Integer> map, EntityType<?> type) {
+        return map.containsKey(type);
     }
     @Override
     public boolean checkIsRemovedAndUpdate(Object target){
@@ -304,7 +332,8 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     @Override
     public boolean isRemoved(Entity entity){
-        return containsKey(entity.level.isClientSide?clientNotSpawning:serverNotSpawning,entity.getClass());
+        return containsKey(entity.level.isClientSide?clientNotSpawning:serverNotSpawning,entity.getClass())||
+                containsKey(entity.level.isClientSide?clientTypeNotSpawning:serverTypeNotSpawning,entity.getType());
     }
     @Override
     public boolean isRemoved(Integer id){
@@ -365,6 +394,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         Map<Class<?>,Integer> map=entity.level.isClientSide?clientNotSpawning:serverNotSpawning;
         map.put(getOrginalClass(entity.getClass()),100);
         map.put(entity.getClass(),100);
+
+        Map<EntityType<?>,Integer> typeMap=entity.level.isClientSide?clientTypeNotSpawning:serverTypeNotSpawning;
+        typeMap.put(entity.getType(),100);
     }
     private <T extends EntityAccess> void replaceSectionStorage(PersistentEntitySectionManager<T> manager){
         for (Long2ObjectMap.Entry<EntitySection<T>> entry : manager.sectionStorage.sections.long2ObjectEntrySet()) {
@@ -388,6 +420,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         if(entity.level instanceof ServerLevel serverlevel){
             onRemoveServer(entity,reason,serverlevel,serverlevel.entityManager);
             serverNotSpawning.put(entity.getClass(),100);
+            serverTypeNotSpawning.put(entity.getType(),100);
             serverIdNotSpawning.put(entity.id,100);
             serverUuidNotSpawning.put(entity.uuid,100);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel, SporeServerLevel.levelClass,"",0,0.0f);
@@ -397,6 +430,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }else if(entity.level instanceof ClientLevel clientlevel){
             onRemoveClient(entity,reason,clientlevel,clientlevel.entityStorage);
             clientNotSpawning.put(entity.getClass(),100);
+            clientTypeNotSpawning.put(entity.getType(),100);
             clientIdNotSpawning.put(entity.id,100);
             clientUuidNotSpawning.put(entity.uuid,100);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel, SporeClientLevel.clientLevelClass,"",0,0.0f);
