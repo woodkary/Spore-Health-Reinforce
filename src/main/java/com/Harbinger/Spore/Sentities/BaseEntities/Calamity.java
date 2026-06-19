@@ -668,6 +668,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    @Override
    public void tickDeath() {
+      if(this.getHealth()>0.0f){
+         return;
+      }
       this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
    }
    public boolean isSpecialDead() {
