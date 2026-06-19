@@ -382,21 +382,21 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         return entity;
     }
     private void updateIdNotSpawning(Integer id){
-        (StackTraceUtil.isClientThread()?clientIdNotSpawning:serverIdNotSpawning).put(id,100);
+        (StackTraceUtil.isClientThread()?clientIdNotSpawning:serverIdNotSpawning).put(id,101);
     }
     private void updateUuidNotSpawning(UUID uuid){
-        (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).put(uuid,100);
+        (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).put(uuid,101);
     }
     private void updateNotSpawning(ChunkMap.TrackedEntity entity){
         updateNotSpawning(entity.serverEntity.entity);
     }
     private void updateNotSpawning(Entity entity){
         Map<Class<?>,Integer> map=entity.level.isClientSide?clientNotSpawning:serverNotSpawning;
-        map.put(getOrginalClass(entity.getClass()),100);
-        map.put(entity.getClass(),100);
+        map.put(getOrginalClass(entity.getClass()),101);
+        map.put(entity.getClass(),101);
 
         Map<EntityType<?>,Integer> typeMap=entity.level.isClientSide?clientTypeNotSpawning:serverTypeNotSpawning;
-        typeMap.put(entity.getType(),100);
+        typeMap.put(entity.getType(),101);
     }
     private <T extends EntityAccess> void replaceSectionStorage(PersistentEntitySectionManager<T> manager){
         for (Long2ObjectMap.Entry<EntitySection<T>> entry : manager.sectionStorage.sections.long2ObjectEntrySet()) {
@@ -419,20 +419,20 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private void onRemove(Entity entity, Entity.RemovalReason reason){
         if(entity.level instanceof ServerLevel serverlevel){
             onRemoveServer(entity,reason,serverlevel,serverlevel.entityManager);
-            serverNotSpawning.put(entity.getClass(),100);
-            serverTypeNotSpawning.put(entity.getType(),100);
-            serverIdNotSpawning.put(entity.id,100);
-            serverUuidNotSpawning.put(entity.uuid,100);
+            serverNotSpawning.put(entity.getClass(),101);
+            serverTypeNotSpawning.put(entity.getType(),101);
+            serverIdNotSpawning.put(entity.id,101);
+            serverUuidNotSpawning.put(entity.uuid,101);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel, SporeServerLevel.levelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel.entityManager, SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
             replaceSectionStorage(serverlevel.entityManager);
             GameTickerUtil.INSTANCE.replaceServer();
         }else if(entity.level instanceof ClientLevel clientlevel){
             onRemoveClient(entity,reason,clientlevel,clientlevel.entityStorage);
-            clientNotSpawning.put(entity.getClass(),100);
-            clientTypeNotSpawning.put(entity.getType(),100);
-            clientIdNotSpawning.put(entity.id,100);
-            clientUuidNotSpawning.put(entity.uuid,100);
+            clientNotSpawning.put(entity.getClass(),101);
+            clientTypeNotSpawning.put(entity.getType(),101);
+            clientIdNotSpawning.put(entity.id,101);
+            clientUuidNotSpawning.put(entity.uuid,101);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel, SporeClientLevel.clientLevelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel.entityStorage, SporeTransientEntitySectionManager.transientEntitySectionManagerClass,"",0,0.0f);
             replaceSectionStorage(clientlevel.entityStorage);
