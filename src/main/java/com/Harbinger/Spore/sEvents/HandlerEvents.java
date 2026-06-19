@@ -3,6 +3,7 @@ package com.Harbinger.Spore.sEvents;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.BossEventUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Spore;
@@ -409,6 +410,7 @@ public class HandlerEvents {
                          int killed = 0;
                          for (Entity entity : targets) {
                             if (SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)) {
+                               BossEventUtil.INSTANCE.disableBossEvent(entity);
                                killed++;
                             }
                          }
@@ -428,6 +430,7 @@ public class HandlerEvents {
                          int killed = 0;
                          for (Entity entity : targets) {
                             if (SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)) {
+                               BossEventUtil.INSTANCE.disableBossEvent(entity);
                                killed++;
                             }
                          }
