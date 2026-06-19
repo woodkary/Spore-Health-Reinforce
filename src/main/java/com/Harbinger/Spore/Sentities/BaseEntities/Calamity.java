@@ -107,7 +107,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    private int adaptationCount=0;
    private LivingEntity sporeTarget;
    private boolean isSpecialDead;
-   private Vec3 lastLegalPosition;
+   private Vec3 lastLegalPosition=Vec3.ZERO;
 
    public int getAdaptationCount() {
       return adaptationCount;
@@ -731,7 +731,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_21435_, MobSpawnType p_21436_, @Nullable SpawnGroupData p_21437_, @Nullable CompoundTag p_21438_) {
       this.setDefaultAdaptation(serverLevelAccessor);
       this.setMutationColor();
-      this.setLegalPosition(this.position);
+      this.syncAtFinalizeSpawn();
       return super.finalizeSpawn(serverLevelAccessor, p_21435_, p_21436_, p_21437_, p_21438_);
    }
 

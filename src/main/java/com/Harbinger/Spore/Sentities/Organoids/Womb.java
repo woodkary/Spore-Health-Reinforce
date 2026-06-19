@@ -66,12 +66,13 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
    private final List<String> attributeIDs = new ArrayList<>();
    private int eatingTicks = 0;
    private int pendingAdaptationCounts=0;
-   private Vec3 lastLegalPosition;
+   private Vec3 lastLegalPosition=Vec3.ZERO;
 
    public Womb(EntityType type, Level level, TERRAIN terrain, BlockPos pos) {
       super(type, level);
       this.entityData.set(STATE, terrain.value);
       this.setLocation(pos);
+      this.setLegalPosition(Vec3.ZERO);
    }
 
    public Womb(EntityType type, Level level) {
@@ -419,7 +420,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
    }
    @javax.annotation.Nullable
    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_33283_, MobSpawnType p_33284_, @javax.annotation.Nullable SpawnGroupData p_33285_, @javax.annotation.Nullable CompoundTag p_33286_) {
-      this.setLegalPosition(this.position);
+      this.syncAtFinalizeSpawn();
       return super.finalizeSpawn(serverLevelAccessor, p_33283_, p_33284_, p_33285_, p_33286_);
    }
    @Override

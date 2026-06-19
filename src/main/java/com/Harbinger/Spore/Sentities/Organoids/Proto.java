@@ -112,7 +112,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    private static final int INPUT_SIZE = 4;
    private static final int OUTPUT_SIZE = 4;
    private double[] weights;
-   private Vec3 lastLegalPosition;
+   private Vec3 lastLegalPosition=Vec3.ZERO;
    public List<String> team_1 = new ArrayList<>();
    public List<String> team_2 = new ArrayList<>();
    public List<String> team_3 = new ArrayList<>();
@@ -876,7 +876,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       }
 
       this.entityData.set(NODE, this.getOnPos());
-      this.setLegalPosition(this.position);
+      this.syncAtFinalizeSpawn();
       return super.finalizeSpawn(serverLevelAccessor, p_33283_, p_33284_, p_33285_, p_33286_);
    }
 

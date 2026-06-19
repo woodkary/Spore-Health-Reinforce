@@ -40,6 +40,7 @@ public class SporePacketHandler {
       WrapperPacketHandler.register();
       DespawnPacketHandler.register();
       ResetRenderRequestHandler.register();
+      SyncLegalPositionPacketHandler.register();
       registered = true;
    }
 

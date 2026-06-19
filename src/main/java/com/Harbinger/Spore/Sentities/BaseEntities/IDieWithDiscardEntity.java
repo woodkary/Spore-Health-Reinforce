@@ -1,5 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.network.SyncLegalPositionPacket;
+import com.Harbinger.Spore.network.SyncLegalPositionPacketHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,6 +13,11 @@ public interface IDieWithDiscardEntity {
     boolean hasLegalPosition();
     Vec3 lastLegalPosition();
     void setLegalPosition(Vec3 position);
+    default void syncAtFinalizeSpawn(){
+        LivingEntity self = self();
+        setLegalPosition(self.position);
+        SyncLegalPositionPacketHandler.sendToClient(new SyncLegalPositionPacket(self.id,self.position));
+    }
     default void setLegalPosition(double x, double y, double z){
         setLegalPosition(new Vec3(x,y,z));
     }
