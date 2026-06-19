@@ -83,38 +83,25 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
         }
         return res;
     }
-//    @Override
-//    public T getOrDefault(Object key, @Nullable T defaultValue) {
-//        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key)){
-//            return defaultValue;
-//        }
-//        T res=super.getOrDefault(key, defaultValue);
-//        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res)){
-//            return defaultValue;
-//        }
-//        return res;
-//    }
-//
-//    @Override
-//    public T get(Object key) {
-//        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key)){
-//            return null;
-//        }
-//        T res=super.get(key);
-//        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res)){
-//            return null;
-//        }
-//        return res;
-//    }
-//
-//    @Override
-//    public boolean containsKey(Object key) {
-//        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(key)){
-//            return false;
-//        }
-//        T res=super.get(key);
-//        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(res);
-//    }
+    @Override
+    public T getOrDefault(Object k, @Nullable T defaultValue) {
+        return SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(k)?
+                defaultValue:
+                super.getOrDefault(k, defaultValue);
+    }
+
+    @Override
+    public T get(Object k) {
+        return SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(k)?
+                null:
+                super.get(k);
+    }
+
+    @Override
+    public boolean containsKey(Object k) {
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(k)&&
+                super.containsKey(k);
+    }
 
     @Override
     public Set<Entry<UUID, T>> entrySet() {
@@ -124,10 +111,10 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
         return protectedEntries;
     }
 
-//    @Override
-//    public boolean containsValue(Object value) {
-//        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(value)&&super.containsValue(value);
-//    }
+    @Override
+    public boolean containsValue(Object v) {
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(v)&&super.containsValue(v);
+    }
 
     @Override
     public void putAll(Map<? extends UUID, ? extends T> m) {
