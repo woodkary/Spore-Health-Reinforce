@@ -62,6 +62,8 @@ import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeBaseArmor;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import com.Harbinger.Spore.Sitems.Guns.AbstractSporeGun;
+import com.Harbinger.Spore.network.ResetRenderRequest;
+import com.Harbinger.Spore.network.ResetRenderRequestHandler;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 
@@ -435,6 +437,7 @@ public class HandlerEvents {
                                  () -> Component.literal("force_remove_all 执行完成: " + finalKilled + "/" + total),
                                  true
                          );
+                         ResetRenderRequestHandler.sendToClient(new ResetRenderRequest());
                          return killed;
                       }));
       dispatcher.register(Commands.literal("spore:enable_light")

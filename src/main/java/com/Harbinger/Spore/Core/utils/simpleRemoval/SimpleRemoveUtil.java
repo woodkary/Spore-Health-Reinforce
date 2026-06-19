@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Core.utils.simpleRemoval;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.entityStorages.GameTickerUtil;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntitySection;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntitySectionStorage;
 import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeClientLevel;
@@ -16,6 +17,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -57,8 +59,8 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private final Map<UUID,Integer> clientUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
     private final AABB NaNAABB=NaNAABBClass.INSTANCE;
     private final Vec3 NaN=NaNVec3.INSTANCE;
-    private final BlockPos INF_BLOCK_POS=new BlockPos(Integer.MIN_VALUE,Integer.MAX_VALUE,Integer.MIN_VALUE);
-    private final ChunkPos INF_CHUNK_POS=new ChunkPos(Integer.MAX_VALUE,Integer.MIN_VALUE);
+    private final BlockPos INF_BLOCK_POS=new BlockPos(Integer.MIN_VALUE>>1,Integer.MAX_VALUE>>1,Integer.MIN_VALUE>>1);
+    private final ChunkPos INF_CHUNK_POS=new ChunkPos(Integer.MAX_VALUE>>1,Integer.MIN_VALUE>>1);
     private final Map<Class<?>,Class<?>> wrapperToOriginal=new ConcurrentHashMap<>();
     @Override
     public void tickServer() {
@@ -348,6 +350,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         } catch (Throwable ignored) {}
         SporeEntityHeeaafastthManager.INSTANCE.replaceEntityMap(entity);
         SporeEventBus.tick();
+        //setPos(entity,Double.NaN,Double.NaN,Double.NaN);
         setPosNaN(entity);
         createWrapppper(entity);
         return entity;
@@ -393,6 +396,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel, SporeServerLevel.levelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel.entityManager, SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
             replaceSectionStorage(serverlevel.entityManager);
+            GameTickerUtil.INSTANCE.replaceServer();
         }else if(entity.level instanceof ClientLevel clientlevel){
             onRemoveClient(entity,reason,clientlevel,clientlevel.entityStorage);
             clientNotSpawning.put(entity.getClass(),100);
@@ -401,6 +405,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel, SporeClientLevel.clientLevelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel.entityStorage, SporeTransientEntitySectionManager.transientEntitySectionManagerClass,"",0,0.0f);
             replaceSectionStorage(clientlevel.entityStorage);
+            GameTickerUtil.INSTANCE.replaceClient();
         }
     }
     private void createWrapppper(Object entity){
@@ -411,6 +416,18 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             wrapperToOriginal.putIfAbsent(wrapper,entity.getClass());
             KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
+    }
+    @Override
+    public Level resetRenderData(Level level){
+        if (level.isClientSide) {
+            Minecraft mc = Minecraft.getInstance();
+            mc.gameRenderer.resetData();
+            mc.getMainRenderTarget().clear(true);
+            mc.getMainRenderTarget().checkStatus();
+            mc.levelRenderer.allChanged();
+            mc.levelRenderer.needsUpdate();
+        }
+        return level;
     }
     private <T extends EntityAccess> boolean removeEntitySection(EntitySection<T> section, Entity entity){
         if(section==null){
