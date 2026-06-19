@@ -8,6 +8,8 @@ import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
+import com.Harbinger.Spore.Sentities.BaseEntities.ICustomLifeCycleEntity;
+import com.Harbinger.Spore.Sentities.BaseEntities.IEventTickable;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
@@ -63,7 +65,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 
-public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypass, ColdWeakness {
+public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypass, ColdWeakness, ICustomLifeCycleEntity, IEventTickable {
    public static final EntityDataAccessor INVISIBLE;
    public static final EntityDataAccessor BIOMASS;
    public static final EntityDataAccessor STOMACH;
@@ -75,6 +77,7 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
       this.moveControl = new InfectedWallMovementControl(this);
       this.navigation = new HybridPathNavigation(this, this.level());
       this.setMaxUpStep(1.0F);
+      initCustom();
    }
 
    protected boolean canRide(Entity entity) {
@@ -84,7 +87,18 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
    public List<String> getDropList() {
       return (List)SConfig.DATAGEN.specter_loot.get();
    }
-
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
+   @Override
+   public void heal(float amount) {
+      healSelf(amount);
+   }
+   @Override
+   public boolean isProtoOrCalamity(){
+      return false;
+   }
    public void travel(Vec3 vec) {
       if (this.isEffectiveAi() && this.isInFluidType()) {
          this.moveRelative(0.1F, vec);
@@ -186,6 +200,7 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
       this.setInvisible(tag.getBoolean("invisible"));
       this.setBiomass(tag.getInt("biomass"));
       this.setStomach(tag.getInt("stomach"));
+      readSaveData(tag);
    }
 
    public void addAdditionalSaveData(CompoundTag tag) {
@@ -193,6 +208,7 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
       tag.putBoolean("invisible", this.isInvisible());
       tag.putInt("biomass", this.getBiomass());
       tag.putInt("stomach", this.getStomach());
+      addSaveData(tag);
    }
 
    private boolean food(Container container) {
@@ -259,6 +275,8 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
 
    public void tick() {
       super.tick();
+      tickCustomLifeCycle();
+      tickEventBus();
       if (this.tickCount % 200 == 0) {
          this.searchBlocks();
          if ((float)this.getStomach() > 10.0F) {
@@ -275,6 +293,10 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
          this.griefBlocks(this.getTarget());
       }
 
+   }
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      actualHurt(source, amount);
    }
 
    public void setTarget(@Nullable LivingEntity entity) {
@@ -400,6 +422,11 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
             this.add(((net.minecraft.world.level.block.Block)Sblocks.CDU.get()).defaultBlockState());
          }
       };
+   }
+
+   @Override
+   public LivingEntity entity() {
+      return this;
    }
 
    public static class SearchAroundGoal extends Goal {

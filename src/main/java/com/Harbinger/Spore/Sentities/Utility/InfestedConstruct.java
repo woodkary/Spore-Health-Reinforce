@@ -6,12 +6,10 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
+import com.Harbinger.Spore.Sentities.BaseEntities.*;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
-import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
-import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
-import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.Projectile.ThrownBlockProjectile;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -67,7 +65,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-public class InfestedConstruct extends UtilityEntity implements RangedAttackMob, Enemy, ColdWeakness {
+public class InfestedConstruct extends UtilityEntity implements RangedAttackMob, Enemy, ColdWeakness, ICustomLifeCycleEntity, IEventTickable {
    public static final EntityDataAccessor ACTIVE;
    public static final EntityDataAccessor DISPENSER;
    public static final EntityDataAccessor MACHINE_HEALTH;
@@ -82,6 +80,19 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
       this.navigation = new WallClimberNavigation(this, this.level());
       this.setMaxUpStep(1.0F);
       this.metalAndValues = this.getValues();
+      initCustom();
+   }
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
+   @Override
+   public void heal(float amount) {
+      healSelf(amount);
+   }
+   @Override
+   public boolean isProtoOrCalamity(){
+      return false;
    }
 
    public List<String> getDropList() {
@@ -197,6 +208,7 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
       this.setMachineHealth(tag.getFloat("machine_hp"));
       this.entityData.set(DISPENSER, tag.getBoolean("dispenser"));
       this.entityData.set(METAL_RESERVE, tag.getInt("metal"));
+      readSaveData(tag);
    }
 
    public void addAdditionalSaveData(CompoundTag tag) {
@@ -205,6 +217,7 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
       tag.putFloat("machine_hp", this.getMachineHealth());
       tag.putBoolean("dispenser", (Boolean)this.entityData.get(DISPENSER));
       tag.putInt("metal", (Integer)this.entityData.get(METAL_RESERVE));
+      addSaveData(tag);
    }
 
    protected void registerGoals() {
@@ -320,6 +333,8 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
 
    public void tick() {
       super.tick();
+      tickCustomLifeCycle();
+      tickEventBus();
       if (this.tickCount % 40 == 0) {
          if (ForgeEventFactory.getMobGriefingEvent(this.level(), this) && this.horizontalCollision) {
             this.griefBlocks();
@@ -357,6 +372,10 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
          }
       }
 
+   }
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      actualHurt(source, amount);
    }
 
    private void griefBlocks() {
@@ -493,6 +512,11 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
       MACHINE_HEALTH = SynchedEntityData.defineId(InfestedConstruct.class, EntityDataSerializers.FLOAT);
       METAL_RESERVE = SynchedEntityData.defineId(InfestedConstruct.class, EntityDataSerializers.INT);
       maXmachineHp = (Double)SConfig.SERVER.inf_machine_hp.get();
+   }
+
+   @Override
+   public LivingEntity entity() {
+      return this;
    }
 
    public static class SearchAroundGoal extends Goal {

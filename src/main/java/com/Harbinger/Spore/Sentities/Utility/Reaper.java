@@ -7,15 +7,12 @@ import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
-import com.Harbinger.Spore.Sentities.BaseEntities.ICustomLifeCycleEntity;
+import com.Harbinger.Spore.Sentities.BaseEntities.*;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.EvolvingInfected;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.HybridPathNavigation;
-import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
-import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.MovementControls.InfectedWallMovementControl;
 import com.Harbinger.Spore.Sentities.Projectile.VomitUsurperBall;
 import java.util.ArrayList;
@@ -66,7 +63,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 
-public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypass, RangedAttackMob, ColdWeakness, ICustomLifeCycleEntity {
+public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypass, RangedAttackMob, ColdWeakness, ICustomLifeCycleEntity, IEventTickable {
    public static final List states = new ArrayList() {
       {
          this.add(Blocks.HAY_BLOCK.defaultBlockState());
@@ -305,6 +302,7 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
    public void tick() {
       super.tick();
       tickCustomLifeCycle();
+      tickEventBus();
       if (this.tickCount % 200 == 0) {
          this.searchBlocks();
          if ((float)this.getStomach() > 25.0F) {
