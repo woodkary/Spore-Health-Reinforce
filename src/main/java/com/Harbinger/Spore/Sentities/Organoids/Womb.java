@@ -9,11 +9,8 @@ import com.Harbinger.Spore.Recipes.EntityContainer;
 import com.Harbinger.Spore.Recipes.WombRecipe;
 import com.Harbinger.Spore.Screens.AssimilationMenu;
 import com.Harbinger.Spore.Sentities.AdaptableEntity;
-import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
-import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
-import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Organoid;
+import com.Harbinger.Spore.Sentities.BaseEntities.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -35,19 +32,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -56,6 +47,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -64,15 +56,17 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
-   private static final EntityDataAccessor COUNTER;
-   private static final EntityDataAccessor BIOMASS;
-   private static final EntityDataAccessor STATE;
-   private static final EntityDataAccessor LOCATION;
+public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDieWithDiscardEntity {
+   private static final EntityDataAccessor<Integer> COUNTER;
+   private static final EntityDataAccessor<Integer> BIOMASS;
+   private static final EntityDataAccessor<Integer> STATE;
+   private static final EntityDataAccessor<BlockPos> LOCATION;
+   private static final EntityDataAccessor<Boolean> SPECIAL_DEAD;
    private int breakCounter;
    private final List<String> attributeIDs = new ArrayList<>();
    private int eatingTicks = 0;
    private int pendingAdaptationCounts=0;
+   private Vec3 lastLegalPosition;
 
    public Womb(EntityType type, Level level, TERRAIN terrain, BlockPos pos) {
       super(type, level);
@@ -84,6 +78,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
       super(type, level);
       this.entityData.set(STATE, 0);
       this.setLocation(BlockPos.ZERO);
+      this.setLegalPosition(Vec3.ZERO);
    }
 
    @Override
@@ -108,6 +103,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
       this.entityData.define(BIOMASS, 0);
       this.entityData.define(STATE, 0);
       this.entityData.define(LOCATION, BlockPos.ZERO);
+      this.entityData.define(SPECIAL_DEAD, false);
    }
 
    protected SoundEvent getAmbientSound() {
@@ -119,12 +115,13 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
    }
 
    public void tick() {
-      super.tick();
-      if ((Integer)this.entityData.get(BIOMASS) >= (Integer)SConfig.SERVER.reconstructor_biomass.get()) {
+      if (this.entityData.get(BIOMASS) >= (Integer)SConfig.SERVER.reconstructor_biomass.get()) {
          this.summon(this, false);
       }
+      tickLegalPosition();
+      super.tick();
 
-      if ((Integer)this.entityData.get(COUNTER) < (Integer)SConfig.SERVER.recontructor_clock.get() * 20) {
+      if (this.entityData.get(COUNTER) < (Integer)SConfig.SERVER.recontructor_clock.get() * 20) {
          this.entityData.set(COUNTER, (Integer)this.entityData.get(COUNTER) + 1);
       } else {
          this.entityData.set(COUNTER, 0);
@@ -181,6 +178,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
 
       tag.put("mutations", teamTag);
       tag.putInt("adaptationCount",getAdaptationCount());
+      addAdditionalLegalPositionData(tag);
    }
 
    public boolean isEating() {
@@ -205,7 +203,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
       if(tag.contains("adaptationCount")) {
          setAdaptationCount(tag.getInt("adaptationCount"));
       }
-
+      readAdditionalLegalPositionData(tag);
    }
 
    private void CallNearbyInfected() {
@@ -357,6 +355,9 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
          if (entityType != null) {
             Mob spawnedEntity = (Mob)entityType.create(this.level());
             if (spawnedEntity != null) {
+               if(!hasLegalPosition()){
+                  this.setPos(this.lastLegalPosition());
+               }
                Vec3 origin = new Vec3((double)this.getLocation().getX(), (double)this.getLocation().getY(), (double)this.getLocation().getZ());
                Vec3 current = this.position();
                double maxDistance = (double)200.0F;
@@ -416,14 +417,23 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
          }
       }
    }
+   @javax.annotation.Nullable
+   public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_33283_, MobSpawnType p_33284_, @javax.annotation.Nullable SpawnGroupData p_33285_, @javax.annotation.Nullable CompoundTag p_33286_) {
+      this.setLegalPosition(this.position);
+      return super.finalizeSpawn(serverLevelAccessor, p_33283_, p_33284_, p_33285_, p_33286_);
+   }
+   @Override
+   public void tickDeath() {
+      if (this.getHealth() > 0.0f) {
+         return;
+      }
+      specialDie(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
+   }
    public void die(DamageSource p_21014_) {
       if (this.getHealth()>0.0f) {
          return;
       }
-      if (this.getBiomass() > (Integer)SConfig.SERVER.reconstructor_biomass.get() / 2) {
-         this.summon(this, true);
-      }
-
+      specialDie(p_21014_);
       super.die(p_21014_);
    }
 
@@ -455,6 +465,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
       BIOMASS = SynchedEntityData.defineId(Womb.class, EntityDataSerializers.INT);
       STATE = SynchedEntityData.defineId(Womb.class, EntityDataSerializers.INT);
       LOCATION = SynchedEntityData.defineId(Womb.class, EntityDataSerializers.BLOCK_POS);
+      SPECIAL_DEAD=SynchedEntityData.defineId(Womb.class, EntityDataSerializers.BOOLEAN);
    }
 
    @Override
@@ -465,6 +476,41 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity {
    @Override
    public void setAdaptationCount(int adaptationCount) {
       pendingAdaptationCounts = adaptationCount;
+   }
+   @Override
+   public LivingEntity self(){
+      return this;
+   }
+
+   @Override
+   public boolean isSpecialDefasd() {
+      return this.entityData.get(SPECIAL_DEAD);
+   }
+
+   @Override
+   public boolean hasLegalPosition() {
+      if(Double.isNaN(this.position.x)||Double.isNaN(this.position.y)||Double.isNaN(this.position.z)) {
+         return false;
+      }
+      return this.lastLegalPosition().distanceTo(this.position) <= 5000.0F;
+   }
+
+   @Override
+   public Vec3 lastLegalPosition() {
+      return this.lastLegalPosition;
+   }
+
+   @Override
+   public void setLegalPosition(Vec3 position) {
+      this.lastLegalPosition = position;
+   }
+
+   @Override
+   public void specialDie(DamageSource source) {
+      this.entityData.set(SPECIAL_DEAD, true);
+      if (this.getBiomass() > (Integer)SConfig.SERVER.reconstructor_biomass.get() / 2) {
+         this.summon(this, true);
+      }
    }
 
 
