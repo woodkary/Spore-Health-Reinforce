@@ -1,6 +1,5 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
-import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -8,7 +7,7 @@ import net.minecraft.world.phys.Vec3;
 
 public interface IDieWithDiscardEntity {
     LivingEntity self();
-    boolean isSpecialDead();
+    boolean isSpecialDefasd();
     boolean hasLegalPosition();
     Vec3 lastLegalPosition();
     void setLegalPosition(Vec3 position);

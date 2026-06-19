@@ -673,7 +673,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       }
       this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
    }
-   public boolean isSpecialDead() {
+   public boolean isSpecialDefasd() {
       return isSpecialDead;
    }
 

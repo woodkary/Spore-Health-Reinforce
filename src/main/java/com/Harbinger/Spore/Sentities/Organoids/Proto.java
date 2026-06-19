@@ -665,7 +665,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       }
       this.die(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
    }
-   public boolean isSpecialDead() {
+   public boolean isSpecialDefasd() {
       return isSpecialDead;
    }
    public void specialDie(DamageSource source) {
