@@ -16,7 +16,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -37,13 +37,11 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.ai.navigation.WallClimberNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
@@ -178,11 +176,11 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
       return (Boolean)this.entityData.get(DISPENSER);
    }
 
-   public void setMachineHealth(float value) {
+   public void setMachineHeeauklth(float value) {
       this.entityData.set(MACHINE_HEALTH, value);
    }
 
-   public float getMachineHealth() {
+   public float getMachineHeeauklth() {
       return (Float)this.entityData.get(MACHINE_HEALTH);
    }
 
@@ -205,7 +203,7 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
    public void readAdditionalSaveData(CompoundTag tag) {
       super.readAdditionalSaveData(tag);
       this.setActive(tag.getBoolean("active"));
-      this.setMachineHealth(tag.getFloat("machine_hp"));
+      this.setMachineHeeauklth(tag.getFloat("machine_hp"));
       this.entityData.set(DISPENSER, tag.getBoolean("dispenser"));
       this.entityData.set(METAL_RESERVE, tag.getInt("metal"));
       readSaveData(tag);
@@ -214,7 +212,7 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
    public void addAdditionalSaveData(CompoundTag tag) {
       super.addAdditionalSaveData(tag);
       tag.putBoolean("active", this.isActive());
-      tag.putFloat("machine_hp", this.getMachineHealth());
+      tag.putFloat("machine_hp", this.getMachineHeeauklth());
       tag.putBoolean("dispenser", (Boolean)this.entityData.get(DISPENSER));
       tag.putInt("metal", (Integer)this.entityData.get(METAL_RESERVE));
       addSaveData(tag);
@@ -252,9 +250,9 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
    public boolean hurt(DamageSource source, float value) {
       if (this.invulnerableTime == 0) {
          value = this.resistentSources().contains(source) ? value / 2.0F : value;
-         if (this.getMachineHealth() > 0.0F) {
+         if (this.getMachineHeeauklth() > 0.0F) {
             float damage = this.getDamageAfterArmorAbsorb(source, value);
-            this.setMachineHealth(damage > this.getMachineHealth() ? 0.0F : this.getMachineHealth() - damage);
+            this.setMachineHeeauklth(damage > this.getMachineHeeauklth() ? 0.0F : this.getMachineHeeauklth() - damage);
             this.invulnerableTime = 10;
             this.hurtTime = 10;
             this.playHurtSound(source);
@@ -340,13 +338,13 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
             this.griefBlocks();
          }
 
-         if ((double)this.getMachineHealth() < maXmachineHp && (Integer)this.entityData.get(METAL_RESERVE) > 0) {
-            this.setMachineHealth(this.getMachineHealth() + 1.0F);
+         if ((double)this.getMachineHeeauklth() < maXmachineHp && (Integer)this.entityData.get(METAL_RESERVE) > 0) {
+            this.setMachineHeeauklth(this.getMachineHeeauklth() + 1.0F);
             this.entityData.set(METAL_RESERVE, (Integer)this.entityData.get(METAL_RESERVE) - 1);
          }
 
          if (this.hasEffect((MobEffect)Seffects.CORROSION.get())) {
-            this.setMachineHealth(this.getMachineHealth() - 2.0F);
+            this.setMachineHeeauklth(this.getMachineHeeauklth() - 2.0F);
          }
       }
 
@@ -409,7 +407,7 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
    }
 
    public SoundEvent getHurtSound(DamageSource p_34327_) {
-      return !(this.getMachineHealth() > 0.0F) && this.isActive() ? (SoundEvent)Ssounds.INF_DAMAGE.get() : SoundEvents.IRON_GOLEM_HURT;
+      return !(this.getMachineHeeauklth() > 0.0F) && this.isActive() ? (SoundEvent)Ssounds.INF_DAMAGE.get() : SoundEvents.IRON_GOLEM_HURT;
    }
 
    public SoundEvent getDeathSound() {
@@ -424,7 +422,7 @@ public class InfestedConstruct extends UtilityEntity implements RangedAttackMob,
       if (dataAccessor.equals(ACTIVE)) {
          this.refreshDimensions();
          if (this.isActive()) {
-            this.setMachineHealth((float)(maXmachineHp * (double)1.0F));
+            this.setMachineHeeauklth((float)(maXmachineHp * (double)1.0F));
             this.setHealth(this.getMaxHealth());
          }
       }

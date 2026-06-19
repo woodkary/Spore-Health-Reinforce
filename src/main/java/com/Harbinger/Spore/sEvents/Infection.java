@@ -223,7 +223,7 @@ public class Infection {
                   InfestedConstruct construct = new InfestedConstruct((EntityType)Sentities.INF_CONSTRUCT.get(), serverLevel);
                   construct.setPos(golem.position());
                   construct.setHealth(10.0F);
-                  construct.setMachineHealth(0.0F);
+                  construct.setMachineHeeauklth(0.0F);
                   construct.setActive(false);
                   construct.setCustomName(golem.getCustomName());
                   serverLevel.addFreshEntity(construct);
