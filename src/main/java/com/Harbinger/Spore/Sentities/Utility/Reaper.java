@@ -7,6 +7,7 @@ import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
+import com.Harbinger.Spore.Sentities.BaseEntities.ICustomLifeCycleEntity;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.EvolvingInfected;
@@ -65,7 +66,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 
-public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypass, RangedAttackMob, ColdWeakness {
+public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypass, RangedAttackMob, ColdWeakness, ICustomLifeCycleEntity {
    public static final List states = new ArrayList() {
       {
          this.add(Blocks.HAY_BLOCK.defaultBlockState());
@@ -88,12 +89,26 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
       this.moveControl = new InfectedWallMovementControl(this);
       this.navigation = new HybridPathNavigation(this, this.level());
       this.setMaxUpStep(1.0F);
+      initCustom();
    }
 
    protected boolean canRide(Entity entity) {
       return !(entity instanceof Infected) && !(entity instanceof UtilityEntity) ? false : super.canRide(entity);
    }
+   @Override
+   public void onRemovedFromWorld() {
+      onRemoved();
+   }
+   @Override
+   public void heal(float amount) {
+      healSelf(amount);
+   }
+   @Override
+   public boolean isProtoOrCalamity(){
+      return false;
+   }
 
+   @Override
    public void travel(Vec3 vec) {
       if (this.isEffectiveAi() && this.isInFluidType()) {
          this.moveRelative(0.1F, vec);
@@ -219,6 +234,7 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
       this.setBiomass(tag.getInt("biomass"));
       this.setStomach(tag.getInt("stomach"));
       this.setComposter(tag.getBoolean("composter"));
+      readSaveData(tag);
    }
 
    public void addAdditionalSaveData(CompoundTag tag) {
@@ -226,6 +242,7 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
       tag.putInt("biomass", this.getBiomass());
       tag.putInt("stomach", this.getStomach());
       tag.putBoolean("composter", this.getComposter());
+      addSaveData(tag);
    }
 
    public boolean canDrownInFluidType(FluidType type) {
@@ -287,6 +304,7 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
 
    public void tick() {
       super.tick();
+      tickCustomLifeCycle();
       if (this.tickCount % 200 == 0) {
          this.searchBlocks();
          if ((float)this.getStomach() > 25.0F) {
@@ -326,6 +344,10 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
          this.griefBlocks(this.getTarget());
       }
 
+   }
+   @Override
+   public void actuallyHurt(DamageSource source, float amount) {
+      actualHurt(source, amount);
    }
 
    private void griefBlocks(LivingEntity livingEntity) {
@@ -413,6 +435,11 @@ public class Reaper extends UtilityEntity implements Enemy, ArmorPersentageBypas
       BIOMASS = SynchedEntityData.defineId(Reaper.class, EntityDataSerializers.INT);
       STOMACH = SynchedEntityData.defineId(Reaper.class, EntityDataSerializers.INT);
       COMPOSTER = SynchedEntityData.defineId(Reaper.class, EntityDataSerializers.BOOLEAN);
+   }
+
+   @Override
+   public LivingEntity entity() {
+      return this;
    }
 
    public static class SearchAroundGoal extends Goal {
