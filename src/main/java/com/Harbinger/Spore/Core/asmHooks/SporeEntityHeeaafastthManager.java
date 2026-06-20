@@ -156,7 +156,10 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         }
         float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(healthOwner,entityHealthJudge), 0.0f);
         if(entity instanceof IFakeDataHealthEntity fakeHealth){
-            res+=fakeHealth.getDefault0HllealthDelta();//Default0Hllealth应永远返回0
+            float zeroDelta=fakeHealth.getDefault0HllealthDelta();
+            if(zeroDelta==zeroDelta){
+                res+=zeroDelta;
+            }
         }
         return res;
     }
