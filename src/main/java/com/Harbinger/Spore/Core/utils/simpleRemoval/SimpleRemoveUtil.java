@@ -381,6 +381,25 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         createWrapppper(entity);
         return entity;
     }
+    @Override
+    public void setRemoved(Entity entity, Entity.RemovalReason reason){
+        if (entity.removalReason == null) {
+            entity.removalReason = reason;
+        }
+
+        if (entity.removalReason.shouldDestroy()) {
+            entity.stopRiding();
+        }
+
+        for (Entity passenger : entity.getPassengers()) {
+            passenger.stopRiding();
+        }
+        if(entity.level instanceof ServerLevel serverlevel) {
+            onRemoveServer(entity, reason, serverlevel, serverlevel.entityManager);
+        }else if(entity.level instanceof ClientLevel clientlevel) {
+            onRemoveClient(entity, reason, clientlevel, clientlevel.entityStorage);
+        }
+    }
     private void updateIdNotSpawning(Integer id){
         (StackTraceUtil.isClientThread()?clientIdNotSpawning:serverIdNotSpawning).put(id,101);
     }

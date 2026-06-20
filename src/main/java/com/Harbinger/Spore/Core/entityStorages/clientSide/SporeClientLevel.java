@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.entityStorages.clientSide;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
+import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import com.Harbinger.Spore.sEvents.SporeEventBus;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -73,6 +74,19 @@ public final class SporeClientLevel extends ClientLevel {
             return;
         }
         super.addEntity(id, entity);
+    }
+    @Override
+    public void removeEntity(int p_171643_, Entity.RemovalReason p_171644_) {
+        Entity entity = this.getEntities().get(p_171643_);
+        if (entity != null) {
+            if(entity instanceof IDieWithDiscardEntity){
+                SimpleRemoveUtil.INSTANCE.setRemoved(entity, p_171644_);
+            }else{
+                entity.setRemoved(p_171644_);
+            }
+            entity.onClientRemoval();
+        }
+
     }
     @Override
     public void tickEntities() {

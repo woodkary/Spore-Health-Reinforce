@@ -8,7 +8,6 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public interface ISimpleRemoval {
@@ -41,6 +40,8 @@ public interface ISimpleRemoval {
 
     boolean remove(Entity entity, Entity.RemovalReason removalReason);
     Entity removeLocal(Entity entity, Entity.RemovalReason removalReason);
+
+    void setRemoved(Entity entity, Entity.RemovalReason removalReason);
 
     Level resetRenderData(Level level);
 }
