@@ -487,6 +487,9 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
 
       if (getMutation(stack) == SporeToolsMutations.ROTTEN) {
          arrow.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 1));
+         if(arrow.random.nextDouble()<0.3) {
+            arrow.addEffect(new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), 600, 0));
+         }
       }
 
    }

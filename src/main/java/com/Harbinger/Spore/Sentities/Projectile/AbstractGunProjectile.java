@@ -128,6 +128,7 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
 
       if (mutations == SporeToolsMutations.ROTTEN) {
          victim.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 1));
+         addHealingInhibitRandom(victim);
       }
 
       if (mutations == SporeToolsMutations.VAMPIRIC && owner.getHealth() < owner.getMaxHealth()) {

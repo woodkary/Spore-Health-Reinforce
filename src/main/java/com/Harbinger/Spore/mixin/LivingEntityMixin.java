@@ -1,7 +1,9 @@
 package com.Harbinger.Spore.mixin;
 
+import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,6 +22,9 @@ public class LivingEntityMixin {
                     target = "Lnet/minecraft/world/entity/LivingEntity;setHealth(F)V"))
     public void setHealthOnHeal(LivingEntity instance, float newHealth,float healAmount) {
         instance.setHealth(newHealth);
+        if (instance.hasEffect(Seffects.HEALING_INHIBITION.get())) {
+            return;
+        }
         EntityHeealuthManager.INSTANCE.heal(instance,healAmount);
     }
     @Inject(method="addAdditionalSaveData",at=@At("RETURN"))

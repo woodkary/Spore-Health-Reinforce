@@ -127,6 +127,7 @@ public class InfectedShield extends SporeToolsBaseItem {
 
             if (this.getVariant(stack) == SporeToolsMutations.ROTTEN) {
                target.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0));
+               addHealingInhibitRandom(target);
             }
          }
 

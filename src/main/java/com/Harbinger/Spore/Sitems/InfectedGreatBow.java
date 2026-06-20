@@ -165,6 +165,9 @@ public class InfectedGreatBow extends BowItem implements SporeWeaponData {
 
       if (this.getVariant(stack) == SporeToolsMutations.ROTTEN) {
          arrow.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 0));
+         if(arrow.random.nextDouble()<0.3) {
+            arrow.addEffect(new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), 600, 0));
+         }
       }
 
       if (this.getVariant(stack) == SporeToolsMutations.TOXIC) {

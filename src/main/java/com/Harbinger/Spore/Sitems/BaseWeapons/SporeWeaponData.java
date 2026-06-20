@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
+import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.core.registries.Registries;
@@ -29,6 +30,17 @@ public interface SporeWeaponData {
 
    default boolean tooHurt(ItemStack stack) {
       return stack.getDamageValue() < stack.getMaxDamage() - 10;
+   }
+   default void addHealingInhibitRandom(LivingEntity target){
+      addHealingInhibitRandom(target,0.3,600);
+   }
+   default void addHealingInhibitRandom(LivingEntity target,double chance) {
+      addHealingInhibitRandom(target,chance,600);
+   }
+   default void addHealingInhibitRandom(LivingEntity target,double chance,int duration) {
+      if(target.random.nextDouble()<chance) {
+         target.addEffect(new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), duration, 0));
+      }
    }
    default boolean doASMRangeHurtOnSwing(ItemStack stack, LivingEntity attacker){
       if(!(attacker instanceof Player player)||this.getVariant(stack) != SporeToolsMutations.BEZERK){
@@ -153,6 +165,7 @@ public interface SporeWeaponData {
 
       if (this.getVariant(stack) == SporeToolsMutations.ROTTEN) {
          victim.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 1));
+         addHealingInhibitRandom(victim);
       }
 
       if (this.getVariant(stack) == SporeToolsMutations.CALCIFIED) {
@@ -213,6 +226,7 @@ public interface SporeWeaponData {
 
       if (data.getVariant(stack) == SporeToolsMutations.ROTTEN) {
          victim.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 1));
+         addHealingInhibitRandom(victim);
       }
 
       if (data.getVariant(stack) == SporeToolsMutations.VAMPIRIC && owner.getHealth() < owner.getMaxHealth()) {

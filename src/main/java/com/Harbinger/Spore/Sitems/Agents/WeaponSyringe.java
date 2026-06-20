@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems.Agents;
 
+import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
@@ -48,6 +49,9 @@ public class WeaponSyringe extends AbstractSyringe {
             break;
          case ROTTEN:
             living.addEffect(new MobEffectInstance(MobEffects.WITHER, 300, 0));
+            if(living.random.nextDouble()<0.3) {
+               living.addEffect(new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), 600, 0));
+            }
       }
 
       stack.shrink(1);
