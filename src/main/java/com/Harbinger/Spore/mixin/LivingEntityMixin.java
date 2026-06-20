@@ -21,13 +21,13 @@ public class LivingEntityMixin {
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/LivingEntity;setHealth(F)V"))
     public void setHealthOnHeal(LivingEntity instance, float newHealth,float healAmount) {
-        instance.setHealth(newHealth);
         if (instance.hasEffect(Seffects.HEALING_INHIBITION.get())) {
             if(!EntityHeealuthManager.INSTANCE.containsDeltaKey(instance)) {
                 EntityHeealuthManager.INSTANCE.hurt(instance, 0.0f);
             }
             return;
         }
+        instance.setHealth(newHealth);
         EntityHeealuthManager.INSTANCE.heal(instance,healAmount);
     }
     @Inject(method="addAdditionalSaveData",at=@At("RETURN"))

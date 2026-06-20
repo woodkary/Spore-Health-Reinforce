@@ -5,6 +5,6 @@ import net.minecraft.world.effect.MobEffectCategory;
 
 public final class HealingInhibition extends MobEffect {
    public HealingInhibition() {
-      super(MobEffectCategory.NEUTRAL, 10233417);
+      super(MobEffectCategory.BENEFICIAL, 10233417);
    }
 }
