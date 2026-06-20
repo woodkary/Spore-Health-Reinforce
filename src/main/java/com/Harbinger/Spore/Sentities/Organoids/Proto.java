@@ -129,6 +129,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       this.setPersistenceRequired();
       this.initializeValues();
       this.setLegalPosition(Vec3.ZERO);
+      initDATA_HEALTH_IDToZero();
    }
    @Override
    public Vec3 lastLegalPosition() {
@@ -1140,6 +1141,6 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
    @Override
    public float getDefault0HllealthDelta() {
-      return this.entityData.get(DATA_HEALTH);
+      return this.entityData.get(DATA_HEALTH)+this.entityData.get(LivingEntity.DATA_HEALTH_ID);
    }
 }

@@ -145,6 +145,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       this.lookControl = new SmoothLookControl(this, 3.0F, 2.0F, 0.35F);
       this.xpReward = 50;
       this.setLegalPosition(Vec3.ZERO);
+      initDATA_HEALTH_IDToZero();
       initCustom();
    }
 
@@ -903,7 +904,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    @Override
    public float getDefault0HllealthDelta() {
-      return this.entityData.get(DATA_HEALTH);
+      return this.entityData.get(DATA_HEALTH)+this.entityData.get(LivingEntity.DATA_HEALTH_ID);
    }
 
    public static class GoToLocation extends Goal {
