@@ -8,6 +8,7 @@ import com.Harbinger.Spore.Core.utils.ProtectedConcurrentHashMap;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.ICalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
+import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -153,7 +154,11 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         if (healthOwner == null) {
             return 0.0f;
         }
-        return FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(healthOwner,entityHealthJudge), 0.0f);
+        float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(healthOwner,entityHealthJudge), 0.0f);
+        if(entity instanceof IFakeDataHealthEntity fakeHealth){
+            res+=fakeHealth.getDefault0HllealthDelta();//Default0Hllealth应永远返回0
+        }
+        return res;
     }
 
     @Override

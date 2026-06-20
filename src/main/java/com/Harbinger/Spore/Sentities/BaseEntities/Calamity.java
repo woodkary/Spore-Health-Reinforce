@@ -12,7 +12,6 @@ import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
@@ -34,8 +33,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.*;
 
-import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
-import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -65,7 +62,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.SpawnGroupData;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -95,11 +91,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, AdaptableEntity,IDieWithDiscardEntity {
+public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageBypass, ChunkLoaderMob, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, AdaptableEntity,IDieWithDiscardEntity,IFakeDataHealthEntity {
    public static final EntityDataAccessor<Integer> KILLS;
    public static final EntityDataAccessor<Integer> MUTATION;
    public static final EntityDataAccessor<BlockPos> SEARCH_AREA;
    public static final EntityDataAccessor<Boolean> ROOTED;
+   public static final EntityDataAccessor<Float> DATA_HEALTH;
    protected int breakCounter;
    private int stun = 0;
    private int crushingTick=0;
@@ -272,6 +269,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       tag.putInt("AreaY", this.getSearchArea().getY());
       tag.putInt("AreaZ", this.getSearchArea().getZ());
       tag.putInt("adaptationCount",this.getAdaptationCount());
+      addFakeAdditionalData(tag);
       addSaveData(tag);
       addAdditionalLegalPositionData(tag);
    }
@@ -376,6 +374,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       if(tag.contains("adaptationCount")){
          this.setAdaptationCount(tag.getInt("adaptationCount"));
       }
+      readFakeHealthData(tag);
       readSaveData(tag);
       readAdditionalLegalPositionData(tag);
    }
@@ -396,6 +395,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       this.entityData.define(KILLS, 0);
       this.entityData.define(MUTATION, 0);
       this.entityData.define(SEARCH_AREA, BlockPos.ZERO);
+      this.entityData.define(DATA_HEALTH,0.0f);
    }
 
    public boolean canCalcify(Entity entity) {
@@ -878,6 +878,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       MUTATION = SynchedEntityData.defineId(Calamity.class, EntityDataSerializers.INT);
       SEARCH_AREA = SynchedEntityData.defineId(Calamity.class, EntityDataSerializers.BLOCK_POS);
       ROOTED = SynchedEntityData.defineId(Calamity.class, EntityDataSerializers.BOOLEAN);
+      DATA_HEALTH=SynchedEntityData.defineId(Calamity.class, EntityDataSerializers.FLOAT);
       states = List.of(((Block)Sblocks.BIOMASS_BLOCK.get()).defaultBlockState(), ((Block)Sblocks.ROOTED_BIOMASS.get()).defaultBlockState(), ((Block)Sblocks.CALCIFIED_BIOMASS_BLOCK.get()).defaultBlockState(), ((Block)Sblocks.SICKEN_BIOMASS_BLOCK.get()).defaultBlockState(), ((Block)Sblocks.REMAINS.get()).defaultBlockState());
    }
 
@@ -888,6 +889,21 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    @Override
    public boolean isProtoOrCalamity(){
       return true;
+   }
+
+   @Override
+   public LivingEntity _this() {
+      return this;
+   }
+
+   @Override
+   public void setDefault0HllealthDelta(float delta) {
+      this.entityData.set(DATA_HEALTH, delta);
+   }
+
+   @Override
+   public float getDefault0HllealthDelta() {
+      return this.entityData.get(DATA_HEALTH);
    }
 
    public static class GoToLocation extends Goal {

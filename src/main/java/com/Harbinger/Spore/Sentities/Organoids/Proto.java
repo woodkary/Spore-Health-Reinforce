@@ -78,10 +78,11 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class Proto extends Organoid implements CasingGenerator, FoliageSpread, ChunkLoaderMob, IDieWithDiscardEntity {
-   private static final EntityDataAccessor HOSTS;
-   private static final EntityDataAccessor BIOMASS;
-   public static final EntityDataAccessor NODE;
+public class Proto extends Organoid implements CasingGenerator, FoliageSpread, ChunkLoaderMob, IDieWithDiscardEntity,IFakeDataHealthEntity {
+   private static final EntityDataAccessor<Integer> HOSTS;
+   private static final EntityDataAccessor<Integer> BIOMASS;
+   public static final EntityDataAccessor<BlockPos> NODE;
+   public static final EntityDataAccessor<Float> DATA_HEALTH;
    private final List hypers = new ArrayList() {
       {
          this.add("spore:inquisitor");
@@ -586,6 +587,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
          tag.put("team_" + (i + 1), teamTag);
       }
+      addFakeAdditionalData(tag);
       addAdditionalLegalPositionData(tag);
    }
 
@@ -618,6 +620,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             ((List)teams.get(i)).add(teamTag.getString(j));
          }
       }
+      readFakeHealthData(tag);
       readAdditionalLegalPositionData(tag);
    }
 
@@ -626,6 +629,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       this.entityData.define(BIOMASS, 100);
       this.entityData.define(HOSTS, 0);
       this.entityData.define(NODE, this.getOnPos());
+      this.entityData.define(DATA_HEALTH,0.0f);
    }
 
    public int getHosts() {
@@ -1102,6 +1106,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
       HOSTS = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.INT);
       BIOMASS = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.INT);
       NODE = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.BLOCK_POS);
+      DATA_HEALTH=SynchedEntityData.defineId(Proto.class, EntityDataSerializers.FLOAT);
    }
 
    @Override
@@ -1121,5 +1126,20 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    @Override
    public boolean isProtoOrCalamity(){
       return true;
+   }
+
+   @Override
+   public LivingEntity _this() {
+      return this;
+   }
+
+   @Override
+   public void setDefault0HllealthDelta(float delta) {
+      this.entityData.set(DATA_HEALTH, delta);
+   }
+
+   @Override
+   public float getDefault0HllealthDelta() {
+      return this.entityData.get(DATA_HEALTH);
    }
 }
