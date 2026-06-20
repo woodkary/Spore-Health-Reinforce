@@ -362,16 +362,16 @@ public class HandlerEvents {
       if (entity instanceof LivingEntity livingEntity) {
          if (SporeJudge.isSporeEntity(livingEntity)) {
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(livingEntity,0.0f);
-            return true;
+            return livingEntity.getHealth()<=0.0f;
          }
          DamageSource source = livingEntity.damageSources().cactus();
          EntityHeealuthManager.INSTANCE.hurt(livingEntity, Float.POSITIVE_INFINITY, source);
          EntityHeealuthManager.INSTANCE.killEntity(livingEntity, source);
-         return true;
+         return livingEntity.getHealth()<=0.0f;
       }
 
       entity.remove(Entity.RemovalReason.DISCARDED);
-      return true;
+      return !entity.isRemoved();
    }
    @SubscribeEvent
    public static void Command(RegisterCommandsEvent event) {
