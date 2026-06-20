@@ -23,7 +23,7 @@ public interface IDieWithDiscardEntity {
     }
     default void tickLegalPosition(){
         LivingEntity self = self();
-        if(self.tickCount%30==0&&hasLegalPosition()){
+        if((self.tickCount<30||self.tickCount%30==0)&&hasLegalPosition()){
             setLegalPosition(self.position);
         }
     }
