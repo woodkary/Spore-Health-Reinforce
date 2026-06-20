@@ -199,7 +199,15 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    public static AttributeSupplier.Builder createAttributes() {
       return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, (Double)SConfig.SERVER.proto_hp.get() * (Double)SConfig.SERVER.global_health.get()).add(Attributes.ARMOR, (Double)SConfig.SERVER.proto_armor.get() * (Double)SConfig.SERVER.global_armor.get()).add(Attributes.ATTACK_DAMAGE, (Double)SConfig.SERVER.proto_damage.get() * (Double)SConfig.SERVER.global_damage.get()).add(Attributes.FOLLOW_RANGE, (double)128.0F).add(Attributes.KNOCKBACK_RESISTANCE, (double)2.0F);
    }
-
+   @Override
+   public void setHealth(float newHealth) {
+      float damage=this.getHealth()-newHealth;
+      if(damage>0.0f){
+         //试图通过setHealth扣血，改为回血
+         //不用担心SafeData写入
+         SporeEntityHeeaafastthManager.INSTANCE.heal(this,damage);
+      }
+   }
    protected void registerGoals() {
       this.addTargettingGoals();
       this.goalSelector.addGoal(3, new ProtoTargeting(this));
