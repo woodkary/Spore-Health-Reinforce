@@ -343,8 +343,11 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
       }
 
    }
-
    private void summon(Entity entity, boolean value) {
+      summon(entity, value,true);
+   }
+
+   private void summon(Entity entity, boolean value,boolean discard) {
       if (Math.random() <= (double)0.3F) {
          this.entityData.set(STATE, this.random.nextInt(TERRAIN.values().length));
       }
@@ -413,7 +416,9 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
                }
 
                this.level().addFreshEntity(spawnedEntity);
-               this.discard();
+               if(discard) {
+                  this.discard();
+               }
             }
          }
       }
@@ -428,14 +433,18 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
       if (this.getHealth() > 0.0f) {
          return;
       }
-      specialDie(this.lastDamageSource!=null ? this.lastDamageSource : this.damageSources().cactus());
+      if (this.getBiomass() > (Integer)SConfig.SERVER.reconstructor_biomass.get() / 2) {
+         this.summon(this, true,true);
+      }
       super.tickDeath();
    }
    public void die(DamageSource p_21014_) {
       if (this.getHealth()>0.0f) {
          return;
       }
-      specialDie(p_21014_);
+      if (this.getBiomass() > (Integer)SConfig.SERVER.reconstructor_biomass.get() / 2) {
+         this.summon(this, true,true);
+      }
       super.die(p_21014_);
    }
 
@@ -506,17 +515,17 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
    public void setLegalPosition(Vec3 position) {
       this.lastLegalPosition = position;
    }
-
+   //specialDie不带有discard，防止递归
    @Override
    public void specialDie(DamageSource source) {
       this.entityData.set(SPECIAL_DEAD, true);
       if (this.getBiomass() > (Integer)SConfig.SERVER.reconstructor_biomass.get() / 2) {
-         this.summon(this, true);
+         this.summon(this, true,false);
       }
    }
 
 
-   public static enum TERRAIN {
+   public enum TERRAIN {
       GROUND_LEVEL(0, (List)SConfig.SERVER.reconstructor_terrain.get()),
       WATER_LEVEL(1, (List)SConfig.SERVER.reconstructor_water.get()),
       AIR_LEVEL(2, (List)SConfig.SERVER.reconstructor_air.get()),
