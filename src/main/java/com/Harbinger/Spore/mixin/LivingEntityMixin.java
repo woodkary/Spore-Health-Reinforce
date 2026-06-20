@@ -23,7 +23,9 @@ public class LivingEntityMixin {
     public void setHealthOnHeal(LivingEntity instance, float newHealth,float healAmount) {
         instance.setHealth(newHealth);
         if (instance.hasEffect(Seffects.HEALING_INHIBITION.get())) {
-            EntityHeealuthManager.INSTANCE.hurt(instance,0.0f);
+            if(!EntityHeealuthManager.INSTANCE.containsDeltaKey(instance)) {
+                EntityHeealuthManager.INSTANCE.hurt(instance, 0.0f);
+            }
             return;
         }
         EntityHeealuthManager.INSTANCE.heal(instance,healAmount);
