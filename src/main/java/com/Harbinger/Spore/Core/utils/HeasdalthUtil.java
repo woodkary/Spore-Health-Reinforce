@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.WrappedMethod;
+import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -552,6 +553,10 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         DamageSource actualSource = source != null ? source : target.damageSources().genericKill();
         if (SporeJudge.isSporeEntity(target)) {
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target, 0.0f);
+            if(target instanceof IFakeDataHealthEntity fake){
+                fake.setDefault0HllealthDelta(0.0f);
+                target.entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
+            }
         } else {
             setHeeaatth(target, 0.0f, true, true);
         }

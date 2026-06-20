@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BossEventUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
+import com.Harbinger.Spore.Sentities.BaseEntities.*;
 import com.Harbinger.Spore.Spore;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
@@ -19,12 +20,6 @@ import com.Harbinger.Spore.SBlockEntities.LivingStructureBlocks;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
 import com.Harbinger.Spore.Sentities.ChunkLoaderMob;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
-import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
-import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
-import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
-import com.Harbinger.Spore.Sentities.BaseEntities.Organoid;
-import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.BasicInfected.InfectedDrowned;
 import com.Harbinger.Spore.Sentities.Calamities.Gazenbrecher;
 import com.Harbinger.Spore.Sentities.Calamities.Hinderburg;
@@ -362,6 +357,10 @@ public class HandlerEvents {
       if (entity instanceof LivingEntity livingEntity) {
          if (SporeJudge.isSporeEntity(livingEntity)) {
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(livingEntity,0.0f);
+            if(livingEntity instanceof IFakeDataHealthEntity fake){
+               fake.setDefault0HllealthDelta(0.0f);
+               livingEntity.entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
+            }
             return livingEntity.getHealth()<=0.0f;
          }
          DamageSource source = livingEntity.damageSources().cactus();
