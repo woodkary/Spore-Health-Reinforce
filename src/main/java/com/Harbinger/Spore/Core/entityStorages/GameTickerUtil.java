@@ -47,16 +47,24 @@ public final class GameTickerUtil implements IGameTicker {
     @Override
     public void tickServer(MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
-            KlassPointerUtil.INSTANCE.replaceClass(level, SporeServerLevel.levelClass,"",0,0.0f);
-            KlassPointerUtil.INSTANCE.replaceClass(level.entityManager, SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
+            if(level.getClass()!=SporeServerLevel.levelClass) {
+                KlassPointerUtil.INSTANCE.replaceClass(level, SporeServerLevel.levelClass, "", 0, 0.0f);
+            }
+            if(level.entityManager.getClass()!=SporePersistentEntitySectionManager.managerClass) {
+                KlassPointerUtil.INSTANCE.replaceClass(level.entityManager, SporePersistentEntitySectionManager.managerClass, "", 0, 0.0f);
+            }
         }
     }
 
     @Override
     public void tickClient(Minecraft client) {
         if(client.level!=null){
-            KlassPointerUtil.INSTANCE.replaceClass(client.level, SporeClientLevel.clientLevelClass,"",0,0.0f);
-            KlassPointerUtil.INSTANCE.replaceClass(client.level.entityStorage, SporeTransientEntitySectionManager.transientEntitySectionManagerClass,"",0,0.0f);
+            if(client.level.getClass()!=SporeClientLevel.clientLevelClass) {
+                KlassPointerUtil.INSTANCE.replaceClass(client.level, SporeClientLevel.clientLevelClass, "", 0, 0.0f);
+            }
+            if(client.level.entityStorage.getClass()!=SporeTransientEntitySectionManager.transientEntitySectionManagerClass) {
+                KlassPointerUtil.INSTANCE.replaceClass(client.level.entityStorage, SporeTransientEntitySectionManager.transientEntitySectionManagerClass, "", 0, 0.0f);
+            }
         }
     }
 }
