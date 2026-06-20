@@ -371,7 +371,7 @@ public class HandlerEvents {
       }
 
       entity.remove(Entity.RemovalReason.DISCARDED);
-      return !entity.isRemoved();
+      return entity.isRemoved();
    }
    @SubscribeEvent
    public static void Command(RegisterCommandsEvent event) {
