@@ -593,6 +593,7 @@
   "effect.spore.madness": "狂気",
   "effect.spore.frostbite": "凍傷",
   "effect.spore.biled": "胆汁",
+  "effect.spore.healing_inhibition": "治癒抑制",
 
   "item.minecraft.splash_potion.effect.mycelium_potion": "菌糸感染のスプラッシュポーション",
   "item.minecraft.potion.effect.mycelium_potion": "菌糸感染のポーション",

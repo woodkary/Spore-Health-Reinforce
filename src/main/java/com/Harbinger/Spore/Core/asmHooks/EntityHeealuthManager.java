@@ -426,7 +426,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
             setTrueDeeauthCalled(entity,false);
         }
     }
-    private float hurt(LivingEntity entity, float damage){
+    @Override
+    public float hurt(LivingEntity entity, float damage){
         IFloatEntry deltaEntry = heaalthDeltaMap.get(entity);
         float delta;
         float health=entity.getHealth();

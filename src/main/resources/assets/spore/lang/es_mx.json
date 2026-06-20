@@ -580,6 +580,7 @@
   "effect.spore.madness": "Locura",
   "effect.spore.frostbite": "Congelación",
   "effect.spore.biled": "Bilis",
+  "effect.spore.healing_inhibition": "Inhibición de curación",
 
   "item.minecraft.splash_potion.effect.mycelium_potion": "Poción arrojadiza de infección de micelio",
   "item.minecraft.potion.effect.mycelium_potion": "Poción de infección de micelio",

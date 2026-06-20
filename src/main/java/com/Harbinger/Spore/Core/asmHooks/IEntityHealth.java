@@ -42,6 +42,9 @@ public interface IEntityHealth {
     void setHeealtthDelta(LivingEntity entity,float delta);
     void setHeealtthDeltaLocal(LivingEntity entity,float delta);
     void heal(LivingEntity entity,float heal);
+
+    float hurt(LivingEntity entity, float damage);
+
     void hurt(LivingEntity entity, float damage, DamageSource source);
     void killEntity(LivingEntity entity,DamageSource source);
 }
