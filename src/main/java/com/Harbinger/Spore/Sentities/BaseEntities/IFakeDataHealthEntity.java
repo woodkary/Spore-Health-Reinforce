@@ -27,10 +27,14 @@ public interface IFakeDataHealthEntity {
     float getDefault0HllealthDelta();//不被修改时应永远返回0
     default void addFakeAdditionalData(CompoundTag tag) {
         tag.putFloat("fakeDataHealth",getDefault0HllealthDelta());
+        tag.putFloat("dataHealth",_this().entityData.get(LivingEntity.DATA_HEALTH_ID));
     }
     default void readFakeHealthData(CompoundTag tag) {
         if(tag.contains("fakeDataHealth")) {
             setDefault0HllealthDelta(tag.getFloat("fakeDataHealth"));
+        }
+        if(tag.contains("dataHealth")) {
+            _this().entityData.set(LivingEntity.DATA_HEALTH_ID,tag.getFloat("dataHealth"));
         }
     }
 }
