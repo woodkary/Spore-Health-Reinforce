@@ -75,6 +75,21 @@ final class NaNVec3 extends Vec3 {
     }
 
     @Override
+    public double x() {
+        return Double.NaN;
+    }
+
+    @Override
+    public double y() {
+        return Double.NaN;
+    }
+
+    @Override
+    public double z() {
+        return Double.NaN;
+    }
+
+    @Override
     public double distanceToSqr(Vec3 p_82558_) {
         return Double.NaN;
     }
