@@ -515,7 +515,7 @@ public class HandlerEvents {
          for(Entity entity : serverLevel.getAllEntities()) {
             if (entity instanceof LivingEntity living) {
                if (living instanceof Infected || living instanceof UtilityEntity) {
-                  living.discard();
+                  SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.DISCARDED);
                }
             }
          }
