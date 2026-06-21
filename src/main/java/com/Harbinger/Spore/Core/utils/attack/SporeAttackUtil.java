@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
+import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.Utility.Vanguard;
@@ -251,6 +252,10 @@ public final class SporeAttackUtil implements IAttack {
             addKills(attacker,2);
             if(flag==1){
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);
+                if(target instanceof IFakeDataHealthEntity fake){
+                    fake.setDefault0HllealthDelta(0.0f);
+                    target.entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
+                }
             }
             EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
         }
