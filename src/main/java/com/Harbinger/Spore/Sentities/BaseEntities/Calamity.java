@@ -250,7 +250,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
          amount*=(1.0f-this.getAdaptationCount()*0.02f);
          lastHealth=this.getHealth();
       }
-      actualHurt(source, amount);
+      float actualDamage=actualHurt(source, amount);
+      if(actualDamage>0.0f) {
+         hurtDellta(2.0f * actualDamage);
+      }
       int master = L2HostilityMobTraits.INSTANCE.getTraitLevel(this, "master");
       //受到伤害大于一定值
       if(master>0&&lastHealth-this.getHealth()>=50.0f){

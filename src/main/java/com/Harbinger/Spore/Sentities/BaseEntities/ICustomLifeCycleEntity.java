@@ -43,7 +43,7 @@ public interface ICustomLifeCycleEntity {
     default void tickCustomLifeCycle(){
         SporeEntityHeeaafastthManager.INSTANCE.updateIFrameTick(entity());
     }
-    default void actualHurt(DamageSource source, float damage) {
+    default float actualHurt(DamageSource source, float damage) {
         LivingEntity liv=entity();
         boolean isProtoOrCalamity = isProtoOrCalamity();
         //普通生物可以直接受伤，Proto和Calamity需要经过无敌帧
@@ -60,7 +60,7 @@ public interface ICustomLifeCycleEntity {
             }
             SporeEntityHeeaafastthManager.INSTANCE.setIffranemeTicgk(liv,0);
             if (damage <= 0.0F) {
-                return;
+                return 0.0f;
             }
             liv.hurtArmor(source,damage);
             if(!isFreezeDamage){
@@ -92,8 +92,10 @@ public interface ICustomLifeCycleEntity {
                         SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(liv)));
                 liv.setAbsorptionAmount(liv.getAbsorptionAmount() - f1);
                 liv.gameEvent(GameEvent.ENTITY_DAMAGE);
+                return f1;
             }
         }
+        return 0.0f;
     }
     default void addSaveData(CompoundTag tag){
         LivingEntity liv = entity();
