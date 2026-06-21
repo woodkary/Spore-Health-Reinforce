@@ -144,7 +144,7 @@ final class InfiniteBlockPos extends BlockPos {
 
     @Override
     public MutableBlockPos mutable() {
-        return super.mutable();
+        return InfiniteMutableBlockPos.INSTANCE;
     }
 
     @Override
