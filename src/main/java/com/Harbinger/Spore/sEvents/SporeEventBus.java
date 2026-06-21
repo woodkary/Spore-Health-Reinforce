@@ -2,11 +2,18 @@ package com.Harbinger.Spore.sEvents;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntitySectionStorage;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.entity.EntityAccess;
+import net.minecraft.world.level.entity.PersistentEntitySectionManager;
+import net.minecraft.world.level.entity.TransientEntitySectionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
@@ -109,9 +116,22 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
     @Override
     public void accept(TickEvent tickEvent) {
         if(tickEvent instanceof TickEvent.ClientTickEvent||tickEvent instanceof TickEvent.ServerTickEvent){
-            if(tickEvent instanceof TickEvent.ServerTickEvent){
+            if(tickEvent instanceof TickEvent.ServerTickEvent serverTickEvent){
                 SimpleRemoveUtil.INSTANCE.tickServer();
+                for (ServerLevel level : serverTickEvent.getServer().getAllLevels()) {
+                    PersistentEntitySectionManager<? extends EntityAccess> manager=level.entityManager;
+                    if(manager.sectionStorage.getClass()!=SporeEntitySectionStorage.entitySectionStorageClass) {
+                        KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass, "", 0, 0.0f);
+                    }
+                }
             }else{
+                ClientLevel level=Minecraft.getInstance().level;
+                if(level!=null){
+                    TransientEntitySectionManager<? extends EntityAccess> manager=level.entityStorage;
+                    if(manager.sectionStorage.getClass()!=SporeEntitySectionStorage.entitySectionStorageClass) {
+                        KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass,"",0,0.0f);
+                    }
+                }
                 SimpleRemoveUtil.INSTANCE.tickClient();
             }
             SporeEntityHeeaafastthManager.INSTANCE.tick();
