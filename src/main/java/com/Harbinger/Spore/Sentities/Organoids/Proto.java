@@ -1148,6 +1148,6 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
    @Override
    public float getDefault0HllealthDelta() {
-      return this.entityData.get(DATA_HEALTH)+this.entityData.get(LivingEntity.DATA_HEALTH_ID);
+      return this.entityData.get(DATA_HEALTH);
    }
 }

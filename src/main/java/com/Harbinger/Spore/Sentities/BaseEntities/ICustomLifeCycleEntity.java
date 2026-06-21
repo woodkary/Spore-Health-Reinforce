@@ -85,9 +85,6 @@ public interface ICustomLifeCycleEntity {
                 if(shouldLimitDamage) {
                     f1 = Math.min(liv instanceof Proto?20.0f:liv.getMaxHealth() * reduceRate, damage);
                 }
-                if(liv instanceof IFakeDataHealthEntity fake) {
-                    fake.clearDefault0HllealthDelta();
-                }
                 liv.getCombatTracker().recordDamage(source, f1);
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv, Mth.clamp(
                         SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(liv) - f1,

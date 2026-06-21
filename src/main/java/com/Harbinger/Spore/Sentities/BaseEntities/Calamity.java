@@ -907,7 +907,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
    @Override
    public float getDefault0HllealthDelta() {
-      return this.entityData.get(DATA_HEALTH)+this.entityData.get(LivingEntity.DATA_HEALTH_ID);
+      return this.entityData.get(DATA_HEALTH);
    }
 
    public static class GoToLocation extends Goal {

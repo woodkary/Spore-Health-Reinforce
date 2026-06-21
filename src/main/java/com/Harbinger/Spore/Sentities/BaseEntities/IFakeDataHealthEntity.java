@@ -9,15 +9,15 @@ public interface IFakeDataHealthEntity {
         _this().entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
     }
     default void hurtDellta(float damage){
-        if(damage>0.0f) {
-            clearDefault0HllealthDelta();
+        LivingEntity living = _this();
+        float current=getDefault0HllealthDelta();
+        if(current>0.0f) {
+            setDefault0HllealthDelta(Math.max(current-damage,0.0f));
         }
-    }
-    default float clearDefault0HllealthDelta(){
-        float delta = getDefault0HllealthDelta();
-        setDefault0HllealthDelta(0.0f);
-        _this().entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
-        return delta;
+        current=living.entityData.get(LivingEntity.DATA_HEALTH_ID);
+        if(current>0.0f) {
+            living.entityData.set(LivingEntity.DATA_HEALTH_ID,Math.max(current-damage,0.0f));
+        }
     }
     void setDefault0HllealthDelta(float delta);//理论上永远传入0
     float getDefault0HllealthDelta();//不被修改时应永远返回0
