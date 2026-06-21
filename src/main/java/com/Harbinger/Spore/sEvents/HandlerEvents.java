@@ -1305,4 +1305,11 @@ public class HandlerEvents {
       }
 
    }
+   public static void onMobEffectAdded(MobEffectEvent.Added addEffectEvent){
+      LivingEntity entity = addEffectEvent.getEntity();
+      if(addEffectEvent.getEffectInstance().getEffect()==Seffects.HEALING_INHIBITION.get()&&
+              !EntityHeealuthManager.INSTANCE.containsDeltaKey(entity)) {
+         EntityHeealuthManager.INSTANCE.hurt(entity, 0.0f);
+      }
+   }
 }

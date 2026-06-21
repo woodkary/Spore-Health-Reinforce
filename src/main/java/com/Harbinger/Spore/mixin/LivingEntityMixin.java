@@ -22,9 +22,6 @@ public class LivingEntityMixin {
                     target = "Lnet/minecraft/world/entity/LivingEntity;setHealth(F)V"))
     public void setHealthOnHeal(LivingEntity instance, float newHealth,float healAmount) {
         if (instance.hasEffect(Seffects.HEALING_INHIBITION.get())) {
-            if(!EntityHeealuthManager.INSTANCE.containsDeltaKey(instance)) {
-                EntityHeealuthManager.INSTANCE.hurt(instance, 0.0f);
-            }
             return;
         }
         instance.setHealth(newHealth);

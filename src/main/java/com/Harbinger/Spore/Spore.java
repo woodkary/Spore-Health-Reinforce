@@ -67,6 +67,7 @@ public class Spore {
       structureModifiers.register(modEventBus);
       structureModifiers.register("spore_structure_spawns", StructureModification::makeCodec);
       SporeEventBus.tick().addSelfListener();
+      MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onMobEffectAdded);
    }
 
    public void commonSetup(FMLCommonSetupEvent event) {
