@@ -28,7 +28,6 @@ import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -554,7 +553,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         if (SporeJudge.isSporeEntity(target)) {
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target, 0.0f);
             if(target instanceof IFakeDataHealthEntity fake){
-                fake.clearDefault0HllealthDelta();
+                fake.clearHllealthDelta();
             }
         } else {
             setHeeaatth(target, 0.0f, true, true);

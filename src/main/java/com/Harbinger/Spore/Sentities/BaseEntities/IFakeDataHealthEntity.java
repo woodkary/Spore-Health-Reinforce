@@ -19,7 +19,7 @@ public interface IFakeDataHealthEntity {
             living.entityData.set(LivingEntity.DATA_HEALTH_ID,Math.max(current-damage,0.0f));
         }
     }
-    default void clearDefault0HllealthDelta(){
+    default void clearHllealthDelta(){
         setDefault0HllealthDelta(0.0f);
         _this().entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
     }

@@ -357,7 +357,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             if(entity instanceof LivingEntity liv) {
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
                 if(liv instanceof IFakeDataHealthEntity fake){
-                    fake.clearDefault0HllealthDelta();
+                    fake.clearHllealthDelta();
                 }
             }
             entity.remove(removalReason);

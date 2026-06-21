@@ -253,7 +253,7 @@ public final class SporeAttackUtil implements IAttack {
             if(flag==1){
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);
                 if(target instanceof IFakeDataHealthEntity fake){
-                    fake.clearDefault0HllealthDelta();
+                    fake.clearHllealthDelta();
                 }
             }
             EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
