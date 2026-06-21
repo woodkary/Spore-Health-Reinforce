@@ -9,7 +9,7 @@ import org.joml.Vector3f;
 
 import java.util.EnumSet;
 
-public final class NaNVec3 extends Vec3 {
+final class NaNVec3 extends Vec3 {
     public static final Vec3 INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             Vec3.class,
             NaNVec3.class,

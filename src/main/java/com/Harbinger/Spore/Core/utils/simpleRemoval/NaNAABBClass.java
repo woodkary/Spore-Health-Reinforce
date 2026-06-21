@@ -8,7 +8,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 
-public final class NaNAABBClass extends AABB {
+final class NaNAABBClass extends AABB {
     public static final AABB INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
             AABB.class,
             NaNAABBClass.class,
