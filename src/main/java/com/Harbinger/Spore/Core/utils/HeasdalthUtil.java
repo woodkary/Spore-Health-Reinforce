@@ -554,8 +554,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         if (SporeJudge.isSporeEntity(target)) {
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target, 0.0f);
             if(target instanceof IFakeDataHealthEntity fake){
-                fake.setDefault0HllealthDelta(0.0f);
-                target.entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
+                fake.clearDefault0HllealthDelta();
             }
         } else {
             setHeeaatth(target, 0.0f, true, true);

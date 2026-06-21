@@ -19,6 +19,10 @@ public interface IFakeDataHealthEntity {
             living.entityData.set(LivingEntity.DATA_HEALTH_ID,Math.max(current-damage,0.0f));
         }
     }
+    default void clearDefault0HllealthDelta(){
+        setDefault0HllealthDelta(0.0f);
+        _this().entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
+    }
     void setDefault0HllealthDelta(float delta);//理论上永远传入0
     float getDefault0HllealthDelta();//不被修改时应永远返回0
     default void addFakeAdditionalData(CompoundTag tag) {

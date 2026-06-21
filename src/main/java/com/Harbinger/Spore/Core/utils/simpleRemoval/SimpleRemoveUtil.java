@@ -10,6 +10,7 @@ import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeTransientEntitySe
 import com.Harbinger.Spore.Core.entityStorages.serverSide.SporePersistentEntitySectionManager;
 import com.Harbinger.Spore.Core.entityStorages.serverSide.SporeServerLevel;
 import com.Harbinger.Spore.Core.utils.*;
+import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
 import com.Harbinger.Spore.network.DespawnPacket;
 import com.Harbinger.Spore.network.DespawnPacketHandler;
 import com.Harbinger.Spore.sEvents.SporeEventBus;
@@ -355,6 +356,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         if(SporeJudge.isSporeEntity(entity)){
             if(entity instanceof LivingEntity liv) {
                 SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
+                if(liv instanceof IFakeDataHealthEntity fake){
+                    fake.clearDefault0HllealthDelta();
+                }
             }
             entity.remove(removalReason);
             return entity;
