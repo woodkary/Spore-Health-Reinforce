@@ -203,12 +203,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
    }
    @Override
    public void setHealth(float newHealth) {
-      float damage=this.getHealth()-newHealth;
-      if(damage>0.0f){
-         //试图通过setHealth扣血，改为回血
-         //不用担心SafeData写入
-         SporeEntityHeeaafastthManager.INSTANCE.heal(this,damage);
-      }
+
    }
    protected void registerGoals() {
       this.addTargettingGoals();
