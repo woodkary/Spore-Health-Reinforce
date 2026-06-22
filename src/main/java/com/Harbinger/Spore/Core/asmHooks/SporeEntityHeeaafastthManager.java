@@ -220,7 +220,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         }
         try {
             float maxHealth = (float) entity.attributes.getValue(Attributes.MAX_HEALTH);
-            return maxHealth > 0.0f && !Float.isNaN(maxHealth) ? maxHealth : 1.0f;
+            return !Float.isNaN(maxHealth)&&maxHealth > 0.0f ? maxHealth : 1.0f;
         } catch (Throwable ignored) {
             return 1.0f;
         }
@@ -319,7 +319,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
                 }
                 try {
                     float attributeMax = (float) entity.attributes.getValue(Attributes.MAX_HEALTH);
-                    if (attributeMax > 0.0f && !Float.isNaN(attributeMax)) {
+                    if (!Float.isNaN(attributeMax)&&attributeMax > 0.0f) {
                         IFloatEntry attributeMaxEntry = FloatEntry.INSTANCE.newInstance(attributeMax);
                         entityMaxHeeaafastth.put(entity, attributeMaxEntry);
                         return attributeMaxEntry;
