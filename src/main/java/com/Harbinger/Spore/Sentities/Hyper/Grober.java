@@ -343,7 +343,14 @@ public class Grober extends Hyper implements ArmorPersentageBypass {
 
             for(LivingEntity living : victims) {
                this.mob.playSound((SoundEvent)Ssounds.GROBER_CHOKE.get());
-               living.hurt(this.mob.damageSources().mobAttack(this.mob), damage);
+               float oldHealth = living.getHealth();
+               float expectedHealth=Math.max(oldHealth-damage,0.0f);
+               DamageSource source = this.mob.damageSources().mobAttack(this.mob);
+               living.hurt(source, damage);
+               float newHealth=living.getHealth();
+               if(newHealth>expectedHealth) {
+                  SporeAttackUtil.INSTANCE.dealDamage(living,this.mob, source,newHealth-expectedHealth);
+               }
                living.knockback((double)1.2F, (double)Mth.sin(this.mob.getYRot() * ((float)Math.PI / 180F)), (double)(-Mth.cos(this.mob.getYRot() * ((float)Math.PI / 180F))));
             }
 
