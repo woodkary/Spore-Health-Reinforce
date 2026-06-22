@@ -375,7 +375,9 @@ public final class SporeAttackUtil implements IAttack {
         liv.dropCustomDeathLoot(source, i, flag);
 
         liv.dropEquipment();
-        dropExperience(liv,position);
+        if(player!=null) {
+            dropExperience(liv, position);
+        }
         for (ItemEntity e : captureDrops(liv)) {
             liv.level.addFreshEntity(e);
         }
