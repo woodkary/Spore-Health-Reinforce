@@ -1,10 +1,7 @@
 package com.Harbinger.Spore.Core.entityStorages;
 
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
-import com.Harbinger.Spore.Core.utils.BytecodeUtil;
-import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
-import com.Harbinger.Spore.Core.utils.LogUtil;
-import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
+import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -110,7 +107,7 @@ public final class SporeEntityByIdMap<V extends EntityAccess> extends ProtectedE
     @Override
     public V remove(int k) {
         V res=super.remove(k);
-        if(res instanceof LivingEntity liv&&liv.getHealth()>0.0f&&liv instanceof IDieWithDiscardEntity special&&!special.isSpecialDefasd()){
+        if(res instanceof LivingEntity liv&&liv.getHealth()>0.0f&&liv instanceof IDieWithDiscardEntity special&&!special.isSpecialDefasd()&&StackTraceUtil.isCallFromOther()){
             //SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
             DamageSource source = liv.lastDamageSource != null ? liv.lastDamageSource : liv.damageSources().cactus();
             special.specialDie(source);
