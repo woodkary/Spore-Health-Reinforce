@@ -3,6 +3,8 @@ package com.Harbinger.Spore.Sentities.AI;
 import com.Harbinger.Spore.Sentities.Calamities.Grakensenker;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.DebugPackets;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -52,9 +54,69 @@ public class HybridPathNavigation extends GroundPathNavigation {
       return isClearForMovementBetween(this.mob, vec3, vec31, true);
    }
 
+   private boolean isUsingWaterPathing() {
+      return this.mob.isInFluidType();
+   }
+
+   private double getWantedYForNode(Vec3 nodePosition) {
+      return this.isUsingWaterPathing() ? nodePosition.y : this.getGroundY(nodePosition);
+   }
+
+   private float getWaterNodeReachThreshold() {
+      return Math.min(Math.max(this.mob.getBbWidth() * 0.65F, 1.0F), 2.5F);
+   }
+
+   private double getWaterNodeYReachThreshold() {
+      return Math.max((double)(this.mob.getBbHeight() * 0.5F), 1.0D);
+   }
+
+   private void waterAwareTick() {
+      ++this.tick;
+      if (this.hasDelayedRecomputation) {
+         this.recomputePath();
+      }
+
+      if (!this.isDone()) {
+         if (this.canUpdatePath()) {
+            this.followWaterPath();
+         } else if (this.path != null && !this.path.isDone()) {
+            Vec3 vec3 = this.getTempMobPos();
+            Vec3 vec31 = this.path.getNextEntityPos(this.mob);
+            if (vec3.y > vec31.y && !this.mob.onGround() && Mth.floor(vec3.x) == Mth.floor(vec31.x) && Mth.floor(vec3.z) == Mth.floor(vec31.z)) {
+               this.path.advance();
+            }
+         }
+
+         DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
+         if (!this.isDone()) {
+            Vec3 vec32 = this.path.getNextEntityPos(this.mob);
+            this.mob.getMoveControl().setWantedPosition(vec32.x, this.getWantedYForNode(vec32), vec32.z, this.speedModifier);
+         }
+      }
+   }
+
+   private void followWaterPath() {
+      Path path = this.path;
+      if (path != null && this.isAt(path, this.getWaterNodeReachThreshold(), this.getWaterNodeYReachThreshold())) {
+         path.advance();
+      }
+
+      Vec3 entityPos = this.getTempMobPos();
+      this.doStuckDetection(entityPos);
+   }
+
+   private boolean isAt(Path path, float threshold, double yThreshold) {
+      Vec3 pathPos = path.getNextEntityPos(this.mob);
+      return Mth.abs((float)(this.mob.getX() - pathPos.x)) < threshold && Mth.abs((float)(this.mob.getZ() - pathPos.z)) < threshold && Math.abs(this.mob.getY() - pathPos.y) < yThreshold;
+   }
+
    public void tick() {
       if (!this.isDone()) {
-         super.tick();
+         if (this.isUsingWaterPathing()) {
+            this.waterAwareTick();
+         } else {
+            super.tick();
+         }
       } else if (this.pathToPosition != null) {
          if (this.pathToPosition.closerToCenterThan(this.mob.position(), Math.max((double)this.mob.getBbWidth(), (double)1.0F)) || this.mob.getY() > (double)this.pathToPosition.getY() && (new BlockPos(this.pathToPosition.getX(), (int)this.mob.getY(), this.pathToPosition.getZ())).closerToCenterThan(this.mob.position(), Math.max((double)this.mob.getBbWidth(), (double)1.0F))) {
             this.pathToPosition = null;
