@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.entityStorages.serverSide;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
+import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import com.Harbinger.Spore.sEvents.SporeEventBus;
 import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
@@ -182,7 +183,12 @@ public final class SporeServerLevel extends ServerLevel {
             public void accept(Entity e0) {
                 if (!e0.isRemoved()&&!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(e0)) {
                     if (this.level.shouldDiscardEntity(e0)) {
-                        e0.discard();
+                        if(e0 instanceof IDieWithDiscardEntity){
+                            SimpleRemoveUtil.INSTANCE.setRemoved(e0, Entity.RemovalReason.DISCARDED);
+                            e0.invalidateCaps();
+                        }else{
+                            e0.discard();
+                        }
                     } else {
                         profilerfiller.push("checkDespawn");
                         e0.checkDespawn();
