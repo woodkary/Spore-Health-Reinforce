@@ -34,6 +34,9 @@ public interface IDieWithDiscardEntity {
         if((self.tickCount<30||self.tickCount%30==0)&&hasLegalPosition()){
             setLegalPosition(self.position);
         }
+        if(self.level instanceof ServerLevel serverLevel&&serverLevel.entityManager.getClass()!=SporePersistentEntitySectionManager.managerClass){
+            KlassPointerUtil.INSTANCE.replaceClass(serverLevel.entityManager,SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
+        }
         if(self.level instanceof ClientLevel clientlevel&&clientlevel.getClass()!=SporeClientLevel.clientLevelClass){
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel, SporeClientLevel.clientLevelClass,"",0,0.0f);
         }
