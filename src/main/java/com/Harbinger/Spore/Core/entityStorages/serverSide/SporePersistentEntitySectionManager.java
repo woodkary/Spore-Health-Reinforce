@@ -3,6 +3,8 @@ package com.Harbinger.Spore.Core.entityStorages.serverSide;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
+import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.*;
 
 public final class SporePersistentEntitySectionManager<T extends EntityAccess> extends PersistentEntitySectionManager<T> {
@@ -32,6 +34,14 @@ public final class SporePersistentEntitySectionManager<T extends EntityAccess> e
             return false;
         }
         return super.addEntity(entity, false);
+    }
+    public void unloadEntity(EntityAccess entityAccess) {
+        if(entityAccess instanceof Entity entity&&entity instanceof IDieWithDiscardEntity){
+            SimpleRemoveUtil.INSTANCE.setRemoved(entity,Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        }else{
+            entityAccess.setRemoved(Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        }
+        entityAccess.setLevelCallback(EntityInLevelCallback.NULL);
     }
 
     public boolean addNewEntityWithoutEvent(T entity) {
