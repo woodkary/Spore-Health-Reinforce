@@ -120,8 +120,20 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       return isClearForMovementBetween(this.mob, vec3, vec31, true);
    }
 
+   private boolean isUsingWaterPathing() {
+      return this.mob instanceof WaterInfected && this.mob.isInFluidType();
+   }
+
    private double getWantedYForNode(Vec3 nodePosition) {
-      return this.mob instanceof WaterInfected && this.mob.isInFluidType() ? nodePosition.y : this.getGroundY(nodePosition);
+      return this.isUsingWaterPathing() ? nodePosition.y : this.getGroundY(nodePosition);
+   }
+
+   private float getWaterNodeReachThreshold() {
+      return Math.min(Math.max(this.mob.getBbWidth() * 0.65F, 1.0F), 2.5F);
+   }
+
+   private double getWaterNodeYReachThreshold() {
+      return Math.max((double)(this.mob.getBbHeight() * 0.5F), 1.0D);
    }
 
    private void superTick() {
@@ -233,27 +245,38 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    protected void followThePath() {
       Path path = (Path)Objects.requireNonNull(this.path);
       Vec3 entityPos = this.getTempMobPos();
-      int pathLength = path.getNodeCount();
 
-      for(int i = path.getNextNodeIndex(); i < path.getNodeCount(); ++i) {
-         if ((double)path.getNode(i).y != Math.floor(entityPos.y)) {
-            pathLength = i;
-            break;
+      if (this.isUsingWaterPathing()) {
+         if (this.isAt(path, this.getWaterNodeReachThreshold(), this.getWaterNodeYReachThreshold())) {
+            path.advance();
          }
-      }
+      } else {
+         int pathLength = path.getNodeCount();
 
-      Vec3 base = entityPos.add((double)(-this.mob.getBbWidth() * 0.5F), (double)0.0F, (double)(-this.mob.getBbWidth() * 0.5F));
-      Vec3 max = base.add((double)this.mob.getBbWidth(), (double)this.mob.getBbHeight(), (double)this.mob.getBbWidth());
-      if (this.tryShortcut(path, new Vec3(this.mob.getX(), this.mob.getY(), this.mob.getZ()), pathLength, base, max) && (this.isAt(path, this.mob.getBbWidth() * 0.35F) || this.atElevationChange(path) && this.isAt(path, this.mob.getBbWidth() * 0.5F))) {
-         path.setNextNodeIndex(path.getNextNodeIndex() + 1);
+         for(int i = path.getNextNodeIndex(); i < path.getNodeCount(); ++i) {
+            if ((double)path.getNode(i).y != Math.floor(entityPos.y)) {
+               pathLength = i;
+               break;
+            }
+         }
+
+         Vec3 base = entityPos.add((double)(-this.mob.getBbWidth() * 0.5F), (double)0.0F, (double)(-this.mob.getBbWidth() * 0.5F));
+         Vec3 max = base.add((double)this.mob.getBbWidth(), (double)this.mob.getBbHeight(), (double)this.mob.getBbWidth());
+         if (this.tryShortcut(path, new Vec3(this.mob.getX(), this.mob.getY(), this.mob.getZ()), pathLength, base, max) && (this.isAt(path, this.mob.getBbWidth() * 0.35F) || this.atElevationChange(path) && this.isAt(path, this.mob.getBbWidth() * 0.5F))) {
+            path.advance();
+         }
       }
 
       this.doStuckDetection(entityPos);
    }
 
    private boolean isAt(Path path, float threshold) {
+      return this.isAt(path, threshold, 1.0D);
+   }
+
+   private boolean isAt(Path path, float threshold, double yThreshold) {
       Vec3 pathPos = path.getNextEntityPos(this.mob);
-      return Mth.abs((float)(this.mob.getX() - pathPos.x)) < threshold && Mth.abs((float)(this.mob.getZ() - pathPos.z)) < threshold && Math.abs(this.mob.getY() - pathPos.y) < (double)1.0F;
+      return Mth.abs((float)(this.mob.getX() - pathPos.x)) < threshold && Mth.abs((float)(this.mob.getZ() - pathPos.z)) < threshold && Math.abs(this.mob.getY() - pathPos.y) < yThreshold;
    }
 
    private boolean tryRecoverFromStuckNode(Vec3 nodePosition) {
