@@ -7,7 +7,10 @@ import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -38,6 +41,9 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    private static final int MAX_DETOUR_DEPTH = 4;
    private static final int DETOUR_SEARCH_RADIUS = 6;
    private static final int DETOUR_VERTICAL_RANGE = 2;
+   private static final int WATER_STUCK_NODE_AVOID_TICKS = 200;
+   private static final int WATER_STUCK_NODE_AVOID_HORIZONTAL_RADIUS = 1;
+   private static final int WATER_STUCK_NODE_AVOID_VERTICAL_RADIUS = 1;
    private static final double MIN_NODE_PROGRESS_SQR = 0.0025D;
    private static final double LOW_HORIZONTAL_SPEED_SQR = 1.0E-4D;
    protected final Calamity calamity;
@@ -59,6 +65,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    private double bestDistanceToFallbackTargetSqr = Double.MAX_VALUE;
    private int ticksWithoutFallbackProgress;
    private int terminalStuckRecoveries;
+   private final Map<BlockPos, Long> avoidedWaterNodes = new HashMap<>();
 
    public CalamityPathNavigation(Calamity calamity, Level level) {
       super(calamity, level);
@@ -189,6 +196,16 @@ public class CalamityPathNavigation extends GroundPathNavigation {
             this.pathToPosition = null;
             this.resetFallbackProgressTracking(null);
          } else {
+            if (this.isUsingWaterPathing() && this.shouldAvoidWaterNode(this.pathToPosition)) {
+               if (this.tryStartDetourAround(this.pathToPosition)) {
+                  return;
+               }
+
+               this.pathToPosition = null;
+               this.resetFallbackProgressTracking(null);
+               return;
+            }
+
             if (this.tryRecoverFromStuckFallbackTarget(this.pathToPosition)) {
                return;
             }
@@ -201,7 +218,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    protected PathFinder createPathFinder(int value) {
       if (this.mob instanceof WaterInfected) {
-         this.nodeEvaluator = new WaterCalamityNodeEvaluator();
+         this.nodeEvaluator = new WaterCalamityNodeEvaluator(this::shouldAvoidWaterNode);
          this.nodeEvaluator.setCanPassDoors(true);
          return new ExpPathFinder(this.nodeEvaluator, value) {
             protected float distance(Node node, Node node1) {
@@ -305,11 +322,43 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          return false;
       }
 
+      if (this.isUsingWaterPathing()) {
+         return this.recoverFromWaterStuckNode(currentPath, nodeIndex);
+      }
+
       if (nodeIndex + 1 < currentPath.getNodeCount()) {
          currentPath.advance();
          this.resetNodeProgressTracking(currentPath);
       } else {
          this.recoverFromStuckTerminalNode();
+      }
+
+      return true;
+   }
+
+   private boolean recoverFromWaterStuckNode(Path currentPath, int nodeIndex) {
+      BlockPos stuckNode = this.nodeToBlockPos(currentPath.getNode(nodeIndex));
+      this.rememberAvoidedWaterNode(stuckNode);
+      this.resetNodeProgressTracking(null);
+
+      if (nodeIndex + 1 >= currentPath.getNodeCount()) {
+         BlockPos target = this.getCurrentNavigationTarget();
+         if (target != null) {
+            if (this.isCloseEnoughToNavigationTarget(target)) {
+               return this.completeCurrentNavigationTarget();
+            }
+
+            if (this.tryStartDetourAround(target)) {
+               return true;
+            }
+         }
+      }
+
+      this.forceRecomputePathNow();
+      if (this.path == null && nodeIndex + 1 < currentPath.getNodeCount()) {
+         currentPath.advance();
+         this.path = currentPath;
+         this.resetNodeProgressTracking(currentPath);
       }
 
       return true;
@@ -348,11 +397,26 @@ public class CalamityPathNavigation extends GroundPathNavigation {
             this.path = this.createPath(this.targetPos, this.reachRange);
             this.timeLastRecompute = this.level.getGameTime();
             this.hasDelayedRecomputation = false;
+            this.resetNodeProgressTracking(this.path);
          }
       } else {
          this.hasDelayedRecomputation = true;
       }
 
+   }
+
+   private void forceRecomputePathNow() {
+      BlockPos target = this.getCurrentNavigationTarget();
+      if (target == null) {
+         return;
+      }
+
+      this.path = null;
+      this.targetPos = target;
+      this.path = this.createPath(target, this.reachRange);
+      this.timeLastRecompute = this.level.getGameTime();
+      this.hasDelayedRecomputation = false;
+      this.resetNodeProgressTracking(this.path);
    }
 
    private boolean tryStartDetourAround(BlockPos blockedTarget) {
@@ -437,6 +501,10 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       if (this.triedDetourTargets.contains(candidate.asLong()) || !this.level.getWorldBorder().isWithinBounds(candidate)) {
+         return false;
+      }
+
+      if (this.isUsingWaterPathing() && this.shouldAvoidWaterNode(candidate)) {
          return false;
       }
 
@@ -601,6 +669,44 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    private boolean isPhysicallyStalledAtNode() {
       return this.mob.horizontalCollision || !(this.mob instanceof WaterInfected) && this.mob.isInFluidType() || this.mob.getDeltaMovement().horizontalDistanceSqr() < LOW_HORIZONTAL_SPEED_SQR;
+   }
+
+   private BlockPos nodeToBlockPos(Node node) {
+      return new BlockPos(node.x, node.y, node.z);
+   }
+
+   private void rememberAvoidedWaterNode(BlockPos pos) {
+      this.expireAvoidedWaterNodes();
+      this.avoidedWaterNodes.put(pos.immutable(), this.level.getGameTime() + (long)WATER_STUCK_NODE_AVOID_TICKS);
+   }
+
+   private boolean shouldAvoidWaterNode(BlockPos pos) {
+      return this.shouldAvoidWaterNode(pos.getX(), pos.getY(), pos.getZ());
+   }
+
+   private boolean shouldAvoidWaterNode(int x, int y, int z) {
+      this.expireAvoidedWaterNodes();
+
+      for(BlockPos avoided : this.avoidedWaterNodes.keySet()) {
+         if (Math.abs(avoided.getX() - x) <= WATER_STUCK_NODE_AVOID_HORIZONTAL_RADIUS
+                 && Math.abs(avoided.getZ() - z) <= WATER_STUCK_NODE_AVOID_HORIZONTAL_RADIUS
+                 && Math.abs(avoided.getY() - y) <= WATER_STUCK_NODE_AVOID_VERTICAL_RADIUS) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   private void expireAvoidedWaterNodes() {
+      long gameTime = this.level.getGameTime();
+      Iterator<Map.Entry<BlockPos, Long>> iterator = this.avoidedWaterNodes.entrySet().iterator();
+
+      while(iterator.hasNext()) {
+         if (iterator.next().getValue() <= gameTime) {
+            iterator.remove();
+         }
+      }
    }
 
    private void resetNodeProgressTracking(@Nullable Path path) {
@@ -792,13 +898,25 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       }
    }
 
+   @FunctionalInterface
+   private interface WaterNodeAvoidance {
+      boolean shouldAvoid(int x, int y, int z);
+   }
+
    protected static class WaterCalamityNodeEvaluator extends SwimNodeEvaluator {
-      public WaterCalamityNodeEvaluator() {
+      private final WaterNodeAvoidance avoidance;
+
+      public WaterCalamityNodeEvaluator(WaterNodeAvoidance avoidance) {
          super(true);
+         this.avoidance = avoidance;
       }
 
       public BlockPathTypes getBlockPathType(BlockGetter getter, int value, int value2, int value3) {
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(value, value2, value3);
+         if (this.avoidance.shouldAvoid(value, value2, value3)) {
+            return BlockPathTypes.BLOCKED;
+         }
+
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
