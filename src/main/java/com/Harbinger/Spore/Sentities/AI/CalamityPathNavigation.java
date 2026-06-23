@@ -4,11 +4,13 @@ import com.Harbinger.Spore.Sentities.FlyingInfected;
 import com.Harbinger.Spore.Sentities.WaterInfected;
 import com.Harbinger.Spore.Sentities.AI.NeuralProcessing.Experimental.ExpPathFinder;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
+import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -268,23 +270,37 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       return var10000;
    }
 
+   private static BlockPathTypes getCalamityBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+      if (originalType != BlockPathTypes.BLOCKED || !ForgeEventFactory.getMobGriefingEvent(mob.level(), mob)) {
+         return originalType;
+      }
+      BlockState blockState = getter.getBlockState(pos);
+      if (canDestroyForPath(mob, pos, blockState)) {
+         return BlockPathTypes.DANGER_OTHER;
+      }
+      return BlockPathTypes.BLOCKED;
+   }
+
+   private static boolean canDestroyForPath(Mob mob, BlockPos pos, BlockState blockState) {
+      if (!(mob instanceof Calamity calamity)) {
+         return false;
+      }
+      if (blockState.isAir()) {
+         return false;
+      }
+      float destroySpeed = blockState.getDestroySpeed(mob.level(), pos);
+      return blockState.is(Utilities.biomass) || destroySpeed >= 0.0F && destroySpeed < calamity.getDestroySpeed();
+   }
+
    protected static class CalamityNodeEvaluator extends WalkNodeEvaluator {
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         if (ForgeEventFactory.getMobGriefingEvent(this.mob.level(), this.mob)) {
-            return pathTypes == BlockPathTypes.OPEN ? BlockPathTypes.BLOCKED : super.evaluateBlockPathType(getter, pos, pathTypes);
-         } else {
-            return BlockPathTypes.OPEN;
-         }
+         return getCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
       }
    }
 
    protected static class AirCalamityNodeEvaluator extends FlyNodeEvaluator {
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         if (ForgeEventFactory.getMobGriefingEvent(this.mob.level(), this.mob)) {
-            return pathTypes == BlockPathTypes.OPEN ? BlockPathTypes.BLOCKED : super.evaluateBlockPathType(getter, pos, pathTypes);
-         } else {
-            return BlockPathTypes.OPEN;
-         }
+         return getCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
       }
    }
 
@@ -294,14 +310,14 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       public BlockPathTypes getBlockPathType(BlockGetter getter, int value, int value2, int value3) {
-         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(value, value2, value3);
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          } else if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
             return BlockPathTypes.OPEN;
          } else {
-            return ForgeEventFactory.getMobGriefingEvent(this.mob.level(), this.mob) ? BlockPathTypes.BLOCKED : super.getBlockPathType(getter, value, value2, value3);
+            return getCalamityBlockPathType(this.mob, getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
          }
       }
    }

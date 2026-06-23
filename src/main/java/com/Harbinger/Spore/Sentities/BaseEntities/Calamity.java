@@ -137,9 +137,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
       this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
       this.setPathfindingMalus(BlockPathTypes.DANGER_OTHER, 16.0F);
-      this.setPathfindingMalus(BlockPathTypes.DANGER_OTHER, -1.0F);
       this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, 16.0F);
-      this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
       this.navigation = new CalamityPathNavigation(this, level);
       this.moveControl = new CalamityMovementControl(this, 20);
       this.lookControl = new SmoothLookControl(this, 3.0F, 2.0F, 0.35F);
