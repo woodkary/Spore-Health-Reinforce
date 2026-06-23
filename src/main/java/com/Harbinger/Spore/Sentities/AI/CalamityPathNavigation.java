@@ -225,6 +225,19 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
       return true;
    }
+   public void recomputePath() {
+      if (this.level.getGameTime() - this.timeLastRecompute > 20L) {
+         if (this.targetPos != null) {
+            this.path = null;
+            this.path = this.createPath(this.targetPos, this.reachRange);
+            this.timeLastRecompute = this.level.getGameTime();
+            this.hasDelayedRecomputation = false;
+         }
+      } else {
+         this.hasDelayedRecomputation = true;
+      }
+
+   }
 
    private boolean isPhysicallyStalledAtNode() {
       return this.mob.horizontalCollision || !(this.mob instanceof WaterInfected) && this.mob.isInFluidType() || this.mob.getDeltaMovement().horizontalDistanceSqr() < LOW_HORIZONTAL_SPEED_SQR;
