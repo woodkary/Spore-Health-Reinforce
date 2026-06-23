@@ -292,15 +292,32 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       return blockState.is(Utilities.biomass) || destroySpeed >= 0.0F && destroySpeed < calamity.getDestroySpeed();
    }
 
+   private static BlockPathTypes getLandOrAirCalamityBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+      BlockPathTypes pathType = getCalamityBlockPathType(mob, getter, pos, originalType);
+      if (pathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, pos, pathType)) {
+         return BlockPathTypes.DANGER_OTHER;
+      }
+      return pathType;
+   }
+
+   private static boolean shouldAvoidFluidOrSnow(BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
+      return pathType == BlockPathTypes.WATER
+              || pathType == BlockPathTypes.WATER_BORDER
+              || pathType == BlockPathTypes.LAVA
+              || pathType == BlockPathTypes.POWDER_SNOW
+              || pathType == BlockPathTypes.DANGER_POWDER_SNOW
+              || !getter.getFluidState(pos).isEmpty();
+   }
+
    protected static class CalamityNodeEvaluator extends WalkNodeEvaluator {
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return getCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+         return getLandOrAirCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
       }
    }
 
    protected static class AirCalamityNodeEvaluator extends FlyNodeEvaluator {
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return getCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+         return getLandOrAirCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
       }
    }
 
