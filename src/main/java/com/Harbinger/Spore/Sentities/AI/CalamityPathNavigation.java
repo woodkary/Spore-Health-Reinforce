@@ -8,6 +8,7 @@ import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -61,10 +62,36 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    protected boolean canMoveDirectly(Vec3 vec3, Vec3 vec31) {
       return isClearForMovementBetween(this.mob, vec3, vec31, true);
    }
+   private void superTick() {
+      ++this.tick;
+      if (this.hasDelayedRecomputation) {
+         this.recomputePath();
+      }
+
+      if (!this.isDone()) {
+         if (this.canUpdatePath()) {
+            this.followThePath();
+         } else if (this.path != null && !this.path.isDone()) {
+            Vec3 vec3 = this.getTempMobPos();
+            Vec3 vec31 = this.path.getNextEntityPos(this.mob);
+            if (vec3.y > vec31.y && !this.mob.onGround() && Mth.floor(vec3.x) == Mth.floor(vec31.x) && Mth.floor(vec3.z) == Mth.floor(vec31.z)) {
+               this.path.advance();
+            }
+         }
+
+         DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
+         if (!this.isDone()) {
+            Vec3 vec32 = this.path.getNextEntityPos(this.mob);
+            this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
+         }
+      }
+
+   }
 
    public void tick() {
       if (!this.isDone()) {
-         super.tick();
+         //super.tick();
+         superTick();
          BlockPos vec3 = this.getTargetPos();
          if (vec3 != null) {
             this.mob.getLookControl().setLookAt((double)vec3.getX(), (double)vec3.getY(), (double)vec3.getZ());
@@ -73,7 +100,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          if (this.pathToPosition.closerToCenterThan(this.mob.position(), Math.max((double)this.mob.getBbWidth(), (double)1.0F)) || this.mob.getY() > (double)this.pathToPosition.getY() && (new BlockPos(this.pathToPosition.getX(), (int)this.mob.getY(), this.pathToPosition.getZ())).closerToCenterThan(this.mob.position(), Math.max((double)this.mob.getBbWidth(), (double)1.0F))) {
             this.pathToPosition = null;
          } else {
-            this.mob.getMoveControl().setWantedPosition((double)this.pathToPosition.getX(), (double)this.pathToPosition.getY(), (double)this.pathToPosition.getZ(), this.speedModifier);
+            this.mob.getMoveControl().setWantedPosition(this.pathToPosition.getX()+0.5, this.pathToPosition.getY(), this.pathToPosition.getZ()+0.5, this.speedModifier);
          }
       }
 
@@ -133,7 +160,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
       Vec3 base = entityPos.add((double)(-this.mob.getBbWidth() * 0.5F), (double)0.0F, (double)(-this.mob.getBbWidth() * 0.5F));
       Vec3 max = base.add((double)this.mob.getBbWidth(), (double)this.mob.getBbHeight(), (double)this.mob.getBbWidth());
-      if (this.tryShortcut(path, new Vec3(this.mob.getX(), this.mob.getY(), this.mob.getZ()), pathLength, base, max) && (this.isAt(path, 0.5F) || this.atElevationChange(path) && this.isAt(path, this.mob.getBbWidth() * 0.5F))) {
+      if (this.tryShortcut(path, new Vec3(this.mob.getX(), this.mob.getY(), this.mob.getZ()), pathLength, base, max) && (this.isAt(path, this.mob.getBbWidth() * 0.35F) || this.atElevationChange(path) && this.isAt(path, this.mob.getBbWidth() * 0.5F))) {
          path.setNextNodeIndex(path.getNextNodeIndex() + 1);
       }
 
