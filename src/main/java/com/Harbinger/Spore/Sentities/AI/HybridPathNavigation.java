@@ -122,12 +122,12 @@ public class HybridPathNavigation extends GroundPathNavigation {
       }
 
       public BlockPathTypes getBlockPathType(BlockGetter getter, int value, int value2, int value3) {
-         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(value, value2, value3);
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          } else if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
-            return BlockPathTypes.OPEN;
+            return BlockPathTypes.DANGER_OTHER;
          } else {
             return ForgeEventFactory.getMobGriefingEvent(this.mob.level(), this.mob) ? BlockPathTypes.BLOCKED : super.getBlockPathType(getter, value, value2, value3);
          }

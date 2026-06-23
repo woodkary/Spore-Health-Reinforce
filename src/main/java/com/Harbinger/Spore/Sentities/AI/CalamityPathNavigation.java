@@ -119,6 +119,11 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    protected boolean canMoveDirectly(Vec3 vec3, Vec3 vec31) {
       return isClearForMovementBetween(this.mob, vec3, vec31, true);
    }
+
+   private double getWantedYForNode(Vec3 nodePosition) {
+      return this.mob instanceof WaterInfected && this.mob.isInFluidType() ? nodePosition.y : this.getGroundY(nodePosition);
+   }
+
    private void superTick() {
       ++this.tick;
       if (this.hasDelayedRecomputation) {
@@ -147,7 +152,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
                 return;
              }
 
-             this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
+             this.mob.getMoveControl().setWantedPosition(vec32.x, this.getWantedYForNode(vec32), vec32.z, this.speedModifier);
           }
        }
 
@@ -775,7 +780,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          } else if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
-            return BlockPathTypes.OPEN;
+            return BlockPathTypes.DANGER_OTHER;
          } else {
             return getCalamityBlockPathType(this.mob, getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
          }
