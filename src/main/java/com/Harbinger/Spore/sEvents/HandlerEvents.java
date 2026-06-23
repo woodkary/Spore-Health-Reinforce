@@ -79,6 +79,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
@@ -461,13 +462,21 @@ public class HandlerEvents {
          int y = (int) arguments.getSource().getPosition().y();
          int z = (int) arguments.getSource().getPosition().z();
          BlockPos pos = new BlockPos(x, y, z);
-
+         boolean incomingMessage=false;
          for(EntityAccess entity1 : SimpleRemoveUtil.INSTANCE.getAllEntities(world,(e)-> !(e instanceof Infected)&&!(e instanceof Calamity))) {
             if (entity1 instanceof Infected infected) {
                 infected.setSearchPos(pos);
             } else if (entity1 instanceof Calamity calamity) {
-                calamity.setSearchArea(pos);
+               incomingMessage=true;
+               calamity.setSearchArea(pos);
             }
+         }
+         if(!incomingMessage) {
+            return 1;
+         }
+         for(ServerPlayer player : world.getServer().getPlayerList().getPlayers()) {
+            player.playNotifySound((SoundEvent)Ssounds.CALAMITY_INCOMING.get(), SoundSource.AMBIENT, 1.0F, 1.0F);
+            player.displayClientMessage(Component.translatable("calamity_coming_message"), false);
          }
          return 1;
       }).requires((s) -> s.hasPermission(1)));
