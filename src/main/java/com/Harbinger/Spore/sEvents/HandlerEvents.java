@@ -112,6 +112,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level.ExplosionInteraction;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -455,30 +456,19 @@ public class HandlerEvents {
                  return 1;
               })));
       dispatcher.register(Commands.literal("spore:set_area").executes((arguments) -> {
-         ServerLevel world = ((CommandSourceStack)arguments.getSource()).getLevel();
-         int x = (int)((CommandSourceStack)arguments.getSource()).getPosition().x();
-         int y = (int)((CommandSourceStack)arguments.getSource()).getPosition().y();
-         int z = (int)((CommandSourceStack)arguments.getSource()).getPosition().z();
-         Entity entity = ((CommandSourceStack)arguments.getSource()).getEntity();
-         if (entity == null) {
-            entity = FakePlayerFactory.getMinecraft(world);
-         }
+         ServerLevel world = arguments.getSource().getLevel();
+         int x = (int) arguments.getSource().getPosition().x();
+         int y = (int) arguments.getSource().getPosition().y();
+         int z = (int) arguments.getSource().getPosition().z();
+         BlockPos pos = new BlockPos(x, y, z);
 
-         if (entity != null) {
-            BlockPos pos = new BlockPos(x, y, z);
-            AABB hitbox = entity.getBoundingBox().inflate((double)20.0F);
-
-            for(Entity entity1 : entity.level().getEntities(entity, hitbox)) {
-               if (entity1 instanceof Infected) {
-                  Infected infected = (Infected)entity1;
-                  infected.setSearchPos(pos);
-               } else if (entity1 instanceof Calamity) {
-                  Calamity calamity = (Calamity)entity1;
-                  calamity.setSearchArea(pos);
-               }
+         for(EntityAccess entity1 : SimpleRemoveUtil.INSTANCE.getAllEntities(world,(e)-> !(e instanceof Infected)&&!(e instanceof Calamity))) {
+            if (entity1 instanceof Infected infected) {
+                infected.setSearchPos(pos);
+            } else if (entity1 instanceof Calamity calamity) {
+                calamity.setSearchArea(pos);
             }
          }
-
          return 1;
       }).requires((s) -> s.hasPermission(1)));
       dispatcher.register(Commands.literal("spore:nuke_the_land").executes((arguments) -> {
