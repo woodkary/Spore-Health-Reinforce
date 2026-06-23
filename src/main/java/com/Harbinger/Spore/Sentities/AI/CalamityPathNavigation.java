@@ -29,9 +29,17 @@ import net.minecraftforge.event.ForgeEventFactory;
 
 public class CalamityPathNavigation extends GroundPathNavigation {
    static final float EPSILON = 1.0E-8F;
+   private static final int STUCK_ON_NODE_TICKS = 16;
+   private static final double MIN_NODE_PROGRESS_SQR = 0.0025D;
+   private static final double LOW_HORIZONTAL_SPEED_SQR = 1.0E-4D;
    protected final Calamity calamity;
    @Nullable
    private BlockPos pathToPosition;
+   @Nullable
+   private Path nodeProgressPath;
+   private int nodeProgressIndex = -1;
+   private double bestDistanceToNodeSqr = Double.MAX_VALUE;
+   private int ticksWithoutNodeProgress;
 
    public CalamityPathNavigation(Calamity calamity, Level level) {
       super(calamity, level);
@@ -79,12 +87,20 @@ public class CalamityPathNavigation extends GroundPathNavigation {
             }
          }
 
-         DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
-         if (!this.isDone()) {
-            Vec3 vec32 = this.path.getNextEntityPos(this.mob);
-            this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
-         }
-      }
+          DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
+          if (!this.isDone()) {
+             Vec3 vec32 = this.path.getNextEntityPos(this.mob);
+             if (this.tryRecoverFromStuckNode(vec32) && !this.isDone()) {
+                vec32 = this.path.getNextEntityPos(this.mob);
+             }
+
+             if (this.isDone()) {
+                return;
+             }
+
+             this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
+          }
+       }
 
    }
 
@@ -144,6 +160,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    @Deprecated
    public void hardStop() {
       this.path = null;
+      this.resetNodeProgressTracking(null);
    }
 
    protected void followThePath() {
@@ -170,6 +187,54 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    private boolean isAt(Path path, float threshold) {
       Vec3 pathPos = path.getNextEntityPos(this.mob);
       return Mth.abs((float)(this.mob.getX() - pathPos.x)) < threshold && Mth.abs((float)(this.mob.getZ() - pathPos.z)) < threshold && Math.abs(this.mob.getY() - pathPos.y) < (double)1.0F;
+   }
+
+   private boolean tryRecoverFromStuckNode(Vec3 nodePosition) {
+      if (this.path == null || this.path.isDone()) {
+         this.resetNodeProgressTracking(null);
+         return false;
+      }
+
+      Path currentPath = this.path;
+      int nodeIndex = currentPath.getNextNodeIndex();
+      if (this.nodeProgressPath != currentPath || this.nodeProgressIndex != nodeIndex) {
+         this.resetNodeProgressTracking(currentPath);
+         this.nodeProgressIndex = nodeIndex;
+      }
+
+      double distanceToNodeSqr = this.mob.position().distanceToSqr(nodePosition);
+      if (distanceToNodeSqr + MIN_NODE_PROGRESS_SQR < this.bestDistanceToNodeSqr) {
+         this.bestDistanceToNodeSqr = distanceToNodeSqr;
+         this.ticksWithoutNodeProgress = 0;
+         return false;
+      }
+
+      this.bestDistanceToNodeSqr = Math.min(this.bestDistanceToNodeSqr, distanceToNodeSqr);
+      ++this.ticksWithoutNodeProgress;
+      if (this.ticksWithoutNodeProgress < STUCK_ON_NODE_TICKS || !this.isPhysicallyStalledAtNode()) {
+         return false;
+      }
+
+      if (nodeIndex + 1 < currentPath.getNodeCount()) {
+         currentPath.advance();
+         this.resetNodeProgressTracking(currentPath);
+      } else {
+         this.resetNodeProgressTracking(null);
+         this.recomputePath();
+      }
+
+      return true;
+   }
+
+   private boolean isPhysicallyStalledAtNode() {
+      return this.mob.horizontalCollision || !(this.mob instanceof WaterInfected) && this.mob.isInFluidType() || this.mob.getDeltaMovement().horizontalDistanceSqr() < LOW_HORIZONTAL_SPEED_SQR;
+   }
+
+   private void resetNodeProgressTracking(@Nullable Path path) {
+      this.nodeProgressPath = path;
+      this.nodeProgressIndex = -1;
+      this.bestDistanceToNodeSqr = Double.MAX_VALUE;
+      this.ticksWithoutNodeProgress = 0;
    }
 
    private boolean atElevationChange(Path path) {
