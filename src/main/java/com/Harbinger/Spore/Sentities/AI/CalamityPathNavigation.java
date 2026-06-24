@@ -218,7 +218,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    protected PathFinder createPathFinder(int value) {
       if (this.mob instanceof WaterInfected) {
-         this.nodeEvaluator = new WaterCalamityNodeEvaluator(this::shouldAvoidWaterNode);
+         this.nodeEvaluator = new WaterCalamityNodeEvaluator(this.mob, this::shouldAvoidWaterNode);
          this.nodeEvaluator.setCanPassDoors(true);
          return new ExpPathFinder(this.nodeEvaluator, value) {
             protected float distance(Node node, Node node1) {
@@ -226,7 +226,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
             }
          };
       } else if (this.mob instanceof FlyingInfected) {
-         this.nodeEvaluator = new AirCalamityNodeEvaluator();
+         this.nodeEvaluator = new AirCalamityNodeEvaluator(this.mob);
          this.nodeEvaluator.setCanPassDoors(true);
          return new ExpPathFinder(this.nodeEvaluator, value) {
             protected float distance(Node node, Node node1) {
@@ -234,7 +234,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
             }
          };
       } else {
-         this.nodeEvaluator = new CalamityNodeEvaluator();
+         this.nodeEvaluator = new CalamityNodeEvaluator(this.mob);
          this.nodeEvaluator.setCanPassDoors(true);
          this.nodeEvaluator.canFloat();
          return new ExpPathFinder(this.nodeEvaluator, value) {
@@ -887,14 +887,34 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    }
 
    protected static class CalamityNodeEvaluator extends WalkNodeEvaluator {
+      private final Mob owner;
+
+      public CalamityNodeEvaluator(Mob owner) {
+         this.owner = owner;
+      }
+
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return getLandOrAirCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+         return getLandOrAirCalamityBlockPathType(this.getMob(), getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+      }
+
+      protected Mob getMob() {
+         return this.mob != null ? this.mob : this.owner;
       }
    }
 
    protected static class AirCalamityNodeEvaluator extends FlyNodeEvaluator {
+      private final Mob owner;
+
+      public AirCalamityNodeEvaluator(Mob owner) {
+         this.owner = owner;
+      }
+
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return getLandOrAirCalamityBlockPathType(this.mob, getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+         return getLandOrAirCalamityBlockPathType(this.getMob(), getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+      }
+
+      protected Mob getMob() {
+         return this.mob != null ? this.mob : this.owner;
       }
    }
 
@@ -904,10 +924,12 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    }
 
    protected static class WaterCalamityNodeEvaluator extends SwimNodeEvaluator {
+      private final Mob owner;
       private final WaterNodeAvoidance avoidance;
 
-      public WaterCalamityNodeEvaluator(WaterNodeAvoidance avoidance) {
+      public WaterCalamityNodeEvaluator(Mob owner, WaterNodeAvoidance avoidance) {
          super(true);
+         this.owner = owner;
          this.avoidance = avoidance;
       }
 
@@ -918,7 +940,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          }
 
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
-         BlockPathTypes calamityBlockPathType = getCalamityBlockPathType(this.mob, getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
+         BlockPathTypes calamityBlockPathType = getCalamityBlockPathType(this.getMob(), getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
          if (calamityBlockPathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, blockpos$mutableblockpos, calamityBlockPathType)) {
             return BlockPathTypes.DANGER_OTHER;
          }
@@ -937,6 +959,10 @@ public class CalamityPathNavigation extends GroundPathNavigation {
                  || pathType == BlockPathTypes.POWDER_SNOW
                  || pathType == BlockPathTypes.DANGER_POWDER_SNOW
                  || !getter.getFluidState(pos).isEmpty();
+      }
+
+      private Mob getMob() {
+         return this.mob != null ? this.mob : this.owner;
       }
    }
 

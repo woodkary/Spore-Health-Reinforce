@@ -218,7 +218,7 @@ public class HybridPathNavigation extends GroundPathNavigation {
 
    protected PathFinder createPathFinder(int value) {
       if (this.mob.isInFluidType()) {
-         this.nodeEvaluator = new SwimmingNode(this::shouldAvoidWaterNode);
+         this.nodeEvaluator = new SwimmingNode(this.mob, this::shouldAvoidWaterNode);
          this.nodeEvaluator.setCanPassDoors(true);
          return new PathFinder(this.nodeEvaluator, value) {
             protected float distance(Node node, Node node1) {
@@ -317,10 +317,12 @@ public class HybridPathNavigation extends GroundPathNavigation {
    }
 
    protected static class SwimmingNode extends SwimNodeEvaluator {
+      private final Mob owner;
       private final WaterNodeAvoidance avoidance;
 
-      public SwimmingNode(WaterNodeAvoidance avoidance) {
+      public SwimmingNode(Mob owner, WaterNodeAvoidance avoidance) {
          super(true);
+         this.owner = owner;
          this.avoidance = avoidance;
       }
 
@@ -336,8 +338,13 @@ public class HybridPathNavigation extends GroundPathNavigation {
          } else if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
             return BlockPathTypes.OPEN;
          } else {
-            return ForgeEventFactory.getMobGriefingEvent(this.mob.level(), this.mob) ? BlockPathTypes.BLOCKED : super.getBlockPathType(getter, value, value2, value3);
+            Mob mob = this.getMob();
+            return ForgeEventFactory.getMobGriefingEvent(mob.level(), mob) ? BlockPathTypes.BLOCKED : super.getBlockPathType(getter, value, value2, value3);
          }
+      }
+
+      private Mob getMob() {
+         return this.mob != null ? this.mob : this.owner;
       }
    }
 }
