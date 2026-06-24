@@ -223,7 +223,25 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    protected PathFinder createPathFinder(int value) {
       if (this.mob instanceof WaterInfected) {
-         this.nodeEvaluator = new AmphibianCalamityNodeEvaluator(new CalamityNodeEvaluator(this.mob), new WaterCalamityNodeEvaluator(this.mob, this::shouldAvoidWaterNode), this.mob);
+         this.nodeEvaluator = new AmphibianCalamityNodeEvaluator(new CalamityNodeEvaluator(this.mob){
+            @Override
+            protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
+               BlockPathTypes pathType = getCalamityBlockPathType(mob, getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
+               if (pathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, pos, pathType)) {
+                  return BlockPathTypes.DANGER_OTHER;
+               }
+               return pathType;
+            }
+            private boolean shouldAvoidFluidOrSnow(BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
+               return pathType == BlockPathTypes.WATER_BORDER
+                       || !(getMob() instanceof Gazenbrecher gazen&&gazen.isAdaptedToFire())&&pathType == BlockPathTypes.LAVA
+                       || pathType == BlockPathTypes.POWDER_SNOW
+                       || pathType == BlockPathTypes.DANGER_POWDER_SNOW
+                       || !getter.getFluidState(pos).isEmpty();
+            }
+         },
+                 new WaterCalamityNodeEvaluator(this.mob, this::shouldAvoidWaterNode),
+                 this.mob);
          this.nodeEvaluator.setCanPassDoors(true);
          return new ExpPathFinder(this.nodeEvaluator, value) {
             protected float distance(Node node, Node node1) {
@@ -912,7 +930,10 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return getLandOrAirCalamityBlockPathType(this.getMob(), getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+         return getLandOrAirCalamityBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
+      }
+      protected BlockPathTypes superEvaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
+         return super.evaluateBlockPathType(getter, pos, pathTypes);
       }
 
       protected Mob getMob() {
