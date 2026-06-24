@@ -947,9 +947,6 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          }
-         if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
-            return BlockPathTypes.OPEN;
-         }
          return calamityBlockPathType;
 
       }
