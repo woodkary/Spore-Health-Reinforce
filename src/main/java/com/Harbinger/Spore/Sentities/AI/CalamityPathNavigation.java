@@ -918,13 +918,25 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          }
 
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
+         BlockPathTypes calamityBlockPathType = getCalamityBlockPathType(this.mob, getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
+         if (calamityBlockPathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, blockpos$mutableblockpos, calamityBlockPathType)) {
+            return BlockPathTypes.DANGER_OTHER;
+         }
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
-         } else if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
-            return BlockPathTypes.DANGER_OTHER;
-         } else {
-            return getCalamityBlockPathType(this.mob, getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
          }
+         if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
+            return BlockPathTypes.OPEN;
+         }
+         return calamityBlockPathType;
+
+      }
+      private boolean shouldAvoidFluidOrSnow(BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
+         return pathType == BlockPathTypes.WATER_BORDER
+                 || pathType == BlockPathTypes.LAVA
+                 || pathType == BlockPathTypes.POWDER_SNOW
+                 || pathType == BlockPathTypes.DANGER_POWDER_SNOW
+                 || !getter.getFluidState(pos).isEmpty();
       }
    }
 
