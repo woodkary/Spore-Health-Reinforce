@@ -24,7 +24,7 @@ import net.minecraft.world.level.pathfinder.SwimNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 
-public class HybridPathNavigation extends GroundPathNavigation {
+public final class HybridPathNavigation extends GroundPathNavigation {
    private static final int STUCK_ON_NODE_TICKS = 16;
    private static final int WATER_STUCK_NODE_AVOID_TICKS = 200;
    private static final int WATER_STUCK_NODE_AVOID_HORIZONTAL_RADIUS = 1;
