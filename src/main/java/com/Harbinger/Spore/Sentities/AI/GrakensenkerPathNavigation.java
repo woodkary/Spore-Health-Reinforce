@@ -334,7 +334,7 @@ public final class GrakensenkerPathNavigation extends GroundPathNavigation {
 
       public BlockPathTypes getBlockPathType(BlockGetter getter, int value, int value2, int value3, Mob mob) {
          BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(value, value2, value3);
-         return CalamityPathTypePolicy.getWaterCalamityLandBlockPathType(this.getMob(), getter, pos, super.getBlockPathType(getter, value, value2, value3, mob));
+         return CalamityPathTypePolicy.INSTANCE.getWaterCalamityLandBlockPathType(this.getMob(), getter, pos, super.getBlockPathType(getter, value, value2, value3, mob));
       }
 
       public BlockPathTypes getBlockPathType(BlockGetter getter, int value, int value2, int value3) {
@@ -367,7 +367,7 @@ public final class GrakensenkerPathNavigation extends GroundPathNavigation {
          }
 
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
-         BlockPathTypes calamityBlockPathType = CalamityPathTypePolicy.getWaterCalamityWaterBlockPathType(this.getMob(), getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3, mob));
+         BlockPathTypes calamityBlockPathType = CalamityPathTypePolicy.INSTANCE.getWaterCalamityWaterBlockPathType(this.getMob(), getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3, mob));
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          } else if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {

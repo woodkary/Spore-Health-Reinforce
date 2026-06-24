@@ -876,7 +876,7 @@ public final class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return CalamityPathTypePolicy.getLandOrAirBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
+         return CalamityPathTypePolicy.INSTANCE.getLandOrAirBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
       }
       protected BlockPathTypes superEvaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
          return super.evaluateBlockPathType(getter, pos, pathTypes);
@@ -893,7 +893,7 @@ public final class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return CalamityPathTypePolicy.getWaterCalamityLandBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
+         return CalamityPathTypePolicy.INSTANCE.getWaterCalamityLandBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
       }
 
       protected boolean isAmphibious() {
@@ -909,7 +909,7 @@ public final class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-         return CalamityPathTypePolicy.getLandOrAirBlockPathType(this.getMob(), getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
+         return CalamityPathTypePolicy.INSTANCE.getLandOrAirBlockPathType(this.getMob(), getter, pos, super.evaluateBlockPathType(getter, pos, pathTypes));
       }
 
       protected Mob getMob() {
@@ -939,7 +939,7 @@ public final class CalamityPathNavigation extends GroundPathNavigation {
          }
 
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
-         BlockPathTypes calamityBlockPathType = CalamityPathTypePolicy.getWaterCalamityWaterBlockPathType(this.getMob(), getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
+         BlockPathTypes calamityBlockPathType = CalamityPathTypePolicy.INSTANCE.getWaterCalamityWaterBlockPathType(this.getMob(), getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          }

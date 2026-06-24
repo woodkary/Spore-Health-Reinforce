@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.Calamities.Gazenbrecher;
@@ -12,26 +13,27 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraftforge.event.ForgeEventFactory;
 
-final class CalamityPathTypePolicy {
+final class CalamityPathTypePolicy implements IPathTypePolicy {
+   public static final IPathTypePolicy INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
+           IPathTypePolicy.class,
+           CalamityPathTypePolicy.class
+   );
    static final float WATER_CALAMITY_WATER_MALUS = 0.0F;
-   private static final BlockPathTypes FIRE_ADAPTED_GAZEN_LAVA_PATH_TYPE = BlockPathTypes.BREACH;
-
-   private CalamityPathTypePolicy() {
-   }
-
-   static BlockPathTypes getLandOrAirBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+   private final BlockPathTypes FIRE_ADAPTED_GAZEN_LAVA_PATH_TYPE = BlockPathTypes.BREACH;
+   @Override
+   public BlockPathTypes getLandOrAirBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
       return getBlockPathTypeWithFluidPolicy(mob, getter, pos, originalType, FluidAvoidanceProfile.LAND_OR_AIR);
    }
-
-   static BlockPathTypes getWaterCalamityLandBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+   @Override
+   public BlockPathTypes getWaterCalamityLandBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
       return getBlockPathTypeWithFluidPolicy(mob, getter, pos, originalType, FluidAvoidanceProfile.WATER_CALAMITY_ON_LAND);
    }
-
-   static BlockPathTypes getWaterCalamityWaterBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+   @Override
+   public BlockPathTypes getWaterCalamityWaterBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
       return getBlockPathTypeWithFluidPolicy(mob, getter, pos, originalType, FluidAvoidanceProfile.WATER_CALAMITY_IN_WATER);
    }
 
-   private static BlockPathTypes getBlockPathTypeWithFluidPolicy(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType, FluidAvoidanceProfile profile) {
+   private BlockPathTypes getBlockPathTypeWithFluidPolicy(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType, FluidAvoidanceProfile profile) {
       BlockPathTypes pathType = getCalamityBlockPathType(mob, getter, pos, originalType);
       if (isFireAdaptedGazenLava(mob, getter, pos, pathType)) {
          return FIRE_ADAPTED_GAZEN_LAVA_PATH_TYPE;
@@ -42,7 +44,7 @@ final class CalamityPathTypePolicy {
       return pathType;
    }
 
-   private static BlockPathTypes getCalamityBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+   private BlockPathTypes getCalamityBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
       if (originalType != BlockPathTypes.BLOCKED || !ForgeEventFactory.getMobGriefingEvent(mob.level(), mob)) {
          return originalType;
       }
@@ -53,7 +55,7 @@ final class CalamityPathTypePolicy {
       return BlockPathTypes.BLOCKED;
    }
 
-   private static boolean canDestroyForPath(Mob mob, BlockPos pos, BlockState blockState) {
+   private boolean canDestroyForPath(Mob mob, BlockPos pos, BlockState blockState) {
       if (!(mob instanceof Calamity calamity)) {
          return false;
       }
@@ -64,7 +66,7 @@ final class CalamityPathTypePolicy {
       return blockState.is(Utilities.biomass) || destroySpeed >= 0.0F && destroySpeed < calamity.getDestroySpeed();
    }
 
-   private static boolean shouldAvoidFluidOrSnow(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes pathType, FluidAvoidanceProfile profile) {
+   private boolean shouldAvoidFluidOrSnow(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes pathType, FluidAvoidanceProfile profile) {
       FluidState fluidState = getter.getFluidState(pos);
       return switch (profile) {
          case LAND_OR_AIR -> isWaterPathType(pathType) || isAvoidedLavaPathType(mob, pathType) || isPowderSnowPathType(pathType) || !fluidState.isEmpty();
@@ -73,27 +75,27 @@ final class CalamityPathTypePolicy {
       };
    }
 
-   private static boolean isWaterPathType(BlockPathTypes pathType) {
+   private boolean isWaterPathType(BlockPathTypes pathType) {
       return pathType == BlockPathTypes.WATER || pathType == BlockPathTypes.WATER_BORDER;
    }
 
-   private static boolean isAvoidedLavaPathType(Mob mob, BlockPathTypes pathType) {
+   private boolean isAvoidedLavaPathType(Mob mob, BlockPathTypes pathType) {
       return pathType == BlockPathTypes.LAVA && !isFireAdaptedGazen(mob);
    }
 
-   private static boolean isFireAdaptedGazenLava(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
+   private boolean isFireAdaptedGazenLava(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
       return isFireAdaptedGazen(mob) && (pathType == BlockPathTypes.LAVA || getter.getFluidState(pos).is(FluidTags.LAVA));
    }
 
-   private static boolean isFireAdaptedGazen(Mob mob) {
+   private boolean isFireAdaptedGazen(Mob mob) {
       return mob instanceof Gazenbrecher gazen && gazen.isAdaptedToFire();
    }
 
-   private static boolean isPowderSnowPathType(BlockPathTypes pathType) {
+   private boolean isPowderSnowPathType(BlockPathTypes pathType) {
       return pathType == BlockPathTypes.POWDER_SNOW || pathType == BlockPathTypes.DANGER_POWDER_SNOW;
    }
 
-   private static boolean isNonWaterFluid(FluidState fluidState) {
+   private boolean isNonWaterFluid(FluidState fluidState) {
       return !fluidState.isEmpty() && !fluidState.is(FluidTags.WATER);
    }
 
