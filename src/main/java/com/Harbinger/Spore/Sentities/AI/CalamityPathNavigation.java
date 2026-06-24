@@ -66,10 +66,12 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    private int ticksWithoutFallbackProgress;
    private int terminalStuckRecoveries;
    private final Map<BlockPos, Long> avoidedWaterNodes = new HashMap<>();
+   private boolean wasUsingWaterPathing;
 
    public CalamityPathNavigation(Calamity calamity, Level level) {
       super(calamity, level);
       this.calamity = calamity;
+      this.wasUsingWaterPathing = this.isUsingWaterPathing();
    }
 
    @Override
@@ -178,6 +180,8 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    }
 
    public void tick() {
+      this.updatePathingMode();
+
       if (this.tryCompleteActiveDetourTarget()) {
          return;
       }
@@ -218,7 +222,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    protected PathFinder createPathFinder(int value) {
       if (this.mob instanceof WaterInfected) {
-         this.nodeEvaluator = new WaterCalamityNodeEvaluator(this.mob, this::shouldAvoidWaterNode);
+         this.nodeEvaluator = new AmphibianCalamityNodeEvaluator(new CalamityNodeEvaluator(this.mob), new WaterCalamityNodeEvaluator(this.mob, this::shouldAvoidWaterNode), this.mob);
          this.nodeEvaluator.setCanPassDoors(true);
          return new ExpPathFinder(this.nodeEvaluator, value) {
             protected float distance(Node node, Node node1) {
@@ -671,6 +675,19 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       return this.mob.horizontalCollision || !(this.mob instanceof WaterInfected) && this.mob.isInFluidType() || this.mob.getDeltaMovement().horizontalDistanceSqr() < LOW_HORIZONTAL_SPEED_SQR;
    }
 
+   private void updatePathingMode() {
+      boolean usingWaterPathing = this.isUsingWaterPathing();
+      if (usingWaterPathing == this.wasUsingWaterPathing) {
+         return;
+      }
+
+      this.wasUsingWaterPathing = usingWaterPathing;
+      this.resetNodeProgressTracking(null);
+      if (!this.isDone() || this.pathToPosition != null || this.targetPos != null) {
+         this.forceRecomputePathNow();
+      }
+   }
+
    private BlockPos nodeToBlockPos(Node node) {
       return new BlockPos(node.x, node.y, node.z);
    }
@@ -955,7 +972,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
                  || pathType == BlockPathTypes.LAVA
                  || pathType == BlockPathTypes.POWDER_SNOW
                  || pathType == BlockPathTypes.DANGER_POWDER_SNOW
-                 || !getter.getFluidState(pos).isEmpty();
+                 || (!getter.getFluidState(pos).isEmpty() && pathType != BlockPathTypes.WATER);
       }
 
       private Mob getMob() {
