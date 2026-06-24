@@ -340,7 +340,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
       });
       this.goalSelector.addGoal(8, new SporeBurstSupport(this) {
          public boolean canUse() {
-            return Stahlmorder.this.getJumpOffset() > 0 ? false : super.canUse();
+            return Stahlmorder.this.getJumpOffset() <= 0 && super.canUse();
          }
       });
       this.goalSelector.addGoal(9, new RandomStrollGoal(this, (double)1.0F));
