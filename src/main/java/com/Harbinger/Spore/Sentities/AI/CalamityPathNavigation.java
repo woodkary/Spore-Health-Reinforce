@@ -17,6 +17,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.DebugPackets;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -24,6 +25,7 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.FlyNodeEvaluator;
 import net.minecraft.world.level.pathfinder.Node;
@@ -47,6 +49,8 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    private static final int WATER_STUCK_NODE_AVOID_VERTICAL_RADIUS = 1;
    private static final double MIN_NODE_PROGRESS_SQR = 0.0025D;
    private static final double LOW_HORIZONTAL_SPEED_SQR = 1.0E-4D;
+   private static final float WATER_CALAMITY_WATER_MALUS = 0.0F;
+   private static final BlockPathTypes FIRE_ADAPTED_GAZEN_LAVA_PATH_TYPE = BlockPathTypes.BREACH;
    protected final Calamity calamity;
    @Nullable
    private BlockPos pathToPosition;
@@ -73,6 +77,10 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       super(calamity, level);
       this.calamity = calamity;
       this.wasUsingWaterPathing = this.isUsingWaterPathing();
+      if (calamity instanceof WaterInfected) {
+         calamity.setPathfindingMalus(BlockPathTypes.WATER, WATER_CALAMITY_WATER_MALUS);
+         calamity.setPathfindingMalus(BlockPathTypes.WATER_BORDER, WATER_CALAMITY_WATER_MALUS);
+      }
    }
 
    @Override
@@ -223,23 +231,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    protected PathFinder createPathFinder(int value) {
       if (this.mob instanceof WaterInfected) {
-         this.nodeEvaluator = new AmphibianCalamityNodeEvaluator(new CalamityNodeEvaluator(this.mob){
-            @Override
-            protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-               BlockPathTypes pathType = getCalamityBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
-               if (pathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, pos, pathType)) {
-                  return BlockPathTypes.DANGER_OTHER;
-               }
-               return pathType;
-            }
-            private boolean shouldAvoidFluidOrSnow(BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
-               return pathType == BlockPathTypes.WATER_BORDER
-                       || !(getMob() instanceof Gazenbrecher gazen&&gazen.isAdaptedToFire())&&pathType == BlockPathTypes.LAVA
-                       || pathType == BlockPathTypes.POWDER_SNOW
-                       || pathType == BlockPathTypes.DANGER_POWDER_SNOW
-                       || !getter.getFluidState(pos).isEmpty();
-            }
-         },
+         this.nodeEvaluator = new AmphibianCalamityNodeEvaluator(new AmphibianLandCalamityNodeEvaluator(this.mob),
                  new WaterCalamityNodeEvaluator(this.mob, this::shouldAvoidWaterNode),
                  this.mob);
          this.nodeEvaluator.setCanPassDoors(true);
@@ -906,20 +898,59 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    }
 
    private static BlockPathTypes getLandOrAirCalamityBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+      return getCalamityBlockPathTypeWithFluidPolicy(mob, getter, pos, originalType, FluidAvoidanceProfile.LAND_OR_AIR);
+   }
+
+   private static BlockPathTypes getWaterCalamityLandBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+      return getCalamityBlockPathTypeWithFluidPolicy(mob, getter, pos, originalType, FluidAvoidanceProfile.WATER_CALAMITY_ON_LAND);
+   }
+
+   private static BlockPathTypes getWaterCalamityWaterBlockPathType(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType) {
+      return getCalamityBlockPathTypeWithFluidPolicy(mob, getter, pos, originalType, FluidAvoidanceProfile.WATER_CALAMITY_IN_WATER);
+   }
+
+   private static BlockPathTypes getCalamityBlockPathTypeWithFluidPolicy(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes originalType, FluidAvoidanceProfile profile) {
       BlockPathTypes pathType = getCalamityBlockPathType(mob, getter, pos, originalType);
-      if (pathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, pos, pathType)) {
+      if (isFireAdaptedGazenLava(mob, getter, pos, pathType)) {
+         return FIRE_ADAPTED_GAZEN_LAVA_PATH_TYPE;
+      }
+      if (pathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(mob, getter, pos, pathType, profile)) {
          return BlockPathTypes.DANGER_OTHER;
       }
       return pathType;
    }
 
-   private static boolean shouldAvoidFluidOrSnow(BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
-      return pathType == BlockPathTypes.WATER
-              || pathType == BlockPathTypes.WATER_BORDER
-              || pathType == BlockPathTypes.LAVA
-              || pathType == BlockPathTypes.POWDER_SNOW
-              || pathType == BlockPathTypes.DANGER_POWDER_SNOW
-              || !getter.getFluidState(pos).isEmpty();
+   private static boolean shouldAvoidFluidOrSnow(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes pathType, FluidAvoidanceProfile profile) {
+      FluidState fluidState = getter.getFluidState(pos);
+      return switch (profile) {
+         case LAND_OR_AIR -> isWaterPathType(pathType) || isAvoidedLavaPathType(mob, pathType) || isPowderSnowPathType(pathType) || !fluidState.isEmpty();
+         case WATER_CALAMITY_ON_LAND -> isAvoidedLavaPathType(mob, pathType) || isPowderSnowPathType(pathType) || isNonWaterFluid(fluidState);
+         case WATER_CALAMITY_IN_WATER -> pathType == BlockPathTypes.WATER_BORDER || isAvoidedLavaPathType(mob, pathType) || isPowderSnowPathType(pathType) || isNonWaterFluid(fluidState);
+      };
+   }
+
+   private static boolean isWaterPathType(BlockPathTypes pathType) {
+      return pathType == BlockPathTypes.WATER || pathType == BlockPathTypes.WATER_BORDER;
+   }
+
+   private static boolean isAvoidedLavaPathType(Mob mob, BlockPathTypes pathType) {
+      return pathType == BlockPathTypes.LAVA && !isFireAdaptedGazen(mob);
+   }
+
+   private static boolean isFireAdaptedGazenLava(Mob mob, BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
+      return isFireAdaptedGazen(mob) && (pathType == BlockPathTypes.LAVA || getter.getFluidState(pos).is(FluidTags.LAVA));
+   }
+
+   private static boolean isFireAdaptedGazen(Mob mob) {
+      return mob instanceof Gazenbrecher gazen && gazen.isAdaptedToFire();
+   }
+
+   private static boolean isPowderSnowPathType(BlockPathTypes pathType) {
+      return pathType == BlockPathTypes.POWDER_SNOW || pathType == BlockPathTypes.DANGER_POWDER_SNOW;
+   }
+
+   private static boolean isNonWaterFluid(FluidState fluidState) {
+      return !fluidState.isEmpty() && !fluidState.is(FluidTags.WATER);
    }
 
    protected static class CalamityNodeEvaluator extends WalkNodeEvaluator {
@@ -938,6 +969,20 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
       protected Mob getMob() {
          return this.mob != null ? this.mob : this.owner;
+      }
+   }
+
+   protected static class AmphibianLandCalamityNodeEvaluator extends CalamityNodeEvaluator {
+      public AmphibianLandCalamityNodeEvaluator(Mob owner) {
+         super(owner);
+      }
+
+      protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
+         return getWaterCalamityLandBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
+      }
+
+      protected boolean isAmphibious() {
+         return true;
       }
    }
 
@@ -979,10 +1024,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          }
 
          BlockState blockstate1 = getter.getBlockState(blockpos$mutableblockpos);
-         BlockPathTypes calamityBlockPathType = getCalamityBlockPathType(this.getMob(), getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
-         if (calamityBlockPathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, blockpos$mutableblockpos, calamityBlockPathType)) {
-            return BlockPathTypes.DANGER_OTHER;
-         }
+         BlockPathTypes calamityBlockPathType = getWaterCalamityWaterBlockPathType(this.getMob(), getter, blockpos$mutableblockpos, super.getBlockPathType(getter, value, value2, value3));
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          }
@@ -992,17 +1034,16 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          return calamityBlockPathType;
 
       }
-      private boolean shouldAvoidFluidOrSnow(BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
-         return pathType == BlockPathTypes.WATER_BORDER
-                 || !(getMob() instanceof Gazenbrecher gazen&&gazen.isAdaptedToFire())&&pathType == BlockPathTypes.LAVA
-                 || pathType == BlockPathTypes.POWDER_SNOW
-                 || pathType == BlockPathTypes.DANGER_POWDER_SNOW
-                 || (!getter.getFluidState(pos).isEmpty() && pathType != BlockPathTypes.WATER);
-      }
 
       private Mob getMob() {
          return this.mob != null ? this.mob : this.owner;
       }
+   }
+
+   private enum FluidAvoidanceProfile {
+      LAND_OR_AIR,
+      WATER_CALAMITY_ON_LAND,
+      WATER_CALAMITY_IN_WATER
    }
 
    private static class TemporaryPath {
