@@ -226,7 +226,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          this.nodeEvaluator = new AmphibianCalamityNodeEvaluator(new CalamityNodeEvaluator(this.mob){
             @Override
             protected BlockPathTypes evaluateBlockPathType(BlockGetter getter, BlockPos pos, BlockPathTypes pathTypes) {
-               BlockPathTypes pathType = getCalamityBlockPathType(mob, getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
+               BlockPathTypes pathType = getCalamityBlockPathType(this.getMob(), getter, pos, superEvaluateBlockPathType(getter, pos, pathTypes));
                if (pathType != BlockPathTypes.BLOCKED && shouldAvoidFluidOrSnow(getter, pos, pathType)) {
                   return BlockPathTypes.DANGER_OTHER;
                }
