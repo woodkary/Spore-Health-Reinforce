@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Sentities.Calamities.Gazenbrecher;
 import com.Harbinger.Spore.Sentities.FlyingInfected;
 import com.Harbinger.Spore.Sentities.WaterInfected;
 import com.Harbinger.Spore.Sentities.AI.NeuralProcessing.Experimental.ExpPathFinder;
@@ -964,12 +965,15 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.WATER)) {
             return BlockPathTypes.WATER;
          }
+         if (blockstate1.isPathfindable(getter, blockpos$mutableblockpos, PathComputationType.LAND)) {
+            return BlockPathTypes.DANGER_OTHER;
+         }
          return calamityBlockPathType;
 
       }
       private boolean shouldAvoidFluidOrSnow(BlockGetter getter, BlockPos pos, BlockPathTypes pathType) {
          return pathType == BlockPathTypes.WATER_BORDER
-                 || pathType == BlockPathTypes.LAVA
+                 || !(getMob() instanceof Gazenbrecher gazen&&gazen.isAdaptedToFire())&&pathType == BlockPathTypes.LAVA
                  || pathType == BlockPathTypes.POWDER_SNOW
                  || pathType == BlockPathTypes.DANGER_POWDER_SNOW
                  || (!getter.getFluidState(pos).isEmpty() && pathType != BlockPathTypes.WATER);
