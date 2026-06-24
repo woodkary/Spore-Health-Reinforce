@@ -725,7 +725,7 @@ public final class GrakensenkerPathNavigation extends GroundPathNavigation {
 
       public BlockPathTypes getBlockPathType(BlockGetter getter, int value, int value2, int value3, Mob mob) {
          BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(value, value2, value3);
-         return CalamityPathTypePolicy.INSTANCE.getWaterCalamityLandBlockPathType(this.getMob(), getter, pos, super.getBlockPathType(getter, value, value2, value3, mob));
+         return CalamityPathTypePolicy.INSTANCE.getWaterCalamityLandBlockPathType(this.getMob(), getter, pos, super.getBlockPathType(getter, value, value2, value3, mob!=null?mob:this.getMob()));
       }
 
       public BlockPathTypes getBlockPathType(BlockGetter getter, int value, int value2, int value3) {
