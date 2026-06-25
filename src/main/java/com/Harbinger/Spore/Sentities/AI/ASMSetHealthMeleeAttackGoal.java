@@ -28,7 +28,7 @@ public interface ASMSetHealthMeleeAttackGoal {
         if(distanceSquared > d0||ticksUntilNextAttack() > 0){
             return;
         }
-        float attackDamage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE);
+        float attackDamage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE)*0.3f;
         attackDamage+=getBonus();
         SporeAttackUtil.INSTANCE.attack(target, mob, attackDamage);
     }
