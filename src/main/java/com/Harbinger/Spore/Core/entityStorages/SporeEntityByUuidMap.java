@@ -38,7 +38,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
             try{
                 return (Map<UUID,V>) noArg.invoke();
             } catch (Throwable t) {
-                LogUtil.errorf("failed to new SporeEntityByUuidMap instance", t.getMessage());
+                LogUtil.errorf("failed to new SporeEntityByUuidMap instance. %s", t.getMessage());
             }
         }
         return new SporeEntityByUuidMap<>();
@@ -54,7 +54,7 @@ public final class SporeEntityByUuidMap<T extends EntityAccess> extends Protecte
             try{
                 return (Map<UUID,V>) mapArg.invoke(m);
             } catch (Throwable t) {
-                LogUtil.errorf("failed to new SporeEntityByUuidMap instance", t.getMessage());
+                LogUtil.errorf("failed to new SporeEntityByUuidMap instance. %s", t.getMessage());
             }
         }
         return new SporeEntityByUuidMap<>(m);
