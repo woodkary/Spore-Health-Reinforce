@@ -363,7 +363,7 @@ public final class SporeAttackUtil implements IAttack {
         HitResult result = player.level().clip(context);
         return result.getType() != HitResult.Type.MISS;
     }
-    public void dropAllDeathLoot(LivingEntity liv,Vec3 position,DamageSource source,@Nullable Player player) {
+    public void dropAllDeathLoot(LivingEntity liv,Vec3 position,DamageSource source,@Nullable Entity cause) {
         if(liv.level.isClientSide){
             return;
         }
@@ -371,11 +371,15 @@ public final class SporeAttackUtil implements IAttack {
         int i = ForgeHooks.getLootingLevel(liv, entity, source);
         captureDrops(liv);
         boolean flag = true;
-        dropFromLootTable(liv,position,source, flag,player);
+        boolean isPlayer=false;
+        if(cause instanceof Player player) {
+            isPlayer=true;
+            dropFromLootTable(liv, position, source, flag, player);
+        }
         liv.dropCustomDeathLoot(source, i, flag);
 
         liv.dropEquipment();
-        if(player!=null) {
+        if(isPlayer) {
             dropExperience(liv, position);
         }
         for (ItemEntity e : captureDrops(liv)) {

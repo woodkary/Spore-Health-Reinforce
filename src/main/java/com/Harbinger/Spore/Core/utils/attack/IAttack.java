@@ -27,6 +27,6 @@ public interface IAttack {
     void playSound(Level level, @Nullable Player player, BlockPos blockPos, SoundEvent soundEvent, SoundSource source, float soundVolume, float voicePitch);
     void playSound(Level level,@Nullable Player p_46543_, double p_46544_, double p_46545_, double p_46546_, SoundEvent p_46547_, SoundSource p_46548_, float p_46549_, float p_46550_);
     Entity getTargetedEntity(Player player, double maxDistance);
-    void dropAllDeathLoot(LivingEntity liv, Vec3 position, DamageSource source, Player player);
+    void dropAllDeathLoot(LivingEntity liv, Vec3 position, DamageSource source, Entity cause);
 }
 

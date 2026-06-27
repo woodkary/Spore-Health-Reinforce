@@ -596,7 +596,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         if (level instanceof ServerLevel serverLevel) {
             if (entity == null || entity.killedEntity(serverLevel, target)) {
                 target.gameEvent(GameEvent.ENTITY_DIE);
-                SporeAttackUtil.INSTANCE.dropAllDeathLoot(target,target.position,source,source.causingEntity instanceof Player player?player:null);
+                SporeAttackUtil.INSTANCE.dropAllDeathLoot(target,target.position,source,source.causingEntity);
                 //target.dropAllDeathLoot(source);
             }
             target.level().broadcastEntityEvent(target, (byte) 3);

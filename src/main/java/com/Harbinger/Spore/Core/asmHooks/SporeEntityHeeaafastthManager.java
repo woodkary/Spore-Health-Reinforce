@@ -20,6 +20,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 
 import java.lang.invoke.MethodHandle;
 import java.util.*;
@@ -228,6 +229,13 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
             fakeHealth.hurtDellta(amount);
         }
         entity.getCombatTracker().recordDamage(source,amount);
+        Entity sourceEntity = source.getEntity();
+        if (sourceEntity instanceof LivingEntity liv) {
+            entity.setLastHurtByMob(liv);
+        }
+        if(sourceEntity instanceof Player player){
+            entity.setLastHurtByPlayer(player);
+        }
         if(entity.getHealth()<=0.0f){
             EntityHeealuthManager.INSTANCE.killEntity(entity,source);
         }
