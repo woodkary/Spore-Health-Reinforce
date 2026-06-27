@@ -2,9 +2,12 @@ package com.Harbinger.Spore.Effect;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import java.util.List;
+
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,15 +20,19 @@ public class Mycelium extends MobEffect {
 
    public void applyEffectTick(LivingEntity entity, int intense) {
       if (Utilities.TARGET_SELECTOR.Test(entity) && !((List)SConfig.SERVER.mycelium.get()).contains(entity.getEncodeId()) && this == Seffects.MYCELIUM.get()) {
-         if (!entity.level().isClientSide && entity instanceof Player) {
-            Player player = (Player)entity;
-            if (player.getFoodData().getFoodLevel() > 0 && intense < 1) {
+         if (!entity.level().isClientSide && entity instanceof Player player) {
+             if (player.getFoodData().getFoodLevel() > 0 && intense < 1) {
                player.causeFoodExhaustion(1.0F);
                return;
             }
          }
+         DamageSource source = SdamageTypes.mycelium_overtake(entity);
+         if(entity instanceof Player){
+            entity.hurt(source, 1.0F);
+            return;
+         }
+         SporeAttackUtil.INSTANCE.dealDamage(entity,entity,source,1.0f);
 
-         entity.hurt(SdamageTypes.mycelium_overtake(entity), 1.0F);
       }
 
    }
