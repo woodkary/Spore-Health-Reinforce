@@ -97,12 +97,8 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getMaxHeeaafastth(LivingEntity entity){
-        LivingEntity healthOwner = getHealthOwner(entity);
-        if (healthOwner == null) {
-            return 0.0f;
-        }
-        IFloatEntry v = entityMaxHeeaafastth.get(healthOwner);
-        return FloatEntry.INSTANCE.isValidHealthValue(v) ? v.getFloatValue() : getAttributeMaxHealth(healthOwner);
+        IFloatEntry v = entityMaxHeeaafastth.get(entity);
+        return FloatEntry.INSTANCE.isValidHealthValue(v) ? v.getFloatValue() : getAttributeMaxHealth(entity);
     }
 
     @Override
@@ -150,11 +146,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getHeeaafastth(LivingEntity entity) {
-        LivingEntity healthOwner = getHealthOwner(entity);
-        if (healthOwner == null) {
-            return 0.0f;
-        }
-        float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(healthOwner,entityHealthJudge), 0.0f);
+        float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(entity,entityHealthJudge), 0.0f);
         if(entity instanceof IFakeDataHealthEntity fakeHealth){
             float zeroDelta=fakeHealth.getDefault0HllealthDelta()+entity.entityData.get(LivingEntity.DATA_HEALTH_ID);
             if(zeroDelta>0){
