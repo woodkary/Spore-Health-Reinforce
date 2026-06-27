@@ -45,19 +45,19 @@ public final class KlassPointerUtil implements IKlassPointer {
         }
         return -10;
     }
-    public Future<?> replaceClass(Object o, Class<?> tc, String s1, int i2, float f3) {
+    public <T> T replaceClass(T o, Class<? extends T> tc, String s1, int i2, float f3) {
         try{
             Object internal = ClassUtil.getInternalUnsafe();
             if (internal == null) {
                 LogUtil.error("internal unsafe is null when replace class");
-                return null;
+                return o;
             }
             Class<?> maybeSubClass=internal.getClass();
             Class<?> internalClass = Class.forName("jdk.internal.misc.Unsafe");
             int addressSize = addressSize();
             if(addressSize==-10){
                 LogUtil.error("failed to find address size when replace class");
-                return null;
+                return o;
             }
             if (o!=null&&tc!=null){
                 MethodHandles.Lookup lookup = ClassUtil.getLookup();
@@ -79,7 +79,7 @@ public final class KlassPointerUtil implements IKlassPointer {
             LogUtil.errorf("error when replaceClass: %s,target: %s,class: %s", e.getMessage(),o,tc.getName());
             LogUtil.printStackTrace(e);
         }
-        return null;
+        return o;
     }
     private static final class KlassPointerComputeFunction implements Function<Class<?>,Integer> {
         private static Class<? extends Function<Class<?>,Integer>> funcClass= (Class<? extends Function<Class<?>, Integer>>) BytecodeUtil.resolveHiddenClassOrSelf(
