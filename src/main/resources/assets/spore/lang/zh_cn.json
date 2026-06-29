@@ -361,7 +361,7 @@
   "item.spore.garg_spawnegg": "石像鬼",
   "item.spore.reaper_spawnegg": "收割者",
   "item.spore.gorgon_spawnegg": "戈耳工",
-  "item.spore.verfall_spawnegg": "維爾法爾德拉赫",
+  "item.spore.verfall_spawnegg": "衰朽巨龙",
   "item.spore.hollen_spawnegg": "霍倫洪特",
 
   "entity.spore.knight": "菌骑士",
@@ -450,8 +450,8 @@
   "entity.spore.inf_diseased_villager": "菌染僵尸村民",
   "entity.spore.arena_tendril": "竞技场触须",
   "entity.spore.gorgon": "戈耳工",
-  "entity.spore.verfall": "維爾法爾德拉赫",
-  "entity.spore.verfall_head": "維爾法爾德拉赫",
+  "entity.spore.verfall": "衰朽巨龙",
+  "entity.spore.verfall_head": "衰朽巨龙",
   "entity.spore.hollen": "霍倫洪特",
 
   "spore.entity.variant.kidnapper" : "绑架者突变",
@@ -913,7 +913,7 @@
   "advancement.spore.gorgon.title" : "石化",
   "advancement.spore.gorgon.description" : "遭遇一只戈耳工。",
   "advancement.spore.verfall.title": "如何錯誤地訓練你的龍",
-  "advancement.spore.verfall.description": "遭遇一隻維爾法爾德拉赫。",
+  "advancement.spore.verfall.description": "遭遇一隻衰朽巨龙。",
   "advancement.spore.hollen.title": "把他們的靈魂帶給我",
   "advancement.spore.hollen.description": "遭遇一隻霍倫洪特。",
 
