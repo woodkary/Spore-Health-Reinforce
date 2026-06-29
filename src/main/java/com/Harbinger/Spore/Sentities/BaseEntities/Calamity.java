@@ -106,7 +106,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    private boolean isSpecialDead;
    private Vec3 lastLegalPosition=Vec3.ZERO;
 
-   public int getAdaptationCount() {
+   public int getDamageAdaptationCount() {
       return adaptationCount;
    }
    public void setAdaptationCount(int adaptationCount) {
@@ -245,7 +245,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
    public void actuallyHurt(DamageSource source, float amount) {
       float lastHealth=0.0f;
       if(!source.is(DamageTypes.FREEZE)){
-         amount*=(1.0f-this.getAdaptationCount()*0.02f);
+         amount*=(1.0f-this.getDamageAdaptationCount()*0.02f);
          lastHealth=this.getHealth();
       }
       float actualDamage=actualHurt(source, amount);
@@ -270,7 +270,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
       tag.putInt("AreaX", this.getSearchArea().getX());
       tag.putInt("AreaY", this.getSearchArea().getY());
       tag.putInt("AreaZ", this.getSearchArea().getZ());
-      tag.putInt("adaptationCount",this.getAdaptationCount());
+      tag.putInt("adaptationCount",this.getDamageAdaptationCount());
       addFakeAdditionalData(tag);
       addSaveData(tag);
       addAdditionalLegalPositionData(tag);

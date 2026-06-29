@@ -1,6 +1,6 @@
 package com.Harbinger.Spore.Sentities;
 
 public interface AdaptableEntity {
-    int getAdaptationCount();
+    int getDamageAdaptationCount();
     void setAdaptationCount(int adaptationCount);
 }

@@ -178,7 +178,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
       }
 
       tag.put("mutations", teamTag);
-      tag.putInt("adaptationCount",getAdaptationCount());
+      tag.putInt("adaptationCount",getDamageAdaptationCount());
       addAdditionalLegalPositionData(tag);
    }
 
@@ -480,7 +480,7 @@ public class Womb extends Organoid implements MenuProvider, AdaptableEntity, IDi
    }
 
    @Override
-   public int getAdaptationCount() {
+   public int getDamageAdaptationCount() {
       return pendingAdaptationCounts;
    }
 
