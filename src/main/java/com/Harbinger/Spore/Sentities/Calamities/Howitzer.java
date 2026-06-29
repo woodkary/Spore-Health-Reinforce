@@ -42,6 +42,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.item.FallingBlockEntity;
@@ -49,6 +50,7 @@ import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -164,8 +166,15 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         this.goalSelector.addGoal(9,new RandomStrollGoal(this , 1));
     }
     public static class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
+        private double pathedTargetX;
+        private double pathedTargetY;
+        private double pathedTargetZ;
+        private int ticksUntilNextPathRecalculation;
+        private boolean holdingPosition;
+
         public HowitzerRangedAttackGoal(RangedAttackMob mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         }
         private int getBurnable(LivingEntity target){
             AABB aabb = target.getBoundingBox().inflate(4);
@@ -179,6 +188,16 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         }
 
         @Override
+        public void stop() {
+            super.stop();
+            this.holdingPosition = false;
+            this.ticksUntilNextPathRecalculation = 0;
+            this.pathedTargetX = 0.0D;
+            this.pathedTargetY = 0.0D;
+            this.pathedTargetZ = 0.0D;
+        }
+
+        @Override
         public void tick() {
             double d0 = this.mob.distanceToSqr(this.target.getX(), this.target.getY(), this.target.getZ());
             boolean flag = this.mob.getSensing().hasLineOfSight(this.target);
@@ -189,9 +208,13 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             }
 
             if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 5) {
-                this.mob.getNavigation().stop();
+                if (!this.holdingPosition) {
+                    this.mob.getNavigation().stop();
+                    this.holdingPosition = true;
+                }
+                this.ticksUntilNextPathRecalculation = 0;
             } else {
-                this.mob.getNavigation().moveTo(this.target, this.speedModifier);
+                this.recomputeTargetPath(d0);
             }
 
             this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
@@ -211,6 +234,37 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             } else if (this.attackTime < 0) {
                 this.attackTime = Mth.floor(Mth.lerp(Math.sqrt(d0) / (double)this.attackRadius, (double)this.attackInterval, (double)this.attackInterval));
             }
+        }
+
+        private void recomputeTargetPath(double distanceToTargetSqr) {
+            this.holdingPosition = false;
+            this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
+            if (this.ticksUntilNextPathRecalculation > 0
+                    && this.target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) < 1.0D) {
+                return;
+            }
+
+            this.pathedTargetX = this.target.getX();
+            this.pathedTargetY = this.target.getY();
+            this.pathedTargetZ = this.target.getZ();
+            this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
+            if (this.mob.getNavigation().getPath() != null) {
+                Node finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
+                if (finalPathPoint != null && this.target.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1.0D) {
+                    this.ticksUntilNextPathRecalculation = 0;
+                }
+            }
+
+            if (distanceToTargetSqr > 1024.0D) {
+                this.ticksUntilNextPathRecalculation += 10;
+            } else if (distanceToTargetSqr > 256.0D) {
+                this.ticksUntilNextPathRecalculation += 5;
+            }
+
+            if (!this.mob.getNavigation().moveTo(this.target, this.speedModifier)) {
+                this.ticksUntilNextPathRecalculation += 15;
+            }
+            this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
         }
     }
     @Override

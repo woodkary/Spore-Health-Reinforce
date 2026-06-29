@@ -7,7 +7,7 @@ import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.*;
-import com.Harbinger.Spore.Sentities.AI.HybridPathNavigation;
+import com.Harbinger.Spore.Sentities.AI.GrakensenkerPathNavigation;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.CalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.IkUtil.IkKrakenArm;
@@ -100,7 +100,7 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
         TickTentacles = new IkKrakenLeg[]{BackRightTentacle,BackLeftTentacle,MiddleRightTentacle,MiddleLeftTentacle,FrontRightTentacle,FrontLeftTentacle,RightArmTentacle,LeftArmTentacle,VortexFunnel};
         this.subEntities = new CalamityMultipart[]{ this.Body,this.Body2, this.RightHand,this.LeftHand};
         this.setId(ENTITY_COUNTER.getAndAdd(this.subEntities.length + 1) + 1);
-        this.navigation = new HybridPathNavigation(this,this.level());
+        this.navigation = new GrakensenkerPathNavigation(this,this.level());
         this.setMaxUpStep(1.5f);
     }
     @Override
