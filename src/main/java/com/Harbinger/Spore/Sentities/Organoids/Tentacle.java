@@ -3,13 +3,13 @@ package com.Harbinger.Spore.Sentities.Organoids;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.IkLegWithHitbox;
+import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -114,7 +114,7 @@ public class Tentacle extends UtilityEntity {
     protected void registerGoals() {
         this.addTargettingGoals();
         super.registerGoals();
-        this.goalSelector.addGoal(1,new MeleeAttackGoal(this,1,true));
+        this.goalSelector.addGoal(1,new CustomMeleeAttackGoal(this,1,true));
         this.goalSelector.addGoal(4,new RandomStrollGoal(this,1));
     }
 

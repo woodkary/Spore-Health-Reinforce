@@ -1,6 +1,9 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
@@ -10,6 +13,8 @@ import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityVigilCall;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
 import com.Harbinger.Spore.Sentities.AI.CalamityPathNavigation;
 import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
+import com.Harbinger.Spore.Sentities.Calamities.Howitzer;
+import com.Harbinger.Spore.Sentities.Calamities.Stahlmorder;
 import com.Harbinger.Spore.Sentities.MovementControls.CalamityMovementControl;
 import com.Harbinger.Spore.Sentities.MovementControls.SmoothLookControl;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
@@ -74,6 +79,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     public static final EntityDataAccessor<Float> DATA_HEALTH = SynchedEntityData.defineId(Calamity.class, EntityDataSerializers.FLOAT);
     protected int breakCounter;
     private int stun = 0;
+    private int crushingTick = 0;
     private int damageAdaptationCount;
     private boolean isSpecialDead;
     private Vec3 lastLegalPosition = Vec3.ZERO;
@@ -104,6 +110,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     public boolean isStunned() {
         return stun > 0;
+    }
+
+    public void setCrushingTick(int ticks) {
+        this.crushingTick = ticks;
     }
 
     public boolean doHurtTarget(Entity entity) {
@@ -410,6 +420,24 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     public void tick() {
         super.tick();
         tickLegalPosition();
+        if (this.crushingTick > 0 && !this.level().isClientSide) {
+            boolean willPlaySound = this.crushingTick-- % 10 == 0;
+            DamageSource source = getCustomDamage(this);
+            for (LivingEntity living : this.level().getEntitiesOfClass(
+                    LivingEntity.class,
+                    this.getBoundingBox().inflate(6.0),
+                    liv -> liv.isAlive() && !SporeJudge.isSporeEntity(liv)
+                            && !(liv instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)))) {
+                if (willPlaySound) {
+                    SoundEvent soundEvent = this instanceof Stahlmorder ? Ssounds.STAHL_SLASH.get()
+                            : this instanceof Howitzer ? Ssounds.LANDING.get()
+                            : Ssounds.SIEGER_BITE.get();
+                    SporeAttackUtil.INSTANCE.playSound(this.level(), null, this.getX(), this.getY(), this.getZ(),
+                            soundEvent, this.getSoundSource(), 1.0f, 1.0f);
+                }
+                SporeAttackUtil.INSTANCE.dealDamage(living, this, source, 2.0f);
+            }
+        }
         if (this.tickCount % 1200 == 0){
             setRooted(this.getTarget() == null && this.getHealth() <= (this.getMaxHealth()*0.3) && onGround());
             if (isRooted()){this.setKills(getKills()+1);}

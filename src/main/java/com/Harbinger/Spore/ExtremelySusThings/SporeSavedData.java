@@ -15,6 +15,7 @@ public class SporeSavedData extends SavedData {
     public static final String NAME = Spore.MODID +"_world_data";
     private static final List<Protector> protectorList = new ArrayList<>();
     private static final List<Proto> protos = new ArrayList<>();
+    private boolean casingLightAllowed;
     public static void addProtector(Protector protector){
         protectorList.add(protector);
     }
@@ -69,8 +70,18 @@ public class SporeSavedData extends SavedData {
         return activeRequests.values();
     }
 
+    public boolean isCasingLightAllowed() {
+        return casingLightAllowed;
+    }
+
+    public void setCasingLightAllowed(boolean casingLightAllowed) {
+        this.casingLightAllowed = casingLightAllowed;
+        setDirty();
+    }
+
     public static SporeSavedData load(CompoundTag tag){
         SporeSavedData data = new SporeSavedData();
+        data.casingLightAllowed = tag.getBoolean("CasingLightAllowed");
         if (tag.contains("ChunkRequests", 9)) { // 9 = ListTag
             var list = tag.getList("ChunkRequests", 10);
             for (int i = 0; i < list.size(); i++) {
@@ -89,6 +100,7 @@ public class SporeSavedData extends SavedData {
             listTag.add(request.serializeNBT());
         }
         tag.put("ChunkRequests", listTag);
+        tag.putBoolean("CasingLightAllowed", casingLightAllowed);
         return tag;
     }
 

@@ -3,6 +3,8 @@ package com.Harbinger.Spore.Sentities.FallenMultipart;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.HybridPathNavigation;
@@ -32,6 +34,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -119,7 +122,7 @@ public class DragonHead extends FallenMultipartEntity implements VariantKeeper {
                     if (en instanceof LivingEntity living && Utilities.TARGET_SELECTOR.Test(living)){
                         int voltageModifier = (living instanceof IronGolem) ? 3 : 1;
                         entity = en;
-                        en.hurt(level().damageSources().lightningBolt(),(float) ((SConfig.SERVER.verfa_elec_damage.get() * 0.25) *
+                        hurtHeadAttackTarget(living, level().damageSources().lightningBolt(), (float) ((SConfig.SERVER.verfa_elec_damage.get() * 0.25) *
                                 SConfig.SERVER.global_damage.get() *
                                 voltageModifier));
                         setCharge(getCharge() - 1);
@@ -351,7 +354,15 @@ public class DragonHead extends FallenMultipartEntity implements VariantKeeper {
 
         spawnSonicBoomParticles(target);
 
-        target.hurt(this.damageSources().sonicBoom(this), (float) (SConfig.SERVER.verfa_sound_damage.get() * SConfig.SERVER.global_damage.get()));
+        hurtHeadAttackTarget(target, this.damageSources().sonicBoom(this), (float) (SConfig.SERVER.verfa_sound_damage.get() * SConfig.SERVER.global_damage.get()));
         applySonicKnockback(target);
+    }
+
+    private void hurtHeadAttackTarget(LivingEntity target, DamageSource source, float damage) {
+        if (target instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+            target.hurt(source, damage);
+            return;
+        }
+        SporeAttackUtil.INSTANCE.dealDamage(target, this, source, damage);
     }
 }

@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
 import com.Harbinger.Spore.Core.Sentities;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.Calamities.Grakensenker;
 import net.minecraft.core.BlockPos;
@@ -101,8 +102,7 @@ public class HarpoonProjectile extends AbstractArrow {
     protected void onHitEntity(EntityHitResult result) {
         Entity target = result.getEntity();
         if (target instanceof LivingEntity living) {
-
-            living.hurt(level().damageSources().mobProjectile(this,(LivingEntity)this.getOwner()), getDamage());
+            SporeAttackUtil.INSTANCE.dealDamage(living, (LivingEntity) this.getOwner(), level().damageSources().mobProjectile(this,(LivingEntity)this.getOwner()), getDamage());
             living.setArrowCount(living.getArrowCount() - 1);
             entityData.set(VICTIM_ID, living.getId());
             this.setDeltaMovement(Vec3.ZERO);

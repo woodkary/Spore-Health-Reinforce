@@ -1,9 +1,13 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
@@ -13,7 +17,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class AOEMeleeAttackGoal extends Goal {
+public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackGoal {
     protected final PathfinderMob mob;
     protected Predicate<LivingEntity> victims;
     private final double speedModifier;
@@ -152,6 +156,7 @@ public class AOEMeleeAttackGoal extends Goal {
             }
 
             this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
+            tickASMAttack();
             this.checkAndPerformAttack(livingentity, d0);
         }
     }
@@ -163,14 +168,33 @@ public class AOEMeleeAttackGoal extends Goal {
             this.mob.swing(InteractionHand.MAIN_HAND);
             this.mob.doHurtTarget(entity);
             AABB hitbox = entity.getBoundingBox().inflate(box);
+            float attackDamage = (float) this.mob.attributes.getValue(Attributes.ATTACK_DAMAGE) * 0.3f;
+            attackDamage += getBonus();
             List<LivingEntity> targets = entity.level().getEntitiesOfClass(LivingEntity.class , hitbox,victims);
             for (LivingEntity en : targets) {
+                if (!SporeJudge.isSporeEntity(en)) {
+                    SporeAttackUtil.INSTANCE.attack(en, this.mob, attackDamage);
+                }
                 mob.doHurtTarget(en);
             }
         }
 
     }
 
+    @Override
+    public Mob mob() {
+        return this.mob;
+    }
+
+    @Override
+    public double attackReachSqr(LivingEntity target) {
+        return getAttackReachSqr(target);
+    }
+
+    @Override
+    public int ticksUntilNextAttack() {
+        return ticksUntilNextAttack;
+    }
 
     protected void resetAttackCooldown() {
         this.ticksUntilNextAttack = this.adjustedTickDelay(20);

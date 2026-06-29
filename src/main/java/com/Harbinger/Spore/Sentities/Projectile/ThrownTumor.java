@@ -1,10 +1,14 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
 import com.Harbinger.Spore.Core.SConfig;
+import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
+import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -14,10 +18,13 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -72,11 +79,38 @@ public class ThrownTumor extends ThrowableItemProjectile {
         this.explode = value;
     }
 
+    private double getCalamityBallisticMutation(Calamity calamity) {
+        AttributeInstance ballistic = calamity.getAttribute(SAttributes.BALLISTIC.get());
+        return ballistic != null ? ballistic.getValue() : 0.0;
+    }
+
+    private void explodeExtraHurt(float explodeRadius) {
+        if (!(this.getOwner() instanceof Calamity calamity)) {
+            return;
+        }
+        double ballistic = getCalamityBallisticMutation(calamity);
+        if (ballistic <= 0.0) {
+            return;
+        }
+        this.level().getEntitiesOfClass(
+                LivingEntity.class,
+                this.getBoundingBox().inflate(explodeRadius),
+                living -> living.isAlive() && !SporeJudge.isSporeEntity(living) && !(living instanceof Player)
+        ).forEach(living -> SporeAttackUtil.INSTANCE.dealDamage(
+                living,
+                calamity,
+                living.damageSources().explosion(this, calamity),
+                (float) ballistic
+        ));
+    }
+
     @Override
     protected void onHit(HitResult hitResult) {
         super.onHit(hitResult);
         if (!this.level().isClientSide){
-            this.level().explode(this, this.getX(), this.getY(), this.getZ(), (float) SConfig.SERVER.tumor_explosion.get(), explode);
+            float explodeRadius = (float) SConfig.SERVER.tumor_explosion.get();
+            explodeExtraHurt(explodeRadius);
+            this.level().explode(this, this.getX(), this.getY(), this.getZ(), explodeRadius, explode);
             AABB aabb = this.getBoundingBox().inflate(3);
             List<Entity> entities = level().getEntities(this,aabb);
             switch (entityData.get(TYPE)){
@@ -124,20 +158,30 @@ public class ThrownTumor extends ThrowableItemProjectile {
     }
     public void freezeTargets(List<Entity> entityList){
         for (Entity entity : entityList){
-            if (entity instanceof LivingEntity livingEntity){
-                MobEffectInstance instance = livingEntity.getEffect(Seffects.FROSTBITE.get());
+            if (entity instanceof LivingEntity target){
+                MobEffectInstance instance = target.getEffect(Seffects.FROSTBITE.get());
                 int intensity = instance == null ? 0 : instance.getAmplifier()+1;
-                livingEntity.addEffect(new MobEffectInstance(Seffects.FROSTBITE.get(),600,intensity));
+                target.addEffect(new MobEffectInstance(Seffects.FROSTBITE.get(),600,intensity));
+                if (SporeJudge.isSporeEntity(target)) {
+                    SporeAttackUtil.INSTANCE.dealDamage(target, this.getOwner() instanceof LivingEntity living ? living : null, target.damageSources().freeze(), 5.0f);
+                }
             }
         }
     }
     public void damageTargets(List<Entity> entityList){
         for (Entity entity : entityList){
-            if (entity instanceof LivingEntity livingEntity){
-                if (getOwner() instanceof LivingEntity living){
-                    livingEntity.hurtTime = 0;
-                    livingEntity.invulnerableTime = 0;
-                    livingEntity.hurt(level().damageSources().mobProjectile(this,living),10f);
+            if (entity instanceof LivingEntity target){
+                Entity ownerEntity = this.getOwner();
+                boolean isTargetOwner = target.equals(ownerEntity);
+                if (ownerEntity instanceof LivingEntity owner){
+                    DamageSource source = this.level().damageSources().mobProjectile(this, owner);
+                    if (isTargetOwner) {
+                        target.hurt(source, 10.0F);
+                    } else {
+                        target.hurtTime = 0;
+                        target.invulnerableTime = 0;
+                        SporeAttackUtil.INSTANCE.dealDamage(target, owner, source, 10.0F);
+                    }
                 }
             }
         }

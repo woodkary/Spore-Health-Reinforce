@@ -2,10 +2,13 @@ package com.Harbinger.Spore.Sentities;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
+import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
+import com.Harbinger.Spore.Sblocks.CasingBiomassBlock;
 import com.Harbinger.Spore.Sblocks.MembraneBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -54,6 +57,27 @@ public interface CasingGenerator {
     default Level getProtoLevel(){
         return null;
     }
+    private BlockState withCasingLight(BlockState state, RandomSource source) {
+        if (!state.hasProperty(CasingBiomassBlock.LIT)) {
+            return state;
+        }
+        BlockState unlitState = state.setValue(CasingBiomassBlock.LIT, false);
+        Level level = this.getProtoLevel();
+        if (level instanceof ServerLevel serverLevel && SporeSavedData.get(serverLevel).isCasingLightAllowed() && source.nextFloat() < 0.3F) {
+            return unlitState.setValue(CasingBiomassBlock.LIT, true);
+        }
+        return unlitState;
+    }
+    private BlockState randomCasingBlock(RandomSource source) {
+        List<BlockState> blocks = this.possibleBlocks();
+        return this.withCasingLight(blocks.get(source.nextInt(blocks.size())), source);
+    }
+    private boolean isPossibleBlock(BlockState state) {
+        if (state.hasProperty(CasingBiomassBlock.LIT)) {
+            state = state.setValue(CasingBiomassBlock.LIT, false);
+        }
+        return this.possibleBlocks().contains(state);
+    }
     default void generateChasing(BlockPos pos,Entity entity, int radius){
         this.generateChasing(pos,entity,radius,1);
     }
@@ -70,12 +94,12 @@ public interface CasingGenerator {
                             BlockState blockstate = level.getBlockState(blockpos);
                             if (Math.random() < 0.1 && !blockstate.isSolidRender(level,blockpos) && !blockstate.is(Blocks.BARRIER) && compare(level,blockpos)){
                                 if (!level.isClientSide){
-                                    level.setBlock(blockpos,this.possibleBlocks().get(randomSource.nextInt(this.possibleBlocks().size())),3);
+                                    level.setBlock(blockpos,this.randomCasingBlock(randomSource),3);
                                     if (Math.random() < 0.001){
-                                        createSpots(blockpos,level,randomSource.nextInt(3,6),Math.random() < 0.5 ? Sblocks.SICKEN_BIOMASS_BLOCK.get().defaultBlockState():Sblocks.CALCIFIED_BIOMASS_BLOCK.get().defaultBlockState());
+                                        createSpots(blockpos,level,randomSource.nextInt(3,6),Math.random() < 0.5 ? Sblocks.SICKEN_BIOMASS_BLOCK.get().defaultBlockState():Sblocks.CALCIFIED_BIOMASS_BLOCK.get().defaultBlockState(), randomSource);
                                     }
                                     if (Math.random() < 0.001){
-                                        createPussSpots(blockpos,level,randomSource.nextInt(2,5));
+                                        createPussSpots(blockpos,level,randomSource.nextInt(2,5), randomSource);
                                     }
                                     if (Math.random() < 0.005){
                                         if (level.getBlockState(blockpos.above()).isAir()){
@@ -106,6 +130,9 @@ public interface CasingGenerator {
     }
 
     default void createSpots(BlockPos pos,Level level, int range,BlockState state){
+        createSpots(pos, level, range, state, RandomSource.create());
+    }
+    default void createSpots(BlockPos pos,Level level, int range,BlockState state, RandomSource source){
         for(int i = 0; i <= 2*range; ++i) {
             for(int j = 0; j <= 2*range; ++j) {
                 for(int k = 0; k <= 2*range; ++k) {
@@ -113,12 +140,15 @@ public interface CasingGenerator {
                     if (Math.abs(i) != 2 || Math.abs(j) != 2 || Math.abs(k) != 2) {
                         if (distance<range+(0.5)){
                             BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
-                            if (possibleBlocks().contains(level.getBlockState(blockpos))){
-                                level.setBlock(blockpos,state,3);
+                            if (isPossibleBlock(level.getBlockState(blockpos))){
+                                level.setBlock(blockpos,withCasingLight(state, source),3);
                             }
                         }}}}}
     }
     default void createPussSpots(BlockPos pos,Level level, int range){
+        createPussSpots(pos, level, range, RandomSource.create());
+    }
+    default void createPussSpots(BlockPos pos,Level level, int range, RandomSource source){
         for(int i = 0; i <= 2*range; ++i) {
             for(int j = 0; j <= 2*range; ++j) {
                 for(int k = 0; k <= 2*range; ++k) {
@@ -127,13 +157,13 @@ public interface CasingGenerator {
                         if (distance<range+(0.5) && distance>range-(0.5)){
                             BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
                             if (level.getBlockState(blockpos).isAir()){
-                                level.setBlock(blockpos,Math.random() < 0.5 ? Sblocks.GASTRIC_BIOMASS.get().defaultBlockState() : Sblocks.BIOMASS_BLOCK.get().defaultBlockState(), 3);
+                                level.setBlock(blockpos,withCasingLight(Math.random() < 0.5 ? Sblocks.GASTRIC_BIOMASS.get().defaultBlockState() : Sblocks.BIOMASS_BLOCK.get().defaultBlockState(), source), 3);
                             }
                         }
                         if (distance<range-(0.5)){
                             BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
                             if (level.getBlockState(blockpos).isAir()){
-                                level.setBlock(blockpos,Math.random() < 0.5 ? Sblocks.SICKEN_BIOMASS_BLOCK.get().defaultBlockState() : Sblocks.BILE.get().defaultBlockState(), 3);
+                                level.setBlock(blockpos,withCasingLight(Math.random() < 0.5 ? Sblocks.SICKEN_BIOMASS_BLOCK.get().defaultBlockState() : Sblocks.BILE.get().defaultBlockState(), source), 3);
                             }
                         }
                     }}}}

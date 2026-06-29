@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
 import com.Harbinger.Spore.Core.Sentities;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -90,7 +91,8 @@ public class ThrownBlockProjectile extends Projectile {
         super.onHitEntity(result);
         if (!level().isClientSide && result.getEntity() instanceof LivingEntity livingEntity){
             BlockPos pos = new BlockPos((int) this.getX(), (int) this.getY(), (int) this.getZ());
-            livingEntity.hurt(level().damageSources().mobProjectile(this,this.getOwner() instanceof LivingEntity livingEntity1 ? livingEntity1 : null),
+            LivingEntity owner = this.getOwner() instanceof LivingEntity livingEntity1 ? livingEntity1 : null;
+            SporeAttackUtil.INSTANCE.dealDamage(livingEntity, owner, level().damageSources().mobProjectile(this, owner),
                     entityData.get(DAMAGE)*entityData.get(STATE).getDestroySpeed(level(),pos));
             FallingBlockEntity.fall(level(),pos,entityData.get(STATE));
             this.discard();

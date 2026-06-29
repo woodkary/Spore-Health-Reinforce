@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Projectile.GunProjectiles;
 
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.Projectile.AbstractGunProjectile;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Core.Sparticles;
@@ -67,7 +68,7 @@ public class ToxinBullet extends AbstractGunProjectile {
                 if (mutations == SporeToolsMutations.TOXIC){
                     livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON,100,1));
                 }
-                livingEntity.hurt(level().damageSources().generic(),getDamage()*0.5f);
+                SporeAttackUtil.INSTANCE.dealDamage(livingEntity, level().damageSources().generic(), getDamage() * 0.5f);
             }
         }
         if (level().isClientSide){

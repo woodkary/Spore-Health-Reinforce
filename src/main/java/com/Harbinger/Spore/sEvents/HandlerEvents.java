@@ -2,6 +2,10 @@ package com.Harbinger.Spore.sEvents;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.BossEventUtil;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.Effect.Ignitable;
 import com.Harbinger.Spore.ExtremelySusThings.*;
@@ -25,7 +29,13 @@ import com.Harbinger.Spore.Sitems.Guns.AbstractSporeGun;
 import com.Harbinger.Spore.Sitems.PCI;
 import com.Harbinger.Spore.Sitems.SporeHorseArmor;
 import com.Harbinger.Spore.Spore;
+import com.Harbinger.Spore.network.ResetRenderRequest;
+import com.Harbinger.Spore.network.ResetRenderRequestHandler;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
@@ -42,6 +52,7 @@ import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -243,32 +254,139 @@ public class HandlerEvents {
         }
     }
 
+    private static boolean forceKillEntity(Entity entity, Player player) {
+        if (entity == null) {
+            return false;
+        }
+        if (entity instanceof LivingEntity livingEntity) {
+            if (SporeJudge.isSporeEntity(livingEntity)) {
+                SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(livingEntity, 0.0f);
+                if (livingEntity instanceof IFakeDataHealthEntity fake) {
+                    fake.setDefault0HllealthDelta(0.0f);
+                    livingEntity.entityData.set(LivingEntity.DATA_HEALTH_ID, 0.0f);
+                }
+                return livingEntity.getHealth() <= 0.0f;
+            }
+            DamageSource source = livingEntity.damageSources().cactus();
+            EntityHeealuthManager.INSTANCE.hurt(livingEntity, Float.POSITIVE_INFINITY, source);
+            EntityHeealuthManager.INSTANCE.killEntity(livingEntity, source);
+            return livingEntity.getHealth() <= 0.0f;
+        }
+
+        entity.remove(Entity.RemovalReason.DISCARDED);
+        return entity.isRemoved();
+    }
+
     @SubscribeEvent
     public static void Command(RegisterCommandsEvent event){
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":set_area")
+        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+        dispatcher.register(Commands.literal(Spore.MODID+":force_kill")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.argument("targets", EntityArgument.entities())
+                        .executes(ctx -> {
+                            Collection<? extends Entity> targets = new ArrayList<>(EntityArgument.getEntities(ctx, "targets"));
+                            Player player = ctx.getSource().getEntity() instanceof Player p ? p : null;
+                            targets.remove(player);
+                            int killed = 0;
+                            for (Entity entity : targets) {
+                                if (forceKillEntity(entity, player)) {
+                                    killed++;
+                                }
+                            }
+                            int total = targets.size();
+                            int finalKilled = killed;
+                            ctx.getSource().sendSuccess(
+                                    () -> Component.literal("force_kill 执行完成: " + finalKilled + "/" + total),
+                                    true
+                            );
+                            return killed;
+                        }))
+        );
+        dispatcher.register(Commands.literal(Spore.MODID+":force_remove")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.argument("targets", EntityArgument.entities())
+                        .executes(ctx -> {
+                            Collection<? extends Entity> targets = new ArrayList<>(EntityArgument.getEntities(ctx, "targets"));
+                            Player player = ctx.getSource().getEntity() instanceof Player p ? p : null;
+                            targets.remove(player);
+                            int removed = 0;
+                            for (Entity entity : targets) {
+                                if (SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)) {
+                                    BossEventUtil.INSTANCE.disableBossEvent(entity);
+                                    removed++;
+                                }
+                            }
+                            int total = targets.size();
+                            int finalRemoved = removed;
+                            ctx.getSource().sendSuccess(
+                                    () -> Component.literal("force_remove 执行完成: " + finalRemoved + "/" + total),
+                                    true
+                            );
+                            return removed;
+                        }))
+        );
+        dispatcher.register(Commands.literal(Spore.MODID+":force_remove_all")
+                .requires(source -> source.hasPermission(2))
+                .executes(ctx -> {
+                    Collection<? extends Entity> targets = SimpleRemoveUtil.INSTANCE.getAllEntities(ctx.getSource().getLevel(), entity -> entity instanceof Player);
+                    int removed = 0;
+                    for (Entity entity : targets) {
+                        if (SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)) {
+                            BossEventUtil.INSTANCE.disableBossEvent(entity);
+                            removed++;
+                        }
+                    }
+                    int total = targets.size();
+                    int finalRemoved = removed;
+                    ctx.getSource().sendSuccess(
+                            () -> Component.literal("force_remove_all 执行完成: " + finalRemoved + "/" + total),
+                            true
+                    );
+                    ResetRenderRequestHandler.sendToClient(new ResetRenderRequest());
+                    return removed;
+                })
+        );
+        dispatcher.register(Commands.literal(Spore.MODID+":enable_light")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.argument("light", BoolArgumentType.bool())
+                        .executes(ctx -> {
+                            boolean value = BoolArgumentType.getBool(ctx, "light");
+                            SporeSavedData.get(ctx.getSource().getLevel()).setCasingLightAllowed(value);
+                            ctx.getSource().sendSuccess(
+                                    () -> Component.literal("proto casing light has " + (value ? "enabled" : "disabled") + "."),
+                                    true
+                            );
+                            return 1;
+                        }))
+        );
+        dispatcher.register(Commands.literal(Spore.MODID+":set_area")
         .executes(arguments -> {
             ServerLevel world = arguments.getSource().getLevel();
             int x = (int) arguments.getSource().getPosition().x();
             int y = (int) arguments.getSource().getPosition().y();
             int z = (int) arguments.getSource().getPosition().z();
-            Entity entity = arguments.getSource().getEntity();
-            if (entity == null)
-                entity = FakePlayerFactory.getMinecraft(world);
-             if (entity != null){
-                 BlockPos pos = new BlockPos(x ,y,z);
-                 AABB hitbox = entity.getBoundingBox().inflate(20);
-                 List<Entity> entities = entity.level().getEntities(entity, hitbox);
-                 for (Entity entity1 : entities) {
-                     if(entity1 instanceof Infected infected) {
-                         infected.setSearchPos(pos);
-                     }else if (entity1 instanceof Calamity calamity){
-                         calamity.setSearchArea(pos);
-                     }
-                 }
-             }
+            BlockPos pos = new BlockPos(x, y, z);
+            boolean incomingMessage = false;
+            for (var entityAccess : SimpleRemoveUtil.INSTANCE.getAllEntities(world, e -> !(e instanceof Infected) && !(e instanceof Calamity))) {
+                if (!(entityAccess instanceof Entity entity1)) {
+                    continue;
+                }
+                if(entity1 instanceof Infected infected) {
+                    infected.setSearchPos(pos);
+                } else if (entity1 instanceof Calamity calamity) {
+                    incomingMessage = true;
+                    calamity.setSearchArea(pos);
+                }
+            }
+            if (incomingMessage) {
+                for (ServerPlayer player : world.getServer().getPlayerList().getPlayers()) {
+                    player.playNotifySound(Ssounds.CALAMITY_INCOMING.get(), SoundSource.AMBIENT, 1.0F, 1.0F);
+                    player.displayClientMessage(Component.translatable("calamity_coming_message"), false);
+                }
+            }
             return 1;
         }).requires(s -> s.hasPermission(1)));
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":nuke_the_land")
+        dispatcher.register(Commands.literal(Spore.MODID+":nuke_the_land")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
                     int x = (int) arguments.getSource().getPosition().x();
@@ -284,7 +402,7 @@ public class HandlerEvents {
                     world.addFreshEntity(nukeEntity);
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":corpse")
+        dispatcher.register(Commands.literal(Spore.MODID+":corpse")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
                     RandomSource randomSource = RandomSource.create();
@@ -298,7 +416,7 @@ public class HandlerEvents {
                     world.addFreshEntity(corpseEntity);
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":erase_the_fungus")
+        dispatcher.register(Commands.literal(Spore.MODID+":erase_the_fungus")
                 .executes(arguments -> {
                     ServerLevel serverLevel = arguments.getSource().getLevel();
                     for (Entity entity : serverLevel.getAllEntities()){
@@ -310,7 +428,7 @@ public class HandlerEvents {
                     }
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":feed")
+        dispatcher.register(Commands.literal(Spore.MODID+":feed")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
                     Entity entity = arguments.getSource().getEntity();
@@ -330,7 +448,7 @@ public class HandlerEvents {
                     }
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":evolve")
+        dispatcher.register(Commands.literal(Spore.MODID+":evolve")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
                     Entity entity = arguments.getSource().getEntity();
@@ -357,7 +475,7 @@ public class HandlerEvents {
                     }
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":get_data")
+        dispatcher.register(Commands.literal(Spore.MODID+":get_data")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
                     Entity entity = arguments.getSource().getEntity();
@@ -375,7 +493,7 @@ public class HandlerEvents {
                     }
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":check_entity")
+        dispatcher.register(Commands.literal(Spore.MODID+":check_entity")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
                     Entity entity = arguments.getSource().getEntity();
@@ -549,7 +667,7 @@ public class HandlerEvents {
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
 
-        event.getDispatcher().register(Commands.literal(Spore.MODID+":check_block_entity")
+        dispatcher.register(Commands.literal(Spore.MODID+":check_block_entity")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
                     Entity entity = arguments.getSource().getEntity();

@@ -287,6 +287,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     @Override
     public void tick() {
         super.tick();
+        tickLegalPosition();
         if (!level().isClientSide){
             if (this.tickCount % 6000 == 0 && SConfig.SERVER.mound_foliage.get() && this.entityData.get(NODE) != BlockPos.ZERO){
                 SpreadInfection(level(),SConfig.SERVER.mound_range_age4.get() * 2,this.entityData.get(NODE));

@@ -107,7 +107,7 @@ public class SporeToolsBaseItem extends BaseItem implements IForgeItem ,SporeWea
         if (!tooHurt(stack) && entity instanceof Player player){
             player.getCooldowns().addCooldown(this,60);
         }
-        return false;
+        return doASMRangeHurtOnSwing(stack, entity);
     }
 
     @Override

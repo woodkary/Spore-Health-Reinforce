@@ -2,6 +2,9 @@ package com.Harbinger.Spore.Sentities.Utility;
 
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -14,12 +17,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -136,7 +141,13 @@ public class NukeEntity extends Entity {
             if (entity instanceof LivingEntity living && livingEntityPredicate.test(living)){
                 living.setSecondsOnFire(10);
                 addEffect(living);
-                living.hurt(damageSources().inFire(),this.getDamage());
+                DamageSource source = damageSources().inFire();
+                float damage = this.getDamage();
+                if (!SporeJudge.isSporeEntity(living) && living.isAlive()
+                        && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
+                    SporeAttackUtil.INSTANCE.dealDamage(living, source, damage);
+                }
+                living.hurt(source, damage);
                 living.hurtTime = 10;
                 living.invulnerableTime = 10;
             }

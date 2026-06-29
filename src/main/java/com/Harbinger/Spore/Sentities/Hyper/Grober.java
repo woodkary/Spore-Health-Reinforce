@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Hyper;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.LeapGoal;
@@ -333,7 +334,14 @@ public class Grober extends Hyper implements ArmorPersentageBypass {
 
             for (LivingEntity living : victims) {
                 mob.playSound(Ssounds.GROBER_CHOKE.get());
-                living.hurt(mob.damageSources().mobAttack(mob), damage);
+                float oldHealth = living.getHealth();
+                float expectedHealth = Math.max(oldHealth - damage, 0.0f);
+                DamageSource source = mob.damageSources().mobAttack(mob);
+                living.hurt(source, damage);
+                float newHealth = living.getHealth();
+                if (newHealth > expectedHealth) {
+                    SporeAttackUtil.INSTANCE.dealDamage(living, mob, source, newHealth - expectedHealth);
+                }
                 living.knockback(1.2F,
                         Mth.sin(mob.getYRot() * ((float)Math.PI / 180F)),
                         -Mth.cos(mob.getYRot() * ((float)Math.PI / 180F)));

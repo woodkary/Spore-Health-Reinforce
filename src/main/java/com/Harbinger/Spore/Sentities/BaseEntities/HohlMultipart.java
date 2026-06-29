@@ -3,6 +3,9 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.Calamities.Hohlfresser;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
@@ -319,7 +322,12 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
         List<Entity> entities = level().getEntities(this,aabb,entity -> {return entity instanceof LivingEntity living && Utilities.TARGET_SELECTOR.Test(living);});
         float damage = (float) (SConfig.SERVER.hohl_damage.get() * SConfig.SERVER.global_damage.get() /2f);
         for (Entity entity : entities){
-            entity.hurt(level().damageSources().mobAttack(this),damage);
+            DamageSource source = level().damageSources().mobAttack(this);
+            entity.hurt(source,damage);
+            if (entity instanceof LivingEntity living && !SporeJudge.isSporeEntity(living) && living.isAlive()
+                    && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
+                SporeAttackUtil.INSTANCE.dealDamage(living, source, damage);
+            }
         }
     }
 

@@ -1,16 +1,22 @@
 package com.Harbinger.Spore.Sitems;
 
 import com.Harbinger.Spore.Core.SConfig;
+import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ClientUtils;
 import com.Harbinger.Spore.Sitems.BaseWeapons.DeathRewardingWeapon;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeSwordBase;
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -105,7 +111,16 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
                 List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class, area, e -> e != player && e.isAlive());
                 for (LivingEntity target : targets) {
                     this.hurtEnemy(stack,target,player);
-                    target.hurt(player.damageSources().playerAttack(player), SConfig.SERVER.cleaver_damage.get()/2f);
+                    DamageSource source = player.damageSources().playerAttack(player);
+                    float damage = SConfig.SERVER.cleaver_damage.get() / 2f;
+                    target.hurt(source, damage);
+                    if (this.getVariant(stack) == SporeToolsMutations.BEZERK) {
+                        SporeAttackUtil.INSTANCE.dealDamage(target, player, source, damage);
+                    }
+                    if (stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0) {
+                        DamageSource freeze = new DamageSource(entity.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), player, player);
+                        SporeAttackUtil.INSTANCE.dealDamage(target, player, freeze, 2.0f);
+                    }
                     target.hurtTime = 10;
                     target.invulnerableTime = 10;
                 }

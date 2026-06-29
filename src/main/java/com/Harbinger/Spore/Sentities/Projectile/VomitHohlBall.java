@@ -3,6 +3,9 @@ package com.Harbinger.Spore.Sentities.Projectile;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sparticles;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.ParentUtil;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -11,8 +14,10 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -116,9 +121,18 @@ public class VomitHohlBall extends AbstractArrow {
 
     @Override
     protected void onHitEntity(EntityHitResult hitResult) {
-        if (hitResult.getEntity() instanceof LivingEntity living && Utilities.TARGET_SELECTOR.Test(living)){
+        Entity target = ParentUtil.INSTANCE.getUltimateParent(hitResult.getEntity());
+        if (target instanceof LivingEntity living && Utilities.TARGET_SELECTOR.Test(living)){
             super.onHitEntity(hitResult);
             addStuff(living);
+            if (!(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
+                Entity owner = this.getOwner();
+                SporeAttackUtil.INSTANCE.dealDamage(living,
+                        owner instanceof LivingEntity livOwner ? livOwner : null,
+                        this.damageSources().arrow(this, owner != null ? owner : this),
+                        (float)this.getBaseDamage()
+                );
+            }
         }
     }
     void addStuff(LivingEntity living){

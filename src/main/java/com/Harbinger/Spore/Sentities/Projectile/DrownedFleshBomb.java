@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 
 import net.minecraft.core.Holder;
@@ -21,6 +22,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -71,6 +73,9 @@ public class DrownedFleshBomb extends AbstractArrow {
                         effect = Seffects.MYCELIUM.get();
                     }
                     living.addEffect(new MobEffectInstance(effect, 200, 0));
+                    if (!(living instanceof Player)) {
+                        SporeAttackUtil.INSTANCE.dealDamage(living, living, this.level().damageSources().mobProjectile(this, living), random.nextFloat() * 5.0f);
+                    }
                 }
             }
         }

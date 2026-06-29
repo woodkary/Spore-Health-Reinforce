@@ -1,8 +1,11 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -10,6 +13,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -130,7 +134,14 @@ public class ThrownBoomerang extends AbstractArrow {
                     EnchantmentHelper.doPostHurtEffects(living, ownerLiving);
                     EnchantmentHelper.doPostDamageEffects(ownerLiving, living);
                     if (boomerang.getItem() instanceof SporeWeaponData data){
+                        if (data.getVariant(boomerang) == SporeToolsMutations.BEZERK) {
+                            SporeAttackUtil.INSTANCE.dealDamage(living, ownerLiving, source, baseDamage);
+                        }
                         data.abstractMutationBuffs(living,ownerLiving,boomerang,data);
+                    }
+                    if (boomerang.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0) {
+                        DamageSource freeze = new DamageSource(living.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), this, ownerLiving);
+                        SporeAttackUtil.INSTANCE.dealDamage(living, ownerLiving, freeze, 2.0f);
                     }
                 }
 

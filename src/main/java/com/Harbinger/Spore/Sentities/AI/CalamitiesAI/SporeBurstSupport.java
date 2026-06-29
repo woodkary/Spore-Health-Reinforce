@@ -38,6 +38,7 @@ public class SporeBurstSupport extends Goal {
     @Override
     public void start() {
         this.calamity.setStun(60);
+        this.calamity.setCrushingTick(60);
         if (calamity instanceof TrueCalamity trueCalamity){
             calamity.playSound(Ssounds.SPORE_BURST.get());
             AABB boundingBox = calamity.getBoundingBox().inflate(trueCalamity.chemicalRange());

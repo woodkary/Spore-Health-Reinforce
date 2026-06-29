@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.Projectile;
 
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -64,7 +65,7 @@ public class BileProjectile extends Projectile implements ItemSupplier {
         if (!this.level().isClientSide()) {
             Entity entity = entityHitResult.getEntity();
             if (entity instanceof LivingEntity livingEntity && target.test(livingEntity)){
-                entity.hurt(this.level().damageSources().mobProjectile(this,(LivingEntity) this.getOwner()),this.getDamage());
+                SporeAttackUtil.INSTANCE.dealDamage(livingEntity, (LivingEntity) this.getOwner(), this.level().damageSources().mobProjectile(this,(LivingEntity) this.getOwner()), this.getDamage());
                 for (MobEffectInstance instance : BileLiquid.bileEffects()){
                     livingEntity.addEffect(instance);
                 }

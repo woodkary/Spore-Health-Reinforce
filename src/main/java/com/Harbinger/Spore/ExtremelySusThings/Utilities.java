@@ -4,6 +4,9 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
@@ -20,6 +23,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -27,6 +31,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -65,7 +70,13 @@ public class Utilities {
         AABB searchbox = AABB.ofSize(new Vec3(pos.getX(), pos.getY(), pos.getZ()), range*2, range*2, range*2);
         List<Entity> entities = level.getEntities(owner,searchbox, predicate);
         for (Entity entity : entities){
-            entity.hurt(level.damageSources().mobAttack((LivingEntity) owner),damage);
+            LivingEntity ownerLiving = (LivingEntity) owner;
+            DamageSource source = level.damageSources().mobAttack(ownerLiving);
+            if (!SporeJudge.isSporeEntity(entity) && entity instanceof LivingEntity living && living.isAlive()
+                    && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
+                SporeAttackUtil.INSTANCE.dealDamage(living, ownerLiving, source, damage);
+            }
+            entity.hurt(source, damage);
         }
         level.playSound(null,pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS);
     }

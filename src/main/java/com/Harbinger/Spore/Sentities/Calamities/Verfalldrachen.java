@@ -1,6 +1,8 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
@@ -808,7 +810,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
                 SConfig.SERVER.global_damage.get() *
                 voltageModifier);
         this.level().broadcastEntityEvent(this, (byte)7);
-        target.hurt(level().damageSources().lightningBolt(), damage);
+        hurtHeadAttackTarget(target, level().damageSources().lightningBolt(), damage);
         target.setRemainingFireTicks(100);
         spawnLightningEffect(target);
         beamTicks = 40;
@@ -824,10 +826,18 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
 
         spawnSonicBoomParticles(target);
 
-        target.hurt(this.damageSources().sonicBoom(this), (float) (SConfig.SERVER.verfa_sound_damage.get() * SConfig.SERVER.global_damage.get()));
+        hurtHeadAttackTarget(target, this.damageSources().sonicBoom(this), (float) (SConfig.SERVER.verfa_sound_damage.get() * SConfig.SERVER.global_damage.get()));
         applySonicKnockback(target);
         setSonicCharge(getSonicCharge() - 5);
         setSonicTargetId(-1);
+    }
+
+    private void hurtHeadAttackTarget(LivingEntity target, DamageSource source, float damage) {
+        if (target instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+            target.hurt(source, damage);
+            return;
+        }
+        SporeAttackUtil.INSTANCE.dealDamage(target, this, source, damage);
     }
 
 // ==================== VALIDATION METHODS ====================

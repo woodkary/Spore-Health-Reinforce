@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.AI;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
@@ -10,7 +11,7 @@ import net.minecraft.world.level.pathfinder.Path;
 
 import java.util.EnumSet;
 
-public class CustomMeleeAttackGoal extends Goal {
+public class CustomMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackGoal {
     protected final PathfinderMob mob;
     private final double speedModifier;
     private final boolean followingTargetEvenIfNotSeen;
@@ -100,6 +101,21 @@ public class CustomMeleeAttackGoal extends Goal {
         return true;
     }
 
+    @Override
+    public Mob mob() {
+        return this.mob;
+    }
+
+    @Override
+    public double attackReachSqr(LivingEntity target) {
+        return getAttackReachSqr(target);
+    }
+
+    @Override
+    public int ticksUntilNextAttack() {
+        return this.ticksUntilNextAttack;
+    }
+
     public void tick() {
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity != null) {
@@ -137,6 +153,7 @@ public class CustomMeleeAttackGoal extends Goal {
             }
 
             this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
+            tickASMAttack();
             this.checkAndPerformAttack(livingentity, d0);
         }
     }

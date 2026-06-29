@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
+import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.LocHiv.BufferAI;
 import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
 import com.Harbinger.Spore.Sentities.FoliageSpread;
@@ -24,7 +25,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
@@ -98,7 +98,7 @@ public class GastGeber extends EvolvedInfected implements FoliageSpread {
 
     @Override
     protected void addRegularGoals() {
-        this.goalSelector.addGoal(3,new MeleeAttackGoal(this ,1.5,true){
+        this.goalSelector.addGoal(3,new CustomMeleeAttackGoal(this ,1.5,true){
             @Override
             public boolean canUse() {
                 return super.canUse() && GastGeber.this.getAggression() > 0;

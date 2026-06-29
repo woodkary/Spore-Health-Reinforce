@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Projectile;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Recipes.EntityContainer;
 import com.Harbinger.Spore.Recipes.InjectionRecipe;
 import com.Harbinger.Spore.Sitems.Agents.AbstractSyringe;
@@ -81,7 +82,7 @@ public class SyringeProjectile extends AbstractArrow {
                 syringe.useSyringe(itemStack,living);
                 this.playSound(Ssounds.SYRINGE_GUN_INJECT.get());
             }
-            living.hurt(level().damageSources().mobProjectile(this,(LivingEntity) getOwner()), (float) getBaseDamage());
+            SporeAttackUtil.INSTANCE.dealDamage(living, (LivingEntity) getOwner(), level().damageSources().mobProjectile(this,(LivingEntity) getOwner()), (float) getBaseDamage());
         }
     }
 

@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.CalamityMultipart;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
@@ -69,6 +70,9 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
+        if (this.level().isClientSide) {
+            return;
+        }
         Entity target = result.getEntity();
         CalamityMultipart severedPart = null;
         if (target instanceof CalamityMultipart multipart){
@@ -81,9 +85,8 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
             if (calculations > damage){
                 damage = calculations;
             }
-            if (severedPart == null){
-                living.hurt(level().damageSources().mobProjectile(this,owner),damage);
-            }else {
+            SporeAttackUtil.INSTANCE.dealDamage(living, owner, level().damageSources().mobProjectile(this, owner), damage);
+            if (severedPart != null) {
                 severedPart.hurt(level().damageSources().mobProjectile(this,owner),damage);
             }
             doHitAfterEffects(living,owner);
@@ -102,6 +105,7 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
         }
         if (mutations == SporeToolsMutations.ROTTEN) {
             victim.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 1));
+            addHealingInhibitRandom(victim);
         }
         if (mutations == SporeToolsMutations.VAMPIRIC && owner.getHealth() < owner.getMaxHealth()) {
             owner.heal(2f);
