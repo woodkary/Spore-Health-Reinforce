@@ -684,8 +684,15 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
    }
 
    public static class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
+      private double pathedTargetX;
+      private double pathedTargetY;
+      private double pathedTargetZ;
+      private int ticksUntilNextPathRecalculation;
+      private boolean holdingPosition;
+
       public HowitzerRangedAttackGoal(RangedAttackMob mob, double speed, int interval, float range, int min, int max) {
          super(mob, speed, interval, range, min, max);
+         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
       }
 
       private int getBurnable(LivingEntity target) {
@@ -701,6 +708,15 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
          return burnable_material.size();
       }
 
+      public void stop() {
+         super.stop();
+         this.holdingPosition = false;
+         this.ticksUntilNextPathRecalculation = 0;
+         this.pathedTargetX = (double)0.0F;
+         this.pathedTargetY = (double)0.0F;
+         this.pathedTargetZ = (double)0.0F;
+      }
+
       public void tick() {
          double d0 = this.mob.distanceToSqr(this.target.getX(), this.target.getY(), this.target.getZ());
          boolean flag = this.mob.getSensing().hasLineOfSight(this.target);
@@ -711,9 +727,15 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
          }
 
          if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 5) {
-            this.mob.getNavigation().stop();
+            if (!this.holdingPosition) {
+               this.mob.getNavigation().stop();
+               this.holdingPosition = true;
+            }
+
+            this.ticksUntilNextPathRecalculation = 0;
          } else {
-            this.mob.getNavigation().moveTo(this.target, this.speedModifier);
+            this.holdingPosition = false;
+            this.updateNavigation(d0);
          }
 
          this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
@@ -736,6 +758,29 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             this.attackTime = Mth.floor(Mth.lerp(Math.sqrt(d0) / (double)this.attackRadius, (double)this.attackInterval, (double)this.attackInterval));
          }
 
+      }
+
+      private void updateNavigation(double distanceToTargetSqr) {
+         this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
+         if (this.ticksUntilNextPathRecalculation > 0 && !this.mob.getNavigation().isDone() && this.target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) < (double)4.0F) {
+            return;
+         }
+
+         this.pathedTargetX = this.target.getX();
+         this.pathedTargetY = this.target.getY();
+         this.pathedTargetZ = this.target.getZ();
+         this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
+         if (distanceToTargetSqr > (double)1024.0F) {
+            this.ticksUntilNextPathRecalculation += 10;
+         } else if (distanceToTargetSqr > (double)256.0F) {
+            this.ticksUntilNextPathRecalculation += 5;
+         }
+
+         if (!this.mob.getNavigation().moveTo(this.target, this.speedModifier)) {
+            this.ticksUntilNextPathRecalculation += 15;
+         }
+
+         this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
       }
    }
 
