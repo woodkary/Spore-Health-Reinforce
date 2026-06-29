@@ -7,14 +7,14 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
 
-public class MistMakerPart extends ComplexHandModelItem {
-   public MistMakerPart(InteractionHand slot, MistmakerModel model, ModelPart part, float x, float y, float z, float expand, float xspin, float yspin, float zspin) {
-      super(slot, (Item)Sitems.MISTMAKER.get(), model, part, x, y, z, expand, xspin, yspin, zspin);
-   }
+public class MistMakerPart extends ComplexHandModelItem{
+    public MistMakerPart(InteractionHand slot, MistmakerModel<LivingEntity> model, ModelPart part, float x, float y, float z, float expand, float xspin, float yspin, float zspin) {
+        super(slot, Sitems.MISTMAKER.get(), model, part, x, y, z, expand, xspin, yspin, zspin);
+    }
 
-   public RenderType type(ResourceLocation location) {
-      return RenderType.entityCutout(location);
-   }
+    @Override
+    public RenderType type(ResourceLocation location) {
+        return RenderType.entityCutout(location);
+    }
 }

@@ -7,14 +7,14 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
 
-public class BileBlasterPart extends ComplexHandModelItem {
-   public BileBlasterPart(InteractionHand slot, BileBlasterModel model, ModelPart part, float x, float y, float z, float expand, float xspin, float yspin, float zspin) {
-      super(slot, (Item)Sitems.BILE_BLASTER.get(), model, part, x, y, z, expand, xspin, yspin, zspin);
-   }
+public class BileBlasterPart extends ComplexHandModelItem{
+    public BileBlasterPart(InteractionHand slot, BileBlasterModel<LivingEntity> model, ModelPart part, float x, float y, float z, float expand, float xspin, float yspin, float zspin) {
+        super(slot, Sitems.BILE_BLASTER.get(), model, part, x, y, z, expand, xspin, yspin, zspin);
+    }
 
-   public RenderType type(ResourceLocation location) {
-      return RenderType.entityCutout(location);
-   }
+    @Override
+    public RenderType type(ResourceLocation location) {
+        return RenderType.entityCutout(location);
+    }
 }

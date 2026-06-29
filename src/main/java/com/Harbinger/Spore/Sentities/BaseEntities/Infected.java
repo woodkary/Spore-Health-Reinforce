@@ -1,45 +1,23 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
-import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
-import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
-import com.Harbinger.Spore.Core.SConfig;
-import com.Harbinger.Spore.Core.Sblocks;
-import com.Harbinger.Spore.Core.Seffects;
-import com.Harbinger.Spore.Core.Sparticles;
-import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
-import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
-import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sblocks.WallRemainsBlock;
-import com.Harbinger.Spore.Sentities.ArmedInfected;
-import com.Harbinger.Spore.Sentities.ColdEndurance;
-import com.Harbinger.Spore.Sentities.ColdWeakness;
-import com.Harbinger.Spore.Sentities.EvolvingInfected;
-import com.Harbinger.Spore.Sentities.WaterInfected;
+import com.Harbinger.Spore.Sentities.*;
 import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
 import com.Harbinger.Spore.Sentities.AI.HurtTargetGoal;
 import com.Harbinger.Spore.Sentities.AI.InfectedConsumeFromRemains;
 import com.Harbinger.Spore.Sentities.AI.InfectedPanicGoal;
-import com.Harbinger.Spore.Sentities.AI.LocHiv.BufferAI;
-import com.Harbinger.Spore.Sentities.AI.LocHiv.FollowOthersGoal;
-import com.Harbinger.Spore.Sentities.AI.LocHiv.LocalTargettingGoal;
-import com.Harbinger.Spore.Sentities.AI.LocHiv.SearchAreaGoal;
+import com.Harbinger.Spore.Sentities.AI.LocHiv.*;
 import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
 import com.Harbinger.Spore.Sentities.Projectile.Vomit;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Direction.Plane;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -54,16 +32,9 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -71,675 +42,618 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.AbstractGlassBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.NotNull;
 
-public class Infected extends Monster implements ColdWeakness,ICustomLifeCycleEntity,IEventTickable {
-   public static final EntityDataAccessor HUNGER;
-   public static final EntityDataAccessor KILLS;
-   public static final EntityDataAccessor EVOLUTION_POINTS;
-   public static final EntityDataAccessor EVOLUTION;
-   public static final EntityDataAccessor LINKED;
-   public static final EntityDataAccessor PERSISTENT;
-   public static final EntityDataAccessor ORIGIN;
-   @Nullable
-   private BlockPos searchPos;
-   @Nullable
-   private LivingEntity partner;
-   private LivingEntity sporeTarget;
-   public Predicate<LivingEntity> TARGET_SELECTOR = (entity) -> Utilities.TARGET_SELECTOR.Test(entity);
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
-   public Infected(EntityType type, Level level) {
-      super(type, level);
-      this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
-      this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
-      this.setPathfindingMalus(BlockPathTypes.DANGER_OTHER, 16.0F);
-      this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
-      this.xpReward = 5;
-      initCustom();
-   }
-   @Override
-   public void actuallyHurt(DamageSource source, float amount) {
-      actualHurt(source, amount);
-   }
-   @Override
-   public void onRemovedFromWorld() {
-      onRemoved();
-   }
-   public List<String> getDropList() {
-      return null;
-   }
-   public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
-   }
-   @Nullable
-   public BlockPos getSearchPos() {
-      return this.searchPos;
-   }
-   public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-      LazyOptional<T> opt=super.getCapability(cap, side);
-      if(opt.resolve().isEmpty()||
-              !ModList.get().isLoaded("l2hostility")){
-         return opt;
-      }
-      T traitCap = opt.resolve().get();
-      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
-         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
-            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
-               KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
+import static com.Harbinger.Spore.ExtremelySusThings.Utilities.biomass;
+
+public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleEntity, IEventTickable {
+    public static final EntityDataAccessor<Integer> HUNGER = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> KILLS = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> EVOLUTION_POINTS = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> EVOLUTION = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> LINKED = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> PERSISTENT = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<String> ORIGIN = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.STRING);
+    @Nullable private BlockPos searchPos;
+    @Nullable private LivingEntity partner;
+    public Infected(EntityType<? extends Monster> type, Level level) {
+        super(type, level);
+        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
+        this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
+        this.setPathfindingMalus(BlockPathTypes.DANGER_OTHER, 16.0F);
+        this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
+        this.xpReward = 5;
+        initCustom();
+    }
+    public List<? extends String> getDropList(){
+        return null;
+    }
+    @Nullable
+    public BlockPos getSearchPos() {return searchPos;}
+
+    public void setSearchPos(@Nullable BlockPos searchPos) {this.searchPos = searchPos;}
+
+    public void travel(Vec3 p_32858_) {
+        if (this.isEffectiveAi() && this.isInFluidType()) {
+            this.moveRelative(0.1F, p_32858_);
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.6D));
+            if (this.getTarget() == null) {
+                this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.005D, 0.0D));
             }
-         });
-      }
-      return opt;
-   }
+        } else {
+            super.travel(p_32858_);
+        }
 
-   public void setSearchPos(@Nullable BlockPos searchPos) {
-      this.searchPos = searchPos;
-   }
+    }
 
-   public void travel(Vec3 p_32858_) {
-      if (this.isEffectiveAi() && this.isInFluidType()) {
-         this.moveRelative(0.1F, p_32858_);
-         this.move(MoverType.SELF, this.getDeltaMovement());
-         this.setDeltaMovement(this.getDeltaMovement().scale(0.6));
-         if (this.getTarget() == null) {
-            this.setDeltaMovement(this.getDeltaMovement().add((double)0.0F, -0.005, (double)0.0F));
-         }
-      } else {
-         super.travel(p_32858_);
-      }
+    public void setFollowPartner(@Nullable LivingEntity followPartner) {
+        this.partner = followPartner;
+    }
+    public LivingEntity getFollowPartner(){
+        return this.partner;
+    }
 
-   }
+    public int getMaxAirSupply() {
+        return 1200;
+    }
+    protected int increaseAirSupply(int p_28389_) {
+        return this.getMaxAirSupply();
+    }
 
-   public void setFollowPartner(@Nullable LivingEntity followPartner) {
-      this.partner = followPartner;
-   }
+    @Override
+    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+        return NetworkHooks.getEntitySpawningPacket(this);
+    }
 
-   public LivingEntity getFollowPartner() {
-      return this.partner;
-   }
+    @Override
+    public boolean doHurtTarget(Entity entity) {
+        float f = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        float f1 = (float) this.getAttributeValue(Attributes.ATTACK_KNOCKBACK);
+        if (entity instanceof LivingEntity) {
+            f += EnchantmentHelper.getDamageBonus(this.getMainHandItem(), ((LivingEntity) entity).getMobType());
+            f1 += (float) EnchantmentHelper.getKnockbackBonus(this);
+        }
 
-   public int getMaxAirSupply() {
-      return 1200;
-   }
+        int i = EnchantmentHelper.getFireAspect(this);
+        if (i > 0) {
+            entity.setSecondsOnFire(i * 4);
+        }
 
-   protected int increaseAirSupply(int p_28389_) {
-      return this.getMaxAirSupply();
-   }
+        boolean flag = entity.hurt(getCustomDamage(this), f);
+        if (flag) {
+            if (f1 > 0.0F && entity instanceof LivingEntity livingEntity) {
+                livingEntity.addEffect(new MobEffectInstance(Seffects.MYCELIUM.get(),  600, 0), this);
+                livingEntity.knockback((double) (f1 * 0.5F), (double) Mth.sin(this.getYRot() * ((float) Math.PI / 180F)), (double) (-Mth.cos(this.getYRot() * ((float) Math.PI / 180F))));
+                this.setDeltaMovement(this.getDeltaMovement().multiply(0.6D, 1.0D, 0.6D));
+            }
 
-   public Packet getAddEntityPacket() {
-      return NetworkHooks.getEntitySpawningPacket(this);
-   }
+            this.doEnchantDamageEffects(this, entity);
+            this.setLastHurtMob(entity);
+        }
+        if (entity instanceof Player player) {
+            this.maybeDisableShield(player, this.getMainHandItem(), player.isUsingItem() ? player.getUseItem() : ItemStack.EMPTY);
+        }
+        return flag;
+    }
 
-   public boolean doHurtTarget(Entity entity) {
-      float f = (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE);
-      float f1 = (float)this.getAttributeValue(Attributes.ATTACK_KNOCKBACK);
-      if (entity instanceof LivingEntity) {
-         f += EnchantmentHelper.getDamageBonus(this.getMainHandItem(), ((LivingEntity)entity).getMobType());
-         f1 += (float)EnchantmentHelper.getKnockbackBonus(this);
-      }
+    public void maybeDisableShield(Player p_21425_, ItemStack p_21426_, ItemStack p_21427_) {
+        if (!p_21426_.isEmpty() && !p_21427_.isEmpty() && p_21426_.getItem() instanceof AxeItem && p_21427_.is(Items.SHIELD)) {
+            float f = 0.25F + (float)EnchantmentHelper.getBlockEfficiency(this) * 0.05F;
+            if (this.random.nextFloat() < f) {
+                p_21425_.getCooldowns().addCooldown(Items.SHIELD, 100);
+                this.level().broadcastEntityEvent(p_21425_, (byte)30);
+            }
+        }
 
-      int i = EnchantmentHelper.getFireAspect(this);
-      if (i > 0) {
-         entity.setSecondsOnFire(i * 4);
-      }
+    }
+    public DamageSource getCustomDamage(LivingEntity entity) {
+        if (Math.random() < 0.5){
+            return SdamageTypes.infected_damage1(entity);
+        }else if (Math.random() < 0.5){
+            return SdamageTypes.infected_damage2(entity);
+        }else  if (Math.random() < 0.5) {
+            return SdamageTypes.infected_damage3(entity);
+        }
+        return this.damageSources().mobAttack(this);
+    }
 
-      boolean flag = entity.hurt(this.getCustomDamage(this), f);
-      if (flag) {
-         if (f1 > 0.0F && entity instanceof LivingEntity) {
-            LivingEntity livingEntity = (LivingEntity)entity;
-            livingEntity.addEffect(new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 600, 0), this);
-            livingEntity.knockback((double)(f1 * 0.5F), (double)Mth.sin(this.getYRot() * ((float)Math.PI / 180F)), (double)(-Mth.cos(this.getYRot() * ((float)Math.PI / 180F))));
-            this.setDeltaMovement(this.getDeltaMovement().multiply(0.6, (double)1.0F, 0.6));
-         }
+    @Override
+    public LivingEntity entity() {
+        return this;
+    }
 
-         this.doEnchantDamageEffects(this, entity);
-         this.setLastHurtMob(entity);
-      }
+    @Override
+    public void actuallyHurt(DamageSource source, float amount) {
+        actualHurt(source, amount);
+    }
 
-      if (entity instanceof Player player) {
-         this.maybeDisableShield(player, this.getMainHandItem(), player.isUsingItem() ? player.getUseItem() : ItemStack.EMPTY);
-      }
+    @Override
+    public void heal(float amount) {
+        healSelf(amount);
+    }
 
-      return flag;
-   }
+    @Override
+    public void onRemovedFromWorld() {
+        onRemoved();
+    }
 
-   public void maybeDisableShield(Player p_21425_, ItemStack p_21426_, ItemStack p_21427_) {
-      if (!p_21426_.isEmpty() && !p_21427_.isEmpty() && p_21426_.getItem() instanceof AxeItem && p_21427_.is(Items.SHIELD)) {
-         float f = 0.25F + (float)EnchantmentHelper.getBlockEfficiency(this) * 0.05F;
-         if (this.random.nextFloat() < f) {
-            p_21425_.getCooldowns().addCooldown(Items.SHIELD, 100);
-            this.level().broadcastEntityEvent(p_21425_, (byte)30);
-         }
-      }
 
-   }
-   @Override
-   public LivingEntity getTarget() {
-      return this.sporeTarget;
-   }
-   @Override
-   public void setTarget(@Nullable LivingEntity p_21544_) {
-      if (SporeJudge.isSporeEntity(p_21544_)) {
-         return;
-      }
-      this.sporeTarget = p_21544_;
-   }
+    public Predicate<LivingEntity> TARGET_SELECTOR = (entity) -> {
+       return Utilities.TARGET_SELECTOR.Test(entity);
+    };
 
-   public DamageSource getCustomDamage(LivingEntity entity) {
-      if (Math.random() < (double)0.5F) {
-         return SdamageTypes.infected_damage1(entity);
-      } else if (Math.random() < (double)0.5F) {
-         return SdamageTypes.infected_damage2(entity);
-      } else {
-         return Math.random() < (double)0.5F ? SdamageTypes.infected_damage3(entity) : this.damageSources().mobAttack(this);
-      }
-   }
-
-   protected void addTargettingGoals() {
-      this.goalSelector.addGoal(2, (new HurtTargetGoal(this, (livingEntity) -> this.TARGET_SELECTOR.test(livingEntity), new Class[]{Infected.class})).setAlertOthers(Infected.class));
-      this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<LivingEntity>(this, LivingEntity.class, true, (livingEntity) -> livingEntity instanceof Player || ((List)SConfig.SERVER.whitelist.get()).contains(livingEntity.getEncodeId())));
-      this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<LivingEntity>(this, LivingEntity.class, true, (livingEntity) -> (Boolean)SConfig.SERVER.at_mob.get() && this.TARGET_SELECTOR.test(livingEntity)));
-   }
-
-   protected void addRegularGoals() {
-      this.goalSelector.addGoal(3, new LocalTargettingGoal(this));
-      this.goalSelector.addGoal(4, new BufferAI(this));
-      this.goalSelector.addGoal(3, new OpenDoorGoal(this, true) {
-         public boolean canUse() {
-            return super.canUse() && Infected.this.getLinked() && (Boolean)SConfig.SERVER.higher_thinking.get();
-         }
-
-         public void start() {
-            this.mob.swing(InteractionHand.MAIN_HAND);
-            super.start();
-         }
-      });
-      this.goalSelector.addGoal(4, new SearchAreaGoal(this, 1.2));
-      this.goalSelector.addGoal(5, new InfectedPanicGoal(this, (double)1.5F));
-      this.goalSelector.addGoal(6, new FloatDiveGoal(this));
-      this.goalSelector.addGoal(7, new InfectedConsumeFromRemains(this));
-      this.goalSelector.addGoal(10, new FollowOthersGoal(this, Infected.class, (entity) -> true));
-      this.goalSelector.addGoal(10, new FollowOthersGoal(this, Calamity.class, (entity) -> this instanceof EvolvingInfected));
-   }
-
-   protected void registerGoals() {
-      this.addTargettingGoals();
-      this.addRegularGoals();
-   }
-   public void tick() {
-      super.tick();
-      tickCustomLifeCycle();
-      tickEventBus();
-   }
-
-   public boolean canStarve() {
-      return (Boolean)SConfig.SERVER.should_starve.get() && (Integer)this.entityData.get(EVOLUTION_POINTS) <= 0;
-   }
-
-   public void aiStep() {
-      super.aiStep();
-      if (!this.level().isClientSide && this.tickCount % 20 == 0) {
-         this.applyColdWeaknessEffects();
-         this.handleStarvationProgress();
-         if ((this.horizontalCollision || this.additionalBreakingTriggers()) && this.canGrief()) {
-            this.breakNearbyBlocks();
-         }
-
-         if (this.horizontalCollision && this.isInWater()) {
-            this.jumpInFluid((FluidType)ForgeMod.WATER_TYPE.get());
-         }
+    protected void addTargettingGoals(){
+        this.goalSelector.addGoal(2, new HurtTargetGoal(this ,livingEntity -> {return TARGET_SELECTOR.test(livingEntity);}, Infected.class).setAlertOthers(Infected.class));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>
+                (this, LivingEntity.class,  true,livingEntity -> {return livingEntity instanceof Player || SConfig.SERVER.whitelist.get().contains(livingEntity.getEncodeId());}));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>
+                (this, LivingEntity.class,  true, livingEntity -> {return SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity);}));
       }
 
-   }
+    protected void addRegularGoals(){
+        this.goalSelector.addGoal(3,new LocalTargettingGoal(this));
+        this.goalSelector.addGoal(4 , new BufferAI(this ));
+        this.goalSelector.addGoal(3, new OpenDoorGoal(this, true) {
+            @Override
+            public boolean canUse() {
+                return super.canUse() && getLinked() && SConfig.SERVER.higher_thinking.get();
+            }
+            @Override
+            public void start() {
+                this.mob.swing(InteractionHand.MAIN_HAND);
+                super.start();
+            }
+        });
+        this.goalSelector.addGoal(4, new SearchAreaGoal(this, 1.2));
+        this.goalSelector.addGoal(5 , new InfectedPanicGoal(this , 1.5));
+        this.goalSelector.addGoal(6,new FloatDiveGoal(this));
+        this.goalSelector.addGoal(7, new InfectedConsumeFromRemains(this));
+        this.goalSelector.addGoal(10,new FollowOthersGoal(this,Infected.class,entity ->{
+            return true;
+        }));
+        this.goalSelector.addGoal(10,new FollowOthersGoal(this,Calamity.class,entity ->{
+            return this instanceof EvolvingInfected;
+        }));
+    }
 
-   public boolean additionalBreakingTriggers() {
-      return false;
-   }
+    @Override
+    protected void registerGoals() {
+        addTargettingGoals();
+        addRegularGoals();
+    }
 
-   public boolean blockBreakingParameter(BlockState blockstate, BlockPos blockpos) {
-      return (blockstate.getBlock() instanceof AbstractGlassBlock || blockstate.getBlock() instanceof LeavesBlock) && blockstate.getDestroySpeed(this.level(), blockpos) >= 0.0F && blockstate.getDestroySpeed(this.level(), blockpos) < 2.0F;
-   }
 
-   private void handleStarvationProgress() {
-      if (this.canStarve()) {
-         int currentHunger = this.getHunger();
-         int hungerThreshold = (Integer)SConfig.SERVER.hunger.get();
-         boolean freezingPenalty = this.isInPowderSnow || this.isFreazing();
-         int hungerIncrement = freezingPenalty ? 2 : 1;
-         if (currentHunger < hungerThreshold) {
-            this.setHunger(currentHunger + hungerIncrement);
-         } else if (!this.hasEffect((MobEffect)Seffects.STARVATION.get())) {
-            this.addEffect(new MobEffectInstance((MobEffect)Seffects.STARVATION.get(), 100, 0));
-         }
+    public boolean canStarve(){
+        return SConfig.SERVER.should_starve.get() && entityData.get(EVOLUTION_POINTS) <= 0;
+    }
 
-      }
-   }
+    public void aiStep() {
+        super.aiStep();
+        if (!level().isClientSide && tickCount % 20 == 0) {
+            applyColdWeaknessEffects();
+            handleStarvationProgress();
+            if ((horizontalCollision || additionalBreakingTriggers()) && canGrief()) {
+                breakNearbyBlocks();
+            }
 
-   private void applyColdWeaknessEffects() {
-      if ((Boolean)SConfig.SERVER.weaktocold.get()) {
-         if (this.isInPowderSnow || this.isFreazing()) {
-            this.addEffect(new MobEffectInstance((MobEffect)Seffects.FROSTBITE.get(), 100, 0, false, false), this);
-         }
-      }
-   }
+            if (horizontalCollision && isInWater()) {
+                jumpInFluid(ForgeMod.WATER_TYPE.get());
+            }
+        }
+    }
+    public boolean additionalBreakingTriggers(){
+        return false;
+    }
 
-   private boolean canGrief() {
-      return ForgeEventFactory.getMobGriefingEvent(this.level(), this);
-   }
+    public boolean blockBreakingParameter(BlockState blockstate,BlockPos blockpos){
+        return (blockstate.getBlock() instanceof AbstractGlassBlock || blockstate.getBlock() instanceof LeavesBlock) && blockstate.getDestroySpeed(level() ,blockpos) >= 0 && blockstate.getDestroySpeed(level() ,blockpos) < 2;
+    }
+    private void handleStarvationProgress() {
+        if (!canStarve()) return;
 
-   private void breakNearbyBlocks() {
-      boolean brokeAny = false;
-      AABB aabb = this.getBoundingBox().inflate(0.2).move((double)0.0F, (double)0.5F, (double)0.0F);
+        int currentHunger = getHunger();
+        int hungerThreshold = SConfig.SERVER.hunger.get();
+        boolean freezingPenalty = isInPowderSnow || isFreazing();
+        int hungerIncrement = freezingPenalty ? 2 : 1;
 
-      for(BlockPos pos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-         BlockState state = this.level().getBlockState(pos);
-         if (this.blockBreakingParameter(state, pos)) {
-            brokeAny |= this.interactBlock(pos, this.level());
-         }
-      }
+        if (currentHunger < hungerThreshold) {
+            setHunger(currentHunger + hungerIncrement);
+        } else if (!hasEffect(Seffects.STARVATION.get())) {
+            addEffect(new MobEffectInstance(Seffects.STARVATION.get(), 100, 0));
+        }
+    }
+    private void applyColdWeaknessEffects() {
+        if (!SConfig.SERVER.weaktocold.get()) return;
+        if (!isInPowderSnow && !isFreazing()) return;
 
-      if (!brokeAny && this.onGround()) {
-         this.jumpFromGround();
-      }
+        if (hasEffect(Seffects.FROSTBITE.get())){
+            return;
+        }else {
+            addEffect(new MobEffectInstance(Seffects.FROSTBITE.get(), 100, 0, true, true));
+        }
+    }
+    private boolean canGrief() {
+        return net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(level(), this);
+    }
 
-   }
+    private void breakNearbyBlocks() {
+        boolean brokeAny = false;
+        AABB aabb = getBoundingBox().inflate(0.2D).move(0, 0.5, 0);
 
-   public boolean interactBlock(BlockPos blockPos, Level level) {
-      BlockState state = level.getBlockState(blockPos);
-      return state.is(Utilities.biomass) ? level.setBlock(blockPos, ((Block)Sblocks.MEMBRANE_BLOCK.get()).defaultBlockState(), 3) : level.destroyBlock(blockPos, false, this);
-   }
+        for (BlockPos pos : BlockPos.betweenClosed(
+                Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ),
+                Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
 
-   public boolean isStarving() {
-      return (Integer)this.entityData.get(HUNGER) >= (Integer)SConfig.SERVER.hunger.get() || this.hasEffect((MobEffect)Seffects.STARVATION.get());
-   }
+            BlockState state = level().getBlockState(pos);
 
-   public boolean removeWhenFarAway(double p_21542_) {
-      return this.getEvoPoints() >= (Integer)SConfig.SERVER.min_kills.get() && this instanceof EvolvingInfected ? false : super.removeWhenFarAway(p_21542_);
-   }
+            if (blockBreakingParameter(state, pos)) {
+                brokeAny |= interactBlock(pos, level());
+            }
+        }
 
-   public boolean isFreazing() {
-      int i = Mth.floor(this.getX());
-      int j = Mth.floor(this.getY());
-      int k = Mth.floor(this.getZ());
-      BlockPos blockpos = new BlockPos(i, j, k);
-      Biome biome = (Biome)this.level().getBiome(blockpos).value();
-      return (Boolean)SConfig.SERVER.weaktocold.get() && (double)biome.getBaseTemperature() <= 0.2;
-   }
+        if (!brokeAny && onGround()) {
+            jumpFromGround();
+        }
+    }
+    public boolean interactBlock(BlockPos blockPos, Level level) {
+        BlockState state = level.getBlockState(blockPos);
+        if (state.is(biomass)){
+            return level.setBlock(blockPos, Sblocks.MEMBRANE_BLOCK.get().defaultBlockState(), 3);
+        }
+        return level.destroyBlock(blockPos, false, this);
+    }
 
-   public void awardKillScore(Entity entity, int i, DamageSource damageSource) {
-      this.entityData.set(KILLS, (Integer)this.entityData.get(KILLS) + 1);
-      this.entityData.set(EVOLUTION_POINTS, (Integer)this.entityData.get(EVOLUTION_POINTS) + 1);
-      this.setHunger(0);
-      super.awardKillScore(entity, i, damageSource);
-   }
 
-   public void setHunger(Integer count) {
-      this.entityData.set(HUNGER, count);
-   }
+    public boolean isStarving(){
+        return entityData.get(HUNGER) >= SConfig.SERVER.hunger.get() || this.hasEffect(Seffects.STARVATION.get());
+    }
 
-   public int getHunger() {
-      return (Integer)this.entityData.get(HUNGER);
-   }
+    @Override
+    public boolean removeWhenFarAway(double p_21542_) {
+        if (this.getEvoPoints() >= SConfig.SERVER.min_kills.get() && this instanceof EvolvingInfected){
+            return false;
+        }
+        return super.removeWhenFarAway(p_21542_);
+    }
 
-   public void setKills(Integer count) {
-      this.entityData.set(KILLS, count);
-   }
+    public boolean isFreazing(){
+        int i = Mth.floor(this.getX());
+        int j = Mth.floor(this.getY());
+        int k = Mth.floor(this.getZ());
+        BlockPos blockpos = new BlockPos(i, j, k);
+        Biome biome = this.level().getBiome(blockpos).value();
+        return (SConfig.SERVER.weaktocold.get() && biome.getBaseTemperature() <= 0.2);
+    }
 
-   public int getKills() {
-      return (Integer)this.entityData.get(KILLS);
-   }
+    @Override
+    public void awardKillScore(Entity entity, int i, DamageSource damageSource) {
+        this.entityData.set(KILLS,entityData.get(KILLS) + 1);
+        this.entityData.set(EVOLUTION_POINTS,entityData.get(EVOLUTION_POINTS) + 1);
+        setHunger(0);
+        super.awardKillScore(entity, i, damageSource);
+    }
+    public void setHunger(Integer count){entityData.set(HUNGER,count);}
+    public int getHunger(){return entityData.get(HUNGER);}
+    public void setKills(Integer count){
+        entityData.set(KILLS,count);
+    }
+    public  int getKills(){return entityData.get(KILLS);}
+    public void setEvoPoints(Integer count){
+        entityData.set(EVOLUTION_POINTS,count);
+    }
+    public  int getEvoPoints(){return entityData.get(EVOLUTION_POINTS);}
+    public void setLinked(Boolean count){
+        entityData.set(LINKED,count);
+    }
+    public boolean getLinked(){return entityData.get(LINKED);}
+    public int getEvolutionCoolDown(){return this.entityData.get(EVOLUTION);}
+    public void setEvolution(int u){this.entityData.set(EVOLUTION,u);}
+    public void setPersistent(Boolean count){
+        entityData.set(PERSISTENT,count);
+    }
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt("hunger",entityData.get(HUNGER));
+        tag.putInt("kills",entityData.get(KILLS));
+        tag.putInt("evo_points",entityData.get(EVOLUTION_POINTS));
+        tag.putInt("evolution",entityData.get(EVOLUTION));
+        tag.putBoolean("linked",entityData.get(LINKED));
+        tag.putBoolean("persistent",entityData.get(PERSISTENT));
+        tag.putString("origin",entityData.get(ORIGIN));
+        addSaveData(tag);
+    }
 
-   public void setEvoPoints(Integer count) {
-      this.entityData.set(EVOLUTION_POINTS, count);
-   }
 
-   public int getEvoPoints() {
-      return (Integer)this.entityData.get(EVOLUTION_POINTS);
-   }
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        entityData.set(HUNGER, tag.getInt("hunger"));
+        entityData.set(KILLS, tag.getInt("kills"));
+        entityData.set(EVOLUTION,tag.getInt("evolution"));
+        entityData.set(EVOLUTION_POINTS,tag.getInt("evo_points"));
+        entityData.set(LINKED, tag.getBoolean("linked"));
+        entityData.set(PERSISTENT, tag.getBoolean("persistent"));
+        entityData.set(ORIGIN, tag.getString("origin"));
+        readSaveData(tag);
+    }
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(HUNGER, 0);
+        this.entityData.define(KILLS, 0);
+        this.entityData.define(EVOLUTION_POINTS, 0);
+        this.entityData.define(LINKED,false);
+        this.entityData.define(PERSISTENT,false);
+        this.entityData.define(EVOLUTION,0);
+        this.entityData.define(ORIGIN,origin());
+    }
 
-   public void setLinked(Boolean count) {
-      this.entityData.set(LINKED, count);
-   }
+    public String origin(){return "";}
+    public void setOrigin(String string){
+        entityData.set(ORIGIN,string);
+    }
+    public String getOrigin(){
+        return entityData.get(ORIGIN);
+    }
 
-   public boolean getLinked() {
-      return (Boolean)this.entityData.get(LINKED);
-   }
 
-   public int getEvolutionCoolDown() {
-      return (Integer)this.entityData.get(EVOLUTION);
-   }
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (this.hasEffect(Seffects.STARVATION.get()) && source == this.damageSources().generic() && this.level() instanceof ServerLevel serverLevel){
+            double x0 = this.getX() - (random.nextFloat() - 0.1) * 0.1D;
+            double y0 = this.getY() + (random.nextFloat() - 0.25) * 0.25D * 5;
+            double z0 = this.getZ() + (random.nextFloat() - 0.1) * 0.1D;
+            serverLevel.sendParticles(Sparticles.SPORE_PARTICLE.get(), x0, y0, z0, 4,0, 0, 0,1);
+        }
+        if (source.getDirectEntity() instanceof AcidBall || source.getDirectEntity() instanceof Vomit){
+            return  false;
+        }
+        if (source.getDirectEntity() != null){
+            this.setSearchPos(new BlockPos((int)source.getDirectEntity().getX(),(int)source.getDirectEntity().getY(),(int)source.getDirectEntity().getZ()));
+        }
+        return super.hurt(source, amount);
+    }
 
-   public void setEvolution(int u) {
-      this.entityData.set(EVOLUTION, u);
-   }
+    public static boolean checkMonsterInfectedRules(EntityType<? extends Infected> p_219014_, ServerLevelAccessor levelAccessor, MobSpawnType type, BlockPos pos, RandomSource source) {
+        if (levelAccessor.getDifficulty() != Difficulty.PEACEFUL){
+            return furtherSpawnParameters(p_219014_,levelAccessor,type,pos,source);
+        }
+        return false;
+    }
+    private static boolean furtherSpawnParameters(EntityType<? extends Infected> p_219014_,ServerLevelAccessor levelAccessor, MobSpawnType type, BlockPos pos, RandomSource source){
+        MinecraftServer server = levelAccessor.getServer();
+        if (server != null){
+            if (server.getPlayerList().getPlayers().isEmpty()){
+                return false;
+            }
+        }
+        if (p_219014_ instanceof WaterInfected){
+            return levelAccessor.getFluidState(pos.below()).is(FluidTags.WATER);
+        }
+        return isDarkEnoughToSpawn(levelAccessor, pos, source) && checkMobSpawnRules(p_219014_, levelAccessor, type, pos, source);
+    }
 
-   public void setPersistent(Boolean count) {
-      this.entityData.set(PERSISTENT, count);
-   }
 
-   public void addAdditionalSaveData(CompoundTag tag) {
-      super.addAdditionalSaveData(tag);
-      tag.putInt("hunger", (Integer)this.entityData.get(HUNGER));
-      tag.putInt("kills", (Integer)this.entityData.get(KILLS));
-      tag.putInt("evo_points", (Integer)this.entityData.get(EVOLUTION_POINTS));
-      tag.putInt("evolution", (Integer)this.entityData.get(EVOLUTION));
-      tag.putBoolean("linked", (Boolean)this.entityData.get(LINKED));
-      tag.putBoolean("persistent", (Boolean)this.entityData.get(PERSISTENT));
-      tag.putString("origin", (String)this.entityData.get(ORIGIN));
-      addSaveData(tag);
-   }
+    @Override
+    public boolean addEffect(MobEffectInstance effectInstance, @org.jetbrains.annotations.Nullable Entity entity) {
+        if (entityData.get(HUNGER) >= SConfig.SERVER.hunger.get() && (effectInstance.getEffect() == MobEffects.HEAL || effectInstance.getEffect() == MobEffects.REGENERATION)){
+           setHunger(0);
+        }
+        return super.addEffect(effectInstance, entity);
+    }
 
-   public void readAdditionalSaveData(CompoundTag tag) {
-      super.readAdditionalSaveData(tag);
-      this.entityData.set(HUNGER, tag.getInt("hunger"));
-      this.entityData.set(KILLS, tag.getInt("kills"));
-      this.entityData.set(EVOLUTION, tag.getInt("evolution"));
-      this.entityData.set(EVOLUTION_POINTS, tag.getInt("evo_points"));
-      this.entityData.set(LINKED, tag.getBoolean("linked"));
-      this.entityData.set(PERSISTENT, tag.getBoolean("persistent"));
-      this.entityData.set(ORIGIN, tag.getString("origin"));
-      readSaveData(tag);
-   }
-   public void heal(float amount) {
-      healSelf(amount);
-   }
+    @Override
+    public void tick() {
+        super.tick();
+        tickCustomLifeCycle();
+        tickEventBus();
+    }
 
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(HUNGER, 0);
-      this.entityData.define(KILLS, 0);
-      this.entityData.define(EVOLUTION_POINTS, 0);
-      this.entityData.define(LINKED, false);
-      this.entityData.define(PERSISTENT, false);
-      this.entityData.define(EVOLUTION, 0);
-      this.entityData.define(ORIGIN, this.origin());
-   }
+    @Override
+    public void tickDeath(){
+        if(this.getHealth()>0.0f){
+            return;
+        }
+        super.tickDeath();
+    }
 
-   public String origin() {
-      return "";
-   }
 
-   public void setOrigin(String string) {
-      this.entityData.set(ORIGIN, string);
-   }
-
-   public String getOrigin() {
-      return (String)this.entityData.get(ORIGIN);
-   }
-
-   public boolean hurt(DamageSource source, float amount) {
-      if (this.hasEffect((MobEffect)Seffects.STARVATION.get()) && source == this.damageSources().generic()) {
-         Level var4 = this.level();
-         if (var4 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var4;
-            double x0 = this.getX() - ((double)this.random.nextFloat() - 0.1) * 0.1;
-            double y0 = this.getY() + ((double)this.random.nextFloat() - (double)0.25F) * (double)0.25F * (double)5.0F;
-            double z0 = this.getZ() + ((double)this.random.nextFloat() - 0.1) * 0.1;
-            serverLevel.sendParticles((SimpleParticleType)Sparticles.SPORE_PARTICLE.get(), x0, y0, z0, 4, (double)0.0F, (double)0.0F, (double)0.0F, (double)1.0F);
-         }
-      }
-
-      if (!(source.getDirectEntity() instanceof AcidBall) && !(source.getDirectEntity() instanceof Vomit)) {
-         if (source.getDirectEntity() != null) {
-            this.setSearchPos(new BlockPos((int)source.getDirectEntity().getX(), (int)source.getDirectEntity().getY(), (int)source.getDirectEntity().getZ()));
-         }
-
-         return super.hurt(source, amount);
-      } else {
-         return false;
-      }
-   }
-
-   public static boolean checkMonsterInfectedRules(EntityType p_219014_, ServerLevelAccessor levelAccessor, MobSpawnType type, BlockPos pos, RandomSource source) {
-      return levelAccessor.getDifficulty() != Difficulty.PEACEFUL ? furtherSpawnParameters(p_219014_, levelAccessor, type, pos, source) : false;
-   }
-
-   private static boolean furtherSpawnParameters(EntityType p_219014_, ServerLevelAccessor levelAccessor, MobSpawnType type, BlockPos pos, RandomSource source) {
-      MinecraftServer server = levelAccessor.getServer();
-      if (server != null && server.getPlayerList().getPlayers().isEmpty()) {
-         return false;
-      } else if (p_219014_ instanceof WaterInfected) {
-         return levelAccessor.getFluidState(pos.below()).is(FluidTags.WATER);
-      } else {
-         return isDarkEnoughToSpawn(levelAccessor, pos, source) && checkMobSpawnRules(p_219014_, levelAccessor, type, pos, source);
-      }
-   }
-
-   public boolean addEffect(MobEffectInstance effectInstance, @Nullable Entity entity) {
-      if ((Integer)this.entityData.get(HUNGER) >= (Integer)SConfig.SERVER.hunger.get() && (effectInstance.getEffect() == MobEffects.HEAL || effectInstance.getEffect() == MobEffects.REGENERATION)) {
-         this.setHunger(0);
-      }
-
-      return super.addEffect(effectInstance, entity);
-   }
-   public void tickDeath(){
-      if(this.getHealth()>0.0f){
-         return;
-      }
-      super.tickDeath();
-   }
-   public void die(DamageSource source) {
-      if (this.getHealth()>0.0f) {
-         return;
-      }
-      this.placeRemains(source);
-      this.placeFrozenRemains();
-      if ((Boolean)this.entityData.get(PERSISTENT)) {
-         for(int i = 0; i < this.random.nextInt(1, 4); ++i) {
+    @Override
+    public void die(DamageSource source) {
+        if (this.getHealth()>0.0f) {
+            return;
+        }
+        placeRemains(source);
+        placeFrozenRemains();
+        if (entityData.get(PERSISTENT)){
+            for (int i = 0; i < random.nextInt(1,4);i++){
+                super.die(source);
+            }
+        }else{
             super.die(source);
-         }
-      } else {
-         super.die(source);
-      }
+        }
+    }
+    private void placeRemains(DamageSource source) {
 
-   }
+        if (!this.hasEffect(Seffects.STARVATION.get())) return;
+        if (!source.is(DamageTypes.GENERIC)) return;
 
-   private void placeRemains(DamageSource source) {
-      if (this.hasEffect((MobEffect)Seffects.STARVATION.get())) {
-         if (source.is(DamageTypes.GENERIC)) {
-            if (!this.level().isClientSide()) {
-               AABB aabb = this.getBoundingBox().inflate((double)1.0F);
-               RandomSource random = this.level().getRandom();
+        if (level().isClientSide()) return;
 
-               for(BlockPos blockPos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-                  BlockState groundState = this.level().getBlockState(blockPos);
-                  BlockPos abovePos = blockPos.above();
-                  BlockState aboveState = this.level().getBlockState(abovePos);
-                  if (groundState.isSolidRender(this.level(), blockPos) && aboveState.isAir()) {
-                     if (random.nextFloat() < 0.9F) {
-                        BlockState growth = random.nextBoolean() ? ((Block)Sblocks.GROWTHS_BIG.get()).defaultBlockState() : ((Block)Sblocks.GROWTHS_SMALL.get()).defaultBlockState();
-                        this.level().setBlock(abovePos, growth, 3);
-                     }
+        AABB aabb = this.getBoundingBox().inflate(1);
+        RandomSource random = level().getRandom();
 
-                     if (random.nextFloat() < 0.3F) {
-                        BlockState remains;
-                        if (random.nextBoolean()) {
-                           Direction randomHorizontal = Plane.HORIZONTAL.getRandomDirection(random);
-                           remains = (BlockState)((Block)Sblocks.WALL_REMAINS.get()).defaultBlockState().setValue(WallRemainsBlock.FACING, randomHorizontal);
-                        } else {
-                           remains = ((Block)Sblocks.REMAINS.get()).defaultBlockState();
-                        }
+        for (BlockPos blockPos : BlockPos.betweenClosed(
+                Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ),
+                Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
 
-                        this.level().setBlock(abovePos, remains, 3);
+            BlockState groundState = level().getBlockState(blockPos);
+            BlockPos abovePos = blockPos.above();
+            BlockState aboveState = level().getBlockState(abovePos);
+
+            if (!groundState.isSolidRender(level(), blockPos)) continue;
+            if (!aboveState.isAir()) continue;
+
+            if (random.nextFloat() < 0.9f) {
+                BlockState growth = random.nextBoolean()
+                        ? Sblocks.GROWTHS_BIG.get().defaultBlockState()
+                        : Sblocks.GROWTHS_SMALL.get().defaultBlockState();
+
+                level().setBlock(abovePos, growth, 3);
+            }
+            if (random.nextFloat() < 0.3f) {
+
+                BlockState remains;
+
+                if (random.nextBoolean()) {
+                    Direction randomHorizontal = Direction.Plane.HORIZONTAL.getRandomDirection(random);
+                    remains = Sblocks.WALL_REMAINS.get()
+                            .defaultBlockState()
+                            .setValue(WallRemainsBlock.FACING, randomHorizontal);
+                } else {
+                    remains = Sblocks.REMAINS.get().defaultBlockState();
+                }
+
+                level().setBlock(abovePos, remains, 3);
+                break;
+            }
+        }
+    }
+    private void placeFrozenRemains(){
+        if ((isFreazing() || getTicksFrozen() > 0) && Math.random() < 0.3){
+            AABB aabb = this.getBoundingBox().inflate(1);
+            for(BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
+                BlockState blockState = level().getBlockState(blockpos);
+                BlockState above = level().getBlockState(blockpos.above());
+                if (!level().isClientSide() && blockState.isSolidRender(level(),blockpos) && above.isAir()){
+                    if (Math.random() < 0.3){
+                        level().setBlock(blockpos.above(), Sblocks.FROZEN_REMAINS.get().defaultBlockState(), 3);
                         break;
-                     }
-                  }
-               }
-
+                    }
+                }
             }
-         }
-      }
-   }
-
-   private void placeFrozenRemains() {
-      if ((this.isFreazing() || this.getTicksFrozen() > 0) && Math.random() < 0.3) {
-         AABB aabb = this.getBoundingBox().inflate((double)1.0F);
-
-         for(BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-            BlockState blockState = this.level().getBlockState(blockpos);
-            BlockState above = this.level().getBlockState(blockpos.above());
-            if (!this.level().isClientSide() && blockState.isSolidRender(this.level(), blockpos) && above.isAir() && Math.random() < 0.3) {
-               this.level().setBlock(blockpos.above(), ((Block)Sblocks.FROZEN_REMAINS.get()).defaultBlockState(), 3);
-               break;
+        }
+    }
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_21435_, MobSpawnType p_21436_, @org.jetbrains.annotations.Nullable SpawnGroupData p_21437_, @org.jetbrains.annotations.Nullable CompoundTag p_21438_) {
+        setDefaultLinkage(serverLevelAccessor);
+        spawnWithPoints();
+        if (!(this instanceof Experiment) && SConfig.SERVER.daytime_spawn.get() && p_21436_ == MobSpawnType.NATURAL){
+            teleportToSurface(level(),this);
+        }
+        return super.finalizeSpawn(serverLevelAccessor, p_21435_, p_21436_, p_21437_, p_21438_);
+    }
+    public void setDefaultLinkage(ServerLevelAccessor level){
+        if (level instanceof ServerLevel serverLevel){
+            SporeSavedData data = SporeSavedData.getDataLocation(serverLevel);
+            if (data != null && data.getAmountOfHiveminds() >= SConfig.SERVER.proto_spawn_world_mod.get()){
+                this.setLinked(true);
+                if (Math.random() < 0.3 && this instanceof EvolvingInfected evolvingInfected){
+                    if (evolvingInfected instanceof EvolvedInfected){
+                        this.setEvoPoints(this.getEvoPoints()+SConfig.SERVER.min_kills_hyper.get());
+                        this.setEvolution(SConfig.SERVER.evolution_age_hyper.get());
+                    }else{
+                        this.setEvoPoints(this.getEvoPoints()+SConfig.SERVER.min_kills.get());
+                        this.setEvolution(SConfig.SERVER.evolution_age_human.get());
+                    }
+                }
+                enchantEquipment(this);
             }
-         }
-      }
+        }
+    }
+    public void spawnWithPoints(){
+        if (!SConfig.SERVER.at_mob.get() && Math.random() < 0.3 && this instanceof EvolvingInfected){
+            this.setEvoPoints(SConfig.SERVER.min_kills.get());
+        }
+    }
+    public void teleportToSurface(Level level, Mob entity) {
+        if (level.canSeeSky(entity.blockPosition())){
+            return;
+        }
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(
+                Mth.floor(entity.getX()),
+                level.getMaxBuildHeight(),
+                Mth.floor(entity.getZ())
+        );
 
-   }
-
-   public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance p_21435_, MobSpawnType p_21436_, @Nullable SpawnGroupData p_21437_, @Nullable CompoundTag p_21438_) {
-      this.setDefaultLinkage(serverLevelAccessor);
-      this.spawnWithPoints();
-      if (!(this instanceof Experiment) && (Boolean)SConfig.SERVER.daytime_spawn.get() && p_21436_ == MobSpawnType.NATURAL) {
-         this.teleportToSurface(this.level(), this);
-      }
-
-      return super.finalizeSpawn(serverLevelAccessor, p_21435_, p_21436_, p_21437_, p_21438_);
-   }
-
-   public void setDefaultLinkage(ServerLevelAccessor level) {
-      if (level instanceof ServerLevel serverLevel) {
-         SporeSavedData data = SporeSavedData.getDataLocation(serverLevel);
-         if (data != null && data.getAmountOfHiveminds() >= (Integer)SConfig.SERVER.proto_spawn_world_mod.get()) {
-            this.setLinked(true);
-            if (Math.random() < 0.3 && this instanceof EvolvingInfected) {
-               EvolvingInfected evolvingInfected = (EvolvingInfected)this;
-               if (evolvingInfected instanceof EvolvedInfected) {
-                  this.setEvoPoints(this.getEvoPoints() + (Integer)SConfig.SERVER.min_kills_hyper.get());
-               } else {
-                  this.setEvoPoints(this.getEvoPoints() + (Integer)SConfig.SERVER.min_kills.get());
-               }
-
-               this.setEvolution((Integer)SConfig.SERVER.evolution_age_human.get());
-            }
-
-            this.enchantEquipment(this);
-         }
-      }
-
-   }
-
-   public void spawnWithPoints() {
-      if (!(Boolean)SConfig.SERVER.at_mob.get() && Math.random() < 0.3 && this instanceof EvolvingInfected) {
-         this.setEvoPoints((Integer)SConfig.SERVER.min_kills.get());
-      }
-
-   }
-
-   public void teleportToSurface(Level level, Mob entity) {
-      if (!level.canSeeSky(entity.blockPosition())) {
-         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(Mth.floor(entity.getX()), level.getMaxBuildHeight(), Mth.floor(entity.getZ()));
-
-         while(pos.getY() > level.getMinBuildHeight()) {
+        while (pos.getY() > level.getMinBuildHeight()) {
             pos.move(Direction.DOWN);
             BlockState state = level.getBlockState(pos);
             BlockState stateAbove = level.getBlockState(pos.above());
             if (state.isSolidRender(level, pos) && stateAbove.isAir()) {
-               entity.teleportTo((double)pos.getX() + (double)0.5F, (double)pos.getY() + 1.01, (double)pos.getZ() + (double)0.5F);
-               return;
+                entity.teleportTo(pos.getX() + 0.5D, pos.getY() + 1.01D, pos.getZ() + 0.5D);
+                return;
             }
-         }
+        }
+    }
+    public void enchantEquipment(LivingEntity living){
+        if (living instanceof ArmedInfected armedInfected){
+            armedInfected.enchantItems(living);
+        }
+    }
 
-      }
-   }
-
-   public void enchantEquipment(LivingEntity living) {
-      if (living instanceof ArmedInfected armedInfected) {
-         armedInfected.enchantItems(living);
-      }
-
-   }
-
-   public boolean hasLineOfSight(Entity entity) {
-      if (entity instanceof LivingEntity livingEntity) {
-         if (livingEntity.hasEffect((MobEffect)Seffects.MARKER.get())) {
+    @Override
+    public boolean hasLineOfSight(Entity entity) {
+        if (entity instanceof LivingEntity livingEntity && livingEntity.hasEffect(Seffects.MARKER.get())){
             return true;
-         }
-      }
+        }
+        return super.hasLineOfSight(entity);
+    }
+    @Override
+    public void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
+        super.dropCustomDeathLoot(source, val, bool);
+        if (getDropList() == null){return;}
+        if (!getDropList().isEmpty()){
+            for (String str : getDropList()){
+                String[] string = str.split("\\|" );
+                ItemStack itemStack = new ItemStack(Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(new ResourceLocation(string[0]))));
+                int m = 1;
+                if (Integer.parseUnsignedInt(string[2]) == Integer.parseUnsignedInt(string[3])){
+                    int o = Integer.parseUnsignedInt(string[3]);
+                    m = val > 0 ? random.nextInt(o,o+val) : o;
+                } else {if (Integer.parseUnsignedInt(string[2]) >= 1 && Integer.parseUnsignedInt(string[2]) >= 1){
+                    int v1 = Integer.parseUnsignedInt(string[2]);
+                    int v2 = Integer.parseUnsignedInt(string[3]);
+                    float e = m * (0.15f * val);
+                    int i = e > val ? (int) e : val;
+                    m = random.nextInt(v1, v2+i);
+                }}
+                int value = Integer.parseUnsignedInt(string[1])+(val*10);
+                if (Math.random() < (value / 100F)) {
+                    itemStack.setCount(m);
+                    ItemEntity item = new ItemEntity(level(), this.getX() , this.getY(),this.getZ(),itemStack);
+                    item.setPickUpDelay(10);
+                    level().addFreshEntity(item);}}
+        }
+    }
 
-      return super.hasLineOfSight(entity);
-   }
+    public String getMutation(){
+        return null;
+    }
 
-   public void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
-      super.dropCustomDeathLoot(source, val, bool);
-      if (this.getDropList() != null) {
-         if (!this.getDropList().isEmpty()) {
-            for(String str : this.getDropList()) {
-               String[] string = str.split("\\|");
-               ItemStack itemStack = new ItemStack((ItemLike)Objects.requireNonNull((Item)ForgeRegistries.ITEMS.getValue(new ResourceLocation(string[0]))));
-               int m = 1;
-               if (Integer.parseUnsignedInt(string[2]) == Integer.parseUnsignedInt(string[3])) {
-                  int o = Integer.parseUnsignedInt(string[3]);
-                  m = val > 0 ? this.random.nextInt(o, o + val) : o;
-               } else if (Integer.parseUnsignedInt(string[2]) >= 1 && Integer.parseUnsignedInt(string[2]) >= 1) {
-                  int v1 = Integer.parseUnsignedInt(string[2]);
-                  int v2 = Integer.parseUnsignedInt(string[3]);
-                  float e = (float)m * 0.15F * (float)val;
-                  int i = e > (float)val ? (int)e : val;
-                  m = this.random.nextInt(v1, v2 + i);
-               }
-
-               int value = Integer.parseUnsignedInt(string[1]) + val * 10;
-               if (Math.random() < (double)((float)value / 100.0F)) {
-                  itemStack.setCount(m);
-                  ItemEntity item = new ItemEntity(this.level(), this.getX(), this.getY(), this.getZ(), itemStack);
-                  item.setPickUpDelay(10);
-                  this.level().addFreshEntity(item);
-               }
-            }
-         }
-
-      }
-   }
-
-   public String getMutation() {
-      return null;
-   }
-
-   public ColdEndurance getEndurance() {
-      return ColdEndurance.INFECTED;
-   }
-
-   static {
-      HUNGER = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
-      KILLS = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
-      EVOLUTION_POINTS = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
-      EVOLUTION = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
-      LINKED = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.BOOLEAN);
-      PERSISTENT = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.BOOLEAN);
-      ORIGIN = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.STRING);
-   }
-
-   @Override
-   public LivingEntity entity() {
-      return this;
-   }
-   @Override
-   public boolean isProtoOrCalamity(){
-      return false;
-   }
+    @Override
+    public ColdEndurance getEndurance() {
+        return ColdEndurance.INFECTED;
+    }
 }

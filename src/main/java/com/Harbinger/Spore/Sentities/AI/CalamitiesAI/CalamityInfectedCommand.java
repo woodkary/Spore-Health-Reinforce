@@ -8,36 +8,42 @@ import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.AABB;
 
+import java.util.List;
+
 public class CalamityInfectedCommand extends Goal {
-   private final Calamity calamity;
+    private final Calamity calamity;
 
-   public CalamityInfectedCommand(Calamity calamity1) {
-      this.calamity = calamity1;
-   }
+    public CalamityInfectedCommand(Calamity calamity1){
+        this.calamity = calamity1;
+    }
 
-   public boolean canUse() {
-      return this.calamity.getRandom().nextInt(100) == 0 && (this.calamity.getTarget() != null || this.calamity.getSearchArea() != BlockPos.ZERO);
-   }
+    @Override
+    public boolean canUse() {
+        return this.calamity.getRandom().nextInt(100) == 0 && (this.calamity.getTarget() != null || this.calamity.getSearchArea() != BlockPos.ZERO);
+    }
 
-   public void start() {
-      this.Targeting(this.calamity);
-      super.start();
-   }
 
-   public void Targeting(Entity entity) {
-      AABB boundingBox = entity.getBoundingBox().inflate((double)32.0F);
+    @Override
+    public void start() {
+        Targeting(this.calamity);
+        super.start();
+    }
 
-      for(Entity entity1 : entity.level().getEntities(entity, boundingBox, EntitySelector.NO_CREATIVE_OR_SPECTATOR)) {
-         if (entity1 instanceof Infected livingEntity) {
-            if (livingEntity.getTarget() == null && this.calamity.getTarget() != null && this.calamity.getTarget().isAlive() && !this.calamity.getTarget().isInvulnerable()) {
-               livingEntity.setTarget(this.calamity.getTarget());
+    public void Targeting(Entity entity){
+        AABB boundingBox = entity.getBoundingBox().inflate(32);
+        List<Entity> entities = entity.level().getEntities(entity, boundingBox , EntitySelector.NO_CREATIVE_OR_SPECTATOR);
+
+        for (Entity entity1 : entities) {
+            if(entity1 instanceof Infected livingEntity) {
+                if (livingEntity.getTarget() == null && this.calamity.getTarget() != null && this.calamity.getTarget().isAlive() && !this.calamity.getTarget().isInvulnerable()){
+                    livingEntity.setTarget(calamity.getTarget());
+                }
+
+                if(livingEntity.getSearchPos() != null && calamity.getSearchArea() != BlockPos.ZERO){
+                    livingEntity.setSearchPos(calamity.getSearchArea());
+                }
             }
+        }
+    }
 
-            if (livingEntity.getSearchPos() != null && this.calamity.getSearchArea() != BlockPos.ZERO) {
-               livingEntity.setSearchPos(this.calamity.getSearchArea());
-            }
-         }
-      }
-
-   }
 }

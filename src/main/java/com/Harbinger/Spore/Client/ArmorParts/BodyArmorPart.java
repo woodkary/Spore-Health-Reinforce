@@ -1,6 +1,5 @@
 package com.Harbinger.Spore.Client.ArmorParts;
 
-import java.util.function.Supplier;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -8,12 +7,16 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 
-public class BodyArmorPart extends BaseArmorRenderingBit {
-   public BodyArmorPart(Item item, Supplier model, Supplier part, float x, float y, float z, float expand) {
-      super(EquipmentSlot.CHEST, item, model, part, x, y, z, expand);
-   }
+import java.util.function.Supplier;
 
-   protected ModelPart getPiece(HumanoidModel model) {
-      return model.body;
-   }
+public class BodyArmorPart extends BaseArmorRenderingBit{
+
+    public BodyArmorPart(Item item, Supplier<EntityModel<LivingEntity>> model, Supplier<ModelPart> part, float x, float y, float z, float expand) {
+        super(EquipmentSlot.CHEST, item, model, part, x, y, z, expand);
+    }
+
+    @Override
+    protected ModelPart getPiece(HumanoidModel<LivingEntity> model) {
+        return model.body;
+    }
 }

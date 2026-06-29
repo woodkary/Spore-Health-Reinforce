@@ -744,4 +744,3 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         }
     }
 }
-

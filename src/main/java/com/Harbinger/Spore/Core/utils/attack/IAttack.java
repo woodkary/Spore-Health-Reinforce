@@ -29,4 +29,3 @@ public interface IAttack {
     Entity getTargetedEntity(Player player, double maxDistance);
     void dropAllDeathLoot(LivingEntity liv, Vec3 position, DamageSource source, Entity cause);
 }
-

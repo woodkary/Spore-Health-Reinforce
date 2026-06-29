@@ -6,11 +6,10 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
-public abstract class BaseExperimentRenderer<T extends Experiment> extends BaseInfectedRenderer<T> {
-   public BaseExperimentRenderer(EntityRendererProvider.Context context, EntityModel<T> model, float shadow) {
-      super(context, model, shadow);
-      this.addLayer(new ExperimentDormantLayer<>(this));
-   }
-
-   public abstract ResourceLocation eyeLayerTexture();
+public abstract class BaseExperimentRenderer<T extends Experiment,M extends EntityModel<T>> extends BaseInfectedRenderer<T, M> {
+    public BaseExperimentRenderer(EntityRendererProvider.Context context, M model, float shadow) {
+        super(context, model, shadow);
+        addLayer(new ExperimentDormantLayer<>(this));
+    }
+    public abstract ResourceLocation eyeLayerTexture();
 }

@@ -1,21 +1,19 @@
 package com.Harbinger.Spore.Client.Special;
 
-import java.util.List;
 import net.minecraft.client.model.geom.ModelPart;
 
+import java.util.List;
+
 public interface GargoyleBits {
-   List Helmet();
+    List<ModelPart>  Helmet();
+    List<ModelPart>  Armor();
+    ModelPart root();
 
-   List Armor();
-
-   ModelPart root();
-
-   default void setDraw(ModelPart part, boolean armor) {
-      if (this.Armor().contains(part)) {
-         part.skipDraw = !armor;
-      } else {
-         part.skipDraw = armor;
-      }
-
-   }
+    default void setDraw(ModelPart part,boolean armor){
+        if (Armor().contains(part)){
+            part.skipDraw = !armor;
+        }else{
+            part.skipDraw = armor;
+        }
+    }
 }

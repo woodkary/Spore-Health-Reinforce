@@ -12,37 +12,45 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class OutpostWatcher extends BaseEntityBlock {
-   public OutpostWatcher() {
-      super(Properties.of().sound(SoundType.SLIME_BLOCK).strength(6.0F, 20.0F));
-   }
+    public OutpostWatcher() {
+        super(Properties.of().sound(SoundType.SLIME_BLOCK).strength(6f, 20f));
+    }
 
-   public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-      return new OutpostWatcherBlockEntity(pos, state);
-   }
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new OutpostWatcherBlockEntity(pos,state);
+    }
 
-   public RenderShape getRenderShape(BlockState state) {
-      return RenderShape.INVISIBLE;
-   }
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
+    }
 
-   public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-      Vec3 offset = state.getOffset(world, pos);
-      return box(0.1, (double)0.0F, 0.1, 15.9, (double)16.0F, 15.9).move(offset.x, offset.y, offset.z);
-   }
 
-   @javax.annotation.Nullable
-   public BlockEntityTicker getTicker(Level level, BlockState p_153274_, BlockEntityType type) {
-      return this.createTicker(level, type, (BlockEntityType)SblockEntities.OUTPOST_WATCHER.get());
-   }
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        Vec3 offset = state.getOffset(world, pos);
+        {
+            return box(0.1, 0, 0.1, 15.9, 16, 15.9).move(offset.x, offset.y, offset.z);
+        }
+    }
 
-   @javax.annotation.Nullable
-   private BlockEntityTicker createTicker(Level level, BlockEntityType type, BlockEntityType outpostWatcherBlockEntityBlockEntityType) {
-      return level.isClientSide ? createTickerHelper(type, outpostWatcherBlockEntityBlockEntityType, OutpostWatcherBlockEntity::clientTick) : createTickerHelper(type, outpostWatcherBlockEntityBlockEntityType, OutpostWatcherBlockEntity::serverTick);
-   }
+
+    @javax.annotation.Nullable
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState p_153274_, BlockEntityType<T> type) {
+        return createTicker(level, type, SblockEntities.OUTPOST_WATCHER.get());
+    }
+    @javax.annotation.Nullable
+    private <T extends BlockEntity> BlockEntityTicker<T> createTicker(Level level, BlockEntityType<T> type, BlockEntityType<OutpostWatcherBlockEntity> outpostWatcherBlockEntityBlockEntityType) {
+        return level.isClientSide ? createTickerHelper(type, outpostWatcherBlockEntityBlockEntityType, OutpostWatcherBlockEntity::clientTick) : createTickerHelper(type, outpostWatcherBlockEntityBlockEntityType, OutpostWatcherBlockEntity::serverTick);
+    }
+
+
 }

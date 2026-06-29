@@ -1,83 +1,15 @@
 package com.Harbinger.Spore.Core;
 
-import com.Harbinger.Spore.Sitems.BaseItem;
-import com.Harbinger.Spore.Sitems.BaseItem2;
-import com.Harbinger.Spore.Sitems.BiologicalReagent;
-import com.Harbinger.Spore.Sitems.Biomass;
-import com.Harbinger.Spore.Sitems.BlockItemBase;
-import com.Harbinger.Spore.Sitems.BlockItemBase2;
-import com.Harbinger.Spore.Sitems.BlockItemCBU;
-import com.Harbinger.Spore.Sitems.BowlItem;
-import com.Harbinger.Spore.Sitems.CerebrumItem;
-import com.Harbinger.Spore.Sitems.CorruptedRecord;
-import com.Harbinger.Spore.Sitems.DecayedLimbs;
-import com.Harbinger.Spore.Sitems.Elytron;
-import com.Harbinger.Spore.Sitems.ForgottenRecord;
-import com.Harbinger.Spore.Sitems.ForsakenRecord;
-import com.Harbinger.Spore.Sitems.FungalBonemeal;
-import com.Harbinger.Spore.Sitems.GasMaskItem;
-import com.Harbinger.Spore.Sitems.InfectedArmads;
-import com.Harbinger.Spore.Sitems.InfectedBoomerang;
-import com.Harbinger.Spore.Sitems.InfectedBoots;
-import com.Harbinger.Spore.Sitems.InfectedChestplate;
-import com.Harbinger.Spore.Sitems.InfectedCleaver;
-import com.Harbinger.Spore.Sitems.InfectedCombatShovel;
-import com.Harbinger.Spore.Sitems.InfectedCrossbow;
-import com.Harbinger.Spore.Sitems.InfectedGreatBow;
-import com.Harbinger.Spore.Sitems.InfectedGreatSword;
-import com.Harbinger.Spore.Sitems.InfectedHalbert;
-import com.Harbinger.Spore.Sitems.InfectedHelmet;
-import com.Harbinger.Spore.Sitems.InfectedKnife;
-import com.Harbinger.Spore.Sitems.InfectedLeggings;
-import com.Harbinger.Spore.Sitems.InfectedMace;
-import com.Harbinger.Spore.Sitems.InfectedMaul;
-import com.Harbinger.Spore.Sitems.InfectedPickaxe;
-import com.Harbinger.Spore.Sitems.InfectedRapier;
-import com.Harbinger.Spore.Sitems.InfectedSaber;
-import com.Harbinger.Spore.Sitems.InfectedScythe;
-import com.Harbinger.Spore.Sitems.InfectedShield;
-import com.Harbinger.Spore.Sitems.InfectedSickle;
-import com.Harbinger.Spore.Sitems.InfectedSpearItem;
-import com.Harbinger.Spore.Sitems.Innards;
-import com.Harbinger.Spore.Sitems.LivingBoots;
-import com.Harbinger.Spore.Sitems.LivingChestplate;
-import com.Harbinger.Spore.Sitems.LivingHelmet;
-import com.Harbinger.Spore.Sitems.LivingLeggings;
-import com.Harbinger.Spore.Sitems.OrganItem;
-import com.Harbinger.Spore.Sitems.PCI;
-import com.Harbinger.Spore.Sitems.PlatedBoots;
-import com.Harbinger.Spore.Sitems.PlatedChestplate;
-import com.Harbinger.Spore.Sitems.PlatedHelmet;
-import com.Harbinger.Spore.Sitems.PlatedLeggings;
-import com.Harbinger.Spore.Sitems.Reaver;
-import com.Harbinger.Spore.Sitems.ScannerItem;
-import com.Harbinger.Spore.Sitems.SkullSoupItem;
-import com.Harbinger.Spore.Sitems.SpawnEggType;
-import com.Harbinger.Spore.Sitems.SporeBucket;
-import com.Harbinger.Spore.Sitems.SporeHorseFleshArmor;
-import com.Harbinger.Spore.Sitems.SporeHorseLivingArmor;
-import com.Harbinger.Spore.Sitems.SporeHorsePlatedArmor;
-import com.Harbinger.Spore.Sitems.SporeSpawnEgg;
-import com.Harbinger.Spore.Sitems.SyringeGun;
-import com.Harbinger.Spore.Sitems.Tumor;
-import com.Harbinger.Spore.Sitems.UpgradedInfectedExoskeleton;
-import com.Harbinger.Spore.Sitems.VigilEye;
-import com.Harbinger.Spore.Sitems.Agents.ArmorSyringe;
-import com.Harbinger.Spore.Sitems.Agents.ConnectingAgent;
-import com.Harbinger.Spore.Sitems.Agents.EvolutionSyringe;
-import com.Harbinger.Spore.Sitems.Agents.HardeningAgent;
-import com.Harbinger.Spore.Sitems.Agents.MutationSyringe;
-import com.Harbinger.Spore.Sitems.Agents.SharpeningAgent;
-import com.Harbinger.Spore.Sitems.Agents.Syringe;
-import com.Harbinger.Spore.Sitems.Agents.WeaponSyringe;
+import com.Harbinger.Spore.Sitems.*;
+import com.Harbinger.Spore.Sitems.Agents.*;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.Guns.AcidicAssasin;
 import com.Harbinger.Spore.Sitems.Guns.BileBlaster;
 import com.Harbinger.Spore.Sitems.Guns.MistMaker;
-import java.util.ArrayList;
-import java.util.List;
-import net.minecraft.world.effect.MobEffect;
+import com.Harbinger.Spore.Sitems.Guns.ToxicTerroriser;
+import com.Harbinger.Spore.Spore;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
@@ -90,699 +22,709 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Sitems {
-   public static final List<Item> BIOLOGICAL_ITEMS = new ArrayList<>();
-   public static final List<Item> TECHNOLOGICAL_ITEMS = new ArrayList<>();
-   public static final List<Item> TINTABLE_ITEMS = new ArrayList<>();
-   public static final DeferredRegister ITEMS;
-   public static final RegistryObject CLAW_FRAGMENT;
-   public static final RegistryObject CLAW;
-   public static final RegistryObject ARMOR_FRAGMENT;
-   public static final RegistryObject MUTATED_HEART;
-   public static final RegistryObject MUTATED_FIBER;
-   public static final RegistryObject WING_MEMBRANE;
-   public static final RegistryObject FLESHY_BONE;
-   public static final RegistryObject HARDENED_BIND;
-   public static final RegistryObject FLESHY_CLAW;
-   public static final RegistryObject LIVING_CORE;
-   public static final RegistryObject SPINE_FRAGMENT;
-   public static final RegistryObject NERVES;
-   public static final RegistryObject CEREBRUM;
-   public static final RegistryObject SPINE;
-   public static final RegistryObject ARMOR_PLATE;
-   public static final RegistryObject PLATED_MUSCLE;
-   public static final RegistryObject ALVEOLIC_SACK;
-   public static final RegistryObject ALTERED_SPLEEN;
-   public static final RegistryObject CORROSIVE_SACK;
-   public static final RegistryObject ORGANOID_MEMBRANE;
-   public static final RegistryObject TENDONS;
-   public static final RegistryObject INNARDS;
-   public static final RegistryObject SICKLE_FRAGMENT;
-   public static final RegistryObject FANG;
-   public static final RegistryObject SPIKE;
-   public static final RegistryObject SHIELD_FRAGMENT;
-   public static final RegistryObject R_WING;
-   public static final RegistryObject FUNGAL_BONEMEAL;
-   public static final RegistryObject TUMOR;
-   public static final RegistryObject SICKEN_TUMOR;
-   public static final RegistryObject CALCIFIED_TUMOR;
-   public static final RegistryObject BILE_TUMOR;
-   public static final RegistryObject FROZEN_TUMOR;
-   public static final RegistryObject REFORGED_BIOMASS_T;
-   public static final RegistryObject REFORGED_BIOMASS_W;
-   public static final RegistryObject REFORGED_BIOMASS_A;
-   public static final RegistryObject ACIDIC_GLAND;
-   public static final RegistryObject AMALGAMATED_HEART;
-   public static final RegistryObject LIGAMENTS;
-   public static final RegistryObject FINS;
-   public static final RegistryObject HYPERBOLIZED_LIVER;
-   public static final RegistryObject RESPIRATOR;
-   public static final RegistryObject SAUSAGE;
-   public static final RegistryObject FIBER_STEW;
-   public static final RegistryObject HEART_KEBAB;
-   public static final RegistryObject ROASTED_HEART_KEBAB;
-   public static final RegistryObject ROASTED_TUMOR;
-   public static final RegistryObject VIGIL_EYE_SOUP;
-   public static final RegistryObject MILKY_SACK;
-   public static final RegistryObject BRAIN_NOODLES;
-   public static final RegistryObject FRIED_WING_MEMBRANE;
-   public static final RegistryObject BIOMASS_BACON;
-   public static final RegistryObject TENDON_GUM;
-   public static final RegistryObject ORGANOID_SOUP;
-   public static final RegistryObject FUNGAL_SAUCE;
-   public static final RegistryObject SLICE_OF_HEARTPIE;
-   public static final RegistryObject FUNGAL_BURGER;
-   public static final RegistryObject FLESHY_RIBS;
-   public static final RegistryObject MEATY_ICECREAM;
-   public static final RegistryObject AMALGAMATED_ROAST;
-   public static final RegistryObject ELDRITCH_SUSHI;
-   public static final RegistryObject STUFFED_ABOMINATION;
-   public static final RegistryObject FROZEN_DECAYED_BIOMASS;
-   public static final RegistryObject DECAYED_TORSO;
-   public static final RegistryObject STUFFED_TORSO;
-   public static final RegistryObject DECAYED_LIMBS;
-   public static final RegistryObject HEART_PIE;
-   public static final RegistryObject INFECTED_HUMAN_SPAWNEGG;
-   public static final RegistryObject INFECTED_HUSK_SPAWNEGG;
-   public static final RegistryObject INF_VILLAGER_SPAWNEGG;
-   public static final RegistryObject INF_DISEASED_VILLAGER_SPAWNEGG;
-   public static final RegistryObject INF_WITCH_SPAWNEGG;
-   public static final RegistryObject INF_PILLAGER_SPAWNEGG;
-   public static final RegistryObject INF_VIND_SPAWNEGG;
-   public static final RegistryObject INF_EVO_SPAWNEGG;
-   public static final RegistryObject INF_WANDERER_SPAWNEGG;
-   public static final RegistryObject INF_DROWNED_SPAWNEGG;
-   public static final RegistryObject INF_PLAYER_SPAWNEGG;
-   public static final RegistryObject INF_HAZMAT_SPAWNEGG;
-   public static final RegistryObject PLAGUED_SPAWNEGG;
-   public static final RegistryObject LACERATOR_SPAWNEGG;
-   public static final RegistryObject BIOBLOOB_SPAWNEGG;
-   public static final RegistryObject SAUGLING_SPAWNEGG;
-   public static final RegistryObject KNIGHT_SPAWNEGG;
-   public static final RegistryObject GRIEFER_SPAWNEGG;
-   public static final RegistryObject BRAIO_SPAWNEGG;
-   public static final RegistryObject BUSSER_SPAWNEGG;
-   public static final RegistryObject LEAPER_SPAWNEGG;
-   public static final RegistryObject SLASHER_SPAWNEGG;
-   public static final RegistryObject SPITTER_SPAWNEGG;
-   public static final RegistryObject HOWLER_SPAWNEGG;
-   public static final RegistryObject STALKER_SPAWNEGG;
-   public static final RegistryObject BRUTE_SPAWNEGG;
-   public static final RegistryObject VOLATILE_SPAWNEGG;
-   public static final RegistryObject MEPH_SPAWNEGG;
-   public static final RegistryObject GORGON_SPAWNEGG;
-   public static final RegistryObject INEBRIATER_SPAWNEGG;
-   public static final RegistryObject CHEMIST_SPAWNEGG;
-   public static final RegistryObject CONDUCTOR_SPAWNEGG;
-   public static final RegistryObject THORN_SPAWNEGG;
-   public static final RegistryObject JAGD_SPAWNEGG;
-   public static final RegistryObject SCAVENGER_SPAWNEGG;
-   public static final RegistryObject BLOATER_SPAWNEGG;
-   public static final RegistryObject NAIAD_SPAWNEGG;
-   public static final RegistryObject NUCLEA_SPAWNEGG;
-   public static final RegistryObject PROT_SPAWNEGG;
-   public static final RegistryObject GARG_SPAWNEGG;
-   public static final RegistryObject SCENT_SPAWNEGG;
-   public static final RegistryObject BAIRN;
-   public static final RegistryObject ILLUSION_SPAWNEGG;
-   public static final RegistryObject SCAMPER_SPAWNEGG;
-   public static final RegistryObject GASTGABER_SPAWNEGG;
-   public static final RegistryObject SPECTER_SPAWNEGG;
-   public static final RegistryObject REAPER_SPAWNEGG;
-   public static final RegistryObject CONSTRUCT_SPAWNEGG;
-   public static final RegistryObject VANGUARD_SPAWNEGG;
-   public static final RegistryObject MOUND_SPAWNEGG;
-   public static final RegistryObject VIGIL_SPAWNEGG;
-   public static final RegistryObject UMARMED_SPAWNEGG;
-   public static final RegistryObject USURPER_SPAWNEGG;
-   public static final RegistryObject BRAUREI_SPAWNEGG;
-   public static final RegistryObject VERVA_SPAWNEGG;
-   public static final RegistryObject DELUSIONER_SPAWNEGG;
-   public static final RegistryObject RECONSTRUCTOR_SPAWNEGG;
-   public static final RegistryObject PROTO_SPAWNEGG;
-   public static final RegistryObject HIVE_SPAWNEGG;
-   public static final RegistryObject WENDIGO_SPAWNEGG;
-   public static final RegistryObject INQUISITOR_SPAWNEGG;
-   public static final RegistryObject BROTKATZE_SPAWNEGG;
-   public static final RegistryObject HEVOKER_SPAWNEGG;
-   public static final RegistryObject OGRE_SPAWNEGG;
-   public static final RegistryObject HVINDICATOR_SPAWNEGG;
-   public static final RegistryObject GROBERFUB_SPAWNEGG;
-   public static final RegistryObject SIEGER_SPAWNEGG;
-   public static final RegistryObject GAZEN_SPAWNEGG;
-   public static final RegistryObject HINDEN_SPAWNEGG;
-   public static final RegistryObject HOWITZER_SPAWNEGG;
-   public static final RegistryObject HOHLFRESSER_SPAWNEGG;
-   public static final RegistryObject KRAKEN_SPAWNEGG;
-   public static final RegistryObject STAHL_SPAWNEGG;
-   public static final RegistryObject LEVIATHAN_SPAWNEGG;
-   public static final RegistryObject ACID;
-   public static final RegistryObject BILE;
-   public static final RegistryObject ACID_BALL;
-   public static final RegistryObject SABER;
-   public static final RegistryObject GREATSWORD;
-   public static final RegistryObject CLEAVER;
-   public static final RegistryObject ARMADS;
-   public static final RegistryObject INFECTED_BOW;
-   public static final RegistryObject MAUL;
-   public static final RegistryObject COMBAT_PICKAXE;
-   public static final RegistryObject SCYTHE;
-   public static final RegistryObject COMBAT_SHOVEL;
-   public static final RegistryObject INFECTED_SPEAR;
-   public static final RegistryObject INFECTED_CROSSBOW;
-   public static final RegistryObject MACE;
-   public static final RegistryObject SICKLE;
-   public static final RegistryObject HALBERD;
-   public static final RegistryObject KNIFE;
-   public static final RegistryObject BOOMERANG;
-   public static final RegistryObject RAPIER;
-   public static final RegistryObject SHIELD;
-   public static final RegistryObject MISTMAKER;
-   public static final RegistryObject BILE_BLASTER;
-   public static final RegistryObject ACIDIC_ASSASSIN;
-   public static final RegistryObject VIGIL_EYE;
-   public static final RegistryObject SYMBIOTIC_REAGENT;
-   public static final RegistryObject CRYOGENIC_REAGENT;
-   public static final RegistryObject GASTRIC_REAGENT;
-   public static final RegistryObject CORROSIVE_REAGENT;
-   public static final RegistryObject SERRATED_REAGENT;
-   public static final RegistryObject VORACIOUS_REAGENT;
-   public static final RegistryObject INF_HELMET;
-   public static final RegistryObject INF_CHEST;
-   public static final RegistryObject INF_PANTS;
-   public static final RegistryObject INF_BOOTS;
-   public static final RegistryObject PLATED_HELMET;
-   public static final RegistryObject PLATED_CHEST;
-   public static final RegistryObject PLATED_PANTS;
-   public static final RegistryObject PLATED_BOOTS;
-   public static final RegistryObject LIVING_HELMET;
-   public static final RegistryObject LIVING_CHEST;
-   public static final RegistryObject LIVING_PANTS;
-   public static final RegistryObject LIVING_BOOTS;
-   public static final RegistryObject R_ELYTRON;
-   public static final RegistryObject INF_UP_HELMET;
-   public static final RegistryObject INF_UP_CHESTPLATE;
-   public static final RegistryObject INF_UP_PANTS;
-   public static final RegistryObject INF_UP_BOOTS;
-   public static final RegistryObject FLESH_HORSE_ARMOR;
-   public static final RegistryObject PLATED_HORSE_ARMOR;
-   public static final RegistryObject LIVING_HORSE_ARMOR;
-   public static final RegistryObject CORRUPTED_RECORD;
-   public static final RegistryObject FORGOTTEN_RECORD;
-   public static final RegistryObject FORSAKEN_RECORD;
-   public static final RegistryObject BUCKET_OF_BILE;
-   public static final RegistryObject GAS_MASK;
-   public static final RegistryObject SCANNER;
-   public static final RegistryObject BIOMASS;
-   public static final RegistryObject CIRCUIT_BOARD;
-   public static final RegistryObject ICE_CANISTER;
-   public static final RegistryObject DOCUMENTS;
-   public static final RegistryObject AMETHYST_DUST;
-   public static final RegistryObject COMPOUND;
-   public static final RegistryObject COMPOUND_PLATE;
-   public static final RegistryObject HARDENING_AGENT;
-   public static final RegistryObject SHARPENING_AGENT;
-   public static final RegistryObject INTEGRATING_AGENT;
-   public static final RegistryObject BILE_VIAL;
-   public static final RegistryObject ACID_VIAL;
-   public static final RegistryObject MUTATION_SYRINGE;
-   public static final RegistryObject SYRINGE;
-   public static final RegistryObject EVOLUTION_SYRINGE;
-   public static final RegistryObject VAMPIRIC_SYRINGE;
-   public static final RegistryObject CALCIFIED_SYRINGE;
-   public static final RegistryObject BEZERK_SYRINGE;
-   public static final RegistryObject TOXIC_SYRINGE;
-   public static final RegistryObject ROTTEN_SYRINGE;
-   public static final RegistryObject REINFORCED_SYRINGE;
-   public static final RegistryObject SKELETAL_SYRINGE;
-   public static final RegistryObject DROWNED_SYRINGE;
-   public static final RegistryObject CHARRED_SYRINGE;
-   public static final RegistryObject REAVER;
-   public static final RegistryObject PCI;
-   public static final RegistryObject SYRINGE_GUN;
-   public static final RegistryObject COOKED_TORSO;
-   public static final RegistryObject SKULL_SOUP;
-   public static final RegistryObject CONTAINER;
-   public static final RegistryObject CDU;
-   public static final RegistryObject ZOAHOLIC;
-   public static final RegistryObject INCUBATOR;
-   public static final RegistryObject SURGERY_TABLE;
-   public static final RegistryObject CABINET;
-   public static final RegistryObject LAB_BLOCK;
-   public static final RegistryObject LAB_BLOCK1;
-   public static final RegistryObject LAB_BLOCK2;
-   public static final RegistryObject LAB_BLOCK3;
-   public static final RegistryObject LAB_SLAB;
-   public static final RegistryObject LAB_SLAB1;
-   public static final RegistryObject LAB_SLAB2;
-   public static final RegistryObject LAB_SLAB3;
-   public static final RegistryObject LAB_STAIR;
-   public static final RegistryObject IRON_LADDER;
-   public static final RegistryObject LABORATORY_BED;
-   public static final RegistryObject VENT_PLATE;
-   public static final RegistryObject RUSTED_VENT_PLATE;
-   public static final RegistryObject VENT_DOOR;
-   public static final RegistryObject REINFORCED_DOOR;
-   public static final RegistryObject FROZEN_REINFORCED_DOOR;
-   public static final RegistryObject RUSTED_REINFORCED_DOOR;
-   public static final RegistryObject HALOGEN_LIGHT;
-   public static final RegistryObject BROKEN_HALOGEN_LIGHT;
-   public static final RegistryObject GROWTHS_BIG;
-   public static final RegistryObject GROWTHS_SMALL;
-   public static final RegistryObject BLOOM_G;
-   public static final RegistryObject BLOOM_GG;
-   public static final RegistryObject FUNGAL_ROOTS;
-   public static final RegistryObject HAND;
-   public static final RegistryObject GROWTH_MYCELIUM;
-   public static final RegistryObject FUNGAL_STEP_SAPLING;
-   public static final RegistryObject MYCELIUM_VEINS;
-   public static final RegistryObject BIOMASS_BULB;
-   public static final RegistryObject ROTTEN_LOG;
-   public static final RegistryObject ROTTEN_PLANKS;
-   public static final RegistryObject ROTTEN_STAIR;
-   public static final RegistryObject ROTTEN_SLAB;
-   public static final RegistryObject ROTTEN_SCRAPS;
-   public static final RegistryObject ROTTEN_BRANCH;
-   public static final RegistryObject ROTTEN_BUSH;
-   public static final RegistryObject ROTTEN_GRASS;
-   public static final RegistryObject ROTTEN_FERN;
-   public static final RegistryObject ROTTEN_CROPS;
-   public static final RegistryObject ROOTED_BIOMASS;
-   public static final RegistryObject BIOMASS_BLOCK;
-   public static final RegistryObject CALCIFIED_BIOMASS_BLOCK;
-   public static final RegistryObject SICKEN_BIOMASS_BLOCK;
-   public static final RegistryObject GASTRIC_BIOMASS;
-   public static final RegistryObject MEMBRANE_BLOCK;
-   public static final RegistryObject ROOTED_MYCELIUM;
-   public static final RegistryObject CRUSTED_BILE;
-   public static final RegistryObject MYCELIUM_BLOCK;
-   public static final RegistryObject MYCELIUM_SLAB;
-   public static final RegistryObject FUNGAL_SHELL;
-   public static final RegistryObject ORGANITE;
-   public static final RegistryObject FROST_BURNED_BIOMASS;
-   public static final RegistryObject FROZEN_REMAINS;
-   public static final RegistryObject INFESTED_DEEPSLATE;
-   public static final RegistryObject INFESTED_DIRT;
-   public static final RegistryObject INFESTED_END_STONE;
-   public static final RegistryObject INFESTED_GRAVEL;
-   public static final RegistryObject INFESTED_NETHERRACK;
-   public static final RegistryObject INFESTED_SAND;
-   public static final RegistryObject INFESTED_SOUL_SAND;
-   public static final RegistryObject INFESTED_STONE;
-   public static final RegistryObject INFESTED_RED_SAND;
-   public static final RegistryObject INFESTED_CLAY;
-   public static final RegistryObject INFESTED_COBBLESTONE;
-   public static final RegistryObject INFESTED_COBBLED_DEEPSLATE;
-   public static final RegistryObject INFESTED_STONE_BRICKS;
-   public static final RegistryObject INFESTED_BRICKS;
-   public static final RegistryObject INFESTED_LABORATORY_BLOCK;
-   public static final RegistryObject INFESTED_LABORATORY_BLOCK1;
-   public static final RegistryObject INFESTED_LABORATORY_BLOCK2;
-   public static final RegistryObject INFESTED_LABORATORY_BLOCK3;
-   public static final RegistryObject OVERGROWN_SPAWNER;
-   public static final RegistryObject BRAIN_REMNANTS;
-   public static final RegistryObject OUTPOST_WATCHER;
-   public static final RegistryObject REMAINS;
-   public static final RegistryObject WALL_REMAINS;
-   public static final RegistryObject BIOMASS_LUMP;
-   public static final RegistryObject HIVE_SPAWN;
-   public static final RegistryObject DROWNED_LUMP;
-   public static final RegistryObject FANG_LUMP;
-   public static final RegistryObject FUNGAL_CLAMP;
-   public static final RegistryObject EXPLODING_LUMP;
-   public static final RegistryObject POISONING_LUMP;
-   public static final RegistryObject VOCALS;
-   public static final RegistryObject LUNGS;
-   public static final RegistryObject ACIDIC_SACK;
-   public static final RegistryObject GLOWSHROOM;
-   public static final RegistryObject BILE_LUMP;
+    public  static  final List<Item> BIOLOGICAL_ITEMS = new ArrayList<>();
+    public  static  final List<Item> TECHNOLOGICAL_ITEMS = new ArrayList<>();
+    public  static  final List<Item> TINTABLE_ITEMS = new ArrayList<>();
 
-   public static void register(IEventBus eventBus) {
-      ITEMS.register(eventBus);
-   }
+    public static final DeferredRegister<Item> ITEMS =
+            DeferredRegister.create(ForgeRegistries.ITEMS, Spore.MODID);
+    public static void register(IEventBus eventBus) {
+        ITEMS.register(eventBus);
+    }
 
-   private static RegistryObject soup(RegistryObject block) {
-      return ITEMS.register(block.getId().getPath(), () -> new SkullSoupItem((Block)block.get()));
-   }
+    public  static final RegistryObject<Item> CLAW_FRAGMENT = ITEMS.register("claw_fragment",
+            () -> new OrganItem("spore.scanner.organ.claw_fragment","spore:anatomy_act_1"));
+    public  static final RegistryObject<Item> CLAW = ITEMS.register("claw",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> ARMOR_FRAGMENT = ITEMS.register("armor_fragment",
+            () -> new OrganItem("spore.scanner.organ.armor_fragment","spore:anatomy_act_2"));
+    public  static final RegistryObject<Item> MUTATED_HEART = ITEMS.register("mutated_heart",
+            () -> new CerebrumItem("spore.scanner.organ.mutated_heart","spore:anatomy_act_3",Sblocks.HEART_BLOCK.get().defaultBlockState()));
+    public  static final RegistryObject<Item> MUTATED_FIBER = ITEMS.register("mutated_fiber",
+            () -> new OrganItem("spore.scanner.organ.mutated_fiber","spore:anatomy_act_4"));
+    public  static final RegistryObject<Item> WING_MEMBRANE = ITEMS.register("wing_membrane",
+            () -> new OrganItem("spore.scanner.organ.wing_membrane","spore:anatomy_act_5"));
+    public  static final RegistryObject<Item> FLESHY_BONE = ITEMS.register("fleshy_bone",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> HARDENED_BIND = ITEMS.register("hardened_bind",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> FLESHY_CLAW = ITEMS.register("fleshy_claw",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> LIVING_CORE = ITEMS.register("living_core",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> SPINE_FRAGMENT = ITEMS.register("spine_fragment",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> NERVES = ITEMS.register("nerves",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> CEREBRUM = ITEMS.register("cerebrum",
+            () -> new CerebrumItem("spore.scanner.organ.cerebrum","spore:anatomy_act_6",Sblocks.CEREBRUM_BLOCK.get().defaultBlockState()));
+    public  static final RegistryObject<Item> SPINE = ITEMS.register("spine",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> ARMOR_PLATE = ITEMS.register("armor_plate",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> PLATED_MUSCLE = ITEMS.register("plated_muscle",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> ALVEOLIC_SACK = ITEMS.register("alveolic_sack",
+            () -> new CerebrumItem("spore.scanner.organ.alveolic_sack","spore:anatomy_act_7",Sblocks.BRAIO_BLOCK.get().defaultBlockState()));
+    public  static final RegistryObject<Item> ALTERED_SPLEEN = ITEMS.register("altered_spleen",
+            () -> new OrganItem("spore.scanner.organ.altered_spleen","spore:anatomy_act_8"));
+    public  static final RegistryObject<Item> CORROSIVE_SACK = ITEMS.register("corrosive_sack",
+            () -> new OrganItem( "spore.scanner.organ.corrosive_sack","spore:anatomy_act_9"));
+    public  static final RegistryObject<Item> ORGANOID_MEMBRANE = ITEMS.register("organoid_membrane",
+            () -> new OrganItem("spore.scanner.organ.organoid_membrane","spore:anatomy_act_10"));
+    public  static final RegistryObject<Item> TENDONS = ITEMS.register("tendons",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> INNARDS = ITEMS.register("innards",
+            Innards::new);
+    public  static final RegistryObject<Item> SICKLE_FRAGMENT = ITEMS.register("sickle_fragment",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> FANG = ITEMS.register("fang",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> SPIKE = ITEMS.register("spike",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> SHIELD_FRAGMENT = ITEMS.register("shield_fragment",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> R_WING = ITEMS.register("r_wing",
+            () -> new BaseItem( new Item.Properties()));
+    public  static final RegistryObject<Item> FUNGAL_BONEMEAL = ITEMS.register("fungal_bonemeal",
+            FungalBonemeal::new);
 
-   private static RegistryObject block(RegistryObject block) {
-      return ITEMS.register(block.getId().getPath(), () -> new BlockItemBase2((Block)block.get(), new Item.Properties()));
-   }
+    public  static final RegistryObject<Item> TUMOR = ITEMS.register("tumor",
+            () -> new Tumor(Tumor.TumorType.REGULAR));
+    public  static final RegistryObject<Item> SICKEN_TUMOR = ITEMS.register("sicken_tumor",
+            () -> new Tumor(Tumor.TumorType.SICKEN));
+    public  static final RegistryObject<Item> CALCIFIED_TUMOR = ITEMS.register("calcified_tumor",
+            () -> new Tumor(Tumor.TumorType.CALCIFIED));
+    public  static final RegistryObject<Item> BILE_TUMOR = ITEMS.register("bile_tumor",
+            () -> new Tumor(Tumor.TumorType.BILE));
+    public  static final RegistryObject<Item> FROZEN_TUMOR = ITEMS.register("frozen_tumor",
+            () -> new Tumor(Tumor.TumorType.FROZEN));
+    public  static final RegistryObject<Item> REFORGED_BIOMASS_T = ITEMS.register("reforged_biomass_t",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> REFORGED_BIOMASS_W = ITEMS.register("reforged_biomass_w",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> REFORGED_BIOMASS_A = ITEMS.register("reforged_biomass_a",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> ACIDIC_GLAND = ITEMS.register("acidic_gland",
+            () -> new OrganItem("spore.scanner.organ.acidic_gland","spore:anatomy_act_12"));
+    public  static final RegistryObject<Item> AMALGAMATED_HEART = ITEMS.register("amalgamated_heart",
+            () -> new OrganItem("spore.scanner.organ.amalgamated_heart","spore:anatomy_act_11"));
+    public  static final RegistryObject<Item> LIGAMENTS = ITEMS.register("ligaments",
+            () -> new OrganItem("spore.scanner.organ.ligaments","spore:anatomy_act_13"));
+    public  static final RegistryObject<Item> FINS = ITEMS.register("fins",
+            () -> new OrganItem("spore.scanner.organ.fins","spore:anatomy_act_14"));
+    public  static final RegistryObject<Item> HYPERBOLIZED_LIVER = ITEMS.register("hyperbolized_liver",
+            () -> new OrganItem("spore.scanner.organ.hyperbolized_liver","spore:anatomy_act_15"));
+    public  static final RegistryObject<Item> RESPIRATOR = ITEMS.register("respirator",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> SAUSAGE = ITEMS.register("sausage",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(8).saturationMod(0.8F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.ABSORPTION,300,1),1f).meat().build())));
+    public  static final RegistryObject<Item> FIBER_STEW = ITEMS.register("fiber_stew",
+            () -> new BowlItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(6).saturationMod(1.5F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,300,0),1f).meat().build())));
+    public  static final RegistryObject<Item> HEART_KEBAB = ITEMS.register("heart_kebab",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(2).saturationMod(0.4F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.HUNGER,100,0),1f).meat().build())));
+    public  static final RegistryObject<Item> ROASTED_HEART_KEBAB = ITEMS.register("roasted_heart_kebab",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(8).saturationMod(1.2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.HEALTH_BOOST,300,1),1f).meat().build())));
+    public  static final RegistryObject<Item> ROASTED_TUMOR = ITEMS.register("roasted_tumor",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(10).saturationMod(1.8F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,300,1),1f).meat().build())));
+    public  static final RegistryObject<Item> VIGIL_EYE_SOUP = ITEMS.register("vigil_eye_soup",
+            () -> new BowlItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(12).saturationMod(1.2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.NIGHT_VISION,1200,0),1f).meat().build())));
+    public  static final RegistryObject<Item> MILKY_SACK = ITEMS.register("milky_sack",
+            () -> new BaseItem(new Item.Properties().stacksTo(8).food(new FoodProperties.Builder().nutrition(4).saturationMod(1.2F).meat().alwaysEat().build())));
+    public  static final RegistryObject<Item> BRAIN_NOODLES = ITEMS.register("brain_noodles",
+            () -> new BowlItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(10).saturationMod(2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DIG_SPEED,300,1),1f).meat().build())));
+    public  static final RegistryObject<Item> FRIED_WING_MEMBRANE = ITEMS.register("fried_wing_membrane",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(10).saturationMod(3F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.SLOW_FALLING,300,1),1f).meat().build())));
+    public  static final RegistryObject<Item> BIOMASS_BACON = ITEMS.register("biomass_bacon",
+            () -> new BaseItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(0.5F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,300,0),1f).meat().build())));
+    public  static final RegistryObject<Item> TENDON_GUM = ITEMS.register("tendon_gum",
+            () -> new BaseItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(1F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.JUMP,300,1),1f).meat().build())));
+    public  static final RegistryObject<Item> ORGANOID_SOUP = ITEMS.register("organoid_soup",
+            () -> new BowlItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(4F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,400,2),1f).meat().build()).stacksTo(16)));
+    public  static final RegistryObject<Item> FUNGAL_SAUCE = ITEMS.register("fungal_sauce",
+            () -> new BowlItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationMod(6F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),400,0),1f)
+                    .meat().build()).stacksTo(16)));
+    public  static final RegistryObject<Item> SLICE_OF_HEARTPIE = ITEMS.register("slice_of_heartpie",
+            () -> new BaseItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationMod(3F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.HEALTH_BOOST,100,1),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,200,1),1f).meat().build())));
+    public  static final RegistryObject<Item> FUNGAL_BURGER = ITEMS.register("fungal_burger",
+            () -> new BaseItem(new Item.Properties().stacksTo(8).food(new FoodProperties.Builder().nutrition(30).saturationMod(12F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.SLOW_FALLING,300,1),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.HEALTH_BOOST,600,1),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,600,0),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.ABSORPTION,600,1),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,500,1),1f).meat().alwaysEat().build())));
+    public  static final RegistryObject<Item> FLESHY_RIBS = ITEMS.register("fleshy_ribs",
+            () -> new BaseItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DAMAGE_BOOST,400,1),1f).meat().build())));
+    public  static final RegistryObject<Item> MEATY_ICECREAM = ITEMS.register("meaty_icecream",
+            () -> new BaseItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.FIRE_RESISTANCE,400,0),1f).meat().build())));
+    public  static final RegistryObject<Item> AMALGAMATED_ROAST = ITEMS.register("amalgamated_roast",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(16).saturationMod(8F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DAMAGE_BOOST,600,1),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,600,0),1f).meat().alwaysEat().build())));
+    public  static final RegistryObject<Item> ELDRITCH_SUSHI = ITEMS.register("eldritch_sushi",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(20).saturationMod(6F).alwaysEat().effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.DOLPHINS_GRACE,1200,0),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.CONDUIT_POWER,1200,0),1f).meat().build())));
+    public  static final RegistryObject<Item> STUFFED_ABOMINATION = ITEMS.register("stuffed_abomination",
+            () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(18).saturationMod(7F).alwaysEat().effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.MOVEMENT_SPEED,1000,1),1f)
+                    .effect(()-> new MobEffectInstance(MobEffects.SLOW_FALLING,1000,0),1f).meat().alwaysEat().build())));
+    public  static final RegistryObject<Item> FROZEN_DECAYED_BIOMASS = ITEMS.register("frozen_decayed_biomass",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> DECAYED_TORSO = ITEMS.register("decayed_torso",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> STUFFED_TORSO = ITEMS.register("stuffed_torso",
+            () -> new BaseItem(new Item.Properties()));
+    public  static final RegistryObject<Item> DECAYED_LIMBS = ITEMS.register("decayed_limbs",
+            () -> new DecayedLimbs(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(1F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                    .effect(()-> new MobEffectInstance(MobEffects.ABSORPTION,300,1),1f).meat().build())));
+    public static final RegistryObject<Item> HEART_PIE = block(Sblocks.HEART_PIE);
 
-   private static RegistryObject Techblock(RegistryObject block) {
-      return ITEMS.register(block.getId().getPath(), () -> new BlockItemBase((Block)block.get(), new Item.Properties()));
-   }
+    public  static final RegistryObject<Item> INFECTED_HUMAN_SPAWNEGG = ITEMS.register("infected_human_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_HUMAN,-9357608,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INFECTED_HUSK_SPAWNEGG = ITEMS.register("inf_husk_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_HUSK,-875608,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_VILLAGER_SPAWNEGG = ITEMS.register("inf_villager_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_VILLAGER,-6639718,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_DISEASED_VILLAGER_SPAWNEGG = ITEMS.register("inf_diseased_villager_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_DISEASED_VILLAGER,-6633211,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_WITCH_SPAWNEGG = ITEMS.register("inf_witch_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_WITCH,-8512718,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_PILLAGER_SPAWNEGG = ITEMS.register("inf_pillager_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_PILLAGER,-2312718,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_VIND_SPAWNEGG = ITEMS.register("inf_vind_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_VINDICATOR,-984718,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> INF_EVO_SPAWNEGG = ITEMS.register("inf_evo_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_EVOKER,-254718,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> INF_WANDERER_SPAWNEGG = ITEMS.register("inf_wanderer_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_WANDERER,-6639718,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_DROWNED_SPAWNEGG = ITEMS.register("inf_drowned_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_DROWNED,-16751002,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_PLAYER_SPAWNEGG = ITEMS.register("inf_player_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_PLAYER,-86751002,SpawnEggType.INFECTED));
+    public  static final RegistryObject<Item> INF_HAZMAT_SPAWNEGG = ITEMS.register("inf_hazmat_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_HAZMAT,-6345002,SpawnEggType.INFECTED));
 
-   private static RegistryObject Exceptions(RegistryObject block) {
-      return ITEMS.register(block.getId().getPath(), () -> new BlockItemCBU((Block)block.get()));
-   }
+    public  static final RegistryObject<Item> PLAGUED_SPAWNEGG = ITEMS.register("plagued_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.PLAGUED,78294644,SpawnEggType.EXPERIMENT));
+    public  static final RegistryObject<Item> LACERATOR_SPAWNEGG = ITEMS.register("lacerator_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.LACERATOR,2412344,SpawnEggType.EXPERIMENT));
+    public  static final RegistryObject<Item> BIOBLOOB_SPAWNEGG = ITEMS.register("biobloob_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BIOBLOOB,7412344,SpawnEggType.EXPERIMENT));
+    public  static final RegistryObject<Item> SAUGLING_SPAWNEGG = ITEMS.register("saugling_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SAUGLING,8901238,SpawnEggType.EXPERIMENT));
 
-   static {
-      ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, "spore");
-      CLAW_FRAGMENT = ITEMS.register("claw_fragment", () -> new OrganItem("spore.scanner.organ.claw_fragment", "spore:anatomy_act_1"));
-      CLAW = ITEMS.register("claw", () -> new BaseItem(new Item.Properties()));
-      ARMOR_FRAGMENT = ITEMS.register("armor_fragment", () -> new OrganItem("spore.scanner.organ.armor_fragment", "spore:anatomy_act_2"));
-      MUTATED_HEART = ITEMS.register("mutated_heart", () -> new CerebrumItem("spore.scanner.organ.mutated_heart", "spore:anatomy_act_3", ((Block)Sblocks.HEART_BLOCK.get()).defaultBlockState()));
-      MUTATED_FIBER = ITEMS.register("mutated_fiber", () -> new OrganItem("spore.scanner.organ.mutated_fiber", "spore:anatomy_act_4"));
-      WING_MEMBRANE = ITEMS.register("wing_membrane", () -> new OrganItem("spore.scanner.organ.wing_membrane", "spore:anatomy_act_5"));
-      FLESHY_BONE = ITEMS.register("fleshy_bone", () -> new BaseItem(new Item.Properties()));
-      HARDENED_BIND = ITEMS.register("hardened_bind", () -> new BaseItem(new Item.Properties()));
-      FLESHY_CLAW = ITEMS.register("fleshy_claw", () -> new BaseItem(new Item.Properties()));
-      LIVING_CORE = ITEMS.register("living_core", () -> new BaseItem(new Item.Properties()));
-      SPINE_FRAGMENT = ITEMS.register("spine_fragment", () -> new BaseItem(new Item.Properties()));
-      NERVES = ITEMS.register("nerves", () -> new BaseItem(new Item.Properties()));
-      CEREBRUM = ITEMS.register("cerebrum", () -> new CerebrumItem("spore.scanner.organ.cerebrum", "spore:anatomy_act_6", ((Block)Sblocks.CEREBRUM_BLOCK.get()).defaultBlockState()));
-      SPINE = ITEMS.register("spine", () -> new BaseItem(new Item.Properties()));
-      ARMOR_PLATE = ITEMS.register("armor_plate", () -> new BaseItem(new Item.Properties()));
-      PLATED_MUSCLE = ITEMS.register("plated_muscle", () -> new BaseItem(new Item.Properties()));
-      ALVEOLIC_SACK = ITEMS.register("alveolic_sack", () -> new CerebrumItem("spore.scanner.organ.alveolic_sack", "spore:anatomy_act_7", ((Block)Sblocks.BRAIO_BLOCK.get()).defaultBlockState()));
-      ALTERED_SPLEEN = ITEMS.register("altered_spleen", () -> new OrganItem("spore.scanner.organ.altered_spleen", "spore:anatomy_act_8"));
-      CORROSIVE_SACK = ITEMS.register("corrosive_sack", () -> new OrganItem("spore.scanner.organ.corrosive_sack", "spore:anatomy_act_9"));
-      ORGANOID_MEMBRANE = ITEMS.register("organoid_membrane", () -> new OrganItem("spore.scanner.organ.organoid_membrane", "spore:anatomy_act_10"));
-      TENDONS = ITEMS.register("tendons", () -> new BaseItem(new Item.Properties()));
-      INNARDS = ITEMS.register("innards", Innards::new);
-      SICKLE_FRAGMENT = ITEMS.register("sickle_fragment", () -> new BaseItem(new Item.Properties()));
-      FANG = ITEMS.register("fang", () -> new BaseItem(new Item.Properties()));
-      SPIKE = ITEMS.register("spike", () -> new BaseItem(new Item.Properties()));
-      SHIELD_FRAGMENT = ITEMS.register("shield_fragment", () -> new BaseItem(new Item.Properties()));
-      R_WING = ITEMS.register("r_wing", () -> new BaseItem(new Item.Properties()));
-      FUNGAL_BONEMEAL = ITEMS.register("fungal_bonemeal", FungalBonemeal::new);
-      TUMOR = ITEMS.register("tumor", () -> new Tumor(Tumor.TumorType.REGULAR));
-      SICKEN_TUMOR = ITEMS.register("sicken_tumor", () -> new Tumor(Tumor.TumorType.SICKEN));
-      CALCIFIED_TUMOR = ITEMS.register("calcified_tumor", () -> new Tumor(Tumor.TumorType.CALCIFIED));
-      BILE_TUMOR = ITEMS.register("bile_tumor", () -> new Tumor(Tumor.TumorType.BILE));
-      FROZEN_TUMOR = ITEMS.register("frozen_tumor", () -> new Tumor(Tumor.TumorType.FROZEN));
-      REFORGED_BIOMASS_T = ITEMS.register("reforged_biomass_t", () -> new BaseItem(new Item.Properties()));
-      REFORGED_BIOMASS_W = ITEMS.register("reforged_biomass_w", () -> new BaseItem(new Item.Properties()));
-      REFORGED_BIOMASS_A = ITEMS.register("reforged_biomass_a", () -> new BaseItem(new Item.Properties()));
-      ACIDIC_GLAND = ITEMS.register("acidic_gland", () -> new OrganItem("spore.scanner.organ.acidic_gland", "spore:anatomy_act_12"));
-      AMALGAMATED_HEART = ITEMS.register("amalgamated_heart", () -> new OrganItem("spore.scanner.organ.amalgamated_heart", "spore:anatomy_act_11"));
-      LIGAMENTS = ITEMS.register("ligaments", () -> new OrganItem("spore.scanner.organ.ligaments", "spore:anatomy_act_13"));
-      FINS = ITEMS.register("fins", () -> new OrganItem("spore.scanner.organ.fins", "spore:anatomy_act_14"));
-      HYPERBOLIZED_LIVER = ITEMS.register("hyperbolized_liver", () -> new OrganItem("spore.scanner.organ.hyperbolized_liver", "spore:anatomy_act_15"));
-      RESPIRATOR = ITEMS.register("respirator", () -> new BaseItem(new Item.Properties()));
-      SAUSAGE = ITEMS.register("sausage", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(8).saturationMod(0.8F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.ABSORPTION, 300, 1), 1.0F).meat().build())));
-      FIBER_STEW = ITEMS.register("fiber_stew", () -> new BowlItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(6).saturationMod(1.5F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 300, 0), 1.0F).meat().build())));
-      HEART_KEBAB = ITEMS.register("heart_kebab", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(2).saturationMod(0.4F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.HUNGER, 100, 0), 1.0F).meat().build())));
-      ROASTED_HEART_KEBAB = ITEMS.register("roasted_heart_kebab", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(8).saturationMod(1.2F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 300, 1), 1.0F).meat().build())));
-      ROASTED_TUMOR = ITEMS.register("roasted_tumor", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(10).saturationMod(1.8F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 300, 1), 1.0F).meat().build())));
-      VIGIL_EYE_SOUP = ITEMS.register("vigil_eye_soup", () -> new BowlItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(12).saturationMod(1.2F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 1200, 0), 1.0F).meat().build())));
-      MILKY_SACK = ITEMS.register("milky_sack", () -> new BaseItem((new Item.Properties()).stacksTo(8).food((new FoodProperties.Builder()).nutrition(4).saturationMod(1.2F).meat().alwaysEat().build())));
-      BRAIN_NOODLES = ITEMS.register("brain_noodles", () -> new BowlItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(10).saturationMod(2.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, 300, 1), 1.0F).meat().build())));
-      FRIED_WING_MEMBRANE = ITEMS.register("fried_wing_membrane", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(10).saturationMod(3.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, 300, 1), 1.0F).meat().build())));
-      BIOMASS_BACON = ITEMS.register("biomass_bacon", () -> new BaseItem((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(4).saturationMod(0.5F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 300, 0), 1.0F).meat().build())));
-      TENDON_GUM = ITEMS.register("tendon_gum", () -> new BaseItem((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(4).saturationMod(1.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.JUMP, 300, 1), 1.0F).meat().build())));
-      ORGANOID_SOUP = ITEMS.register("organoid_soup", () -> new BowlItem((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(4).saturationMod(4.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 400, 2), 1.0F).meat().build()).stacksTo(16)));
-      FUNGAL_SAUCE = ITEMS.register("fungal_sauce", () -> new BowlItem((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(6).saturationMod(6.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 400, 0), 1.0F).meat().build()).stacksTo(16)));
-      SLICE_OF_HEARTPIE = ITEMS.register("slice_of_heartpie", () -> new BaseItem((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(6).saturationMod(3.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 100, 1), 1.0F).effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 200, 1), 1.0F).meat().build())));
-      FUNGAL_BURGER = ITEMS.register("fungal_burger", () -> new BaseItem((new Item.Properties()).stacksTo(8).food((new FoodProperties.Builder()).nutrition(30).saturationMod(12.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, 300, 1), 1.0F).effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 600, 1), 1.0F).effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 600, 0), 1.0F).effect(() -> new MobEffectInstance(MobEffects.ABSORPTION, 600, 1), 1.0F).effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 500, 1), 1.0F).meat().alwaysEat().build())));
-      FLESHY_RIBS = ITEMS.register("fleshy_ribs", () -> new BaseItem((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(4).saturationMod(2.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 400, 1), 1.0F).meat().build())));
-      MEATY_ICECREAM = ITEMS.register("meaty_icecream", () -> new BaseItem((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(4).saturationMod(2.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 400, 0), 1.0F).meat().build())));
-      AMALGAMATED_ROAST = ITEMS.register("amalgamated_roast", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(16).saturationMod(8.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 600, 1), 1.0F).effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 600, 0), 1.0F).meat().alwaysEat().build())));
-      ELDRITCH_SUSHI = ITEMS.register("eldritch_sushi", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(20).saturationMod(6.0F).alwaysEat().effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 1200, 0), 1.0F).effect(() -> new MobEffectInstance(MobEffects.CONDUIT_POWER, 1200, 0), 1.0F).meat().build())));
-      STUFFED_ABOMINATION = ITEMS.register("stuffed_abomination", () -> new BaseItem((new Item.Properties()).stacksTo(16).food((new FoodProperties.Builder()).nutrition(18).saturationMod(7.0F).alwaysEat().effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1000, 1), 1.0F).effect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, 1000, 0), 1.0F).meat().alwaysEat().build())));
-      FROZEN_DECAYED_BIOMASS = ITEMS.register("frozen_decayed_biomass", () -> new BaseItem(new Item.Properties()));
-      DECAYED_TORSO = ITEMS.register("decayed_torso", () -> new BaseItem(new Item.Properties()));
-      STUFFED_TORSO = ITEMS.register("stuffed_torso", () -> new BaseItem(new Item.Properties()));
-      DECAYED_LIMBS = ITEMS.register("decayed_limbs", () -> new DecayedLimbs((new Item.Properties()).food((new FoodProperties.Builder()).nutrition(4).saturationMod(1.0F).effect(() -> new MobEffectInstance((MobEffect)Seffects.MYCELIUM.get(), 200, 0), 0.4F).effect(() -> new MobEffectInstance(MobEffects.ABSORPTION, 300, 1), 1.0F).meat().build())));
-      HEART_PIE = block(Sblocks.HEART_PIE);
-      INFECTED_HUMAN_SPAWNEGG = ITEMS.register("infected_human_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_HUMAN, -9357608, SpawnEggType.INFECTED));
-      INFECTED_HUSK_SPAWNEGG = ITEMS.register("inf_husk_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_HUSK, -875608, SpawnEggType.INFECTED));
-      INF_VILLAGER_SPAWNEGG = ITEMS.register("inf_villager_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_VILLAGER, -6639718, SpawnEggType.INFECTED));
-      INF_DISEASED_VILLAGER_SPAWNEGG = ITEMS.register("inf_diseased_villager_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_DISEASED_VILLAGER, -6633211, SpawnEggType.INFECTED));
-      INF_WITCH_SPAWNEGG = ITEMS.register("inf_witch_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_WITCH, -8512718, SpawnEggType.INFECTED));
-      INF_PILLAGER_SPAWNEGG = ITEMS.register("inf_pillager_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_PILLAGER, -2312718, SpawnEggType.INFECTED));
-      INF_VIND_SPAWNEGG = ITEMS.register("inf_vind_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_VINDICATOR, -984718, SpawnEggType.EVOLVED));
-      INF_EVO_SPAWNEGG = ITEMS.register("inf_evo_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_EVOKER, -254718, SpawnEggType.EVOLVED));
-      INF_WANDERER_SPAWNEGG = ITEMS.register("inf_wanderer_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_WANDERER, -6639718, SpawnEggType.INFECTED));
-      INF_DROWNED_SPAWNEGG = ITEMS.register("inf_drowned_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_DROWNED, -16751002, SpawnEggType.INFECTED));
-      INF_PLAYER_SPAWNEGG = ITEMS.register("inf_player_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_PLAYER, -86751002, SpawnEggType.INFECTED));
-      INF_HAZMAT_SPAWNEGG = ITEMS.register("inf_hazmat_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_HAZMAT, -6345002, SpawnEggType.INFECTED));
-      PLAGUED_SPAWNEGG = ITEMS.register("plagued_spawnegg", () -> new SporeSpawnEgg(Sentities.PLAGUED, 78294644, SpawnEggType.EXPERIMENT));
-      LACERATOR_SPAWNEGG = ITEMS.register("lacerator_spawnegg", () -> new SporeSpawnEgg(Sentities.LACERATOR, 2412344, SpawnEggType.EXPERIMENT));
-      BIOBLOOB_SPAWNEGG = ITEMS.register("biobloob_spawnegg", () -> new SporeSpawnEgg(Sentities.BIOBLOOB, 7412344, SpawnEggType.EXPERIMENT));
-      SAUGLING_SPAWNEGG = ITEMS.register("saugling_spawnegg", () -> new SporeSpawnEgg(Sentities.SAUGLING, 8901238, SpawnEggType.EXPERIMENT));
-      KNIGHT_SPAWNEGG = ITEMS.register("knight_spawnegg", () -> new SporeSpawnEgg(Sentities.KNIGHT, -7681208, SpawnEggType.EVOLVED));
-      GRIEFER_SPAWNEGG = ITEMS.register("griefer_spawnegg", () -> new SporeSpawnEgg(Sentities.GRIEFER, -5750208, SpawnEggType.EVOLVED));
-      BRAIO_SPAWNEGG = ITEMS.register("braio_spawnegg", () -> new SporeSpawnEgg(Sentities.BRAIOMIL, -6124508, SpawnEggType.EVOLVED));
-      BUSSER_SPAWNEGG = ITEMS.register("busser_spawnegg", () -> new SporeSpawnEgg(Sentities.BUSSER, -3724508, SpawnEggType.EVOLVED));
-      LEAPER_SPAWNEGG = ITEMS.register("leaper_spawnegg", () -> new SporeSpawnEgg(Sentities.LEAPER, -9762718, SpawnEggType.EVOLVED));
-      SLASHER_SPAWNEGG = ITEMS.register("slasher_spawnegg", () -> new SporeSpawnEgg(Sentities.SLASHER, -8564118, SpawnEggType.EVOLVED));
-      SPITTER_SPAWNEGG = ITEMS.register("spitter_spawnegg", () -> new SporeSpawnEgg(Sentities.SPITTER, -8164818, SpawnEggType.EVOLVED));
-      HOWLER_SPAWNEGG = ITEMS.register("howler_spawnegg", () -> new SporeSpawnEgg(Sentities.HOWLER, -32464818, SpawnEggType.EVOLVED));
-      STALKER_SPAWNEGG = ITEMS.register("stalker_spawnegg", () -> new SporeSpawnEgg(Sentities.STALKER, -42364818, SpawnEggType.EVOLVED));
-      BRUTE_SPAWNEGG = ITEMS.register("brute_spawnegg", () -> new SporeSpawnEgg(Sentities.BRUTE, -1235818, SpawnEggType.EVOLVED));
-      VOLATILE_SPAWNEGG = ITEMS.register("volatile_spawnegg", () -> new SporeSpawnEgg(Sentities.VOLATILE, -976435818, SpawnEggType.EVOLVED));
-      MEPH_SPAWNEGG = ITEMS.register("meph_spawnegg", () -> new SporeSpawnEgg(Sentities.MEPHETIC, -412343453, SpawnEggType.EVOLVED));
-      GORGON_SPAWNEGG = ITEMS.register("gorgon_spawnegg", () -> new SporeSpawnEgg(Sentities.GORGON, -65464564, SpawnEggType.EVOLVED));
-      INEBRIATER_SPAWNEGG = ITEMS.register("inebriater_spawnegg", () -> new SporeSpawnEgg(Sentities.INEBRIATER, -412435818, SpawnEggType.EVOLVED));
-      CHEMIST_SPAWNEGG = ITEMS.register("chemist_spawnegg", () -> new SporeSpawnEgg(Sentities.CHEMIST, -455964234, SpawnEggType.EVOLVED));
-      CONDUCTOR_SPAWNEGG = ITEMS.register("conductor_spawnegg", () -> new SporeSpawnEgg(Sentities.CONDUCTOR, -655964234, SpawnEggType.EVOLVED));
-      THORN_SPAWNEGG = ITEMS.register("thorn_spawnegg", () -> new SporeSpawnEgg(Sentities.THORN, -1243545, SpawnEggType.EVOLVED));
-      JAGD_SPAWNEGG = ITEMS.register("jagd_spawnegg", () -> new SporeSpawnEgg(Sentities.JAGD, -95469235, SpawnEggType.EVOLVED));
-      SCAVENGER_SPAWNEGG = ITEMS.register("scavenger_spawnegg", () -> new SporeSpawnEgg(Sentities.SCAVENGER, -54353454, SpawnEggType.EVOLVED));
-      BLOATER_SPAWNEGG = ITEMS.register("bloater_spawnegg", () -> new SporeSpawnEgg(Sentities.BLOATER, -6834952, SpawnEggType.EVOLVED));
-      NAIAD_SPAWNEGG = ITEMS.register("naiad_spawnegg", () -> new SporeSpawnEgg(Sentities.NAIAD, -336457645, SpawnEggType.EVOLVED));
-      NUCLEA_SPAWNEGG = ITEMS.register("nuclea_spawnegg", () -> new SporeSpawnEgg(Sentities.NUCLEA, -265262544, SpawnEggType.EVOLVED));
-      PROT_SPAWNEGG = ITEMS.register("prot_spawnegg", () -> new SporeSpawnEgg(Sentities.PROTECTOR, -965262544, SpawnEggType.EVOLVED));
-      GARG_SPAWNEGG = ITEMS.register("garg_spawnegg", () -> new SporeSpawnEgg(Sentities.GARGOYLE, -923123323, SpawnEggType.EVOLVED));
-      SCENT_SPAWNEGG = ITEMS.register("scent_spawnegg", () -> new SporeSpawnEgg(Sentities.SCENT, -1, SpawnEggType.UNKNOWN));
-      BAIRN = ITEMS.register("bairn_spawnegg", () -> new SporeSpawnEgg(Sentities.BAIRN, -2433455, SpawnEggType.UNKNOWN));
-      ILLUSION_SPAWNEGG = ITEMS.register("illusion_spawnegg", () -> new SporeSpawnEgg(Sentities.ILLUSION, -1, SpawnEggType.UNKNOWN));
-      SCAMPER_SPAWNEGG = ITEMS.register("scamper_spawnegg", () -> new SporeSpawnEgg(Sentities.SCAMPER, -33777216, SpawnEggType.UNKNOWN));
-      GASTGABER_SPAWNEGG = ITEMS.register("gastgaber_spawnegg", () -> new SporeSpawnEgg(Sentities.GASTGABER, -241247216, SpawnEggType.UNKNOWN));
-      SPECTER_SPAWNEGG = ITEMS.register("specter_spawnegg", () -> new SporeSpawnEgg(Sentities.SPECTER, -876534333, SpawnEggType.UNKNOWN));
-      REAPER_SPAWNEGG = ITEMS.register("reaper_spawnegg", () -> new SporeSpawnEgg(Sentities.REAPER, -454534333, SpawnEggType.UNKNOWN));
-      CONSTRUCT_SPAWNEGG = ITEMS.register("construct_spawnegg", () -> new SporeSpawnEgg(Sentities.INF_CONSTRUCT, -65242341, SpawnEggType.UNKNOWN));
-      VANGUARD_SPAWNEGG = ITEMS.register("vanguard_spawnegg", () -> new SporeSpawnEgg(Sentities.VANGUARD, -87345354, SpawnEggType.UNKNOWN));
-      MOUND_SPAWNEGG = ITEMS.register("mound_spawnegg", () -> new SporeSpawnEgg(Sentities.MOUND, -5750208, SpawnEggType.ORGANOID));
-      VIGIL_SPAWNEGG = ITEMS.register("vigil_spawnegg", () -> new SporeSpawnEgg(Sentities.VIGIL, -64160208, SpawnEggType.ORGANOID));
-      UMARMED_SPAWNEGG = ITEMS.register("umarmed_spawnegg", () -> new SporeSpawnEgg(Sentities.UMARMED, -8650208, SpawnEggType.ORGANOID));
-      USURPER_SPAWNEGG = ITEMS.register("usurper_spawnegg", () -> new SporeSpawnEgg(Sentities.USURPER, -432208, SpawnEggType.ORGANOID));
-      BRAUREI_SPAWNEGG = ITEMS.register("braurei_spawnegg", () -> new SporeSpawnEgg(Sentities.BRAUREI, -745723, SpawnEggType.ORGANOID));
-      VERVA_SPAWNEGG = ITEMS.register("verva_spawnegg", () -> new SporeSpawnEgg(Sentities.VERVA, -412323, SpawnEggType.ORGANOID));
-      DELUSIONER_SPAWNEGG = ITEMS.register("delusioner_spawnegg", () -> new SporeSpawnEgg(Sentities.DELUSIONARE, -93652400, SpawnEggType.ORGANOID));
-      RECONSTRUCTOR_SPAWNEGG = ITEMS.register("reconstructor_spawnegg", () -> new SporeSpawnEgg(Sentities.RECONSTRUCTOR, -2353208, SpawnEggType.ORGANOID));
-      PROTO_SPAWNEGG = ITEMS.register("proto_spawnegg", () -> new SporeSpawnEgg(Sentities.PROTO, 244208, SpawnEggType.ORGANOID));
-      HIVE_SPAWNEGG = ITEMS.register("hive_spawnegg", () -> new SporeSpawnEgg(Sentities.HIVETUMOR, 321344, SpawnEggType.ORGANOID));
-      WENDIGO_SPAWNEGG = ITEMS.register("wendigo_spawnegg", () -> new SporeSpawnEgg(Sentities.WENDIGO, -354345818, SpawnEggType.HYPER));
-      INQUISITOR_SPAWNEGG = ITEMS.register("inquisitor_spawnegg", () -> new SporeSpawnEgg(Sentities.INQUISITOR, -6435818, SpawnEggType.HYPER));
-      BROTKATZE_SPAWNEGG = ITEMS.register("brotkatze_spawnegg", () -> new SporeSpawnEgg(Sentities.BROTKATZE, -7352318, SpawnEggType.HYPER));
-      HEVOKER_SPAWNEGG = ITEMS.register("hevoker_spawnegg", () -> new SporeSpawnEgg(Sentities.HEVOKER, -867785, SpawnEggType.HYPER));
-      OGRE_SPAWNEGG = ITEMS.register("ogre_spawnegg", () -> new SporeSpawnEgg(Sentities.OGRE, -241434523, SpawnEggType.HYPER));
-      HVINDICATOR_SPAWNEGG = ITEMS.register("hvindicator_spawnegg", () -> new SporeSpawnEgg(Sentities.HVINDICATOR, -347898989, SpawnEggType.HYPER));
-      GROBERFUB_SPAWNEGG = ITEMS.register("groberfub_spawnegg", () -> new SporeSpawnEgg(Sentities.GROBER, -234242315, SpawnEggType.HYPER));
-      SIEGER_SPAWNEGG = ITEMS.register("sieger_spawnegg", () -> new SporeSpawnEgg(Sentities.SIEGER, 244208, SpawnEggType.CALAMITY));
-      GAZEN_SPAWNEGG = ITEMS.register("gazen_spawnegg", () -> new SporeSpawnEgg(Sentities.GAZENBREACHER, 865020865, SpawnEggType.CALAMITY));
-      HINDEN_SPAWNEGG = ITEMS.register("hinden_spawnegg", () -> new SporeSpawnEgg(Sentities.HINDENBURG, 346320865, SpawnEggType.CALAMITY));
-      HOWITZER_SPAWNEGG = ITEMS.register("howitzer_spawnegg", () -> new SporeSpawnEgg(Sentities.HOWITZER, 18414394, SpawnEggType.CALAMITY));
-      HOHLFRESSER_SPAWNEGG = ITEMS.register("hohlfresser_spawnegg", () -> new SporeSpawnEgg(Sentities.HOHLFRESSER, 76414394, SpawnEggType.CALAMITY));
-      KRAKEN_SPAWNEGG = ITEMS.register("kraken_spawnegg", () -> new SporeSpawnEgg(Sentities.KRAKEN, 214325443, SpawnEggType.CALAMITY));
-      STAHL_SPAWNEGG = ITEMS.register("stahl_spawnegg", () -> new SporeSpawnEgg(Sentities.STALH, 546456633, SpawnEggType.CALAMITY));
-      LEVIATHAN_SPAWNEGG = ITEMS.register("levi_spawnegg", () -> new SporeSpawnEgg(Sentities.LEVIATHAN, 24420845, SpawnEggType.CALAMITY));
-      ACID = ITEMS.register("acid", () -> new Item(new Item.Properties()));
-      BILE = ITEMS.register("bile", () -> new Item(new Item.Properties()));
-      ACID_BALL = ITEMS.register("acid_ball", () -> new Item(new Item.Properties()));
-      SABER = ITEMS.register("saber", InfectedSaber::new);
-      GREATSWORD = ITEMS.register("greatsword", InfectedGreatSword::new);
-      CLEAVER = ITEMS.register("cleaver", InfectedCleaver::new);
-      ARMADS = ITEMS.register("armads", InfectedArmads::new);
-      INFECTED_BOW = ITEMS.register("infected_bow", () -> new InfectedGreatBow((new Item.Properties()).durability((Integer)SConfig.SERVER.bow_durability.get())));
-      MAUL = ITEMS.register("maul", InfectedMaul::new);
-      COMBAT_PICKAXE = ITEMS.register("combat_pickaxe", InfectedPickaxe::new);
-      SCYTHE = ITEMS.register("scythe", InfectedScythe::new);
-      COMBAT_SHOVEL = ITEMS.register("combat_shovel", InfectedCombatShovel::new);
-      INFECTED_SPEAR = ITEMS.register("infected_spear", InfectedSpearItem::new);
-      INFECTED_CROSSBOW = ITEMS.register("infected_crossbow", InfectedCrossbow::new);
-      MACE = ITEMS.register("mace", InfectedMace::new);
-      SICKLE = ITEMS.register("sickle", InfectedSickle::new);
-      HALBERD = ITEMS.register("halberd", InfectedHalbert::new);
-      KNIFE = ITEMS.register("knife", InfectedKnife::new);
-      BOOMERANG = ITEMS.register("boomerang", InfectedBoomerang::new);
-      RAPIER = ITEMS.register("rapier", InfectedRapier::new);
-      SHIELD = ITEMS.register("shield", InfectedShield::new);
-      MISTMAKER = ITEMS.register("mistmaker", MistMaker::new);
-      BILE_BLASTER = ITEMS.register("bile_blaster", BileBlaster::new);
-      ACIDIC_ASSASSIN = ITEMS.register("acidic_assassin", AcidicAssasin::new);
-      VIGIL_EYE = ITEMS.register("vigil_eye", VigilEye::new);
-      SYMBIOTIC_REAGENT = ITEMS.register("symbiotic_reagent", () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.ALL_TYPES) {
-            public Enchantment getAppliedEnchantment() {
-               return (Enchantment)Senchantments.SYMBIOTIC_RECONSTITUTION.get();
-            }
-         });
-      CRYOGENIC_REAGENT = ITEMS.register("cryogenic_reagent", () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.WEAPON_TYPES) {
-            public Enchantment getAppliedEnchantment() {
-               return (Enchantment)Senchantments.CRYOGENIC_ASPECT.get();
-            }
-         });
-      GASTRIC_REAGENT = ITEMS.register("gastric_reagent", () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.WEAPON_TYPES) {
-            public Enchantment getAppliedEnchantment() {
-               return (Enchantment)Senchantments.GASTRIC_SPEWAGE.get();
-            }
-         });
-      CORROSIVE_REAGENT = ITEMS.register("corrosive_reagent", () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.WEAPON_TYPES) {
-            public Enchantment getAppliedEnchantment() {
-               return (Enchantment)Senchantments.CORROSIVE_POTENCY.get();
-            }
-         });
-      SERRATED_REAGENT = ITEMS.register("serrated_reagent", () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.ARMOR_TYPES) {
-            public Enchantment getAppliedEnchantment() {
-               return (Enchantment)Senchantments.SERRATED_THORNS.get();
-            }
-         });
-      VORACIOUS_REAGENT = ITEMS.register("voracious_reagent", () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.ALL_TYPES) {
-            public Enchantment getAppliedEnchantment() {
-               return (Enchantment)Senchantments.VORACIOUS_MAW.get();
-            }
-         });
-      INF_HELMET = ITEMS.register("inf_helmet", InfectedHelmet::new);
-      INF_CHEST = ITEMS.register("inf_chest", InfectedChestplate::new);
-      INF_PANTS = ITEMS.register("inf_pants", InfectedLeggings::new);
-      INF_BOOTS = ITEMS.register("inf_boots", InfectedBoots::new);
-      PLATED_HELMET = ITEMS.register("plated_helmet", PlatedHelmet::new);
-      PLATED_CHEST = ITEMS.register("plated_chest", PlatedChestplate::new);
-      PLATED_PANTS = ITEMS.register("plated_pants", PlatedLeggings::new);
-      PLATED_BOOTS = ITEMS.register("plated_boots", PlatedBoots::new);
-      LIVING_HELMET = ITEMS.register("living_helmet", LivingHelmet::new);
-      LIVING_CHEST = ITEMS.register("living_chest", LivingChestplate::new);
-      LIVING_PANTS = ITEMS.register("living_pants", LivingLeggings::new);
-      LIVING_BOOTS = ITEMS.register("living_boots", LivingBoots::new);
-      R_ELYTRON = ITEMS.register("r_elytron", Elytron.InfectedElytron::new);
-      INF_UP_HELMET = ITEMS.register("inf_up_helmet", UpgradedInfectedExoskeleton.InfectedUpHelmet::new);
-      INF_UP_CHESTPLATE = ITEMS.register("inf_up_chest", UpgradedInfectedExoskeleton.InfectedUpChestplate::new);
-      INF_UP_PANTS = ITEMS.register("inf_up_pants", UpgradedInfectedExoskeleton.InfectedUpPants::new);
-      INF_UP_BOOTS = ITEMS.register("inf_up_boots", UpgradedInfectedExoskeleton.InfectedUpBoots::new);
-      FLESH_HORSE_ARMOR = ITEMS.register("flesh_horse_armor", SporeHorseFleshArmor::new);
-      PLATED_HORSE_ARMOR = ITEMS.register("plated_horse_armor", SporeHorsePlatedArmor::new);
-      LIVING_HORSE_ARMOR = ITEMS.register("living_horse_armor", SporeHorseLivingArmor::new);
-      CORRUPTED_RECORD = ITEMS.register("corrupted_record", CorruptedRecord::new);
-      FORGOTTEN_RECORD = ITEMS.register("forgotten_record", ForgottenRecord::new);
-      FORSAKEN_RECORD = ITEMS.register("forsaken_record", ForsakenRecord::new);
-      BUCKET_OF_BILE = ITEMS.register("bucket_of_bile", () -> new SporeBucket(Sfluids.Bile_FLUID_SOURCE, (new Item.Properties()).craftRemainder(Items.BUCKET).stacksTo(1)));
-      GAS_MASK = ITEMS.register("gas_mask", GasMaskItem::new);
-      SCANNER = ITEMS.register("scanner", () -> new ScannerItem((new Item.Properties()).stacksTo(1)));
-      BIOMASS = ITEMS.register("biomass", Biomass::new);
-      CIRCUIT_BOARD = ITEMS.register("circuit_board", () -> new BaseItem2(new Item.Properties()));
-      ICE_CANISTER = ITEMS.register("ice_canister", () -> new BaseItem2(new Item.Properties()));
-      DOCUMENTS = ITEMS.register("documents", () -> new BaseItem2(new Item.Properties()));
-      AMETHYST_DUST = ITEMS.register("amethyst_dust", () -> new BaseItem2(new Item.Properties()));
-      COMPOUND = ITEMS.register("compound", () -> new BaseItem2(new Item.Properties()));
-      COMPOUND_PLATE = ITEMS.register("compound_plate", () -> new BaseItem2(new Item.Properties()));
-      HARDENING_AGENT = ITEMS.register("hardening_agent", HardeningAgent::new);
-      SHARPENING_AGENT = ITEMS.register("sharpening_agent", SharpeningAgent::new);
-      INTEGRATING_AGENT = ITEMS.register("integrating_agent", ConnectingAgent::new);
-      BILE_VIAL = ITEMS.register("bile_vial", () -> new BaseItem2(new Item.Properties()));
-      ACID_VIAL = ITEMS.register("acid_vial", () -> new BaseItem2(new Item.Properties()));
-      MUTATION_SYRINGE = ITEMS.register("mutation_syringe", MutationSyringe::new);
-      SYRINGE = ITEMS.register("syringe", Syringe::new);
-      EVOLUTION_SYRINGE = ITEMS.register("evo_syringe", EvolutionSyringe::new);
-      VAMPIRIC_SYRINGE = ITEMS.register("vampiric_syringe", () -> new WeaponSyringe(SporeToolsMutations.VAMPIRIC));
-      CALCIFIED_SYRINGE = ITEMS.register("calcified_syringe", () -> new WeaponSyringe(SporeToolsMutations.CALCIFIED));
-      BEZERK_SYRINGE = ITEMS.register("bezerk_syringe", () -> new WeaponSyringe(SporeToolsMutations.BEZERK));
-      TOXIC_SYRINGE = ITEMS.register("toxic_syringe", () -> new WeaponSyringe(SporeToolsMutations.TOXIC));
-      ROTTEN_SYRINGE = ITEMS.register("rotten_syringe", () -> new WeaponSyringe(SporeToolsMutations.ROTTEN));
-      REINFORCED_SYRINGE = ITEMS.register("reinforced_syringe", () -> new ArmorSyringe(SporeArmorMutations.REINFORCED));
-      SKELETAL_SYRINGE = ITEMS.register("skeletal_syringe", () -> new ArmorSyringe(SporeArmorMutations.SKELETAL));
-      DROWNED_SYRINGE = ITEMS.register("drowned_syringe", () -> new ArmorSyringe(SporeArmorMutations.DROWNED));
-      CHARRED_SYRINGE = ITEMS.register("charred_syringe", () -> new ArmorSyringe(SporeArmorMutations.CHARRED));
-      REAVER = ITEMS.register("reaver", Reaver::new);
-      PCI = ITEMS.register("pci", PCI::new);
-      SYRINGE_GUN = ITEMS.register("syringe_gun", SyringeGun::new);
-      COOKED_TORSO = block(Sblocks.COOKED_TORSO);
-      SKULL_SOUP = soup(Sblocks.SKULL_SOUP);
-      CONTAINER = Techblock(Sblocks.CONTAINER);
-      CDU = Exceptions(Sblocks.CDU);
-      ZOAHOLIC = Exceptions(Sblocks.ZOAHOLIC);
-      INCUBATOR = Exceptions(Sblocks.INCUBATOR);
-      SURGERY_TABLE = Exceptions(Sblocks.SURGERY_TABLE);
-      CABINET = Techblock(Sblocks.CABINET);
-      LAB_BLOCK = Techblock(Sblocks.LAB_BLOCK);
-      LAB_BLOCK1 = Techblock(Sblocks.LAB_BLOCK1);
-      LAB_BLOCK2 = Techblock(Sblocks.LAB_BLOCK2);
-      LAB_BLOCK3 = Techblock(Sblocks.LAB_BLOCK3);
-      LAB_SLAB = Techblock(Sblocks.LAB_SLAB);
-      LAB_SLAB1 = Techblock(Sblocks.LAB_SLAB1);
-      LAB_SLAB2 = Techblock(Sblocks.LAB_SLAB2);
-      LAB_SLAB3 = Techblock(Sblocks.LAB_SLAB3);
-      LAB_STAIR = Techblock(Sblocks.LAB_STAIR);
-      IRON_LADDER = Techblock(Sblocks.IRON_LADDER);
-      LABORATORY_BED = Techblock(Sblocks.LABORATORY_BED);
-      VENT_PLATE = Techblock(Sblocks.VENT_PLATE);
-      RUSTED_VENT_PLATE = Techblock(Sblocks.RUSTED_VENT_PLATE);
-      VENT_DOOR = Techblock(Sblocks.VENT_DOOR);
-      REINFORCED_DOOR = Techblock(Sblocks.REINFORCED_DOOR);
-      FROZEN_REINFORCED_DOOR = Techblock(Sblocks.FROZEN_REINFORCED_DOOR);
-      RUSTED_REINFORCED_DOOR = Techblock(Sblocks.RUSTED_REINFORCED_DOOR);
-      HALOGEN_LIGHT = Techblock(Sblocks.HALOGEN_LIGHT);
-      BROKEN_HALOGEN_LIGHT = Techblock(Sblocks.BROKEN_HALOGEN_LIGHT);
-      GROWTHS_BIG = block(Sblocks.GROWTHS_BIG);
-      GROWTHS_SMALL = block(Sblocks.GROWTHS_SMALL);
-      BLOOM_G = block(Sblocks.BLOOM_G);
-      BLOOM_GG = block(Sblocks.BLOOM_GG);
-      FUNGAL_ROOTS = block(Sblocks.FUNGAL_ROOTS);
-      HAND = block(Sblocks.HAND);
-      GROWTH_MYCELIUM = block(Sblocks.GROWTH_MYCELIUM);
-      FUNGAL_STEP_SAPLING = block(Sblocks.FUNGAL_STEM_SAPLING);
-      MYCELIUM_VEINS = block(Sblocks.MYCELIUM_VEINS);
-      BIOMASS_BULB = block(Sblocks.BIOMASS_BULB);
-      ROTTEN_LOG = block(Sblocks.ROTTEN_LOG);
-      ROTTEN_PLANKS = block(Sblocks.ROTTEN_PLANKS);
-      ROTTEN_STAIR = block(Sblocks.ROTTEN_STAIR);
-      ROTTEN_SLAB = block(Sblocks.ROTTEN_SLAB);
-      ROTTEN_SCRAPS = block(Sblocks.ROTTEN_SCRAPS);
-      ROTTEN_BRANCH = block(Sblocks.ROTTEN_BRANCH);
-      ROTTEN_BUSH = block(Sblocks.ROTTEN_BUSH);
-      ROTTEN_GRASS = block(Sblocks.ROTTEN_GRASS);
-      ROTTEN_FERN = block(Sblocks.ROTTEN_FERN);
-      ROTTEN_CROPS = block(Sblocks.ROTTEN_CROPS);
-      ROOTED_BIOMASS = block(Sblocks.ROOTED_BIOMASS);
-      BIOMASS_BLOCK = block(Sblocks.BIOMASS_BLOCK);
-      CALCIFIED_BIOMASS_BLOCK = block(Sblocks.CALCIFIED_BIOMASS_BLOCK);
-      SICKEN_BIOMASS_BLOCK = block(Sblocks.SICKEN_BIOMASS_BLOCK);
-      GASTRIC_BIOMASS = block(Sblocks.GASTRIC_BIOMASS);
-      MEMBRANE_BLOCK = block(Sblocks.MEMBRANE_BLOCK);
-      ROOTED_MYCELIUM = block(Sblocks.ROOTED_MYCELIUM);
-      CRUSTED_BILE = block(Sblocks.CRUSTED_BILE);
-      MYCELIUM_BLOCK = block(Sblocks.MYCELIUM_BLOCK);
-      MYCELIUM_SLAB = block(Sblocks.MYCELIUM_SLAB);
-      FUNGAL_SHELL = block(Sblocks.FUNGAL_SHELL);
-      ORGANITE = block(Sblocks.ORGANITE);
-      FROST_BURNED_BIOMASS = block(Sblocks.FROST_BURNED_BIOMASS);
-      FROZEN_REMAINS = block(Sblocks.FROZEN_REMAINS);
-      INFESTED_DEEPSLATE = block(Sblocks.INFESTED_DEEPSLATE);
-      INFESTED_DIRT = block(Sblocks.INFESTED_DIRT);
-      INFESTED_END_STONE = block(Sblocks.INFESTED_END_STONE);
-      INFESTED_GRAVEL = block(Sblocks.INFESTED_GRAVEL);
-      INFESTED_NETHERRACK = block(Sblocks.INFESTED_NETHERRACK);
-      INFESTED_SAND = block(Sblocks.INFESTED_SAND);
-      INFESTED_SOUL_SAND = block(Sblocks.INFESTED_SOUL_SAND);
-      INFESTED_STONE = block(Sblocks.INFESTED_STONE);
-      INFESTED_RED_SAND = block(Sblocks.INFESTED_RED_SAND);
-      INFESTED_CLAY = block(Sblocks.INFESTED_CLAY);
-      INFESTED_COBBLESTONE = block(Sblocks.INFESTED_COBBLESTONE);
-      INFESTED_COBBLED_DEEPSLATE = block(Sblocks.INFESTED_COBBLED_DEEPSLATE);
-      INFESTED_STONE_BRICKS = block(Sblocks.INFESTED_STONE_BRICKS);
-      INFESTED_BRICKS = block(Sblocks.INFESTED_BRICKS);
-      INFESTED_LABORATORY_BLOCK = block(Sblocks.INFESTED_LABORATORY_BLOCK);
-      INFESTED_LABORATORY_BLOCK1 = block(Sblocks.INFESTED_LABORATORY_BLOCK1);
-      INFESTED_LABORATORY_BLOCK2 = block(Sblocks.INFESTED_LABORATORY_BLOCK2);
-      INFESTED_LABORATORY_BLOCK3 = block(Sblocks.INFESTED_LABORATORY_BLOCK3);
-      OVERGROWN_SPAWNER = block(Sblocks.OVERGROWN_SPAWNER);
-      BRAIN_REMNANTS = block(Sblocks.BRAIN_REMNANTS);
-      OUTPOST_WATCHER = block(Sblocks.OUTPOST_WATCHER);
-      REMAINS = block(Sblocks.REMAINS);
-      WALL_REMAINS = block(Sblocks.WALL_REMAINS);
-      BIOMASS_LUMP = block(Sblocks.BIOMASS_LUMP);
-      HIVE_SPAWN = block(Sblocks.HIVE_SPAWN);
-      DROWNED_LUMP = block(Sblocks.DROWNED_LUMP);
-      FANG_LUMP = block(Sblocks.FANG_LUMP);
-      FUNGAL_CLAMP = block(Sblocks.FUNGAL_CLAMP);
-      EXPLODING_LUMP = block(Sblocks.EXPLODING_LUMP);
-      POISONING_LUMP = block(Sblocks.POISONING_LUMP);
-      VOCALS = block(Sblocks.VOCALS);
-      LUNGS = block(Sblocks.LUNGS);
-      ACIDIC_SACK = block(Sblocks.ACIDIC_SACK);
-      GLOWSHROOM = block(Sblocks.GLOWSHROOM);
-      BILE_LUMP = block(Sblocks.BILE_LUMP);
-   }
+
+    public  static final RegistryObject<Item> KNIGHT_SPAWNEGG = ITEMS.register("knight_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.KNIGHT,-7681208,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> GRIEFER_SPAWNEGG = ITEMS.register("griefer_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.GRIEFER,-5750208,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> BRAIO_SPAWNEGG = ITEMS.register("braio_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BRAIOMIL,-6124508,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> BUSSER_SPAWNEGG = ITEMS.register("busser_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BUSSER,-3724508,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> LEAPER_SPAWNEGG = ITEMS.register("leaper_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.LEAPER,-9762718,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> SLASHER_SPAWNEGG = ITEMS.register("slasher_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SLASHER,-8564118,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> SPITTER_SPAWNEGG = ITEMS.register("spitter_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SPITTER,-8164818,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> HOWLER_SPAWNEGG = ITEMS.register("howler_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HOWLER,-32464818,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> STALKER_SPAWNEGG = ITEMS.register("stalker_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.STALKER,-42364818,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> BRUTE_SPAWNEGG = ITEMS.register("brute_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BRUTE,-1235818,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> VOLATILE_SPAWNEGG = ITEMS.register("volatile_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.VOLATILE,-976435818,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> MEPH_SPAWNEGG = ITEMS.register("meph_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.MEPHETIC,-412343453,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> GORGON_SPAWNEGG = ITEMS.register("gorgon_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.GORGON,-65464564,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> INEBRIATER_SPAWNEGG = ITEMS.register("inebriater_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INEBRIATER,-412435818,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> CHEMIST_SPAWNEGG = ITEMS.register("chemist_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.CHEMIST,-455964234,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> CONDUCTOR_SPAWNEGG = ITEMS.register("conductor_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.CONDUCTOR,-655964234,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> THORN_SPAWNEGG = ITEMS.register("thorn_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.THORN,-1243545,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> JAGD_SPAWNEGG = ITEMS.register("jagd_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.JAGD,-95469235,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> SCAVENGER_SPAWNEGG = ITEMS.register("scavenger_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SCAVENGER,-54353454,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> BLOATER_SPAWNEGG = ITEMS.register("bloater_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BLOATER,-6834952,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> NAIAD_SPAWNEGG = ITEMS.register("naiad_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.NAIAD,-336457645,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> NUCLEA_SPAWNEGG = ITEMS.register("nuclea_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.NUCLEA,-265262544,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> PROT_SPAWNEGG = ITEMS.register("prot_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.PROTECTOR,-965262544,SpawnEggType.EVOLVED));
+    public  static final RegistryObject<Item> GARG_SPAWNEGG = ITEMS.register("garg_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.GARGOYLE,-923123323,SpawnEggType.EVOLVED));
+
+    public  static final RegistryObject<Item> SCENT_SPAWNEGG = ITEMS.register("scent_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SCENT,-1,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> BAIRN = ITEMS.register("bairn_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BAIRN,-2433455,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> ILLUSION_SPAWNEGG = ITEMS.register("illusion_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.ILLUSION,-1,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> SCAMPER_SPAWNEGG = ITEMS.register("scamper_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SCAMPER,-33777216,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> GASTGABER_SPAWNEGG = ITEMS.register("gastgaber_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.GASTGABER,-241247216,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> SPECTER_SPAWNEGG = ITEMS.register("specter_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SPECTER,-876534333,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> REAPER_SPAWNEGG = ITEMS.register("reaper_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.REAPER,-454534333,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> CONSTRUCT_SPAWNEGG = ITEMS.register("construct_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INF_CONSTRUCT,-65242341,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> VANGUARD_SPAWNEGG = ITEMS.register("vanguard_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.VANGUARD,-87345354,SpawnEggType.UNKNOWN));
+
+    public  static final RegistryObject<Item> MOUND_SPAWNEGG = ITEMS.register("mound_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.MOUND,-5750208,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> VIGIL_SPAWNEGG = ITEMS.register("vigil_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.VIGIL,-64160208,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> UMARMED_SPAWNEGG = ITEMS.register("umarmed_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.UMARMED,-8650208,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> USURPER_SPAWNEGG = ITEMS.register("usurper_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.USURPER,-432208,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> BRAUREI_SPAWNEGG = ITEMS.register("braurei_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BRAUREI,-745723,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> VERVA_SPAWNEGG = ITEMS.register("verva_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.VERVA,-412323,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> DELUSIONER_SPAWNEGG = ITEMS.register("delusioner_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.DELUSIONARE,-93652400,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> RECONSTRUCTOR_SPAWNEGG = ITEMS.register("reconstructor_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.RECONSTRUCTOR,-2353208,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> PROTO_SPAWNEGG = ITEMS.register("proto_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.PROTO,244208,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> HIVE_SPAWNEGG = ITEMS.register("hive_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HIVETUMOR,321344,SpawnEggType.ORGANOID));
+
+    public  static final RegistryObject<Item> WENDIGO_SPAWNEGG = ITEMS.register("wendigo_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.WENDIGO,-354345818,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> INQUISITOR_SPAWNEGG = ITEMS.register("inquisitor_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.INQUISITOR,-6435818,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> BROTKATZE_SPAWNEGG = ITEMS.register("brotkatze_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.BROTKATZE,-7352318,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> HEVOKER_SPAWNEGG = ITEMS.register("hevoker_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HEVOKER,-867785,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> OGRE_SPAWNEGG = ITEMS.register("ogre_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.OGRE,-241434523,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> HVINDICATOR_SPAWNEGG = ITEMS.register("hvindicator_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HVINDICATOR,-347898989,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> GROBERFUB_SPAWNEGG = ITEMS.register("groberfub_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.GROBER,-234242315,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> HOLLEN_SPAWNEGG = ITEMS.register("hollen_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HOLLEN,-124354364,SpawnEggType.HYPER));
+
+    public  static final RegistryObject<Item> SIEGER_SPAWNEGG = ITEMS.register("sieger_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.SIEGER,244208,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> GAZEN_SPAWNEGG = ITEMS.register("gazen_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.GAZENBREACHER,865020865,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> HINDEN_SPAWNEGG = ITEMS.register("hinden_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HINDENBURG,346320865,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> HOWITZER_SPAWNEGG = ITEMS.register("howitzer_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HOWITZER,18414394,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> HOHLFRESSER_SPAWNEGG = ITEMS.register("hohlfresser_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.HOHLFRESSER,76414394,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> KRAKEN_SPAWNEGG = ITEMS.register("kraken_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.KRAKEN,214325443,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> STAHL_SPAWNEGG = ITEMS.register("stahl_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.STALH,546456633,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> LEVIATHAN_SPAWNEGG = ITEMS.register("levi_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.LEVIATHAN,24420845,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> VERFALL_SPAWNEGG = ITEMS.register("verfall_spawnegg",
+            () -> new SporeSpawnEgg(Sentities.VERFALL,345346642,SpawnEggType.CALAMITY));
+
+    public  static final RegistryObject<Item> ACID = ITEMS.register("acid",
+            () -> new Item( new Item.Properties()));
+    public  static final RegistryObject<Item> BILE = ITEMS.register("bile",
+            () -> new Item( new Item.Properties()));
+    public  static final RegistryObject<Item> ACID_BALL = ITEMS.register("acid_ball",
+            () -> new Item( new Item.Properties()));
+
+
+    public  static final RegistryObject<Item> SABER = ITEMS.register("saber",
+            InfectedSaber::new);
+    public  static final RegistryObject<Item> GREATSWORD = ITEMS.register("greatsword",
+            InfectedGreatSword::new);
+    public  static final RegistryObject<Item> CLEAVER = ITEMS.register("cleaver",
+            InfectedCleaver::new);
+    public  static final RegistryObject<Item> ARMADS = ITEMS.register("armads",
+            InfectedArmads::new);
+    public  static final RegistryObject<Item> INFECTED_BOW = ITEMS.register("infected_bow",
+            () -> new InfectedGreatBow( new Item.Properties().durability(SConfig.SERVER.bow_durability.get())));
+    public  static final RegistryObject<Item> MAUL = ITEMS.register("maul",
+            InfectedMaul::new);
+    public  static final RegistryObject<Item> COMBAT_PICKAXE = ITEMS.register("combat_pickaxe",
+            InfectedPickaxe::new);
+    public  static final RegistryObject<Item> SCYTHE = ITEMS.register("scythe",
+            InfectedScythe::new);
+    public  static final RegistryObject<Item> COMBAT_SHOVEL = ITEMS.register("combat_shovel",
+            InfectedCombatShovel::new);
+    public  static final RegistryObject<Item> INFECTED_SPEAR = ITEMS.register("infected_spear",
+            InfectedSpearItem::new);
+    public  static final RegistryObject<Item> INFECTED_CROSSBOW = ITEMS.register("infected_crossbow",
+            InfectedCrossbow::new);
+    public  static final RegistryObject<Item> MACE = ITEMS.register("mace",
+            InfectedMace::new);
+    public  static final RegistryObject<Item> SICKLE = ITEMS.register("sickle",
+            InfectedSickle::new);
+    public  static final RegistryObject<Item> HALBERD = ITEMS.register("halberd",
+            InfectedHalbert::new);
+    public  static final RegistryObject<Item> KNIFE = ITEMS.register("knife",
+            InfectedKnife::new);
+    public  static final RegistryObject<Item> BOOMERANG = ITEMS.register("boomerang",
+            InfectedBoomerang::new);
+    public  static final RegistryObject<Item> RAPIER = ITEMS.register("rapier",
+            InfectedRapier::new);
+    public  static final RegistryObject<Item> SHIELD = ITEMS.register("shield",
+            InfectedShield::new);
+    public  static final RegistryObject<Item> MISTMAKER = ITEMS.register("mistmaker",
+            MistMaker::new);
+    public  static final RegistryObject<Item> BILE_BLASTER = ITEMS.register("bile_blaster",
+            BileBlaster::new);
+    public  static final RegistryObject<Item> ACIDIC_ASSASSIN = ITEMS.register("acidic_assassin",
+            AcidicAssasin::new);
+    public  static final RegistryObject<Item> TERRORISER = ITEMS.register("terroriser",
+            ToxicTerroriser::new);
+    public  static final RegistryObject<Item> VIGIL_EYE = ITEMS.register("vigil_eye",
+            VigilEye::new);
+    public  static final RegistryObject<Item> SYMBIOTIC_REAGENT = ITEMS.register("symbiotic_reagent",
+            () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.ALL_TYPES){
+                @Override
+                public Enchantment getAppliedEnchantment() {
+                    return Senchantments.SYMBIOTIC_RECONSTITUTION.get();
+                }
+            });
+    public  static final RegistryObject<Item> CRYOGENIC_REAGENT = ITEMS.register("cryogenic_reagent",
+            () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.WEAPON_TYPES){
+                @Override
+                public Enchantment getAppliedEnchantment() {
+                    return Senchantments.CRYOGENIC_ASPECT.get();
+                }
+            });
+    public  static final RegistryObject<Item> GASTRIC_REAGENT = ITEMS.register("gastric_reagent",
+            () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.WEAPON_TYPES){
+                @Override
+                public Enchantment getAppliedEnchantment() {
+                    return Senchantments.GASTRIC_SPEWAGE.get();
+                }
+            });
+    public  static final RegistryObject<Item> CORROSIVE_REAGENT = ITEMS.register("corrosive_reagent",
+            () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.WEAPON_TYPES){
+                @Override
+                public Enchantment getAppliedEnchantment() {
+                    return Senchantments.CORROSIVE_POTENCY.get();
+                }
+            });
+    public  static final RegistryObject<Item> SERRATED_REAGENT = ITEMS.register("serrated_reagent",
+            () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.ARMOR_TYPES){
+                @Override
+                public Enchantment getAppliedEnchantment() {
+                    return Senchantments.SERRATED_THORNS.get();
+                }
+            });
+    public  static final RegistryObject<Item> VORACIOUS_REAGENT = ITEMS.register("voracious_reagent",
+            () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.ALL_TYPES){
+                @Override
+                public Enchantment getAppliedEnchantment() {
+                    return Senchantments.VORACIOUS_MAW.get();
+                }
+            });
+
+    public  static final RegistryObject<Item> INF_HELMET = ITEMS.register("inf_helmet",
+            InfectedHelmet::new);
+    public  static final RegistryObject<Item> INF_CHEST = ITEMS.register("inf_chest",
+            InfectedChestplate::new);
+    public  static final RegistryObject<Item> INF_PANTS = ITEMS.register("inf_pants",
+            InfectedLeggings::new);
+    public  static final RegistryObject<Item> INF_BOOTS = ITEMS.register("inf_boots",
+            InfectedBoots::new);
+
+    public  static final RegistryObject<Item> PLATED_HELMET = ITEMS.register("plated_helmet",
+            PlatedHelmet::new);
+    public  static final RegistryObject<Item> PLATED_CHEST = ITEMS.register("plated_chest",
+            PlatedChestplate::new);
+    public  static final RegistryObject<Item> PLATED_PANTS = ITEMS.register("plated_pants",
+            PlatedLeggings::new);
+    public  static final RegistryObject<Item> PLATED_BOOTS = ITEMS.register("plated_boots",
+            PlatedBoots::new);
+
+    public  static final RegistryObject<Item> LIVING_HELMET = ITEMS.register("living_helmet",
+            LivingHelmet::new);
+    public  static final RegistryObject<Item> LIVING_CHEST = ITEMS.register("living_chest",
+            LivingChestplate::new);
+    public  static final RegistryObject<Item> LIVING_PANTS = ITEMS.register("living_pants",
+            LivingLeggings::new);
+    public  static final RegistryObject<Item> LIVING_BOOTS = ITEMS.register("living_boots",
+            LivingBoots::new);
+    public  static final RegistryObject<Item> R_ELYTRON = ITEMS.register("r_elytron", Elytron.InfectedElytron::new);
+
+    public  static final RegistryObject<Item> INF_UP_HELMET = ITEMS.register("inf_up_helmet",
+            UpgradedInfectedExoskeleton.InfectedUpHelmet::new);
+    public  static final RegistryObject<Item> INF_UP_CHESTPLATE = ITEMS.register("inf_up_chest",
+            UpgradedInfectedExoskeleton.InfectedUpChestplate::new);
+    public  static final RegistryObject<Item> INF_UP_PANTS = ITEMS.register("inf_up_pants",
+            UpgradedInfectedExoskeleton.InfectedUpPants::new);
+    public  static final RegistryObject<Item> INF_UP_BOOTS = ITEMS.register("inf_up_boots",
+            UpgradedInfectedExoskeleton.InfectedUpBoots::new);
+
+    public  static final RegistryObject<Item> FLESH_HORSE_ARMOR = ITEMS.register("flesh_horse_armor",
+            SporeHorseFleshArmor::new);
+    public  static final RegistryObject<Item> PLATED_HORSE_ARMOR = ITEMS.register("plated_horse_armor",
+            SporeHorsePlatedArmor::new);
+    public  static final RegistryObject<Item> LIVING_HORSE_ARMOR = ITEMS.register("living_horse_armor",
+            SporeHorseLivingArmor::new);
+
+
+    public  static final RegistryObject<Item> CORRUPTED_RECORD = ITEMS.register("corrupted_record",
+            CorruptedRecord::new);
+    public  static final RegistryObject<Item> FORGOTTEN_RECORD = ITEMS.register("forgotten_record",
+            ForgottenRecord::new);
+    public  static final RegistryObject<Item> FORSAKEN_RECORD = ITEMS.register("forsaken_record",
+            ForsakenRecord::new);
+    public  static final RegistryObject<Item> BUCKET_OF_BILE = ITEMS.register("bucket_of_bile",
+            () -> new SporeBucket(Sfluids.Bile_FLUID_SOURCE,new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)));
+    public  static final RegistryObject<Item> GAS_MASK = ITEMS.register("gas_mask",
+            GasMaskItem::new);
+    public  static final RegistryObject<Item> SCANNER = ITEMS.register("scanner",
+            () -> new ScannerItem( new Item.Properties().stacksTo(1)));
+    public  static final RegistryObject<Item> BIOMASS = ITEMS.register("biomass",
+            Biomass::new);
+    public  static final RegistryObject<Item> CIRCUIT_BOARD = ITEMS.register("circuit_board",
+            () -> new BaseItem2( new Item.Properties()));
+    public  static final RegistryObject<Item> ICE_CANISTER = ITEMS.register("ice_canister",
+            () -> new BaseItem2( new Item.Properties()));
+    public  static final RegistryObject<Item> DOCUMENTS = ITEMS.register("documents",
+            () -> new BaseItem2(new Item.Properties()));
+    public  static final RegistryObject<Item> AMETHYST_DUST = ITEMS.register("amethyst_dust",
+            () -> new BaseItem2( new Item.Properties()));
+    public  static final RegistryObject<Item> COMPOUND = ITEMS.register("compound",
+            () -> new BaseItem2( new Item.Properties()));
+    public  static final RegistryObject<Item> COMPOUND_PLATE = ITEMS.register("compound_plate",
+            () -> new BaseItem2( new Item.Properties()));
+    public  static final RegistryObject<Item> HARDENING_AGENT = ITEMS.register("hardening_agent",
+            HardeningAgent::new);
+    public  static final RegistryObject<Item> SHARPENING_AGENT = ITEMS.register("sharpening_agent",
+            SharpeningAgent::new);
+    public  static final RegistryObject<Item> INTEGRATING_AGENT = ITEMS.register("integrating_agent",
+            ConnectingAgent::new);
+    public  static final RegistryObject<Item> BILE_VIAL = ITEMS.register("bile_vial",
+            () -> new BaseItem2(new Item.Properties()));
+    public  static final RegistryObject<Item> ACID_VIAL = ITEMS.register("acid_vial",
+            () -> new BaseItem2(new Item.Properties()));
+    public  static final RegistryObject<Item> TOXIN_VIAL = ITEMS.register("toxin_vial",
+            () -> new BaseItem2(new Item.Properties()));
+    public  static final RegistryObject<Item> MUTATION_SYRINGE = ITEMS.register("mutation_syringe",
+            MutationSyringe::new);
+    public  static final RegistryObject<Item> SYRINGE = ITEMS.register("syringe",
+            Syringe::new);
+    public  static final RegistryObject<Item> EVOLUTION_SYRINGE = ITEMS.register("evo_syringe",
+            EvolutionSyringe::new);
+    public  static final RegistryObject<Item> VAMPIRIC_SYRINGE = ITEMS.register("vampiric_syringe",
+            () -> new WeaponSyringe(SporeToolsMutations.VAMPIRIC));
+    public  static final RegistryObject<Item> CALCIFIED_SYRINGE = ITEMS.register("calcified_syringe",
+            () -> new WeaponSyringe(SporeToolsMutations.CALCIFIED));
+    public  static final RegistryObject<Item> BEZERK_SYRINGE = ITEMS.register("bezerk_syringe",
+            () -> new WeaponSyringe(SporeToolsMutations.BEZERK));
+    public  static final RegistryObject<Item> TOXIC_SYRINGE = ITEMS.register("toxic_syringe",
+            () -> new WeaponSyringe(SporeToolsMutations.TOXIC));
+    public  static final RegistryObject<Item> ROTTEN_SYRINGE = ITEMS.register("rotten_syringe",
+            () -> new WeaponSyringe(SporeToolsMutations.ROTTEN));
+    public  static final RegistryObject<Item> REINFORCED_SYRINGE = ITEMS.register("reinforced_syringe",
+            () -> new ArmorSyringe(SporeArmorMutations.REINFORCED));
+    public  static final RegistryObject<Item> SKELETAL_SYRINGE = ITEMS.register("skeletal_syringe",
+            () -> new ArmorSyringe(SporeArmorMutations.SKELETAL));
+    public  static final RegistryObject<Item> DROWNED_SYRINGE = ITEMS.register("drowned_syringe",
+            () -> new ArmorSyringe(SporeArmorMutations.DROWNED));
+    public  static final RegistryObject<Item> CHARRED_SYRINGE = ITEMS.register("charred_syringe",
+            () -> new ArmorSyringe(SporeArmorMutations.CHARRED));
+    public  static final RegistryObject<Item> REAVER = ITEMS.register("reaver",
+            Reaver::new);
+    public  static final RegistryObject<Item> PCI = ITEMS.register("pci",
+            PCI::new);
+    public  static final RegistryObject<Item> SYRINGE_GUN = ITEMS.register("syringe_gun",
+            SyringeGun::new);
+
+
+
+
+
+
+    private static RegistryObject<Item> soup(RegistryObject<Block> block) {
+        return ITEMS.register(block.getId().getPath(), () -> new SkullSoupItem(block.get()));
+    }
+    private static RegistryObject<Item> block(RegistryObject<Block> block) {
+        return ITEMS.register(block.getId().getPath(), () -> new BlockItemBase2(block.get(), new Item.Properties()));
+    }
+    private static RegistryObject<Item> Techblock(RegistryObject<Block> block) {
+        return ITEMS.register(block.getId().getPath(), () -> new BlockItemBase(block.get(), new Item.Properties()));
+    }
+    private static RegistryObject<Item> Exceptions(RegistryObject<Block> block) {
+        return ITEMS.register(block.getId().getPath(), () -> new BlockItemCBU(block.get()));
+    }
+    public static final RegistryObject<Item> COOKED_TORSO = block(Sblocks.COOKED_TORSO);
+    public static final RegistryObject<Item> SKULL_SOUP = soup(Sblocks.SKULL_SOUP);
+    public static final RegistryObject<Item> CONTAINER = Techblock(Sblocks.CONTAINER);
+    public static final RegistryObject<Item> CDU = Exceptions(Sblocks.CDU);
+    public static final RegistryObject<Item> ZOAHOLIC = Exceptions(Sblocks.ZOAHOLIC);
+    public static final RegistryObject<Item> INCUBATOR = Exceptions(Sblocks.INCUBATOR);
+    public static final RegistryObject<Item> SURGERY_TABLE = Exceptions(Sblocks.SURGERY_TABLE);
+    public static final RegistryObject<Item> CABINET = Techblock(Sblocks.CABINET);
+    public static final RegistryObject<Item> LAB_BLOCK = Techblock(Sblocks.LAB_BLOCK);
+    public static final RegistryObject<Item> LAB_BLOCK1 = Techblock(Sblocks.LAB_BLOCK1);
+    public static final RegistryObject<Item> LAB_BLOCK2 = Techblock(Sblocks.LAB_BLOCK2);
+    public static final RegistryObject<Item> LAB_BLOCK3 = Techblock(Sblocks.LAB_BLOCK3);
+    public static final RegistryObject<Item> LAB_SLAB = Techblock(Sblocks.LAB_SLAB);
+    public static final RegistryObject<Item> LAB_SLAB1 = Techblock(Sblocks.LAB_SLAB1);
+    public static final RegistryObject<Item> LAB_SLAB2 = Techblock(Sblocks.LAB_SLAB2);
+    public static final RegistryObject<Item> LAB_SLAB3 = Techblock(Sblocks.LAB_SLAB3);
+    public static final RegistryObject<Item> LAB_STAIR = Techblock(Sblocks.LAB_STAIR);
+    public static final RegistryObject<Item> IRON_LADDER = Techblock(Sblocks.IRON_LADDER);
+    public static final RegistryObject<Item> LABORATORY_BED = Techblock(Sblocks.LABORATORY_BED);
+    public static final RegistryObject<Item> VENT_PLATE = Techblock(Sblocks.VENT_PLATE);
+    public static final RegistryObject<Item> RUSTED_VENT_PLATE = Techblock(Sblocks.RUSTED_VENT_PLATE);
+    public static final RegistryObject<Item> VENT_DOOR = Techblock(Sblocks.VENT_DOOR);
+    public static final RegistryObject<Item> REINFORCED_DOOR = Techblock(Sblocks.REINFORCED_DOOR);
+    public static final RegistryObject<Item> FROZEN_REINFORCED_DOOR = Techblock(Sblocks.FROZEN_REINFORCED_DOOR);
+    public static final RegistryObject<Item> RUSTED_REINFORCED_DOOR = Techblock(Sblocks.RUSTED_REINFORCED_DOOR);
+    public static final RegistryObject<Item> HALOGEN_LIGHT = Techblock(Sblocks.HALOGEN_LIGHT);
+    public static final RegistryObject<Item> BROKEN_HALOGEN_LIGHT = Techblock(Sblocks.BROKEN_HALOGEN_LIGHT);
+
+    public static final RegistryObject<Item> GROWTHS_BIG = block(Sblocks.GROWTHS_BIG);
+    public static final RegistryObject<Item> GROWTHS_SMALL = block(Sblocks.GROWTHS_SMALL);
+    public static final RegistryObject<Item> BLOOM_G = block(Sblocks.BLOOM_G);
+    public static final RegistryObject<Item> BLOOM_GG = block(Sblocks.BLOOM_GG);
+    public static final RegistryObject<Item> FUNGAL_ROOTS = block(Sblocks.FUNGAL_ROOTS);
+    public static final RegistryObject<Item> HAND = block(Sblocks.HAND);
+    public static final RegistryObject<Item> GROWTH_MYCELIUM = block(Sblocks.GROWTH_MYCELIUM);
+    public static final RegistryObject<Item> FUNGAL_STEP_SAPLING = block(Sblocks.FUNGAL_STEM_SAPLING);
+    public static final RegistryObject<Item> MYCELIUM_VEINS = block(Sblocks.MYCELIUM_VEINS);
+    public static final RegistryObject<Item> BIOMASS_BULB = block(Sblocks.BIOMASS_BULB);
+
+    public static final RegistryObject<Item> ROTTEN_LOG = block(Sblocks.ROTTEN_LOG);
+    public static final RegistryObject<Item> ROTTEN_PLANKS = block(Sblocks.ROTTEN_PLANKS);
+    public static final RegistryObject<Item> ROTTEN_STAIR = block(Sblocks.ROTTEN_STAIR);
+    public static final RegistryObject<Item> ROTTEN_SLAB = block(Sblocks.ROTTEN_SLAB);
+    public static final RegistryObject<Item> ROTTEN_SCRAPS = block(Sblocks.ROTTEN_SCRAPS);
+    public static final RegistryObject<Item> ROTTEN_BRANCH = block(Sblocks.ROTTEN_BRANCH);
+    public static final RegistryObject<Item> ROTTEN_BUSH = block(Sblocks.ROTTEN_BUSH);
+    public static final RegistryObject<Item> ROTTEN_GRASS = block(Sblocks.ROTTEN_GRASS);
+    public static final RegistryObject<Item> ROTTEN_FERN = block(Sblocks.ROTTEN_FERN);
+    public static final RegistryObject<Item> ROTTEN_CROPS = block(Sblocks.ROTTEN_CROPS);
+    public static final RegistryObject<Item> ROOTED_BIOMASS = block(Sblocks.ROOTED_BIOMASS);
+    public static final RegistryObject<Item> BIOMASS_BLOCK = block(Sblocks.BIOMASS_BLOCK);
+    public static final RegistryObject<Item> CALCIFIED_BIOMASS_BLOCK = block(Sblocks.CALCIFIED_BIOMASS_BLOCK);
+    public static final RegistryObject<Item> SICKEN_BIOMASS_BLOCK = block(Sblocks.SICKEN_BIOMASS_BLOCK);
+    public static final RegistryObject<Item> GASTRIC_BIOMASS = block(Sblocks.GASTRIC_BIOMASS);
+    public static final RegistryObject<Item> MEMBRANE_BLOCK = block(Sblocks.MEMBRANE_BLOCK);
+    public static final RegistryObject<Item> ROOTED_MYCELIUM = block(Sblocks.ROOTED_MYCELIUM);
+    public static final RegistryObject<Item> CRUSTED_BILE = block(Sblocks.CRUSTED_BILE);
+    public static final RegistryObject<Item> MYCELIUM_BLOCK = block(Sblocks.MYCELIUM_BLOCK);
+    public static final RegistryObject<Item> MYCELIUM_SLAB = block(Sblocks.MYCELIUM_SLAB);
+    public static final RegistryObject<Item> FUNGAL_SHELL = block(Sblocks.FUNGAL_SHELL);
+    public static final RegistryObject<Item> ORGANITE = block(Sblocks.ORGANITE);
+    public static final RegistryObject<Item> FROST_BURNED_BIOMASS = block(Sblocks.FROST_BURNED_BIOMASS);
+    public static final RegistryObject<Item> FROZEN_REMAINS = block(Sblocks.FROZEN_REMAINS);
+
+    public static final RegistryObject<Item> INFESTED_DEEPSLATE = block(Sblocks.INFESTED_DEEPSLATE);
+    public static final RegistryObject<Item> INFESTED_DIRT = block(Sblocks.INFESTED_DIRT);
+    public static final RegistryObject<Item> INFESTED_END_STONE = block(Sblocks.INFESTED_END_STONE);
+    public static final RegistryObject<Item> INFESTED_GRAVEL = block(Sblocks.INFESTED_GRAVEL);
+    public static final RegistryObject<Item> INFESTED_NETHERRACK = block(Sblocks.INFESTED_NETHERRACK);
+    public static final RegistryObject<Item> INFESTED_SAND = block(Sblocks.INFESTED_SAND);
+    public static final RegistryObject<Item> INFESTED_SOUL_SAND = block(Sblocks.INFESTED_SOUL_SAND);
+    public static final RegistryObject<Item> INFESTED_STONE = block(Sblocks.INFESTED_STONE);
+    public static final RegistryObject<Item> INFESTED_RED_SAND = block(Sblocks.INFESTED_RED_SAND);
+    public static final RegistryObject<Item> INFESTED_CLAY = block(Sblocks.INFESTED_CLAY);
+    public static final RegistryObject<Item> INFESTED_COBBLESTONE = block(Sblocks.INFESTED_COBBLESTONE);
+    public static final RegistryObject<Item> INFESTED_COBBLED_DEEPSLATE = block(Sblocks.INFESTED_COBBLED_DEEPSLATE);
+    public static final RegistryObject<Item> INFESTED_STONE_BRICKS = block(Sblocks.INFESTED_STONE_BRICKS);
+    public static final RegistryObject<Item> INFESTED_BRICKS = block(Sblocks.INFESTED_BRICKS);
+    public static final RegistryObject<Item> INFESTED_LABORATORY_BLOCK = block(Sblocks.INFESTED_LABORATORY_BLOCK);
+    public static final RegistryObject<Item> INFESTED_LABORATORY_BLOCK1 = block(Sblocks.INFESTED_LABORATORY_BLOCK1);
+    public static final RegistryObject<Item> INFESTED_LABORATORY_BLOCK2 = block(Sblocks.INFESTED_LABORATORY_BLOCK2);
+    public static final RegistryObject<Item> INFESTED_LABORATORY_BLOCK3 = block(Sblocks.INFESTED_LABORATORY_BLOCK3);
+    public static final RegistryObject<Item> OVERGROWN_SPAWNER = block(Sblocks.OVERGROWN_SPAWNER);
+    public static final RegistryObject<Item> BRAIN_REMNANTS = block(Sblocks.BRAIN_REMNANTS);
+    public static final RegistryObject<Item> OUTPOST_WATCHER = block(Sblocks.OUTPOST_WATCHER);
+
+    public static final RegistryObject<Item> REMAINS = block(Sblocks.REMAINS);
+    public static final RegistryObject<Item> WALL_REMAINS = block(Sblocks.WALL_REMAINS);
+    public static final RegistryObject<Item> BIOMASS_LUMP = block(Sblocks.BIOMASS_LUMP);
+    public static final RegistryObject<Item> HIVE_SPAWN = block(Sblocks.HIVE_SPAWN);
+    public static final RegistryObject<Item> DROWNED_LUMP = block(Sblocks.DROWNED_LUMP);
+    public static final RegistryObject<Item> FANG_LUMP = block(Sblocks.FANG_LUMP);
+    public static final RegistryObject<Item> FUNGAL_CLAMP = block(Sblocks.FUNGAL_CLAMP);
+    public static final RegistryObject<Item> EXPLODING_LUMP = block(Sblocks.EXPLODING_LUMP);
+    public static final RegistryObject<Item> POISONING_LUMP = block(Sblocks.POISONING_LUMP);
+    public static final RegistryObject<Item> VOCALS = block(Sblocks.VOCALS);
+    public static final RegistryObject<Item> LUNGS = block(Sblocks.LUNGS);
+    public static final RegistryObject<Item> ACIDIC_SACK = block(Sblocks.ACIDIC_SACK);
+    public static final RegistryObject<Item> GLOWSHROOM = block(Sblocks.GLOWSHROOM);
+    public static final RegistryObject<Item> BILE_LUMP = block(Sblocks.BILE_LUMP);
+
 }

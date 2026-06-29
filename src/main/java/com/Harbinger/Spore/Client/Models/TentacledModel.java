@@ -10,315 +10,316 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public interface TentacledModel {
-   default void animateTentacleX(ModelPart part, float value) {
-      part.xRot = part.getInitialPose().xRot + value;
-   }
+    default void animateTentacleX(ModelPart part, float value){
+        part.xRot = part.getInitialPose().xRot + value;
+    }
+    default void animateTentacleY(ModelPart part,float value){
+        part.yRot = part.getInitialPose().yRot + value;
+    }
+    default void animateTentacleZ(ModelPart part,float value){
+        part.zRot = part.getInitialPose().zRot + value;
+    }
+    default void animateTumor(ModelPart part,float value){
+        part.xScale = 1 + value;
+        part.yScale = 1 + value;
+        part.zScale = 1 + value;
+    }
 
-   default void animateTentacleY(ModelPart part, float value) {
-      part.yRot = part.getInitialPose().yRot + value;
-   }
 
-   default void animateTentacleZ(ModelPart part, float value) {
-      part.zRot = part.getInitialPose().zRot + value;
-   }
+    class InnerClassIkLeg{
+        protected final RandomSource randomSource = RandomSource.create();
+        protected final Vec3[] entities;
+        protected final Vec3 defaultBodyOffset;
+        protected final Vec3 defaultLimbOffset;
+        protected final float maxDistance;
+        protected final Vec3[] segmentVelocities;
+        protected final ModelPart[] parts;
+        protected final float[] segmetsL;
+        protected Vec3 sitPosition =  null;
+        protected Vec3 lastSitPosition = null;
+        protected Vec3 lastOwnerPosition = Vec3.ZERO;
+        protected Vec3 ownerMovementDelta = Vec3.ZERO;
+        protected float lastYaw = 0;
+        protected float yawDelta = 0;
+        protected float stepAngle = 0f;
+        protected final float stepSpeed;
+        protected final float stepSize;
 
-   default void animateTumor(ModelPart part, float value) {
-      part.xScale = 1.0F + value;
-      part.yScale = 1.0F + value;
-      part.zScale = 1.0F + value;
-   }
+        public InnerClassIkLeg(int amount, ModelPart[] parts, float[] segmetsL, Vec3 defaultBodyOffset,
+                               Vec3 defaultLimbOffset,
+                               float maxDistance, float stepSpeed, float stepSize) {
+            this.entities = new Vec3[amount];
+            this.segmentVelocities = new Vec3[amount];
+            this.stepSpeed = stepSpeed;
+            this.stepSize = stepSize;
+            for(int i = 0;i<amount;i++){
+                entities[i] = new Vec3(0,0,0);
+                segmentVelocities[i] = new Vec3(0, 0, 0);
+            }
+            this.parts = parts;
+            this.segmetsL = segmetsL;
+            this.defaultBodyOffset = defaultBodyOffset;
+            this.defaultLimbOffset = defaultLimbOffset;
+            this.maxDistance = maxDistance;
+        }
 
-   public static class InnerClassIkLeg {
-      protected final RandomSource randomSource = RandomSource.create();
-      protected final Vec3[] entities;
-      protected final Vec3 defaultBodyOffset;
-      protected final Vec3 defaultLimbOffset;
-      protected final float maxDistance;
-      protected final Vec3[] segmentVelocities;
-      protected final ModelPart[] parts;
-      protected final float[] segmetsL;
-      protected Vec3 sitPosition = null;
-      protected Vec3 lastSitPosition = null;
-      protected Vec3 lastOwnerPosition;
-      protected Vec3 ownerMovementDelta;
-      protected float lastYaw;
-      protected float yawDelta;
-      protected float stepAngle;
-      protected final float stepSpeed;
-      protected final float stepSize;
+        public Vec3[] getEntities() {
+            return entities;
+        }
 
-      public InnerClassIkLeg(int amount, ModelPart[] parts, float[] segmetsL, Vec3 defaultBodyOffset, Vec3 defaultLimbOffset, float maxDistance, float stepSpeed, float stepSize) {
-         this.lastOwnerPosition = Vec3.ZERO;
-         this.ownerMovementDelta = Vec3.ZERO;
-         this.lastYaw = 0.0F;
-         this.yawDelta = 0.0F;
-         this.stepAngle = 0.0F;
-         this.entities = new Vec3[amount];
-         this.segmentVelocities = new Vec3[amount];
-         this.stepSpeed = stepSpeed;
-         this.stepSize = stepSize;
 
-         for(int i = 0; i < amount; ++i) {
-            this.entities[i] = new Vec3((double)0.0F, (double)0.0F, (double)0.0F);
-            this.segmentVelocities[i] = new Vec3((double)0.0F, (double)0.0F, (double)0.0F);
-         }
+        public Vec3 applyYaw(LivingEntity owner, Vec3 offset) {
+            float yawRad = owner.getYRot() * Mth.DEG_TO_RAD;
+            return offset.yRot(-yawRad - Mth.HALF_PI);
+        }
 
-         this.parts = parts;
-         this.segmetsL = segmetsL;
-         this.defaultBodyOffset = defaultBodyOffset;
-         this.defaultLimbOffset = defaultLimbOffset;
-         this.maxDistance = maxDistance;
-      }
+        public Vec3 getLegBasePos(LivingEntity owner) {
+            Vec3 pivot = owner.position();
+            Vec3 extend = isOwnerMoving(owner) ? new Vec3(1,0,0) : Vec3.ZERO;
+            return pivot.add(applyYaw(owner,defaultLimbOffset.add(extend)));
+        }
 
-      public Vec3[] getEntities() {
-         return this.entities;
-      }
+        public Vec3 getBodyOffset(LivingEntity owner) {
+            Vec3 pivot = owner.position();
+            return pivot.add(applyYaw(owner,defaultBodyOffset));
+        }
 
-      public Vec3 applyYaw(LivingEntity owner, Vec3 offset) {
-         float yawRad = owner.getYRot() * ((float)Math.PI / 180F);
-         return offset.yRot(-yawRad - ((float)Math.PI / 2F));
-      }
+        protected void moveSegmentTowards(int index, Vec3 target,boolean far) {
+            Vec3 currentPos = entities[index];
+            Vec3 newPos = currentPos.lerp(target,0.35f);
+            entities[index] = (far ? target : newPos);
+        }
+        protected void moveTipTowards(Vec3 target) {
+            int tip = entities.length - 1;
+            Vec3 currentPos = entities[tip];
+            entities[tip] = currentPos.lerp(target, 0.45f);
+        }
+        protected boolean isOwnerMoving(LivingEntity owner){
+            return owner.getDeltaMovement().lengthSqr() > 0.005;
+        }
 
-      public Vec3 getLegBasePos(LivingEntity owner) {
-         Vec3 pivot = owner.position();
-         Vec3 extend = this.isOwnerMoving(owner) ? new Vec3((double)1.0F, (double)0.0F, (double)0.0F) : Vec3.ZERO;
-         return pivot.add(this.applyYaw(owner, this.defaultLimbOffset.add(extend)));
-      }
-
-      public Vec3 getBodyOffset(LivingEntity owner) {
-         Vec3 pivot = owner.position();
-         return pivot.add(this.applyYaw(owner, this.defaultBodyOffset));
-      }
-
-      protected void moveSegmentTowards(int index, Vec3 target, boolean far) {
-         Vec3 currentPos = this.entities[index];
-         Vec3 newPos = currentPos.lerp(target, (double)0.35F);
-         this.entities[index] = far ? target : newPos;
-      }
-
-      protected void moveTipTowards(Vec3 target) {
-         int tip = this.entities.length - 1;
-         Vec3 currentPos = this.entities[tip];
-         this.entities[tip] = currentPos.lerp(target, (double)0.45F);
-      }
-
-      protected boolean isOwnerMoving(LivingEntity owner) {
-         return owner.getDeltaMovement().lengthSqr() > 0.005;
-      }
-
-      protected void updateOwnerMovementDelta(LivingEntity owner) {
-         Vec3 currentOwnerPos = owner.position();
-         this.ownerMovementDelta = currentOwnerPos.subtract(this.lastOwnerPosition);
-         this.lastOwnerPosition = currentOwnerPos;
-         float currentYaw = owner.getYRot();
-         this.yawDelta = Mth.wrapDegrees(currentYaw - this.lastYaw);
-         this.lastYaw = currentYaw;
-      }
-
-      protected Vec3 rotateAroundYaw(Vec3 pos, Vec3 pivot, float degrees) {
-         double rad = (double)(degrees * ((float)Math.PI / 180F));
-         Vec3 rel = pos.subtract(pivot);
-         Vec3 rotated = rel.yRot((float)(-rad));
-         return pivot.add(rotated);
-      }
-
-      protected void applyBodySpin(LivingEntity owner) {
-         if (!(Math.abs(this.yawDelta) < 0.001F)) {
+        protected void updateOwnerMovementDelta(LivingEntity owner) {
+            Vec3 currentOwnerPos = owner.position();
+            ownerMovementDelta = currentOwnerPos.subtract(lastOwnerPosition);
+            lastOwnerPosition = currentOwnerPos;
+            float currentYaw = owner.getYRot();
+            yawDelta = Mth.wrapDegrees(currentYaw - lastYaw);
+            lastYaw = currentYaw;
+        }
+        protected Vec3 rotateAroundYaw(Vec3 pos, Vec3 pivot, float degrees) {
+            double rad = degrees * Mth.DEG_TO_RAD;
+            Vec3 rel = pos.subtract(pivot);
+            Vec3 rotated = rel.yRot((float)-rad);
+            return pivot.add(rotated);
+        }
+        protected void applyBodySpin(LivingEntity owner) {
+            if (Math.abs(yawDelta) < 0.001f) return;
             Vec3 pivot = owner.position();
 
-            for(int i = 0; i < this.entities.length; ++i) {
-               this.entities[i] = this.rotateAroundYaw(this.entities[i], pivot, this.yawDelta);
+            for (int i = 0; i < entities.length; i++) {
+                entities[i] = rotateAroundYaw(entities[i], pivot, yawDelta);
             }
 
-            if (this.sitPosition != null) {
-               this.sitPosition = this.rotateAroundYaw(this.sitPosition, pivot, this.yawDelta);
+            if (sitPosition != null) {
+                sitPosition = rotateAroundYaw(sitPosition, pivot, yawDelta);
             }
 
-            if (this.lastSitPosition != null) {
-               this.lastSitPosition = this.rotateAroundYaw(this.lastSitPosition, pivot, this.yawDelta);
+            if (lastSitPosition != null) {
+                lastSitPosition = rotateAroundYaw(lastSitPosition, pivot, yawDelta);
             }
 
-            for(int i = 0; i < this.segmentVelocities.length; ++i) {
-               this.segmentVelocities[i] = this.segmentVelocities[i].yRot(-this.yawDelta * ((float)Math.PI / 180F));
+            for (int i = 0; i < segmentVelocities.length; i++) {
+                segmentVelocities[i] =
+                        segmentVelocities[i].yRot((float)(-yawDelta * Mth.DEG_TO_RAD));
+            }
+        }
+
+        protected void applyEntityMovementToLegs(LivingEntity owner) {
+            if (ownerMovementDelta.lengthSqr() < 0.00001){
+                Vec3 defaultTipPos = getLegBasePos(owner);
+                int tip = entities.length - 1;
+                Vec3 currentPos = entities[tip];
+                entities[tip] = currentPos.lerp(defaultTipPos, 0.1f);
+                return;
             }
 
-         }
-      }
+            int last = entities.length - 1;
 
-      protected void applyEntityMovementToLegs(LivingEntity owner) {
-         if (this.ownerMovementDelta.lengthSqr() < 1.0E-5) {
-            Vec3 defaultTipPos = this.getLegBasePos(owner);
-            int tip = this.entities.length - 1;
-            Vec3 currentPos = this.entities[tip];
-            this.entities[tip] = currentPos.lerp(defaultTipPos, (double)0.1F);
-         } else {
-            int last = this.entities.length - 1;
+            for (int i = 0; i < entities.length-1; i++) {
+                float t = (float) i / last;
+                float followStrength = Mth.lerp(t, 0.5f, 0.05f);
+                float drag = Mth.lerp(t, 0.90f, 0.65f);
 
-            for(int i = 0; i < this.entities.length - 1; ++i) {
-               float t = (float)i / (float)last;
-               float followStrength = Mth.lerp(t, 0.5F, 0.05F);
-               float drag = Mth.lerp(t, 0.9F, 0.65F);
-               this.segmentVelocities[i] = this.segmentVelocities[i].add(this.ownerMovementDelta.scale((double)followStrength));
-               this.segmentVelocities[i] = this.segmentVelocities[i].scale((double)drag);
-               this.entities[i] = this.entities[i].add(this.segmentVelocities[i]);
+                segmentVelocities[i] = segmentVelocities[i]
+                        .add(ownerMovementDelta.scale(followStrength));
+
+                segmentVelocities[i] = segmentVelocities[i].scale(drag);
+
+                entities[i] = entities[i].add(segmentVelocities[i]);
             }
 
-            if (this.sitPosition != null) {
-               this.sitPosition = this.sitPosition.add(this.ownerMovementDelta);
-            }
+            if (sitPosition != null) sitPosition = sitPosition.add(ownerMovementDelta);
+            if (lastSitPosition != null) lastSitPosition = lastSitPosition.add(ownerMovementDelta);
+        }
+        protected Vec3 applyStep(LivingEntity owner,Vec3 baseTipPos) {
+            if (!isOwnerMoving(owner)) return baseTipPos;
+            stepAngle += stepSpeed;
+            stepAngle = Mth.wrapDegrees(stepAngle);
 
-            if (this.lastSitPosition != null) {
-               this.lastSitPosition = this.lastSitPosition.add(this.ownerMovementDelta);
-            }
-
-         }
-      }
-
-      protected Vec3 applyStep(LivingEntity owner, Vec3 baseTipPos) {
-         if (!this.isOwnerMoving(owner)) {
-            return baseTipPos;
-         } else {
-            this.stepAngle += this.stepSpeed;
-            this.stepAngle = Mth.wrapDegrees(this.stepAngle);
-            float rad = this.stepAngle * ((float)Math.PI / 180F);
-            double x = Math.cos((double)rad) * (double)this.stepSize;
-            double y = Math.cos((double)rad) * (double)this.stepSize * (double)0.5F;
-            y = y > (double)0.0F ? y : (double)0.0F;
-            Vec3 circularOffset = new Vec3(-x, y, (double)0.0F);
-            circularOffset = this.applyYaw(owner, circularOffset);
+            float rad = stepAngle * Mth.DEG_TO_RAD;
+            double x = Math.cos(rad) * stepSize;
+            double y = Math.cos(rad) * stepSize * 0.5;
+            y = y > 0 ? y : 0;
+            Vec3 circularOffset = new Vec3(-x, y, 0);
+            circularOffset = applyYaw(owner,circularOffset);
             return baseTipPos.add(circularOffset);
-         }
-      }
+        }
 
-      public void applyIK(LivingEntity owner) {
-         if (this.entities.length != 0) {
-            Vec3 basePos = this.getBodyOffset(owner);
-            Vec3 defaultTipPos = this.sitPosition == null ? this.getLegBasePos(owner) : this.sitPosition;
-            this.updateOwnerMovementDelta(owner);
-            this.applyEntityMovementToLegs(owner);
-            this.applyBodySpin(owner);
-            defaultTipPos = this.applyStep(owner, defaultTipPos);
-            this.moveTipTowards(defaultTipPos);
+        public void applyIK(LivingEntity owner) {
+            if (entities.length == 0) return;
 
-            for(int i = this.entities.length - 2; i >= 0; --i) {
-               Vec3 nextPos = this.entities[i + 1];
-               Vec3 dir = this.entities[i].subtract(nextPos);
-               float segmentLength = this.segmetsL[i];
-               if (dir.lengthSqr() > (double)1.0E-4F) {
-                  dir = dir.normalize().scale((double)segmentLength);
-               } else {
-                  dir = new Vec3((double)segmentLength, (double)0.0F, (double)0.0F);
-               }
+            Vec3 basePos = getBodyOffset(owner);
+            Vec3 defaultTipPos = sitPosition == null ? getLegBasePos(owner) : sitPosition;
+            updateOwnerMovementDelta(owner);
+            applyEntityMovementToLegs(owner);
+            applyBodySpin(owner);
+            defaultTipPos = applyStep(owner,defaultTipPos);
+            moveTipTowards(defaultTipPos);
+            for (int i = entities.length - 2; i >= 0; i--) {
+                Vec3 nextPos = entities[i + 1];
+                Vec3 dir = entities[i].subtract(nextPos);
 
-               Vec3 solvedPos = nextPos.add(dir);
-               this.moveSegmentTowards(i, solvedPos, this.entities[i + 1].distanceTo(this.entities[i]) > (double)5.0F);
+                float segmentLength = segmetsL[i];
+                if (dir.lengthSqr() > 0.0001f) {
+                    dir = dir.normalize().scale(segmentLength);
+                } else {
+                    dir = new Vec3(segmentLength, 0, 0);
+                }
+
+                Vec3 solvedPos = nextPos.add(dir);
+                moveSegmentTowards(i, solvedPos, entities[i+1].distanceTo(entities[i]) > 5);
             }
+            entities[0] = basePos;
 
-            this.entities[0] = basePos;
+            for (int i = 1; i < entities.length; i++) {
+                Vec3 prevPos = entities[i - 1];
+                Vec3 dir = entities[i].subtract(prevPos);
 
-            for(int i = 1; i < this.entities.length; ++i) {
-               Vec3 prevPos = this.entities[i - 1];
-               Vec3 dir = this.entities[i].subtract(prevPos);
-               float segmentLength = this.segmetsL[i - 1];
-               if (dir.lengthSqr() > (double)1.0E-4F) {
-                  dir = dir.normalize().scale((double)segmentLength);
-               } else {
-                  dir = new Vec3((double)segmentLength, (double)0.0F, (double)0.0F);
-               }
+                float segmentLength = segmetsL[i - 1];
+                if (dir.lengthSqr() > 0.0001f) {
+                    dir = dir.normalize().scale(segmentLength);
+                } else {
+                    dir = new Vec3(segmentLength, 0, 0);
+                }
 
-               Vec3 solvedPos = prevPos.add(dir);
-               this.moveSegmentTowards(i, solvedPos, this.entities[i - 1].distanceTo(this.entities[i]) > (double)5.0F);
+                Vec3 solvedPos = prevPos.add(dir);
+                moveSegmentTowards(i, solvedPos, entities[i-1].distanceTo(entities[i]) > 5);
             }
-
-            this.refreshLegStandingPoint(owner);
-            this.handleSegmentUpdating(owner);
-
-            for(Vec3 entity : this.entities) {
-               owner.level().addParticle(ParticleTypes.SOUL_FIRE_FLAME, entity.x, entity.y, entity.z, (double)0.0F, 0.1, (double)0.0F);
+            refreshLegStandingPoint(owner);
+            handleSegmentUpdating(owner);
+            for (Vec3 entity : entities) {
+                owner.level().addParticle(ParticleTypes.SOUL_FIRE_FLAME, entity.x, entity.y, entity.z, 0, 0.1, 0);
             }
+        }
+        public void handleSegmentUpdating(LivingEntity owner){
+            Vec3 origin = null;
+            float[] yx = new float[]{0,0};
+            for (int i = 0;i<entities.length;i++) {
+                Vec3 currentPos = entities[i];
+                yx = calculateRotations(origin, currentPos,i,yx,owner);
+                origin = currentPos;
+            }
+        }
+        public float[] calculateRotations(Vec3 from, Vec3 to, int i, float[] yx, LivingEntity owner) {
+            if (from == null || to == null) return new float[]{0, 0};
 
-         }
-      }
-
-      public void handleSegmentUpdating(LivingEntity owner) {
-         Vec3 origin = null;
-         float[] yx = new float[]{0.0F, 0.0F};
-
-         for(int i = 0; i < this.entities.length; ++i) {
-            Vec3 currentPos = this.entities[i];
-            yx = this.calculateRotations(origin, currentPos, i, yx, owner);
-            origin = currentPos;
-         }
-
-      }
-
-      public float[] calculateRotations(Vec3 from, Vec3 to, int i, float[] yx, LivingEntity owner) {
-         if (from != null && to != null) {
             Vec3 direction = to.subtract(from);
-            if (direction.lengthSqr() < (double)1.0E-4F) {
-               return new float[]{0.0F, 0.0F};
-            } else {
-               direction = direction.normalize();
-               direction = direction.yRot(owner.getYRot() * ((float)Math.PI / 180F));
-               float yaw = (float)Math.atan2(direction.x, direction.z) - ((float)Math.PI / 2F);
-               float pitch = (float)(-Math.asin(direction.y)) - ((float)Math.PI / 2F);
-               if (i > 0 && i - 1 < this.parts.length) {
-                  ModelPart part = this.parts[i - 1];
-                  part.yRot = yaw - yx[0];
-                  part.xRot = pitch - yx[1];
-                  return new float[]{part.yRot, part.xRot};
-               } else {
-                  return new float[]{0.0F, 0.0F};
-               }
+
+            if (direction.lengthSqr() < 0.0001f) return new float[]{0, 0};
+
+            direction = direction.normalize();
+
+            // Convert world space -> entity local space
+            direction = direction.yRot(owner.getYRot() * Mth.DEG_TO_RAD);
+
+            float yaw = (float) Math.atan2(direction.x, direction.z) - Mth.HALF_PI;
+            float pitch = (float) -Math.asin(direction.y) - Mth.HALF_PI;
+
+            if (i > 0 && i - 1 < parts.length) {
+                ModelPart part = parts[i - 1];
+
+                part.yRot = yaw - yx[0];
+                part.xRot = pitch - yx[1];
+
+                return new float[]{part.yRot, part.xRot};
             }
-         } else {
-            return new float[]{0.0F, 0.0F};
-         }
-      }
 
-      public void refreshLegStandingPoint(LivingEntity owner) {
-         if (!owner.isInWater()) {
-            if (this.lastSitPosition == null || !(this.getLegBasePos(owner).distanceTo(this.lastSitPosition) < (double)this.maxDistance)) {
-               this.sitPosition = this.findStableFooting(owner);
-               if (!this.sitPosition.equals(this.lastSitPosition)) {
-                  this.lastSitPosition = this.sitPosition;
-               }
+            return new float[]{0, 0};
+        }
 
+
+        public void refreshLegStandingPoint(LivingEntity owner){
+            if (owner.isInWater()){
+                return;
             }
-         }
-      }
-
-      protected Vec3 findStableFooting(LivingEntity owner) {
-         Level level = owner.level();
-         Vec3 worldBasePos = this.getLegBasePos(owner);
-         int searchRadius = 6;
-         int maxSearchDown = 12;
-         int maxSearchUp = 6;
-         BlockPos.MutableBlockPos checkPos = new BlockPos.MutableBlockPos();
-
-         for(int y = 0; y >= -maxSearchDown; --y) {
-            checkPos.set(worldBasePos.x, worldBasePos.y + (double)y, worldBasePos.z);
-            if (this.isSolidGround(level, checkPos)) {
-               return new Vec3((double)checkPos.getX() + (double)0.5F, (double)checkPos.getY() - (double)1.0F, (double)checkPos.getZ() + (double)0.5F);
+            if (lastSitPosition != null && getLegBasePos(owner).distanceTo(lastSitPosition) < maxDistance){
+                return;
             }
-         }
-
-         for(int x = -searchRadius; x <= searchRadius; ++x) {
-            for(int z = -searchRadius; z <= searchRadius; ++z) {
-               for(int y = maxSearchUp; y >= -maxSearchDown; --y) {
-                  checkPos.set(worldBasePos.x + (double)x, worldBasePos.y + (double)y, worldBasePos.z + (double)z);
-                  if (this.isSolidGround(level, checkPos) && level.isEmptyBlock(checkPos.above())) {
-                     return new Vec3((double)checkPos.getX() + (double)0.5F, (double)checkPos.getY() - (double)1.0F, (double)checkPos.getZ() + (double)0.5F);
-                  }
-               }
+            sitPosition = findStableFooting(owner);
+            if (!sitPosition.equals(lastSitPosition)){
+                lastSitPosition = sitPosition;
             }
-         }
+        }
 
-         return worldBasePos;
-      }
+        protected Vec3 findStableFooting(LivingEntity owner) {
+            Level level = owner.level();
 
-      private boolean isSolidGround(Level level, BlockPos pos) {
-         return level.getBlockState(pos).isSolid() || !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
-      }
-   }
+            Vec3 worldBasePos = getLegBasePos(owner);
+            int searchRadius = 6;
+            int maxSearchDown = 12;
+            int maxSearchUp = 6;
+
+            BlockPos.MutableBlockPos checkPos = new BlockPos.MutableBlockPos();
+
+            for (int y = 0; y >= -maxSearchDown; y--) {
+                checkPos.set(worldBasePos.x, worldBasePos.y + y, worldBasePos.z);
+
+                if (isSolidGround(level, checkPos)) {
+                    return new Vec3(
+                            checkPos.getX() + 0.5,
+                            checkPos.getY() - 1.0,
+                            checkPos.getZ() + 0.5
+                    );
+                }
+            }
+
+            for (int x = -searchRadius; x <= searchRadius; x++) {
+                for (int z = -searchRadius; z <= searchRadius; z++) {
+                    for (int y = maxSearchUp; y >= -maxSearchDown; y--) {
+                        checkPos.set(
+                                worldBasePos.x + x,
+                                worldBasePos.y + y,
+                                worldBasePos.z + z
+                        );
+
+                        if (isSolidGround(level, checkPos)) {
+                            if (level.isEmptyBlock(checkPos.above())) {
+                                return new Vec3(
+                                        checkPos.getX() + 0.5,
+                                        checkPos.getY() - 1.0,
+                                        checkPos.getZ() + 0.5
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            return worldBasePos;
+        }
+
+        private boolean isSolidGround(Level level, BlockPos pos) {
+            return level.getBlockState(pos).isSolid() ||
+                    !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
+        }
+    }
 }

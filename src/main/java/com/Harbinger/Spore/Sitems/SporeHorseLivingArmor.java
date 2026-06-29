@@ -9,30 +9,32 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class SporeHorseLivingArmor extends SporeHorseArmor implements CustomModelArmorData {
-   private static final ResourceLocation LOCATION = new ResourceLocation("spore:textures/armor/living_horse_set.png");
+public class SporeHorseLivingArmor extends SporeHorseArmor implements CustomModelArmorData{
+    private static final ResourceLocation LOCATION = new ResourceLocation("spore:textures/armor/living_horse_set.png");
 
-   public SporeHorseLivingArmor() {
-      super((Integer)SConfig.SERVER.living_h_protection.get());
-   }
+    public SporeHorseLivingArmor() {
+        super(SConfig.SERVER.living_h_protection.get());
+    }
 
-   public ResourceLocation getTextureLocation() {
-      return LOCATION;
-   }
+    @Override
+    public ResourceLocation getTextureLocation() {
+        return LOCATION;
+    }
 
-   public void onHorseArmorTick(ItemStack stack, Level level, Mob horse) {
-      super.onHorseArmorTick(stack, level, horse);
-      if (horse.isVehicle() && horse.horizontalCollision) {
-         Vec3 currentMovement = horse.getDeltaMovement();
-         if (currentMovement.y < 0.15) {
-            Vec3 climbVec = new Vec3(currentMovement.x, 0.15, currentMovement.z);
-            horse.setDeltaMovement(climbVec);
-         }
-      }
+    @Override
+    public void onHorseArmorTick(ItemStack stack, Level level, Mob horse) {
+        super.onHorseArmorTick(stack, level, horse);
+        if (horse.isVehicle() && horse.horizontalCollision){
+            Vec3 currentMovement = horse.getDeltaMovement();
 
-      if (horse.tickCount % 20 == 0 && horse.getHealth() < horse.getMaxHealth() && !horse.hasEffect(MobEffects.REGENERATION)) {
-         horse.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0, false, false));
-      }
+            if (currentMovement.y < 0.15D) {
+                Vec3 climbVec = new Vec3(currentMovement.x, 0.15D, currentMovement.z);
+                horse.setDeltaMovement(climbVec);
+            }
+        }
+        if (horse.tickCount % 20 == 0 && horse.getHealth() < horse.getMaxHealth() && !horse.hasEffect(MobEffects.REGENERATION)){
+            horse.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0, (false), (false)));
+        }
+    }
 
-   }
 }

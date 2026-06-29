@@ -8,39 +8,44 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class LivingStructureBlocks extends BlockEntity {
-   int kills;
+    int kills;
+    public LivingStructureBlocks(BlockEntityType<?> p_155228_, BlockPos pos, BlockState state) {
+        super(p_155228_, pos, state);
+    }
 
-   public LivingStructureBlocks(BlockEntityType p_155228_, BlockPos pos, BlockState state) {
-      super(p_155228_, pos, state);
-   }
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.putInt("kills",this.getKills());
 
-   protected void saveAdditional(CompoundTag tag) {
-      super.saveAdditional(tag);
-      tag.putInt("kills", this.getKills());
-   }
+    }
 
-   public void load(CompoundTag tag) {
-      super.load(tag);
-      this.setKills(tag.getInt("kills"));
-   }
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        this.setKills(tag.getInt("kills"));
+    }
 
-   public ClientboundBlockEntityDataPacket getUpdatePacket() {
-      return ClientboundBlockEntityDataPacket.create(this);
-   }
 
-   public CompoundTag getUpdateTag() {
-      return this.saveWithFullMetadata();
-   }
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
 
-   public void setKills(int i) {
-      this.kills = i;
-   }
+    @Override
+    public CompoundTag getUpdateTag() {
+        return this.saveWithFullMetadata();
+    }
 
-   public int getKills() {
-      return this.kills;
-   }
 
-   public void addKills() {
-      this.setKills(this.getKills() + 1);
-   }
+    public void setKills(int i){
+        this.kills = i;
+    }
+    public int getKills(){
+        return this.kills;
+    }
+
+    public void addKills(){
+        this.setKills(this.getKills() + 1);
+    }
 }

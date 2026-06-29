@@ -9,19 +9,20 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.ResourceLocation;
 
-public class SiegerArrowLayer extends com.Harbinger.Spore.Client.Layers.EntityRenderLayer<Sieger> {
-   private static final ResourceLocation ARROW_LOCATION = new ResourceLocation("minecraft:textures/entity/projectiles/arrow.png");
-   private final SiegerArrowModel model;
+public class SiegerArrowLayer<T extends Sieger> extends RenderLayer<T, SiegerArrowModel<T>> {
+    private static final ResourceLocation ARROW_LOCATION = new ResourceLocation("minecraft:textures/entity/projectiles/arrow.png");
+    private final SiegerArrowModel<T> model;
 
-   public SiegerArrowLayer(RenderLayerParent p_117346_, EntityModelSet set) {
-      super(p_117346_);
-      this.model = new SiegerArrowModel(set.bakeLayer(SiegerArrowModel.LAYER_LOCATION));
-   }
+    public SiegerArrowLayer(RenderLayerParent<T, SiegerArrowModel<T>> p_117346_, EntityModelSet set) {
+        super(p_117346_);
+        this.model = new SiegerArrowModel<>(set.bakeLayer(SiegerArrowModel.LAYER_LOCATION));
+    }
 
-   public void render(PoseStack stack, MultiBufferSource bufferSource, int p_117351_, Sieger type, float p_117353_, float p_117354_, float p_117355_, float p_117356_, float p_117357_, float p_117358_) {
-      if (type.isAdapted()) {
-         coloredCutoutModelCopyLayerRender(this.getParentModel(), this.model, ARROW_LOCATION, stack, bufferSource, p_117351_, type, p_117353_, p_117354_, p_117355_, p_117356_, p_117357_, p_117358_, 1.0F, 1.0F, 1.0F);
-      }
 
-   }
+    @Override
+    public void render(PoseStack stack, MultiBufferSource bufferSource, int p_117351_, T type, float p_117353_, float p_117354_, float p_117355_, float p_117356_, float p_117357_, float p_117358_) {
+        if (type.isAdapted()){
+            coloredCutoutModelCopyLayerRender(this.getParentModel(), this.model, ARROW_LOCATION, stack, bufferSource, p_117351_, type, p_117353_, p_117354_, p_117355_, p_117356_, p_117357_, p_117358_, 1, 1, 1);
+        }
+    }
 }

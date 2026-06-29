@@ -454,6 +454,3 @@ public final class SporeAttackUtil implements IAttack {
         }
     }
 }
-
-
-

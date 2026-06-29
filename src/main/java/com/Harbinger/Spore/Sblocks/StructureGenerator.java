@@ -9,17 +9,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
+import java.util.List;
+
 public interface StructureGenerator {
-   default void generateStructure(ServerLevel level, ResourceLocation location, BlockPos pos, Block block) {
-      StructureTemplate template = level.getStructureManager().getOrCreate(location);
+    default void generateStructure(ServerLevel level, ResourceLocation location, BlockPos pos, Block block){
 
-      for(StructureTemplate.StructureBlockInfo blockInfo : template.filterBlocks(pos, new StructurePlaceSettings(), block)) {
-         this.placeBlock(level, blockInfo.state(), blockInfo.pos());
-      }
+        StructureTemplate template = level.getStructureManager().getOrCreate(location);
+        List<StructureTemplate.StructureBlockInfo> info = template.filterBlocks(pos,new StructurePlaceSettings(),block);
+        for (StructureTemplate.StructureBlockInfo blockInfo : info){
+            placeBlock(level,blockInfo.state(),blockInfo.pos());
+        }
+    }
 
-   }
-
-   default void placeBlock(Level level, BlockState state, BlockPos pos) {
-      level.setBlock(pos, state, 3);
-   }
+    default void placeBlock(Level level,BlockState state,BlockPos pos){
+        level.setBlock(pos,state,3);
+    }
 }

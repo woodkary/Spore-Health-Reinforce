@@ -136,6 +136,20 @@
       "spore:scientist_fuse"
     ]
   },
+  "spitter_spit" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:spitter_spit1",
+      "spore:spitter_spit2"
+    ]
+  },
+  "spitter_vomit" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:spitter_minigun",
+      "spore:spitter_minigun2"
+    ]
+  },
   "kraken_growl" :{
   "subtitle": "sounds.spore.growl",
   "sounds": [
@@ -648,6 +662,93 @@
       "spore:infected_villager_ambient"
     ]
   },
+  "hollen_ambient" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:hollen_ambient",
+      "spore:hollen_ambient2",
+      "spore:hollen_ambient3"
+    ]
+  },
+  "hollen_spit" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:hollen_spit1",
+      "spore:hollen_spit2"
+    ]
+  },
+  "hollen_stab" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:hollen_stab",
+      "spore:hollen_stab2"
+    ]
+  },
+  "verfall_ambient" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_body_headless",
+      "spore:verfall_body_headless2"
+    ]
+  },
+  "verfall_tar_head_ambient" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_tar_ambient",
+      "spore:verfall_tar_ambient2"
+    ]
+  },
+  "verfall_sonic_head_ambient" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_sonic_ambient",
+      "spore:verfall_sonic_ambient2"
+    ]
+  },
+  "verfall_flap" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfalldrache_flap_1",
+      "spore:verfalldrache_flap_2"
+    ]
+  },
+  "verfall_electricity_attack" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_big_shock"
+    ]
+  },
+  "verfall_special_attack" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_electric_tar_flame_blast"
+    ]
+  },
+  "verfall_neck_regrow" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_neck_regrow"
+    ]
+  },
+  "verfall_head_regrow" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_head_regrow"
+    ]
+  },
+  "verfall_attack" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_tail_whip"
+    ]
+  },
+  "verfall_tar_attack" :{
+    "subtitle": "sounds.spore.growl",
+    "sounds": [
+      "spore:verfall_tar_spit",
+      "spore:verfall_tar_spit2"
+    ]
+  },
   "scientist_ambient" :{
     "subtitle": "sounds.spore.growl",
     "sounds": [
@@ -900,6 +1001,13 @@
   "sounds": [
     "spore:syringe_inject"
   ]
+},"fire_explosion" :{
+  "subtitle": "sounds.spore.weapon_use",
+  "sounds": [
+    "spore:ignited1",
+    "spore:ignited2",
+    "spore:ignited3"
+  ]
 },"reagent" :{
   "subtitle": "sounds.spore.weapon_use",
   "sounds": [
@@ -1013,6 +1121,18 @@
   "sounds": [
     "spore:bile_blaster_bullet_entity",
     "spore:bile_blaster_bullet_entity2"
+  ]
+},"terroriser_shot" :{
+  "subtitle": "sounds.spore.weapon_use",
+  "sounds": [
+    "spore:terroriser_shot_1",
+    "spore:terroriser_shot_2"
+  ]
+},"terroriser_projectile" :{
+  "subtitle": "sounds.spore.weapon_use",
+  "sounds": [
+    "spore:terroriser_projectile1",
+    "spore:terroriser_projectile2"
   ]
 },"assassin_shot" :{
   "subtitle": "sounds.spore.weapon_use",
@@ -1158,7 +1278,7 @@
 },"repurposed" :{
   "subtitle": "sounds.spore.song",
   "sounds": [
-    "spore:post_proto/repurposed"
+    "spore:post_proto/repurpose"
   ]
 },"restless_reach" :{
   "subtitle": "sounds.spore.song",

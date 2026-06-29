@@ -300,4 +300,3 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
         }
     }
 }
-

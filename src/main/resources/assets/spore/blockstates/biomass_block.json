@@ -1,23 +1,6 @@
 {
   "variants": {
-    "lit=false": [
-      {
-        "model": "spore:block/biomass_block"
-      },
-      {
-        "model": "spore:block/biomass_block",
-        "y": 90
-      },
-      {
-        "model": "spore:block/biomass_block",
-        "y": 180
-      },
-      {
-        "model": "spore:block/biomass_block",
-        "y": 270
-      }
-    ],
-    "lit=true": [
+    "": [
       {
         "model": "spore:block/biomass_block"
       },

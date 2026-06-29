@@ -1,56 +1,58 @@
 package com.Harbinger.Spore.Particles;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class GoreBulletParticle extends TextureSheetParticle {
-   protected GoreBulletParticle(ClientLevel level, double xCoord, double yCoord, double zCoord, double r, double g, double b) {
-      super(level, xCoord, yCoord, zCoord, (double)0.0F, -0.02, (double)0.0F);
-      this.gravity = 1.0F;
-      this.hasPhysics = true;
-      this.friction = 0.0F;
-      this.xd = (double)0.0F;
-      this.yd = -0.03;
-      this.zd = (double)0.0F;
-      this.quadSize *= 1.2F;
-      this.lifetime = 50;
-      this.rCol = (float)r;
-      this.gCol = (float)g;
-      this.bCol = (float)b;
-   }
 
-   public void tick() {
-      super.tick();
-      this.fadeOut();
-   }
+    protected GoreBulletParticle(ClientLevel level, double xCoord, double yCoord, double zCoord, double r, double g, double b) {
+        super(level, xCoord, yCoord, zCoord, 0,-0.02,0);
+        this.gravity = 1f;
+        this.hasPhysics = true;
+        this.friction = 0F;
+        this.xd = 0;
+        this.yd = -0.03;
+        this.zd = 0;
+        this.quadSize *= 1.2F;
+        this.lifetime = 50;
 
-   private void fadeOut() {
-      this.alpha = -(1.0F / (float)this.lifetime) * (float)this.age + 1.0F;
-   }
+        this.rCol = (float) r;
+        this.gCol = (float) g;
+        this.bCol = (float) b;
+    }
 
-   public ParticleRenderType getRenderType() {
-      return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
-   }
+    @Override
+    public void tick() {
+        super.tick();
+        fadeOut();
+    }
 
-   @OnlyIn(Dist.CLIENT)
-   public static class Provider implements ParticleProvider<SimpleParticleType> {
-      private final SpriteSet sprites;
+    private void fadeOut() {
+        this.alpha = (-(1/(float)lifetime) * age + 1);
+    }
 
-      public Provider(SpriteSet spriteSet) {
-         this.sprites = spriteSet;
-      }
+    @Override
+    public ParticleRenderType getRenderType() {
+        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    }
 
-      public Particle createParticle(SimpleParticleType particleType, ClientLevel level, double x, double y, double z, double dx, double dy, double dz) {
-         GoreBulletParticle particle = new GoreBulletParticle(level, x, y, z, dx, dy, dz);
-         particle.pickSprite(this.sprites);
-         return particle;
-      }
-   }
+    @OnlyIn(Dist.CLIENT)
+    public static class Provider implements ParticleProvider<SimpleParticleType> {
+        private final SpriteSet sprites;
+
+        public Provider(SpriteSet spriteSet) {
+            this.sprites = spriteSet;
+        }
+
+        public Particle createParticle(SimpleParticleType particleType, ClientLevel level,
+                                       double x, double y, double z,
+                                       double dx, double dy, double dz) {
+            GoreBulletParticle particle = new GoreBulletParticle(level, x, y, z, dx, dy, dz);
+            particle.pickSprite(sprites);
+            return particle;
+        }
+    }
 }

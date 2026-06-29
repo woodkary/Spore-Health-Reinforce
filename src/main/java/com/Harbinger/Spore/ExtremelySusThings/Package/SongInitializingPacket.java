@@ -1,29 +1,31 @@
 package com.Harbinger.Spore.ExtremelySusThings.Package;
 
 import com.Harbinger.Spore.Client.MusicManager.SporeMusicPlayer;
-import java.util.function.Supplier;
+import com.Harbinger.Spore.ExtremelySusThings.ClientUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
-public record SongInitializingPacket(int id, boolean val, boolean pro) {
-   public SongInitializingPacket(FriendlyByteBuf buffer) {
-      this(buffer.readInt(), buffer.readBoolean(), buffer.readBoolean());
-   }
+import java.util.function.Supplier;
 
-   public void encode(FriendlyByteBuf buffer) {
-      buffer.writeInt(this.id());
-      buffer.writeBoolean(this.val());
-      buffer.writeBoolean(this.pro());
-   }
 
-   public static void handle(SongInitializingPacket message, Supplier context) {
-      ((NetworkEvent.Context)context.get()).enqueueWork(() -> {
-         if (((NetworkEvent.Context)context.get()).getDirection().getReceptionSide().isClient()) {
-            SporeMusicPlayer.handlePacket(message.pro(), message.id, message.val);
-            System.out.print("Song_Package_Sent");
-         }
-
-      });
-      ((NetworkEvent.Context)context.get()).setPacketHandled(true);
-   }
+public record SongInitializingPacket(int id , boolean val,boolean pro){
+    public SongInitializingPacket(FriendlyByteBuf buffer) {
+        this(buffer.readInt(),buffer.readBoolean(),buffer.readBoolean());
+    }
+    public void encode(FriendlyByteBuf buffer) {
+        buffer.writeInt(id());
+        buffer.writeBoolean(val());
+        buffer.writeBoolean(pro());
+    }
+    public static void handle(SongInitializingPacket message, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> {
+            if (context.get().getDirection().getReceptionSide().isClient()) {
+                SporeMusicPlayer.handlePacket(message.pro(), message.id,message.val);
+                System.out.print("Song_Package_Sent");
+            }
+        });
+        context.get().setPacketHandled(true);
+    }
 }

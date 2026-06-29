@@ -8,14 +8,14 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class UsurperVomitRenderer extends EntityRenderer<VomitUsurperBall> {
-   public static final ResourceLocation LOCATION = new ResourceLocation("");
+public class UsurperVomitRenderer<T extends VomitUsurperBall>extends EntityRenderer<T> {
+    public static final ResourceLocation LOCATION =  new ResourceLocation("");
+    public UsurperVomitRenderer(EntityRendererProvider.Context context) {
+        super(context);
+    }
 
-   public UsurperVomitRenderer(EntityRendererProvider.Context context) {
-      super(context);
-   }
-
-   public ResourceLocation getTextureLocation(VomitUsurperBall t) {
-      return LOCATION;
-   }
+    @Override
+    public ResourceLocation getTextureLocation(T t) {
+        return LOCATION;
+    }
 }

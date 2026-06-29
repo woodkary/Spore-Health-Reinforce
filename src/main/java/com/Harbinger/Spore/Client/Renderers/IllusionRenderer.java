@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Client.Renderers;
 
 import com.Harbinger.Spore.Sentities.Utility.Illusion;
+import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -15,86 +16,79 @@ import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public class IllusionRenderer extends EntityRenderer<Illusion> {
-   private final EntityRenderDispatcher entityRenderer;
-   private static final ResourceLocation TEXTURE = new ResourceLocation("spore", "");
+    private final EntityRenderDispatcher entityRenderer;
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Spore.MODID, "");
 
-   public IllusionRenderer(EntityRendererProvider.Context context) {
-      super(context);
-      this.entityRenderer = context.getEntityRenderDispatcher();
-   }
+    public IllusionRenderer(EntityRendererProvider.Context context) {
+        super(context);
+        this.entityRenderer = context.getEntityRenderDispatcher();
+    }
 
-   public ResourceLocation getTextureLocation(Illusion illusion) {
-      return TEXTURE;
-   }
 
-   protected float getBob(Illusion illusion, float p_115306_) {
-      return (float)illusion.tickCount + p_115306_;
-   }
 
-   public void render(Illusion illusion, float value1, float value2, PoseStack stack, MultiBufferSource source, int light) {
-      if (illusion.getSeeAble()) {
-         this.renderIllusions(illusion, value2, stack, source, light);
-      } else {
-         Entity var8 = Minecraft.getInstance().cameraEntity;
-         if (var8 instanceof Player) {
-            Player player = (Player)var8;
-            if (player.getId() == illusion.getTargetId()) {
-               this.renderIllusions(illusion, value2, stack, source, light);
+    @Override
+    public ResourceLocation getTextureLocation(Illusion illusion) {
+        return TEXTURE;
+    }
+
+    protected float getBob(Illusion illusion, float p_115306_) {
+        return (float)illusion.tickCount + p_115306_;
+    }
+
+    @Override
+    public void render(Illusion illusion, float value1, float value2, PoseStack stack, MultiBufferSource source, int light) {
+        if (illusion.getSeeAble()){
+            renderIllusions(illusion,value2,stack,source,light);
+        }else{
+            if (Minecraft.getInstance().cameraEntity instanceof Player player && player.getId() == illusion.getTargetId()){
+                renderIllusions(illusion,value2,stack,source,light);
             }
-         }
-      }
+        }
+        super.render(illusion, value1, value2, stack, source, light);
+    }
 
-      super.render(illusion, value1, value2, stack, source, light);
-   }
+    public void renderIllusions(Illusion illusion,float value2,PoseStack stack,MultiBufferSource source,int light){
+        ResourceLocation location = new ResourceLocation(illusion.getBody());
+        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(location);
+        LivingEntity entity = (LivingEntity) entityType.create(illusion.level());
+        float f = Mth.rotLerp(value2, illusion.yBodyRotO, illusion.yBodyRot);
+        float f1 = Mth.rotLerp(value2, illusion.yHeadRotO, illusion.yHeadRot);
+        float f2 = f1 - f;
+        float f6 = Mth.lerp(value2, illusion.xRotO, illusion.getXRot());
+        float f7 = this.getBob(illusion, value2);
+        float f8 = 0.0F;
+        float f5 = 0.0F;
+        if (illusion.isAlive()) {
+            f8 = illusion.walkAnimation.speed(value2);
+            f5 = illusion.walkAnimation.position(value2);
+            if (illusion.isBaby()) {
+                f5 *= 3.0F;
+            }
 
-   public void renderIllusions(Illusion illusion, float value2, PoseStack stack, MultiBufferSource source, int light) {
-      ResourceLocation location = new ResourceLocation(illusion.getBody());
-      EntityType<?> entityType = (EntityType)ForgeRegistries.ENTITY_TYPES.getValue(location);
-      LivingEntity entity = (LivingEntity)entityType.create(illusion.level());
-      float f = Mth.rotLerp(value2, illusion.yBodyRotO, illusion.yBodyRot);
-      float f1 = Mth.rotLerp(value2, illusion.yHeadRotO, illusion.yHeadRot);
-      float f2 = f1 - f;
-      float f6 = Mth.lerp(value2, illusion.xRotO, illusion.getXRot());
-      float f7 = this.getBob(illusion, value2);
-      float f8 = 0.0F;
-      float f5 = 0.0F;
-      if (illusion.isAlive()) {
-         f8 = illusion.walkAnimation.speed(value2);
-         f5 = illusion.walkAnimation.position(value2);
-         if (illusion.isBaby()) {
-            f5 *= 3.0F;
-         }
-
-         if (f8 > 1.0F) {
-            f8 = 1.0F;
-         }
-      }
-
-      if (entity != null) {
-         stack.pushPose();
-         stack.mulPose(Axis.YP.rotationDegrees(-illusion.yBodyRot));
-         stack.mulPose(Axis.XP.rotationDegrees(180.0F));
-         stack.translate((double)0.0F, (double)-1.5F, (double)0.0F);
-         EntityRenderer var17 = this.entityRenderer.getRenderer(entity);
-         if (var17 instanceof MobRenderer) {
-            MobRenderer mobRenderer = (MobRenderer)var17;
-            EntityModel model = mobRenderer.getModel();
-            ResourceLocation texture = mobRenderer.getTextureLocation(entity);
-            VertexConsumer consumer = source.getBuffer(RenderType.entityTranslucent(texture));
-            model.prepareMobModel(entity, f5, f8, value2);
-            model.setupAnim(entity, f5, f8, f7, f2, f6);
-            model.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-         }
-
-         stack.popPose();
-      }
-
-   }
+            if (f8 > 1.0F) {
+                f8 = 1.0F;
+            }
+        }
+        if (entity != null){
+            stack.pushPose();
+            stack.mulPose(Axis.YP.rotationDegrees(-illusion.yBodyRot));
+            stack.mulPose(Axis.XP.rotationDegrees(180));
+            stack.translate(0,-1.5,0);
+            if (entityRenderer.getRenderer(entity) instanceof MobRenderer mobRenderer){
+                EntityModel model = mobRenderer.getModel();
+                ResourceLocation texture = mobRenderer.getTextureLocation(entity);
+                VertexConsumer consumer = source.getBuffer(RenderType.entityTranslucent(texture));
+                model.prepareMobModel(entity, f5, f8, value2);
+                model.setupAnim(entity, f5, f8, f7, f2, f6);
+                model.renderToBuffer(stack,consumer,light, OverlayTexture.NO_OVERLAY,1,1,1,1);
+            }
+            stack.popPose();
+        }
+    }
 }

@@ -5,15 +5,17 @@ import com.Harbinger.Spore.Sitems.BaseWeapons.DamagePiercingModifier;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 
 public class InfectedMace extends SporeToolsBaseItem implements DamagePiercingModifier {
-   public InfectedMace() {
-      super((double)(Integer)SConfig.SERVER.mace_damage.get(), (double)2.0F, (double)3.0F, (Integer)SConfig.SERVER.mace_durability.get(), 1, "mace");
-   }
+    public InfectedMace() {
+        super(SConfig.SERVER.mace_damage.get(), 2f, 3, SConfig.SERVER.mace_durability.get(), 1,"mace");
+    }
 
-   public float getMinimalDamage(float damage) {
-      return (float)(Integer)SConfig.SERVER.mace_damage.get() * 0.15F;
-   }
+    @Override
+    public float getMinimalDamage(float damage) {
+        return SConfig.SERVER.mace_damage.get() * 0.15f;
+    }
 
-   public boolean doesExtraKnockBack() {
-      return true;
-   }
+    @Override
+    public boolean doesExtraKnockBack() {
+        return true;
+    }
 }

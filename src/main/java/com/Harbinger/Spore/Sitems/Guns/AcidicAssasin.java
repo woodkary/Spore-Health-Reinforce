@@ -12,71 +12,80 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 public class AcidicAssasin extends AbstractSporeGun implements CustomModelArmorData {
-   private static final ResourceLocation TEXTURE = new ResourceLocation("spore:textures/item/acidic_assasin.png");
+    private static final ResourceLocation TEXTURE =new ResourceLocation("spore:textures/item/acidic_assasin.png");
+    public AcidicAssasin() {
+        super(SConfig.SERVER.acidic_assassin_durability.get());
+    }
 
-   public AcidicAssasin() {
-      super((Integer)SConfig.SERVER.acidic_assassin_durability.get());
-   }
+    @Override
+    public boolean needsToReload() {
+        return true;
+    }
 
-   public boolean needsToReload() {
-      return true;
-   }
+    @Override
+    public int getDefaultTimeBeforeReload() {
+        return 80;
+    }
 
-   public int getDefaultTimeBeforeReload() {
-      return 80;
-   }
+    @Override
+    public int getTimeBeforeChangingClip(ItemStack stack) {
+        return 40;
+    }
 
-   public int getTimeBeforeChangingClip(ItemStack stack) {
-      return 40;
-   }
+    @Override
+    public int timeBeforeStomachContentsConvertIntoAmmo() {
+        return 200;
+    }
 
-   public int timeBeforeStomachContentsConvertIntoAmmo() {
-      return 200;
-   }
+    @Override
+    public int getClipSize() {
+        return 6;
+    }
 
-   public int getClipSize() {
-      return 6;
-   }
+    @Override
+    public Item getAmmoItem() {
+        return Sitems.ACID_VIAL.get();
+    }
 
-   public Item getAmmoItem() {
-      return (Item)Sitems.ACID_VIAL.get();
-   }
+    @Override
+    public void triggerReloadAnimation(Player player) {
+        super.triggerReloadAnimation(player);
+        AssassinReloadAnimationTracker.trigger(player);
+    }
 
-   public void triggerReloadAnimation(Player player) {
-      super.triggerReloadAnimation(player);
-      AssassinReloadAnimationTracker.trigger(player);
-   }
+    @Override
+    public void clientShoot(Player player, InteractionHand interactionHand) {
+        AssassinShootAnimationTracker.trigger(player);
+    }
 
-   public void clientShoot(Player player, InteractionHand interactionHand) {
-      AssassinShootAnimationTracker.trigger(player);
-   }
+    @Override
+    public void serverShoot(ItemStack stack, ServerPlayer player, InteractionHand hand, Vec3 vec3) {
+        super.serverShoot(stack, player, hand, vec3);
+        int getVar = this.getTypeVariant(stack);
+        AssassinBullet bullet = new AssassinBullet(Sentities.ASSASSIN_BULLET.get(),player.level());
+        bullet.setVariant(getVar);
+        bullet.moveTo(player.getX()+vec3.x, player.getY()+1.25D ,player.getZ()+vec3.z);
+        bullet.shootFrom(player,7,0,(float) calculateTrueDamage(stack,SConfig.SERVER.acidic_assassin_damage.get()));
+        player.level().addFreshEntity(bullet);
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                Ssounds.ASSASSIN_SHOT.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
+    }
 
-   public void serverShoot(ItemStack stack, ServerPlayer player, InteractionHand hand, Vec3 vec3) {
-      super.serverShoot(stack, player, hand, vec3);
-      int getVar = this.getTypeVariant(stack);
-      AssassinBullet bullet = new AssassinBullet((EntityType)Sentities.ASSASSIN_BULLET.get(), player.level());
-      bullet.setVariant(getVar);
-      bullet.moveTo(player.getX() + vec3.x, player.getY() + (double)1.25F, player.getZ() + vec3.z);
-      bullet.shootFrom(player, 7.0F, 0.0F, (float)this.calculateTrueDamage(stack, (double)(Integer)SConfig.SERVER.acidic_assassin_damage.get()));
-      player.level().addFreshEntity(bullet);
-      player.level().playSound((Player)null, player.getX(), player.getY(), player.getZ(), (SoundEvent)Ssounds.ASSASSIN_SHOT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
-   }
+    @Override
+    public ResourceLocation getTextureLocation() {
+        return TEXTURE;
+    }
 
-   public ResourceLocation getTextureLocation() {
-      return TEXTURE;
-   }
-
-   public Component extraTips() {
-      return Component.translatable("spore.item.desc.assassin").withStyle(ChatFormatting.GREEN);
-   }
+    @Override
+    public Component extraTips() {
+        return Component.translatable("spore.item.desc.assassin").withStyle(ChatFormatting.GREEN);
+    }
 }

@@ -19,64 +19,67 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class WaveEntity extends UtilityEntity {
-   public PathfinderMob owner;
-   private int life;
+    public PathfinderMob owner;
+    private int life;
+    public WaveEntity(EntityType<? extends PathfinderMob> type, Level level) {
+        super(type, level);
+    }
+    public WaveEntity(Level level,PathfinderMob entity){
+        super(Sentities.WAVE.get(),level);
+        this.owner = entity;
+        this.life = 160;
+        this.moveTo(owner.getX(),owner.getY(),owner.getZ());
+        this.setTarget(owner.getTarget());
+        this.setMaxUpStep(1);
+    }
 
-   public WaveEntity(EntityType type, Level level) {
-      super(type, level);
-   }
 
-   public WaveEntity(Level level, PathfinderMob entity) {
-      super((EntityType)Sentities.WAVE.get(), level);
-      this.owner = entity;
-      this.life = 160;
-      this.moveTo(this.owner.getX(), this.owner.getY(), this.owner.getZ());
-      this.setTarget(this.owner.getTarget());
-      this.setMaxUpStep(1.0F);
-   }
+    @Override
+    public void tick() {
+        super.tick();
+        if(life <= 0 || this.owner == null || this.getTarget() == null){
+            this.discard();
+        }else{
+            life--;
+        }
+    }
 
-   public void tick() {
-      super.tick();
-      if (this.life > 0 && this.owner != null && this.getTarget() != null) {
-         --this.life;
-      } else {
-         this.discard();
-      }
+    @Override
+    protected void registerGoals() {
+        this.goalSelector.addGoal(1, new AOEMeleeAttackGoal(this, 1.1,false,2,1,livingEntity -> {return TARGET_SELECTOR.test(livingEntity);}));
+        super.registerGoals();
+    }
 
-   }
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes()
+                .add(Attributes.MAX_HEALTH, 1)
+                .add(Attributes.MOVEMENT_SPEED, 0.35)
+                .add(Attributes.ATTACK_DAMAGE, 10)
+                .add(Attributes.FOLLOW_RANGE, 16);
+    }
 
-   protected void registerGoals() {
-      this.goalSelector.addGoal(1, new AOEMeleeAttackGoal(this, 1.1, false, (double)2.0F, 1.0F, (livingEntity) -> this.TARGET_SELECTOR.test(livingEntity)));
-      super.registerGoals();
-   }
+    @Override
+    public boolean hurt(DamageSource p_21016_, float p_21017_) {
+        return false;
+    }
 
-   public static AttributeSupplier.Builder createAttributes() {
-      return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, (double)1.0F).add(Attributes.MOVEMENT_SPEED, 0.35).add(Attributes.ATTACK_DAMAGE, (double)10.0F).add(Attributes.FOLLOW_RANGE, (double)16.0F);
-   }
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        BlockState block = level().getBlockState(this.getOnPos());
+        Item item = block.getBlock().asItem();
+        double x =this.getX() + this.random.nextInt(-2,2);
+        double z =this.getZ() + this.random.nextInt(-2,2);
+        if (item != ItemStack.EMPTY.getItem()  && this.level() instanceof ServerLevel serverLevel){
+            serverLevel.sendParticles(new ItemParticleOption(ParticleTypes.ITEM,new ItemStack(item)),x,this.getY(),z,3,
+                    ((double) this.random.nextFloat() - 1D) * 0.08D, ((double) this.random.nextFloat() - 1D) * 0.08D, ((double) this.random.nextFloat() - 1D) * 0.08D, 0.15F);
+        }
+    }
 
-   public boolean hurt(DamageSource p_21016_, float p_21017_) {
-      return false;
-   }
-
-   public void aiStep() {
-      super.aiStep();
-      BlockState block = this.level().getBlockState(this.getOnPos());
-      Item item = block.getBlock().asItem();
-      double x = this.getX() + (double)this.random.nextInt(-2, 2);
-      double z = this.getZ() + (double)this.random.nextInt(-2, 2);
-      if (item != ItemStack.EMPTY.getItem()) {
-         Level var8 = this.level();
-         if (var8 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var8;
-            serverLevel.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(item)), x, this.getY(), z, 3, ((double)this.random.nextFloat() - (double)1.0F) * 0.08, ((double)this.random.nextFloat() - (double)1.0F) * 0.08, ((double)this.random.nextFloat() - (double)1.0F) * 0.08, (double)0.15F);
-         }
-      }
-
-   }
-
-   public boolean doHurtTarget(Entity entity) {
-      entity.setDeltaMovement(entity.getDeltaMovement().add((double)0.0F, 0.1, (double)0.0F));
-      this.discard();
-      return super.doHurtTarget(entity);
-   }
+    @Override
+    public boolean doHurtTarget(Entity entity) {
+        entity.setDeltaMovement(entity.getDeltaMovement().add(0,0.1,0));
+        this.discard();
+        return super.doHurtTarget(entity);
+    }
 }

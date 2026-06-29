@@ -8,74 +8,77 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class TintedBufferSource implements MultiBufferSource {
-   private final MultiBufferSource original;
-   private final float r;
-   private final float g;
-   private final float b;
-   private final float a;
+    private final MultiBufferSource original;
+    private final float r, g, b, a;
 
-   public TintedBufferSource(MultiBufferSource original, float r, float g, float b, float a) {
-      this.original = original;
-      this.r = r;
-      this.g = g;
-      this.b = b;
-      this.a = a;
-   }
+    public TintedBufferSource(MultiBufferSource original, float r, float g, float b, float a) {
+        this.original = original;
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
 
-   public VertexConsumer getBuffer(RenderType renderType) {
-      VertexConsumer base = this.original.getBuffer(renderType);
-      return new TintedVertexConsumer(base, this.r, this.g, this.b, this.a);
-   }
+    @Override
+    public VertexConsumer getBuffer(RenderType renderType) {
+        VertexConsumer base = original.getBuffer(renderType);
+        return new TintedVertexConsumer(base, r, g, b, a);
+    }
+    public static class TintedVertexConsumer implements VertexConsumer {
+        private final VertexConsumer base;
+        private final float r, g, b, a;
 
-   public static class TintedVertexConsumer implements VertexConsumer {
-      private final VertexConsumer base;
-      private final float r;
-      private final float g;
-      private final float b;
-      private final float a;
+        public TintedVertexConsumer(VertexConsumer base, float r, float g, float b, float a) {
+            this.base = base;
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+        }
 
-      public TintedVertexConsumer(VertexConsumer base, float r, float g, float b, float a) {
-         this.base = base;
-         this.r = r;
-         this.g = g;
-         this.b = b;
-         this.a = a;
-      }
+        @Override
+        public VertexConsumer vertex(double x, double y, double z) {
+            return base.vertex(x, y, z);
+        }
 
-      public VertexConsumer vertex(double x, double y, double z) {
-         return this.base.vertex(x, y, z);
-      }
+        @Override
+        public VertexConsumer color(int red, int green, int blue, int alpha) {
+            return base.color((int)(red * r), (int)(green * g), (int)(blue * b), (int)(alpha * a));
+        }
 
-      public VertexConsumer color(int red, int green, int blue, int alpha) {
-         return this.base.color((int)((float)red * this.r), (int)((float)green * this.g), (int)((float)blue * this.b), (int)((float)alpha * this.a));
-      }
+        @Override
+        public VertexConsumer uv(float u, float v) {
+            return base.uv(u, v);
+        }
 
-      public VertexConsumer uv(float u, float v) {
-         return this.base.uv(u, v);
-      }
+        @Override
+        public VertexConsumer overlayCoords(int u, int v) {
+            return base.overlayCoords(u, v);
+        }
 
-      public VertexConsumer overlayCoords(int u, int v) {
-         return this.base.overlayCoords(u, v);
-      }
+        @Override
+        public VertexConsumer uv2(int u, int v) {
+            return base.uv2(u, v);
+        }
 
-      public VertexConsumer uv2(int u, int v) {
-         return this.base.uv2(u, v);
-      }
+        @Override
+        public VertexConsumer normal(float x, float y, float z) {
+            return base.normal(x, y, z);
+        }
 
-      public VertexConsumer normal(float x, float y, float z) {
-         return this.base.normal(x, y, z);
-      }
+        @Override
+        public void endVertex() {
+            base.endVertex();
+        }
 
-      public void endVertex() {
-         this.base.endVertex();
-      }
+        @Override
+        public void defaultColor(int red, int green, int blue, int alpha) {
+            base.defaultColor((int)(red * r), (int)(green * g), (int)(blue * b), (int)(alpha * a));
+        }
 
-      public void defaultColor(int red, int green, int blue, int alpha) {
-         this.base.defaultColor((int)((float)red * this.r), (int)((float)green * this.g), (int)((float)blue * this.b), (int)((float)alpha * this.a));
-      }
-
-      public void unsetDefaultColor() {
-         this.base.unsetDefaultColor();
-      }
-   }
+        @Override
+        public void unsetDefaultColor() {
+            base.unsetDefaultColor();
+        }
+    }
 }

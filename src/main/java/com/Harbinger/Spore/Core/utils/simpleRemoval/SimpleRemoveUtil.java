@@ -167,7 +167,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         try {
             target.levelCallback.onMove();
         }catch (Exception e) {}
-        
+
     }
     private void setPosRaw(Entity target, double x, double y, double z) {
         if (target.position.x != x || target.position.y != y|| target.position.z != z) {
@@ -612,7 +612,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         EntityTickList entityTickList = clientLevel.tickingEntities;
         ensureActiveIsNotIterated(entityTickList);
         MethodHandleUtil.INSTANCE.fastRemove(entityTickList.active,entity.id);
-        
+
 
         onTrackingEnd(clientLevel,entity);
         manager.callbacks.onDestroyed((T) entity);

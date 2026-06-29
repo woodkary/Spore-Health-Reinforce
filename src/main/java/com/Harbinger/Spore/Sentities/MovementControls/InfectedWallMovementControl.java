@@ -5,22 +5,25 @@ import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.phys.Vec3;
 
 public class InfectedWallMovementControl extends MoveControl {
-   private final Mob mob;
+    private final Mob mob;
+    public InfectedWallMovementControl(Mob mob) {
+        super(mob);
+        this.mob = mob;
+    }
 
-   public InfectedWallMovementControl(Mob mob) {
-      super(mob);
-      this.mob = mob;
-   }
+    @Override
+    public void tick() {
+        super.tick();
+        if (mob.getTarget() != null && mob.getTarget().getY() <= this.mob.getY()){
+            return;
+        }else {
+            if (mob.horizontalCollision) {
+                Vec3 initialVec = mob.getDeltaMovement();
+                Vec3 climbVec = new Vec3(initialVec.x, 0.2D, initialVec.z);
+                mob.setDeltaMovement(climbVec.x * 0.91D,
+                        climbVec.y * 0.98D, climbVec.z * 0.91D);
+            }
+        }
 
-   public void tick() {
-      super.tick();
-      if (this.mob.getTarget() == null || !(this.mob.getTarget().getY() <= this.mob.getY())) {
-         if (this.mob.horizontalCollision) {
-            Vec3 initialVec = this.mob.getDeltaMovement();
-            Vec3 climbVec = new Vec3(initialVec.x, 0.2, initialVec.z);
-            this.mob.setDeltaMovement(climbVec.x * 0.91, climbVec.y * 0.98, climbVec.z * 0.91);
-         }
-
-      }
-   }
+    }
 }

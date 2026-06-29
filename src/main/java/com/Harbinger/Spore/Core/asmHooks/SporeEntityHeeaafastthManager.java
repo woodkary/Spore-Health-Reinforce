@@ -98,12 +98,14 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getMaxHeeaafastth(LivingEntity entity){
+        entity = getHealthOwner(entity);
         IFloatEntry v = entityMaxHeeaafastth.get(entity);
         return FloatEntry.INSTANCE.isValidHealthValue(v) ? v.getFloatValue() : getAttributeMaxHealth(entity);
     }
 
     @Override
     public void setMaxHeeaafastth(LivingEntity entity,float maxHealth){
+        entity = getHealthOwner(entity);
         entityMaxHeeaafastth.put(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
     }
 
@@ -125,18 +127,21 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public void removeSporeEntity(LivingEntity entity) {
+        entity = getHealthOwner(entity);
         etiHeuahMape.remove(entity);
         entityMaxHeeaafastth.remove(entity);
     }
 
     @Override
     public void setHeeaafastth(LivingEntity entity, float health) {
+        entity = getHealthOwner(entity);
         etiHeuahMape.put(entity,FloatEntry.INSTANCE.newInstance(health));
         HealthPacketHandler.sendToClient(new HealthDataPacket(entity.id, health,false));
     }
 
     @Override
     public void setHeeaafastthLocal(LivingEntity entity, float health) {
+        entity = getHealthOwner(entity);
         etiHeuahMape.put(entity, FloatEntry.INSTANCE.newInstance(health));
     }
     //假设amount>0
@@ -147,6 +152,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public float getHeeaafastth(LivingEntity entity) {
+        entity = getHealthOwner(entity);
         float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(entity,entityHealthJudge), 0.0f);
         if(entity instanceof IFakeDataHealthEntity fakeHealth){
             float zeroDelta=fakeHealth.getDefault0HllealthDelta()+entity.entityData.get(LivingEntity.DATA_HEALTH_ID);
@@ -332,4 +338,3 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
         }
     }
 }
-

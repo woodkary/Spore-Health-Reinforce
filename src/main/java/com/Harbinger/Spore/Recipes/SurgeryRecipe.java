@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Recipes;
 
+import com.Harbinger.Spore.Spore;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
@@ -9,110 +10,110 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 public class SurgeryRecipe implements Recipe<SimpleContainer> {
-   private final NonNullList<Ingredient> inputItems;
-   private final ItemStack output;
-   private final ResourceLocation id;
+    private final NonNullList<Ingredient> inputItems;
+    private final ItemStack output;
+    private final ResourceLocation id;
 
-   public SurgeryRecipe(NonNullList<Ingredient> inputItems, ItemStack output, ResourceLocation id) {
-      this.inputItems = inputItems;
-      this.output = output;
-      this.id = id;
-   }
+    public SurgeryRecipe(NonNullList<Ingredient> inputItems, ItemStack output, ResourceLocation id) {
+        this.inputItems = inputItems;
+        this.output = output;
+        this.id = id;
+    }
 
-   public NonNullList<Ingredient> getIngredients() {
-      return this.inputItems;
-   }
+    @Override
+    public NonNullList<Ingredient> getIngredients() {
+        return inputItems;
+    }
 
-   public boolean matches(SimpleContainer simpleContainer, Level level) {
-      if (!level.isClientSide() && simpleContainer.getContainerSize() >= 16) {
-         for(int i = 0; i < 16; ++i) {
-            if (!((Ingredient)this.inputItems.get(i)).test(simpleContainer.getItem(i))) {
-               return false;
+    @Override
+    public boolean matches(SimpleContainer simpleContainer, Level level) {
+        if (level.isClientSide() || simpleContainer.getContainerSize() < 16) {
+            return false;
+        }
+        for (int i = 0; i < 16; i++) {
+            if (!inputItems.get(i).test(simpleContainer.getItem(i))) {
+                return false;
             }
-         }
+        }
+        return true;
+    }
 
-         return true;
-      } else {
-         return false;
-      }
-   }
+    @Override
+    public ItemStack assemble(SimpleContainer simpleContainer, RegistryAccess registryAccess) {
+        return output == null ? ItemStack.EMPTY : output.copy();
+    }
 
-   public ItemStack assemble(SimpleContainer simpleContainer, RegistryAccess registryAccess) {
-      return this.output == null ? ItemStack.EMPTY : this.output.copy();
-   }
+    @Override
+    public boolean canCraftInDimensions(int width, int height) {
+        return true;
+    }
 
-   public boolean canCraftInDimensions(int width, int height) {
-      return true;
-   }
+    @Override
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
+        return output.copy();
+    }
 
-   public ItemStack getResultItem(RegistryAccess registryAccess) {
-      return this.output.copy();
-   }
+    @Override
+    public ResourceLocation getId() {
+        return id;
+    }
 
-   public ResourceLocation getId() {
-      return this.id;
-   }
+    @Override
+    public RecipeSerializer<?> getSerializer() {
+        return SurgeryRecipeSerializer.INSTANCE;
+    }
 
-   public RecipeSerializer<?> getSerializer() {
-      return SurgeryRecipeSerializer.INSTANCE;
-   }
+    @Override
+    public RecipeType<?> getType() {
+        return SurgeryRecipeType.INSTANCE;
+    }
 
-   public RecipeType<?> getType() {
-      return SurgeryRecipeType.INSTANCE;
-   }
+    public static class SurgeryRecipeType implements RecipeType<SurgeryRecipe> {
+        public static final SurgeryRecipeType INSTANCE = new SurgeryRecipeType();
+        public static final String ID = "surgery";
 
-   public static class SurgeryRecipeType implements RecipeType<SurgeryRecipe> {
-      public static final SurgeryRecipeType INSTANCE = new SurgeryRecipeType();
-      public static final String ID = "surgery";
+        private SurgeryRecipeType() {}
+    }
+    public static class SurgeryRecipeSerializer implements RecipeSerializer<SurgeryRecipe> {
+        public static final SurgeryRecipeSerializer INSTANCE = new SurgeryRecipeSerializer();
+        public static final ResourceLocation ID = new ResourceLocation(Spore.MODID, "surgery");
 
-      private SurgeryRecipeType() {
-      }
-   }
+        @Override
+        public SurgeryRecipe fromJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
+            ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(jsonObject, "output"));
+            JsonArray ingredients = GsonHelper.getAsJsonArray(jsonObject, "ingredients");
+            NonNullList<Ingredient> inputs = NonNullList.withSize(16, Ingredient.EMPTY);
 
-   public static class SurgeryRecipeSerializer implements RecipeSerializer<SurgeryRecipe> {
-      public static final SurgeryRecipeSerializer INSTANCE = new SurgeryRecipeSerializer();
-      public static final ResourceLocation ID = new ResourceLocation("spore", "surgery");
-
-      public SurgeryRecipe fromJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
-         ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(jsonObject, "output"));
-         JsonArray ingredients = GsonHelper.getAsJsonArray(jsonObject, "ingredients");
-         NonNullList<Ingredient> inputs = NonNullList.withSize(16, Ingredient.EMPTY);
-
-         for(int i = 0; i < ingredients.size(); ++i) {
-            JsonObject ingredientJson = ingredients.get(i).getAsJsonObject();
-            int slot = GsonHelper.getAsInt(ingredientJson, "slot", i);
-            if (slot >= 0 && slot < inputs.size()) {
-               inputs.set(slot, Ingredient.fromJson(ingredientJson));
+            for (int i = 0; i < ingredients.size(); i++) {
+                JsonObject ingredientJson = ingredients.get(i).getAsJsonObject();
+                int slot = GsonHelper.getAsInt(ingredientJson, "slot", i);
+                if (slot >= 0 && slot < inputs.size()) {
+                    inputs.set(slot, Ingredient.fromJson(ingredientJson));
+                }
             }
-         }
+            return new SurgeryRecipe(inputs, output, resourceLocation);
+        }
 
-         return new SurgeryRecipe(inputs, output, resourceLocation);
-      }
+        @Override
+        public @Nullable SurgeryRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf friendlyByteBuf) {
+            NonNullList<Ingredient> inputs = NonNullList.withSize(friendlyByteBuf.readInt(), Ingredient.EMPTY);
+            inputs.replaceAll(ignored -> Ingredient.fromNetwork(friendlyByteBuf));
+            ItemStack output = friendlyByteBuf.readItem();
+            return new SurgeryRecipe(inputs, output, resourceLocation);
+        }
 
-      public @Nullable SurgeryRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf friendlyByteBuf) {
-         NonNullList<Ingredient> inputs = NonNullList.withSize(friendlyByteBuf.readInt(), Ingredient.EMPTY);
-         inputs.replaceAll((ignored) -> Ingredient.fromNetwork(friendlyByteBuf));
-         ItemStack output = friendlyByteBuf.readItem();
-         return new SurgeryRecipe(inputs, output, resourceLocation);
-      }
-
-      public void toNetwork(FriendlyByteBuf friendlyByteBuf, SurgeryRecipe surgeryRecipe) {
-         friendlyByteBuf.writeInt(surgeryRecipe.inputItems.size());
-
-         for(Ingredient ingredient : surgeryRecipe.getIngredients()) {
-            ingredient.toNetwork(friendlyByteBuf);
-         }
-
-         friendlyByteBuf.writeItemStack(surgeryRecipe.getResultItem((RegistryAccess)null), false);
-      }
-   }
+        @Override
+        public void toNetwork(FriendlyByteBuf friendlyByteBuf, SurgeryRecipe surgeryRecipe) {
+            friendlyByteBuf.writeInt(surgeryRecipe.inputItems.size());
+            for (Ingredient ingredient : surgeryRecipe.getIngredients()) {
+                ingredient.toNetwork(friendlyByteBuf);
+            }
+            friendlyByteBuf.writeItemStack(surgeryRecipe.getResultItem(null), false);
+        }
+    }
 }

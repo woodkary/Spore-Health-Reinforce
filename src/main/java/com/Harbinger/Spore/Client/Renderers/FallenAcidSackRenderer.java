@@ -16,46 +16,42 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class FallenAcidSackRenderer extends EntityRenderer<FallenAcidSack> {
-   private static final ItemStack itemStack;
-   private static final ResourceLocation TEXTURE;
+public class FallenAcidSackRenderer<T extends FallenAcidSack>extends EntityRenderer<T> {
+    private static final ItemStack itemStack = new ItemStack(Sitems.ACIDIC_SACK.get());
+    private static final ResourceLocation TEXTURE = new ResourceLocation("spore:textures/entity/empty.png");
 
-   public FallenAcidSackRenderer(EntityRendererProvider.Context context) {
-      super(context);
-   }
 
-   public void render(FallenAcidSack entity, float value2, float value, PoseStack stack, MultiBufferSource source, int p_116116_) {
-      ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
-      Level level = entity.level();
-      BlockPos pos = entity.blockPosition();
-      stack.pushPose();
-      stack.scale(1.5F, 1.5F, 1.5F);
-      stack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(value, entity.yRotO, entity.getYRot()) - 90.0F));
-      stack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(value, entity.xRotO, entity.getXRot()) + 90.0F));
-      itemRenderer.renderStatic(itemStack, ItemDisplayContext.FIXED, this.getLight(level, pos), OverlayTexture.NO_OVERLAY, stack, source, level, 1);
-      stack.popPose();
-      super.render(entity, value2, value, stack, source, p_116116_);
-   }
+    public FallenAcidSackRenderer(EntityRendererProvider.Context context) {
+        super(context);
+    }
 
-   public ResourceLocation getTextureLocation(FallenAcidSack t) {
-      return TEXTURE;
-   }
+    public void render(T entity, float value2, float value, PoseStack stack, MultiBufferSource source, int p_116116_) {
+        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+        Level level = entity.level();
+        BlockPos pos = entity.blockPosition();
+        stack.pushPose();
+        stack.scale(1.5f,1.5f,1.5f);
+        stack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(value, entity.yRotO, entity.getYRot()) - 90.0F));
+        stack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(value, entity.xRotO, entity.getXRot()) + 90.0F));
+        itemRenderer.renderStatic(itemStack, ItemDisplayContext.FIXED,getLight(level,pos), OverlayTexture.NO_OVERLAY,stack,source,level,1);
+        stack.popPose();
+        super.render(entity, value2, value, stack, source, p_116116_);
+    }
 
-   private int getLight(Level level, BlockPos pos) {
-      int a = level.getBrightness(LightLayer.BLOCK, pos);
-      int b = level.getBrightness(LightLayer.SKY, pos);
-      return LightTexture.pack(a, b);
-   }
+    @Override
+    public ResourceLocation getTextureLocation(T t) {
+        return TEXTURE;
+    }
 
-   static {
-      itemStack = new ItemStack((ItemLike)Sitems.ACIDIC_SACK.get());
-      TEXTURE = new ResourceLocation("spore:textures/entity/empty.png");
-   }
+    private int getLight(Level level, BlockPos pos){
+        int a = level.getBrightness(LightLayer.BLOCK,pos);
+        int b = level.getBrightness(LightLayer.SKY,pos);
+        return LightTexture.pack(a,b);
+    }
 }

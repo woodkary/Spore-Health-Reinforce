@@ -5,11 +5,8 @@ import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
-import java.util.List;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -21,50 +18,51 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.List;
+
 public class FallenAcidSack extends ThrowableItemProjectile {
-   public FallenAcidSack(EntityType type, Level level) {
-      super(type, level);
-   }
+    public FallenAcidSack(EntityType<? extends FallenAcidSack> type, Level level) {
+        super(type, level);
+    }
 
-   public FallenAcidSack(Level level, LivingEntity entity) {
-      super((EntityType)Sentities.FALLEN_ACID_BULB.get(), entity, level);
-   }
+    public FallenAcidSack(Level level, LivingEntity entity) {
+        super(Sentities.FALLEN_ACID_BULB.get(), entity, level);
+    }
 
-   public FallenAcidSack(Level level) {
-      super((EntityType)Sentities.FALLEN_ACID_BULB.get(), level);
-   }
+    public FallenAcidSack(Level level) {
+        super(Sentities.FALLEN_ACID_BULB.get(), level);
+    }
 
-   protected void onHitBlock(BlockHitResult result) {
-      super.onHitBlock(result);
-      Level var3 = this.level();
-      if (var3 instanceof ServerLevel serverLevel) {
-         serverLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY(), this.getZ(), 3, (double)0.0F, (double)0.0F, (double)0.0F, (double)1.0F);
-         AABB aabb = this.getBoundingBox().inflate((double)3.0F);
-         List<Entity> entities = this.level().getEntities(this, aabb);
-         this.poisonTargets(entities);
-      }
+    @Override
+    protected void onHitBlock(BlockHitResult result) {
+        super.onHitBlock(result);
+        if (level() instanceof ServerLevel serverLevel){
+            serverLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER,this.getX(),this.getY(),this.getZ(),3,0,0,0,1);
+            AABB aabb = this.getBoundingBox().inflate(3);
+            List<Entity> entities = level().getEntities(this,aabb);
+            poisonTargets(entities);
+        }
+        playSound(Ssounds.FUNGAL_BOOM.get());
+        discard();
+    }
 
-      this.playSound((SoundEvent)Ssounds.FUNGAL_BOOM.get());
-      this.discard();
-   }
-
-   public void poisonTargets(List<Entity> entityList) {
-      for(Entity entity : entityList) {
-         if (entity instanceof LivingEntity livingEntity) {
-            if (Utilities.TARGET_SELECTOR.Test(livingEntity)) {
-               livingEntity.addEffect(new MobEffectInstance((MobEffect)Seffects.CORROSION.get(), 200, 1));
-               livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 1));
+    public void poisonTargets(List<Entity> entityList){
+        for (Entity entity : entityList){
+            if (entity instanceof LivingEntity livingEntity && Utilities.TARGET_SELECTOR.Test(livingEntity)){
+                livingEntity.addEffect(new MobEffectInstance(Seffects.CORROSION.get(),200,1));
+                livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON,200,1));
             }
-         }
-      }
+        }
+    }
 
-   }
+    @Override
+    protected boolean canHitEntity(Entity target) {
+        return false;
+    }
 
-   protected boolean canHitEntity(Entity target) {
-      return false;
-   }
+    @Override
+    protected Item getDefaultItem() {
+        return Sitems.ACID_BALL.get();
+    }
 
-   protected Item getDefaultItem() {
-      return (Item)Sitems.ACID_BALL.get();
-   }
 }

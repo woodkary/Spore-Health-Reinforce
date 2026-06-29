@@ -10,64 +10,74 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ArmorItem.Type;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import org.jetbrains.annotations.Nullable;
 
-public class GasMaskItem extends ArmorItem implements CustomModelArmorData {
-   private final ResourceLocation location = new ResourceLocation("spore:textures/armor/gas_mask.png");
+public class GasMaskItem extends ArmorItem implements CustomModelArmorData{
+    private final ResourceLocation location = new ResourceLocation("spore:textures/armor/gas_mask.png");
+    public GasMaskItem() {
+        super(new ArmorMaterial() {
+            @Override
+            public int getDurabilityForType(Type p_266807_) {
+                return 0;
+            }
 
-   public GasMaskItem() {
-      super(new ArmorMaterial() {
-         public int getDurabilityForType(Type p_266807_) {
-            return 0;
-         }
+            @Override
+            public int getDefenseForType(Type p_267168_) {
+                return 0;
+            }
 
-         public int getDefenseForType(Type p_267168_) {
-            return 0;
-         }
+            @Override
+            public int getEnchantmentValue() {
+                return 0;
+            }
 
-         public int getEnchantmentValue() {
-            return 0;
-         }
+            @Override
+            public SoundEvent getEquipSound() {
+                return SoundEvents.ARMOR_EQUIP_IRON;
+            }
 
-         public SoundEvent getEquipSound() {
-            return SoundEvents.ARMOR_EQUIP_IRON;
-         }
+            @Override
+            public Ingredient getRepairIngredient() {
+                return Ingredient.EMPTY;
+            }
 
-         public Ingredient getRepairIngredient() {
-            return Ingredient.EMPTY;
-         }
+            @Override
+            public String getName() {
+                return "Gas Mask";
+            }
 
-         public String getName() {
-            return "Gas Mask";
-         }
+            @Override
+            public float getToughness() {
+                return 0;
+            }
 
-         public float getToughness() {
-            return 0.0F;
-         }
+            @Override
+            public float getKnockbackResistance() {
+                return 0;
+            }
+        }, Type.HELMET, new Item.Properties().stacksTo(1));
+        Sitems.TECHNOLOGICAL_ITEMS.add(this);
+    }
 
-         public float getKnockbackResistance() {
-            return 0.0F;
-         }
-      }, Type.HELMET, (new Properties()).stacksTo(1));
-      Sitems.TECHNOLOGICAL_ITEMS.add(this);
-   }
+    @Override
+    public boolean canBeDepleted() {
+        return false;
+    }
 
-   public boolean canBeDepleted() {
-      return false;
-   }
+    @Override
+    public @Nullable String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+        return "spore:textures/entity/empty.png";
+    }
 
-   public @Nullable String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-      return "spore:textures/entity/empty.png";
-   }
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        return false;
+    }
 
-   public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-      return false;
-   }
-
-   public ResourceLocation getTextureLocation() {
-      return this.location;
-   }
+    @Override
+    public ResourceLocation getTextureLocation() {
+        return location;
+    }
 }

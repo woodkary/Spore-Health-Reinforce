@@ -1,247 +1,183 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
-import com.Harbinger.Spore.Core.Seffects;
-import com.Harbinger.Spore.Core.Senchantments;
-import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.npc.AbstractVillager;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import org.jetbrains.annotations.Nullable;
 
 public interface SporeWeaponData {
-   String BASE_TAG = "agent";
-   String MELEE_TAG = "mutant_damage";
-   String MELEE_DURABILITY = "mutant_durability";
-   String MAX_DURABILITY = "mutant_max_durability";
-   String ENCHANTING = "mutant_enchanting";
-   String MUTATION = "mutation";
+    String BASE_TAG = "agent";
+    String MELEE_TAG = "mutant_damage";
+    String MELEE_DURABILITY = "mutant_durability";
+    String MAX_DURABILITY = "mutant_max_durability";
+    String ENCHANTING = "mutant_enchanting";
+    String MUTATION = "mutation";
 
-   default boolean tooHurt(ItemStack stack) {
-      return stack.getDamageValue() < stack.getMaxDamage() - 10;
-   }
-   default void addHealingInhibitRandom(LivingEntity target){
-      addHealingInhibitRandom(target,0.3,600);
-   }
-   default void addHealingInhibitRandom(LivingEntity target,double chance) {
-      addHealingInhibitRandom(target,chance,600);
-   }
-   default void addHealingInhibitRandom(LivingEntity target,double chance,int duration) {
-      if(target.random.nextDouble()<chance) {
-         target.addEffect(new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), duration, 0));
-      }
-   }
-   default boolean doASMRangeHurtOnSwing(ItemStack stack, LivingEntity attacker){
-      if(!(attacker instanceof Player player)||this.getVariant(stack) != SporeToolsMutations.BEZERK){
-         return false;
-      }
-      Entity target=SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
-      if(target==null||target instanceof AbstractVillager){
-         return false;
-      }
-      SporeAttackUtil.INSTANCE.attack(player,target,stack);
-      if(stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get())>0&&target instanceof LivingEntity liv){
-         DamageSource freeze = new DamageSource(target.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE),player,player);
-         SporeAttackUtil.INSTANCE.dealDamage(liv,
-                 player,
-                 freeze,
-                 2.0f);
-      }
-      return false;
-   }
+    default boolean tooHurt(ItemStack stack){
+        return stack.getDamageValue() < stack.getMaxDamage() - 10;
+    }
+    default double calculateTrueDamage(ItemStack stack,double meleeDamage){
+        double value = getAdditionalDamage(stack) * 0.01;
+        if (value > 0){
+            return meleeDamage + (meleeDamage * value);
+        }
+        return meleeDamage;
+    }
+    default void setAdditionalDamage(double value, ItemStack stack){
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        tag.putDouble(MELEE_TAG,value);
+    }
+    default double getAdditionalDamage(ItemStack itemStack){
+        CompoundTag tag = itemStack.getOrCreateTagElement(BASE_TAG);
+        return tag.getDouble(MELEE_TAG);
+    }
 
-   default double calculateTrueDamage(ItemStack stack, double meleeDamage) {
-      double value = this.getAdditionalDamage(stack) * 0.01;
-      return value > (double)0.0F ? meleeDamage + meleeDamage * value : meleeDamage;
-   }
+    default int getMaxAdditionalDurability(ItemStack stack){
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        return tag.getInt(MAX_DURABILITY);
+    }
+    default void setMaxAdditionalDurability(int value,ItemStack stack){
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        tag.putInt(MAX_DURABILITY,value);
+    }
+    default int getAdditionalDurability(ItemStack stack){
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        return tag.getInt(MELEE_DURABILITY);
+    }
+    default void setAdditionalDurability(int value,ItemStack stack){
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        tag.putInt(MELEE_DURABILITY,value);
+    }
+    default void hurtTool(ItemStack stack, LivingEntity entity,int value){
+        int lostDurability = this.calculateDurabilityLostForMutations(value,stack);
+        if (getAdditionalDurability(stack) > 0){
+            hurtExtraDurability(stack,lostDurability,entity);
+        }else{
+            stack.hurtAndBreak(lostDurability, entity, (p_43296_) -> {
+                p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
+            });
+        }
+    }
+    default int calculateDurabilityLostForMutations(int value ,ItemStack stack){
+        if (getVariant(stack) == SporeToolsMutations.TOXIC){
+            return value * 2;
+        }
+        if (getVariant(stack) == SporeToolsMutations.ROTTEN){
+            return value * 2;
+        }
+        return value;
+    }
 
-   default void setAdditionalDamage(double value, ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      tag.putDouble("mutant_damage", value);
-   }
+    default void hurtExtraDurability(ItemStack stack,int value,@Nullable LivingEntity living){
+        setAdditionalDurability(getAdditionalDurability(stack)-value,stack);
+    }
 
-   default double getAdditionalDamage(ItemStack itemStack) {
-      CompoundTag tag = itemStack.getOrCreateTagElement("agent");
-      return tag.getDouble("mutant_damage");
-   }
+    default void setLuck(int value, ItemStack stack){
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        tag.putDouble(ENCHANTING,value);
+    }
+    default int getLuck(ItemStack itemStack){
+        CompoundTag tag = itemStack.getOrCreateTagElement(BASE_TAG);
+        return tag.getInt(ENCHANTING);
+    }
 
-   default int getMaxAdditionalDurability(ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      return tag.getInt("mutant_max_durability");
-   }
+    default SporeToolsMutations getVariant(ItemStack stack) {
+        return SporeToolsMutations.byId(this.getTypeVariant(stack) & 255);
+    }
 
-   default void setMaxAdditionalDurability(int value, ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      tag.putInt("mutant_max_durability", value);
-   }
+    default int getTypeVariant(ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        return tag.getInt(MUTATION);
+    }
 
-   default int getAdditionalDurability(ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      return tag.getInt("mutant_durability");
-   }
+    default void setVariant(SporeToolsMutations variant,ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
+        tag.putInt(MUTATION,variant.getId() & 255);
+    }
+    default boolean doesExtraKnockBack(){return false;}
+    default boolean reversedKnockback(){return false;}
+    default void doEntityHurtAfterEffects(ItemStack stack, LivingEntity victim, LivingEntity entity){
+        if (reversedKnockback()){
+            victim.knockback(1.2F, -Mth.sin(entity.getYRot() * ((float) Math.PI / 180F)), Mth.cos(entity.getYRot() * ((float) Math.PI / 180F)));
+        }
+        if (doesExtraKnockBack()){
+            victim.knockback(2.2F, Mth.sin(entity.getYRot() * ((float) Math.PI / 180F)), (-Mth.cos(entity.getYRot() * ((float) Math.PI / 180F))));
+        }
+        if (getVariant(stack) == SporeToolsMutations.TOXIC){
+            victim.addEffect(new MobEffectInstance(MobEffects.POISON,60,1));
+        }
+        if (getVariant(stack) == SporeToolsMutations.ROTTEN){
+            victim.addEffect(new MobEffectInstance(MobEffects.WITHER,60,1));
+        }
+        if (getVariant(stack) == SporeToolsMutations.CALCIFIED){
+            victim.hurtMarked = true;
+            double knockback = reversedKnockback() ? -Mth.sin(entity.getYRot() * ((float) Math.PI / 180F)) : Mth.sin(entity.getYRot() * ((float) Math.PI / 180F));
+            double knockback2 = reversedKnockback() ? Mth.cos(entity.getYRot() * ((float) Math.PI / 180F) * ((float) Math.PI / 180F)) : -Mth.cos(entity.getYRot() * ((float) Math.PI / 180F));
+            victim.knockback(1.5F, knockback, knockback2);
+        }
+        if (getVariant(stack) == SporeToolsMutations.VAMPIRIC && entity.getHealth() < entity.getMaxHealth()){
+            entity.heal(2f);
+        }
+        if (getVariant(stack) == SporeToolsMutations.BEZERK && Math.random() < 0.3){
+            if (Math.random() < 0.5){
+                entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED,60,0));
+            } else if (Math.random() < 0.5) {
+                entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST,60,0));
+            }else {
+                entity.addEffect(new MobEffectInstance(MobEffects.SATURATION,60,0));
+            }
+        }
+    }
 
-   default void setAdditionalDurability(int value, ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      tag.putInt("mutant_durability", value);
-   }
+    default double modifyDamage(ItemStack stack,double value){
+        float sharpness =EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SHARPNESS,stack) > 0 ? EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SHARPNESS,stack) * 0.5f + 1f : 0;
+        return sharpness + (getVariant(stack) == SporeToolsMutations.VAMPIRIC ? (calculateTrueDamage(stack,value) * -0.2) : 0);
+    }
+    default double modifyRange(ItemStack stack){
+        return 0;
+    }
+    default double modifyRecharge(ItemStack stack){
+        return getVariant(stack) == SporeToolsMutations.CALCIFIED ? -0.5 : 0;
+    }
 
-   default void hurtTool(ItemStack stack, LivingEntity entity, int value) {
-      int lostDurability = this.calculateDurabilityLostForMutations(value, stack);
-      if (this.getAdditionalDurability(stack) > 0) {
-         this.hurtExtraDurability(stack, lostDurability, entity);
-      } else {
-         stack.hurtAndBreak(lostDurability, entity, (p_43296_) -> p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND));
-      }
+    default int getMaxTrueAdditionalDurability(ItemStack stack){
+        return (int)(stack.getMaxDamage() * (getMaxAdditionalDurability(stack) * 0.01));
+    }
 
-   }
+    default void healTool(ItemStack stack,int value){
+        if (stack.getDamageValue() < stack.getMaxDamage()){
+            stack.setDamageValue(stack.getDamageValue()-value);
+        }
+        if (getMaxTrueAdditionalDurability(stack) > getAdditionalDurability(stack)){
+            setAdditionalDurability(getAdditionalDurability(stack)+value,stack);
+        }
+    }
 
-   default int calculateDurabilityLostForMutations(int value, ItemStack stack) {
-      if (this.getVariant(stack) == SporeToolsMutations.TOXIC) {
-         return value * 2;
-      } else {
-         return this.getVariant(stack) == SporeToolsMutations.ROTTEN ? value * 2 : value;
-      }
-   }
+    default void abstractMutationBuffs(LivingEntity victim , LivingEntity owner , ItemStack stack,SporeWeaponData data){
+        if (data.getVariant(stack) == SporeToolsMutations.TOXIC){
+            victim.addEffect(new MobEffectInstance(MobEffects.POISON,60,1));
+        }
+        if (data.getVariant(stack) == SporeToolsMutations.ROTTEN){
+            victim.addEffect(new MobEffectInstance(MobEffects.WITHER,60,1));
+        }
+        if (data.getVariant(stack) == SporeToolsMutations.VAMPIRIC && owner.getHealth() < owner.getMaxHealth()){
+            owner.heal(2f);
+        }
+        if (data.getVariant(stack) == SporeToolsMutations.BEZERK && Math.random() < 0.3){
+            if (Math.random() < 0.5){
+                owner.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED,60,0));
+            } else if (Math.random() < 0.5) {
+                owner.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST,60,0));
+            }else {
+                owner.addEffect(new MobEffectInstance(MobEffects.SATURATION,60,0));
+            }
+        }
+    }
 
-   default void hurtExtraDurability(ItemStack stack, int value, @Nullable LivingEntity living) {
-      this.setAdditionalDurability(this.getAdditionalDurability(stack) - value, stack);
-   }
-
-   default void setLuck(int value, ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      tag.putDouble("mutant_enchanting", (double)value);
-   }
-
-   default int getLuck(ItemStack itemStack) {
-      CompoundTag tag = itemStack.getOrCreateTagElement("agent");
-      return tag.getInt("mutant_enchanting");
-   }
-
-   default SporeToolsMutations getVariant(ItemStack stack) {
-      return SporeToolsMutations.byId(this.getTypeVariant(stack) & 255);
-   }
-
-   default int getTypeVariant(ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      return tag.getInt("mutation");
-   }
-
-   default void setVariant(SporeToolsMutations variant, ItemStack stack) {
-      CompoundTag tag = stack.getOrCreateTagElement("agent");
-      tag.putInt("mutation", variant.getId() & 255);
-   }
-
-   default boolean doesExtraKnockBack() {
-      return false;
-   }
-
-   default boolean reversedKnockback() {
-      return false;
-   }
-
-   default void doEntityHurtAfterEffects(ItemStack stack, LivingEntity victim, LivingEntity entity) {
-      if (this.reversedKnockback()) {
-         victim.knockback((double)1.2F, (double)(-Mth.sin(entity.getYRot() * ((float)Math.PI / 180F))), (double)Mth.cos(entity.getYRot() * ((float)Math.PI / 180F)));
-      }
-
-      if (this.doesExtraKnockBack()) {
-         victim.knockback((double)2.2F, (double)Mth.sin(entity.getYRot() * ((float)Math.PI / 180F)), (double)(-Mth.cos(entity.getYRot() * ((float)Math.PI / 180F))));
-      }
-
-      if (this.getVariant(stack) == SporeToolsMutations.TOXIC) {
-         victim.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 1));
-      }
-
-      if (this.getVariant(stack) == SporeToolsMutations.ROTTEN) {
-         victim.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 1));
-         addHealingInhibitRandom(victim);
-      }
-
-      if (this.getVariant(stack) == SporeToolsMutations.CALCIFIED) {
-         victim.hurtMarked = true;
-         double knockback = this.reversedKnockback() ? (double)(-Mth.sin(entity.getYRot() * ((float)Math.PI / 180F))) : (double)Mth.sin(entity.getYRot() * ((float)Math.PI / 180F));
-         double knockback2 = this.reversedKnockback() ? (double)Mth.cos(entity.getYRot() * ((float)Math.PI / 180F) * ((float)Math.PI / 180F)) : (double)(-Mth.cos(entity.getYRot() * ((float)Math.PI / 180F)));
-         victim.knockback((double)1.5F, knockback, knockback2);
-      }
-
-      if (this.getVariant(stack) == SporeToolsMutations.VAMPIRIC && entity.getHealth() < entity.getMaxHealth()) {
-         entity.heal(2.0F);
-      }
-
-      if (this.getVariant(stack) == SporeToolsMutations.BEZERK && Math.random() < 0.3) {
-         if (Math.random() < (double)0.5F) {
-            entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 60, 0));
-         } else if (Math.random() < (double)0.5F) {
-            entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 60, 0));
-         } else {
-            entity.addEffect(new MobEffectInstance(MobEffects.SATURATION, 60, 0));
-         }
-      }
-
-   }
-
-   default double modifyDamage(ItemStack stack, double value) {
-      float sharpness = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SHARPNESS, stack) > 0 ? (float)EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SHARPNESS, stack) * 0.5F + 1.0F : 0.0F;
-      return (double)sharpness + (this.getVariant(stack) == SporeToolsMutations.VAMPIRIC ? this.calculateTrueDamage(stack, value) * -0.2 : (double)0.0F);
-   }
-
-   default double modifyRange(ItemStack stack) {
-      return (double)0.0F;
-   }
-
-   default double modifyRecharge(ItemStack stack) {
-      return this.getVariant(stack) == SporeToolsMutations.CALCIFIED ? (double)-0.5F : (double)0.0F;
-   }
-
-   default int getMaxTrueAdditionalDurability(ItemStack stack) {
-      return (int)((double)stack.getMaxDamage() * (double)this.getMaxAdditionalDurability(stack) * 0.01);
-   }
-
-   default void healTool(ItemStack stack, int value) {
-      if (stack.getDamageValue() < stack.getMaxDamage()) {
-         stack.setDamageValue(stack.getDamageValue() - value);
-      }
-
-      if (this.getMaxTrueAdditionalDurability(stack) > this.getAdditionalDurability(stack)) {
-         this.setAdditionalDurability(this.getAdditionalDurability(stack) + value, stack);
-      }
-
-   }
-
-   default void abstractMutationBuffs(LivingEntity victim, LivingEntity owner, ItemStack stack, SporeWeaponData data) {
-      if (data.getVariant(stack) == SporeToolsMutations.TOXIC) {
-         victim.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 1));
-      }
-
-      if (data.getVariant(stack) == SporeToolsMutations.ROTTEN) {
-         victim.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 1));
-         addHealingInhibitRandom(victim);
-      }
-
-      if (data.getVariant(stack) == SporeToolsMutations.VAMPIRIC && owner.getHealth() < owner.getMaxHealth()) {
-         owner.heal(2.0F);
-      }
-
-      if (data.getVariant(stack) == SporeToolsMutations.BEZERK && Math.random() < 0.3) {
-         if (Math.random() < (double)0.5F) {
-            owner.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 60, 0));
-         } else if (Math.random() < (double)0.5F) {
-            owner.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 60, 0));
-         } else {
-            owner.addEffect(new MobEffectInstance(MobEffects.SATURATION, 60, 0));
-         }
-      }
-
-   }
 }

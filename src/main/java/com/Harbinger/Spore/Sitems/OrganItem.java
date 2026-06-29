@@ -1,9 +1,8 @@
 package com.Harbinger.Spore.Sitems;
 
 import com.Harbinger.Spore.ExtremelySusThings.ClientAdvancementTracker;
-import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.ExtremelySusThings.Package.RequestAdvancementPacket;
-import java.util.List;
+import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -16,39 +15,40 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class OrganItem extends BaseItem {
-   private final String info;
-   private final String advancementIds;
+    private final String info;
+    private final String advancementIds;
 
-   public OrganItem(String value, String advancementId) {
-      super(new Properties());
-      this.info = value;
-      this.advancementIds = advancementId;
-   }
+    public OrganItem(String value, String advancementId) {
+        super(new Item.Properties());
+        this.info = value;
+        this.advancementIds = advancementId;
+    }
 
-   public String getAdvancementIds() {
-      return this.advancementIds;
-   }
+    public String getAdvancementIds() {
+        return advancementIds;
+    }
 
-   public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List list, TooltipFlag tooltipFlag) {
-      super.appendHoverText(stack, level, list, tooltipFlag);
-      if (this.info != null && this.advancementIds != null) {
-         if (level != null && level.isClientSide) {
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> list, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, level, list, tooltipFlag);
+        if (info == null || advancementIds == null){
+            return;
+        }
+        if (level != null && level.isClientSide) {
             Entity entity = Minecraft.getInstance().getCameraEntity();
-            if (entity instanceof Player) {
-               Player player = (Player)entity;
-               if (ClientAdvancementTracker.hasAdvancement(this.advancementIds)) {
-                  list.add(Component.translatable(this.info).withStyle(ChatFormatting.GOLD));
-               } else {
-                  list.add(Component.translatable("spore.scanner.organ.default").withStyle(ChatFormatting.RED));
-               }
-
-               SporePacketHandler.sendToServer(new RequestAdvancementPacket(this.advancementIds, player.getId()));
+            if (entity instanceof Player player) {
+                if (ClientAdvancementTracker.hasAdvancement(advancementIds)) {
+                    list.add(Component.translatable(info).withStyle(ChatFormatting.GOLD));
+                } else {
+                    list.add(Component.translatable("spore.scanner.organ.default").withStyle(ChatFormatting.RED));
+                }
+                SporePacketHandler.sendToServer(new RequestAdvancementPacket(advancementIds,player.getId()));
             }
-         } else {
+        }else{
             list.add(Component.translatable("spore.scanner.organ.default").withStyle(ChatFormatting.RED));
-         }
-
-      }
-   }
+        }
+    }
 }

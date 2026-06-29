@@ -4,43 +4,50 @@ import com.Harbinger.Spore.Client.Models.GroberfubModel;
 import com.Harbinger.Spore.Client.Models.GroberfubOmniModel;
 import com.Harbinger.Spore.Client.Special.BaseInfectedRenderer;
 import com.Harbinger.Spore.Sentities.Hyper.Grober;
+import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.vertex.PoseStack;
-import java.util.Objects;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.Objects;
+
 @OnlyIn(Dist.CLIENT)
-public class GroberRenderer extends BaseInfectedRenderer<Grober> {
-   protected final EntityModel defaultModel = this.getModel();
-   protected final EntityModel omniModel = new GroberfubOmniModel();
-   private static final ResourceLocation TEXTURE = new ResourceLocation("spore", "textures/entity/grober.png");
-   private static final ResourceLocation OMNI = new ResourceLocation("spore", "textures/entity/omniman.png");
-   private static final ResourceLocation EYES_TEXTURE = new ResourceLocation("spore", "textures/entity/eyes/grober.png");
+public class GroberRenderer<Type extends Grober> extends BaseInfectedRenderer<Type , EntityModel<Type>> {
+    protected final EntityModel<Type> defaultModel = this.getModel();
+    protected final EntityModel<Type> omniModel = new GroberfubOmniModel<>();
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Spore.MODID,
+            "textures/entity/grober.png");
+    private static final ResourceLocation OMNI = new ResourceLocation(Spore.MODID,
+            "textures/entity/omniman.png");
+    private static final ResourceLocation EYES_TEXTURE = new ResourceLocation(Spore.MODID,
+            "textures/entity/eyes/grober.png");
 
-   public GroberRenderer(EntityRendererProvider.Context context) {
-      super(context, new GroberfubModel(context.bakeLayer(GroberfubModel.LAYER_LOCATION)), 0.5F);
-   }
+    public GroberRenderer(EntityRendererProvider.Context context) {
+        super(context, new GroberfubModel<>(context.bakeLayer(GroberfubModel.LAYER_LOCATION)), 0.5f);
+    }
 
-   public boolean isOmniMan(Grober entity) {
-      return Objects.equals(entity.getCustomName(), Component.literal("Omni-Man")) || Objects.equals(entity.getCustomName(), Component.literal("Nolan"));
-   }
+    public boolean isOmniMan(Type entity){
+        return Objects.equals(entity.getCustomName(), Component.literal("Omni-Man")) || Objects.equals(entity.getCustomName(), Component.literal("Nolan"));
+    }
 
-   public ResourceLocation getTextureLocation(Grober entity) {
-      return this.isOmniMan(entity) ? OMNI : TEXTURE;
-   }
+    @Override
+    public ResourceLocation getTextureLocation(Type entity) {
+        return isOmniMan(entity) ? OMNI : TEXTURE;
+    }
 
-   public void render(Grober type, float value1, float value2, PoseStack stack, MultiBufferSource bufferSource, int light) {
-      this.model = this.isOmniMan(type) ? this.omniModel : this.defaultModel;
-      super.render(type, value1, value2, stack, bufferSource, light);
-   }
+    @Override
+    public void render(Type type, float value1, float value2, PoseStack stack, MultiBufferSource bufferSource, int light) {
+        this.model = isOmniMan(type) ? omniModel : defaultModel;
+        super.render(type, value1, value2, stack, bufferSource, light);
+    }
 
-   public ResourceLocation eyeLayerTexture() {
-      return EYES_TEXTURE;
-   }
+    @Override
+    public ResourceLocation eyeLayerTexture() {
+        return EYES_TEXTURE;
+    }
 }

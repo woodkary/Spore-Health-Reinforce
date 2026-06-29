@@ -148,4 +148,3 @@ public final class SporeEntitySection<T extends EntityAccess> extends EntitySect
         return count;
     }
 }
-

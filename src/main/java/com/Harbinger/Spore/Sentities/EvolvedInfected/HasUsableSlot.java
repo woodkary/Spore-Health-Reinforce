@@ -3,5 +3,5 @@ package com.Harbinger.Spore.Sentities.EvolvedInfected;
 import net.minecraft.world.entity.EquipmentSlot;
 
 public interface HasUsableSlot {
-   boolean hasUsableSlot(EquipmentSlot var1);
+    boolean hasUsableSlot(EquipmentSlot slot);
 }

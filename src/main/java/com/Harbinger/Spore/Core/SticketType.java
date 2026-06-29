@@ -1,12 +1,16 @@
 package com.Harbinger.Spore.Core;
 
-import java.util.Comparator;
+import com.Harbinger.Spore.Spore;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;
 
-public class SticketType {
-   public static final TicketType SPORE_CHUNK_LOADER = TicketType.create("sporechunk_loader", Comparator.comparingLong(ChunkPos::toLong));
+import java.util.Comparator;
 
-   public static void init() {
-   }
+public class SticketType {
+    public static final TicketType<ChunkPos> SPORE_CHUNK_LOADER = TicketType.create(
+            Spore.MODID+"chunk_loader",
+            Comparator.comparingLong(ChunkPos::toLong)
+    );
+    public static void init() {
+    }
 }

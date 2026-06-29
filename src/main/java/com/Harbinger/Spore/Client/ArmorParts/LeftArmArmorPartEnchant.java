@@ -1,7 +1,5 @@
 package com.Harbinger.Spore.Client.ArmorParts;
 
-import java.util.List;
-import java.util.function.Supplier;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -11,31 +9,37 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-public class LeftArmArmorPartEnchant extends BaseArmorRenderingBit implements EnchantingPart {
-   private final Enchantment enchantment;
-   private final ResourceLocation location;
-   private final List blacklist;
+import java.util.List;
+import java.util.function.Supplier;
 
-   public LeftArmArmorPartEnchant(Supplier model, Supplier part, float x, float y, float z, float expand, Enchantment enchantment, ResourceLocation location, List blacklist) {
-      super(EquipmentSlot.CHEST, (Item)null, model, part, x, y, z, expand);
-      this.enchantment = enchantment;
-      this.location = location;
-      this.blacklist = blacklist;
-   }
+public class LeftArmArmorPartEnchant extends BaseArmorRenderingBit implements EnchantingPart{
+    private final Enchantment enchantment;
+    private final ResourceLocation location;
+    private final List<Item> blacklist;
+    public LeftArmArmorPartEnchant(Supplier<EntityModel<LivingEntity>> model, Supplier<ModelPart> part, float x, float y, float z, float expand, Enchantment enchantment, ResourceLocation location, List<Item> blacklist) {
+        super(EquipmentSlot.CHEST, null, model, part, x, y, z, expand);
+        this.enchantment = enchantment;
+        this.location = location;
+        this.blacklist = blacklist;
+    }
 
-   protected ModelPart getPiece(HumanoidModel model) {
-      return model.leftArm;
-   }
+    @Override
+    protected ModelPart getPiece(HumanoidModel<LivingEntity> model) {
+        return model.leftArm;
+    }
 
-   public Enchantment getEnchantment() {
-      return this.enchantment;
-   }
+    @Override
+    public Enchantment getEnchantment() {
+        return enchantment;
+    }
 
-   public ResourceLocation getTexture() {
-      return this.location;
-   }
+    @Override
+    public ResourceLocation getTexture() {
+        return location;
+    }
 
-   public List blacklistedItems() {
-      return this.blacklist;
-   }
+    @Override
+    public List<Item> blacklistedItems() {
+        return blacklist;
+    }
 }

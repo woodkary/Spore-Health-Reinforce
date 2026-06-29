@@ -2,363 +2,510 @@ package com.Harbinger.Spore.Core;
 
 import com.Harbinger.Spore.Sentities.BaseEntities.HohlMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.LeviathanMultipart;
-import com.Harbinger.Spore.Sentities.BasicInfected.Bairn;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedDiseasedVillager;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedDrowned;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedHazmat;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedHuman;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedHusk;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedPillager;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedPlayer;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedVillager;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedWanderingTrader;
-import com.Harbinger.Spore.Sentities.BasicInfected.InfectedWitch;
-import com.Harbinger.Spore.Sentities.Calamities.Gazenbrecher;
-import com.Harbinger.Spore.Sentities.Calamities.Grakensenker;
-import com.Harbinger.Spore.Sentities.Calamities.Hinderburg;
-import com.Harbinger.Spore.Sentities.Calamities.Hohlfresser;
-import com.Harbinger.Spore.Sentities.Calamities.Howitzer;
-import com.Harbinger.Spore.Sentities.Calamities.Leviathan;
-import com.Harbinger.Spore.Sentities.Calamities.Sieger;
-import com.Harbinger.Spore.Sentities.Calamities.Stahlmorder;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Bloater;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Braionmil;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Brute;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Busser;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Chemist;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Conductor;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Gargoyl;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Gorgon;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Griefer;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Howler;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Inebriator;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.InfectedEvoker;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.InfectedVendicator;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Jagdhund;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Knight;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Leaper;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Mephetic;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Naiad;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Nuclealave;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Protector;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Scamper;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Scavenger;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Slasher;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Spitter;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Stalker;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Thorn;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Volatile;
+import com.Harbinger.Spore.Sentities.BasicInfected.*;
+import com.Harbinger.Spore.Sentities.Calamities.*;
+import com.Harbinger.Spore.Sentities.EvolvedInfected.*;
 import com.Harbinger.Spore.Sentities.Experiments.Biobloob;
 import com.Harbinger.Spore.Sentities.Experiments.Lacerator;
 import com.Harbinger.Spore.Sentities.Experiments.Plagued;
 import com.Harbinger.Spore.Sentities.Experiments.Saugling;
-import com.Harbinger.Spore.Sentities.FallenMultipart.HowitzerArm;
-import com.Harbinger.Spore.Sentities.FallenMultipart.Licker;
-import com.Harbinger.Spore.Sentities.FallenMultipart.SiegerTail;
-import com.Harbinger.Spore.Sentities.FallenMultipart.StalhArm;
-import com.Harbinger.Spore.Sentities.Hyper.Brot;
+import com.Harbinger.Spore.Sentities.FallenMultipart.*;
 import com.Harbinger.Spore.Sentities.Hyper.Grober;
-import com.Harbinger.Spore.Sentities.Hyper.Hevoker;
-import com.Harbinger.Spore.Sentities.Hyper.Hvindicator;
-import com.Harbinger.Spore.Sentities.Hyper.Inquisitor;
-import com.Harbinger.Spore.Sentities.Hyper.Ogre;
-import com.Harbinger.Spore.Sentities.Hyper.Wendigo;
-import com.Harbinger.Spore.Sentities.Organoids.Brauerei;
-import com.Harbinger.Spore.Sentities.Organoids.Delusionare;
-import com.Harbinger.Spore.Sentities.Organoids.HiveTumor;
-import com.Harbinger.Spore.Sentities.Organoids.Mound;
-import com.Harbinger.Spore.Sentities.Organoids.Proto;
-import com.Harbinger.Spore.Sentities.Organoids.Tentacle;
-import com.Harbinger.Spore.Sentities.Organoids.Umarmer;
-import com.Harbinger.Spore.Sentities.Organoids.Usurper;
-import com.Harbinger.Spore.Sentities.Organoids.Verwa;
-import com.Harbinger.Spore.Sentities.Organoids.Vigil;
-import com.Harbinger.Spore.Sentities.Organoids.Womb;
-import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
-import com.Harbinger.Spore.Sentities.Projectile.AdaptableProjectile;
-import com.Harbinger.Spore.Sentities.Projectile.BileProjectile;
-import com.Harbinger.Spore.Sentities.Projectile.DrownedFleshBomb;
-import com.Harbinger.Spore.Sentities.Projectile.FallenAcidSack;
-import com.Harbinger.Spore.Sentities.Projectile.FleshBomb;
-import com.Harbinger.Spore.Sentities.Projectile.HarpoonProjectile;
-import com.Harbinger.Spore.Sentities.Projectile.StingerProjectile;
-import com.Harbinger.Spore.Sentities.Projectile.SyringeProjectile;
-import com.Harbinger.Spore.Sentities.Projectile.ThrownBlockProjectile;
-import com.Harbinger.Spore.Sentities.Projectile.ThrownBoomerang;
-import com.Harbinger.Spore.Sentities.Projectile.ThrownItemProjectile;
-import com.Harbinger.Spore.Sentities.Projectile.ThrownKnife;
-import com.Harbinger.Spore.Sentities.Projectile.ThrownSickle;
-import com.Harbinger.Spore.Sentities.Projectile.ThrownSpear;
-import com.Harbinger.Spore.Sentities.Projectile.ThrownTumor;
-import com.Harbinger.Spore.Sentities.Projectile.Vomit;
-import com.Harbinger.Spore.Sentities.Projectile.VomitHohlBall;
-import com.Harbinger.Spore.Sentities.Projectile.VomitUsurperBall;
+import com.Harbinger.Spore.Sentities.Hyper.*;
+import com.Harbinger.Spore.Sentities.Organoids.*;
+import com.Harbinger.Spore.Sentities.Projectile.*;
 import com.Harbinger.Spore.Sentities.Projectile.GunProjectiles.AssassinBullet;
 import com.Harbinger.Spore.Sentities.Projectile.GunProjectiles.BileBullet;
 import com.Harbinger.Spore.Sentities.Projectile.GunProjectiles.GoreBullet;
-import com.Harbinger.Spore.Sentities.Utility.ArenaEntity;
-import com.Harbinger.Spore.Sentities.Utility.CorpseEntity;
-import com.Harbinger.Spore.Sentities.Utility.GastGeber;
-import com.Harbinger.Spore.Sentities.Utility.HyperClaw;
-import com.Harbinger.Spore.Sentities.Utility.Illusion;
-import com.Harbinger.Spore.Sentities.Utility.InfEvoClaw;
-import com.Harbinger.Spore.Sentities.Utility.InfectionTendril;
-import com.Harbinger.Spore.Sentities.Utility.InfestedConstruct;
-import com.Harbinger.Spore.Sentities.Utility.NukeEntity;
-import com.Harbinger.Spore.Sentities.Utility.Reaper;
-import com.Harbinger.Spore.Sentities.Utility.ScentEntity;
-import com.Harbinger.Spore.Sentities.Utility.Specter;
-import com.Harbinger.Spore.Sentities.Utility.TumoroidNuke;
-import com.Harbinger.Spore.Sentities.Utility.Vanguard;
-import com.Harbinger.Spore.Sentities.Utility.WaveEntity;
-import java.util.function.Supplier;
+import com.Harbinger.Spore.Sentities.Projectile.GunProjectiles.ToxinBullet;
+import com.Harbinger.Spore.Sentities.Utility.*;
+import com.Harbinger.Spore.Spore;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.EntityType.Builder;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.function.Supplier;
+
 public class Sentities {
-   public static DeferredRegister SPORE_ENTITIES;
-   public static final MobCategory INFECTED;
-   public static final MobCategory ORGANOID;
-   public static final RegistryObject INF_HUMAN;
-   public static final RegistryObject INF_HUSK;
-   public static final RegistryObject INF_PLAYER;
-   public static final RegistryObject KNIGHT;
-   public static final RegistryObject PROTECTOR;
-   public static final RegistryObject INEBRIATER;
-   public static final RegistryObject SAUGLING;
-   public static final RegistryObject GRIEFER;
-   public static final RegistryObject BRAIOMIL;
-   public static final RegistryObject INF_VILLAGER;
-   public static final RegistryObject INF_DISEASED_VILLAGER;
-   public static final RegistryObject INF_WANDERER;
-   public static final RegistryObject INF_WITCH;
-   public static final RegistryObject LEAPER;
-   public static final RegistryObject SLASHER;
-   public static final RegistryObject SPITTER;
-   public static final RegistryObject THORN;
-   public static final RegistryObject MEPHETIC;
-   public static final RegistryObject JAGD;
-   public static final RegistryObject SCAVENGER;
-   public static final RegistryObject BLOATER;
-   public static final RegistryObject NUCLEA;
-   public static final RegistryObject SCAMPER;
-   public static final RegistryObject INF_PILLAGER;
-   public static final RegistryObject PLAGUED;
-   public static final RegistryObject LACERATOR;
-   public static final RegistryObject BIOBLOOB;
-   public static final RegistryObject INF_HAZMAT;
-   public static final RegistryObject INF_VINDICATOR;
-   public static final RegistryObject INF_CONSTRUCT;
-   public static final Supplier BAIRN;
-   public static final RegistryObject INF_EVOKER;
-   public static final RegistryObject HOWLER;
-   public static final Supplier GORGON;
-   public static final RegistryObject STALKER;
-   public static final RegistryObject WENDIGO;
-   public static final RegistryObject INQUISITOR;
-   public static final Supplier GROBER;
-   public static final RegistryObject HEVOKER;
-   public static final RegistryObject HEVOKER_ARM;
-   public static final RegistryObject BROTKATZE;
-   public static final RegistryObject OGRE;
-   public static final RegistryObject BRUTE;
-   public static final RegistryObject BUSSER;
-   public static final RegistryObject VOLATILE;
-   public static final RegistryObject INF_DROWNED;
-   public static final RegistryObject CHEMIST;
-   public static final RegistryObject CONDUCTOR;
-   public static final Supplier GARGOYLE;
-   public static final RegistryObject VANGUARD;
-   public static final Supplier REAPER;
-   public static final RegistryObject NAIAD;
-   public static final RegistryObject VIGIL;
-   public static final RegistryObject DELUSIONARE;
-   public static final RegistryObject UMARMED;
-   public static final RegistryObject BRAUREI;
-   public static final RegistryObject TENTACLE;
-   public static final RegistryObject ILLUSION;
-   public static final RegistryObject ARENA_TENDRIL;
-   public static final RegistryObject GASTGABER;
-   public static final RegistryObject SPECTER;
-   public static final RegistryObject HVINDICATOR;
-   public static final RegistryObject NUKE;
-   public static final RegistryObject VOMIT_BALL;
-   public static final Supplier DROWNED_FLESH_BOMB;
-   public static final RegistryObject USURPER_VOMIT_BALL;
-   public static final RegistryObject ACID_BALL;
-   public static final RegistryObject ACID;
-   public static final Supplier ASSASSIN_BULLET;
-   public static final Supplier GORE_BULLET;
-   public static final Supplier BILE_BULLET;
-   public static final RegistryObject THROWN_SPEAR;
-   public static final RegistryObject THROWN_BOOMERANG;
-   public static final RegistryObject THROWN_KNIFE;
-   public static final RegistryObject THROWN_TUMOR;
-   public static final RegistryObject FALLEN_ACID_BULB;
-   public static final RegistryObject BILE;
-   public static final RegistryObject SPIT;
-   public static final RegistryObject STINGER;
-   public static final RegistryObject HARPOON;
-   public static final RegistryObject THROWN_TOOL;
-   public static final RegistryObject THROWN_SYRINGE;
-   public static final RegistryObject THROWN_SICKEL;
-   public static final RegistryObject THROWN_BLOCK;
-   public static final RegistryObject FLESH_BOMB;
-   public static final RegistryObject SCENT;
-   public static final RegistryObject CLAW;
-   public static final RegistryObject CORPSE_PIECE;
-   public static final RegistryObject MOUND;
-   public static final RegistryObject RECONSTRUCTOR;
-   public static final RegistryObject VERVA;
-   public static final RegistryObject USURPER;
-   public static final RegistryObject PROTO;
-   public static final Supplier HIVETUMOR;
-   public static final RegistryObject TENDRIL;
-   public static final RegistryObject TUMOROID_NUKE;
-   public static final RegistryObject WAVE;
-   public static final RegistryObject SIEGER;
-   public static final RegistryObject SIEGER_TAIL;
-   public static final RegistryObject HOWIT_ARM;
-   public static final RegistryObject GAZENBREACHER;
-   public static final RegistryObject KRAKEN;
-   public static final RegistryObject LICKER;
-   public static final RegistryObject HINDENBURG;
-   public static final RegistryObject HOWITZER;
-   public static final Supplier STALH;
-   public static final RegistryObject HOHLFRESSER;
-   public static final RegistryObject HOHLFRESSER_SEG;
-   public static final Supplier STAHL_ARM;
-   public static final Supplier LEVIATHAN;
-   public static final Supplier LEVIATHAN_SEG;
+    public static DeferredRegister<EntityType<?>> SPORE_ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES,
+            Spore.MODID);
+    public static void register(IEventBus eventBus) {
+        SPORE_ENTITIES.register(eventBus);
+    }
 
-   public static void register(IEventBus eventBus) {
-      SPORE_ENTITIES.register(eventBus);
-   }
+    private static <T extends Entity> RegistryObject<EntityType<T>> register(String registryname, EntityType.Builder<T> entityTypeBuilder) {
+        return SPORE_ENTITIES.register(registryname, () -> entityTypeBuilder.build(registryname));
+    }
 
-   private static RegistryObject register(String registryname, Builder entityTypeBuilder) {
-      return SPORE_ENTITIES.register(registryname, () -> entityTypeBuilder.build(registryname));
-   }
+    public static final MobCategory INFECTED = MobCategory.create("infected","infected",SConfig.SERVER.mob_cap.get(),false,false,128);
+    public static final MobCategory ORGANOID = MobCategory.create("organoid","organoid",20,false,false,64);
+    public static final MobCategory EXPERIMENTS = MobCategory.create("experiments","experiments",15,false,false,32);
 
-   static {
-      SPORE_ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, "spore");
-      INFECTED = MobCategory.create("infected", "infected", (Integer)SConfig.SERVER.mob_cap.get(), false, false, 128);
-      ORGANOID = MobCategory.create("organoid", "organoid", 20, false, false, 64);
-      INF_HUMAN = SPORE_ENTITIES.register("inf_human", () -> Builder.of((p_33002_, level) -> new InfectedHuman(level), INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_human")).toString()));
-      INF_HUSK = SPORE_ENTITIES.register("inf_husk", () -> Builder.of((p_33002_, level) -> new InfectedHusk(level), INFECTED).sized(0.6F, 2.1F).build((new ResourceLocation("spore", "inf_husk")).toString()));
-      INF_PLAYER = SPORE_ENTITIES.register("inf_player", () -> Builder.of(InfectedPlayer::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_player")).toString()));
-      KNIGHT = SPORE_ENTITIES.register("knight", () -> Builder.of(Knight::new, INFECTED).sized(0.6F, 2.0F).build((new ResourceLocation("spore", "knight")).toString()));
-      PROTECTOR = SPORE_ENTITIES.register("protector", () -> Builder.of(Protector::new, INFECTED).sized(0.6F, 2.0F).build((new ResourceLocation("spore", "protector")).toString()));
-      INEBRIATER = SPORE_ENTITIES.register("inebriater", () -> Builder.of(Inebriator::new, INFECTED).sized(0.6F, 1.8F).build((new ResourceLocation("spore", "inebriater")).toString()));
-      SAUGLING = SPORE_ENTITIES.register("saugling", () -> Builder.of(Saugling::new, INFECTED).sized(0.9F, 0.9F).build((new ResourceLocation("spore", "saugling")).toString()));
-      GRIEFER = SPORE_ENTITIES.register("griefer", () -> Builder.of(Griefer::new, INFECTED).sized(0.8F, 2.1F).build((new ResourceLocation("spore", "griefer")).toString()));
-      BRAIOMIL = SPORE_ENTITIES.register("braiomil", () -> Builder.of(Braionmil::new, INFECTED).sized(0.6F, 2.0F).build((new ResourceLocation("spore", "braiomil")).toString()));
-      INF_VILLAGER = SPORE_ENTITIES.register("inf_villager", () -> Builder.of(InfectedVillager::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_villager")).toString()));
-      INF_DISEASED_VILLAGER = SPORE_ENTITIES.register("inf_diseased_villager", () -> Builder.of(InfectedDiseasedVillager::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_diseased_villager")).toString()));
-      INF_WANDERER = SPORE_ENTITIES.register("inf_wanderer", () -> Builder.of(InfectedWanderingTrader::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_wanderer")).toString()));
-      INF_WITCH = SPORE_ENTITIES.register("inf_witch", () -> Builder.of(InfectedWitch::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_witch")).toString()));
-      LEAPER = SPORE_ENTITIES.register("leaper", () -> Builder.of(Leaper::new, INFECTED).sized(0.6F, 2.3F).build((new ResourceLocation("spore", "leaper")).toString()));
-      SLASHER = SPORE_ENTITIES.register("slasher", () -> Builder.of(Slasher::new, INFECTED).sized(0.6F, 2.2F).build((new ResourceLocation("spore", "slasher")).toString()));
-      SPITTER = SPORE_ENTITIES.register("spitter", () -> Builder.of(Spitter::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "spitter")).toString()));
-      THORN = SPORE_ENTITIES.register("thorn", () -> Builder.of(Thorn::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "thorn")).toString()));
-      MEPHETIC = SPORE_ENTITIES.register("mephitic", () -> Builder.of(Mephetic::new, INFECTED).sized(0.6F, 2.2F).build((new ResourceLocation("spore", "mephitic")).toString()));
-      JAGD = SPORE_ENTITIES.register("jagd", () -> Builder.of(Jagdhund::new, INFECTED).sized(1.3F, 1.1F).build((new ResourceLocation("spore", "jagd")).toString()));
-      SCAVENGER = SPORE_ENTITIES.register("scavenger", () -> Builder.of(Scavenger::new, INFECTED).sized(1.3F, 1.1F).build((new ResourceLocation("spore", "scavenger")).toString()));
-      BLOATER = SPORE_ENTITIES.register("bloater", () -> Builder.of(Bloater::new, INFECTED).sized(0.8F, 1.9F).build((new ResourceLocation("spore", "bloater")).toString()));
-      NUCLEA = SPORE_ENTITIES.register("nuclea", () -> Builder.of(Nuclealave::new, INFECTED).sized(1.1F, 2.2F).build((new ResourceLocation("spore", "nuclea")).toString()));
-      SCAMPER = SPORE_ENTITIES.register("scamper", () -> Builder.of(Scamper::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "scamper")).toString()));
-      INF_PILLAGER = SPORE_ENTITIES.register("inf_pillager", () -> Builder.of(InfectedPillager::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_pillager")).toString()));
-      PLAGUED = SPORE_ENTITIES.register("plagued", () -> Builder.of(Plagued::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "plagued")).toString()));
-      LACERATOR = SPORE_ENTITIES.register("lacerator", () -> Builder.of(Lacerator::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "lacerator")).toString()));
-      BIOBLOOB = SPORE_ENTITIES.register("biobloob", () -> Builder.of(Biobloob::new, INFECTED).sized(2.6F, 1.9F).build((new ResourceLocation("spore", "biobloob")).toString()));
-      INF_HAZMAT = SPORE_ENTITIES.register("inf_hazmat", () -> Builder.of(InfectedHazmat::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_hazmat")).toString()));
-      INF_VINDICATOR = SPORE_ENTITIES.register("inf_vindicator", () -> Builder.of(InfectedVendicator::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_vindicator")).toString()));
-      INF_CONSTRUCT = SPORE_ENTITIES.register("inf_contruct", () -> Builder.of(InfestedConstruct::new, INFECTED).sized(1.5F, 2.6F).build((new ResourceLocation("spore", "inf_contruct")).toString()));
-      BAIRN = SPORE_ENTITIES.register("bairn", () -> Builder.of(Bairn::new, INFECTED).sized(0.8F, 0.8F).build((new ResourceLocation("spore", "bairn")).toString()));
-      INF_EVOKER = SPORE_ENTITIES.register("inf_evoker", () -> Builder.of(InfectedEvoker::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "inf_evoker")).toString()));
-      HOWLER = SPORE_ENTITIES.register("howler", () -> Builder.of(Howler::new, INFECTED).sized(0.6F, 2.1F).build((new ResourceLocation("spore", "howler")).toString()));
-      GORGON = SPORE_ENTITIES.register("gorgon", () -> Builder.of(Gorgon::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "gorgon")).toString()));
-      STALKER = SPORE_ENTITIES.register("stalker", () -> Builder.of(Stalker::new, INFECTED).sized(0.6F, 2.3F).build((new ResourceLocation("spore", "stalker")).toString()));
-      WENDIGO = SPORE_ENTITIES.register("wendigo", () -> Builder.of(Wendigo::new, INFECTED).sized(1.0F, 3.3F).build((new ResourceLocation("spore", "wendigo")).toString()));
-      INQUISITOR = SPORE_ENTITIES.register("inquisitor", () -> Builder.of(Inquisitor::new, INFECTED).sized(1.0F, 2.8F).build((new ResourceLocation("spore", "inquisitor")).toString()));
-      GROBER = SPORE_ENTITIES.register("grober", () -> Builder.of(Grober::new, INFECTED).sized(1.0F, 2.5F).build((new ResourceLocation("spore", "grober")).toString()));
-      HEVOKER = SPORE_ENTITIES.register("hevoker", () -> Builder.of(Hevoker::new, INFECTED).sized(1.0F, 3.0F).build((new ResourceLocation("spore", "hevoker")).toString()));
-      HEVOKER_ARM = SPORE_ENTITIES.register("hevoker_arm", () -> Builder.of(HyperClaw::new, INFECTED).sized(1.2F, 1.8F).build((new ResourceLocation("spore", "hevoker_arm")).toString()));
-      BROTKATZE = SPORE_ENTITIES.register("brot", () -> Builder.of(Brot::new, INFECTED).sized(1.8F, 1.8F).build((new ResourceLocation("spore", "brot")).toString()));
-      OGRE = SPORE_ENTITIES.register("ogre", () -> Builder.of(Ogre::new, INFECTED).sized(2.5F, 3.0F).build((new ResourceLocation("spore", "ogre")).toString()));
-      BRUTE = SPORE_ENTITIES.register("brute", () -> Builder.of(Brute::new, INFECTED).sized(1.8F, 1.6F).build((new ResourceLocation("spore", "brute")).toString()));
-      BUSSER = SPORE_ENTITIES.register("busser", () -> Builder.of(Busser::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "busser")).toString()));
-      VOLATILE = SPORE_ENTITIES.register("volatile", () -> Builder.of(Volatile::new, INFECTED).sized(0.6F, 2.3F).build((new ResourceLocation("spore", "volatile")).toString()));
-      INF_DROWNED = SPORE_ENTITIES.register("inf_drowned", () -> Builder.of(InfectedDrowned::new, INFECTED).sized(0.6F, 2.0F).build((new ResourceLocation("spore", "inf_drowned")).toString()));
-      CHEMIST = SPORE_ENTITIES.register("chemist", () -> Builder.of(Chemist::new, INFECTED).sized(0.6F, 1.8F).build((new ResourceLocation("spore", "chemist")).toString()));
-      CONDUCTOR = SPORE_ENTITIES.register("conductor", () -> Builder.of(Conductor::new, INFECTED).sized(0.6F, 2.2F).build((new ResourceLocation("spore", "chemist")).toString()));
-      GARGOYLE = SPORE_ENTITIES.register("gargoyle", () -> Builder.of(Gargoyl::new, INFECTED).sized(0.6F, 1.9F).build((new ResourceLocation("spore", "gargoyle")).toString()));
-      VANGUARD = SPORE_ENTITIES.register("vanguard", () -> Builder.of(Vanguard::new, INFECTED).sized(0.8F, 2.5F).build((new ResourceLocation("spore", "vanguard")).toString()));
-      REAPER = SPORE_ENTITIES.register("reaper", () -> Builder.of(Reaper::new, INFECTED).sized(0.8F, 2.4F).build((new ResourceLocation("spore", "reaper")).toString()));
-      NAIAD = SPORE_ENTITIES.register("naiad", () -> Builder.of(Naiad::new, INFECTED).sized(1.25F, 0.75F).build((new ResourceLocation("spore", "naiad")).toString()));
-      VIGIL = SPORE_ENTITIES.register("vigil", () -> Builder.of(Vigil::new, ORGANOID).sized(1.0F, 3.0F).build((new ResourceLocation("spore", "vigil")).toString()));
-      DELUSIONARE = SPORE_ENTITIES.register("delusioner", () -> Builder.of(Delusionare::new, ORGANOID).sized(1.0F, 3.0F).build((new ResourceLocation("spore", "delusioner")).toString()));
-      UMARMED = SPORE_ENTITIES.register("umarmed", () -> Builder.of(Umarmer::new, ORGANOID).sized(1.0F, 3.0F).build((new ResourceLocation("spore", "umarmed")).toString()));
-      BRAUREI = SPORE_ENTITIES.register("braurei", () -> Builder.of(Brauerei::new, ORGANOID).sized(3.0F, 3.0F).build((new ResourceLocation("spore", "braurei")).toString()));
-      TENTACLE = SPORE_ENTITIES.register("tentacle", () -> Builder.of(Tentacle::new, ORGANOID).sized(1.0F, 1.0F).build((new ResourceLocation("spore", "tentacle")).toString()));
-      ILLUSION = SPORE_ENTITIES.register("illusion", () -> Builder.of(Illusion::new, MobCategory.MISC).sized(1.0F, 2.0F).build((new ResourceLocation("spore", "illusion")).toString()));
-      ARENA_TENDRIL = SPORE_ENTITIES.register("arena_tendril", () -> Builder.of(ArenaEntity::new, ORGANOID).sized(1.0F, 3.0F).build((new ResourceLocation("spore", "arena_tendril")).toString()));
-      GASTGABER = SPORE_ENTITIES.register("gastgaber", () -> Builder.of(GastGeber::new, ORGANOID).sized(1.1F, 2.0F).build((new ResourceLocation("spore", "gastgaber")).toString()));
-      SPECTER = SPORE_ENTITIES.register("specter", () -> Builder.of(Specter::new, INFECTED).sized(1.1F, 2.5F).build((new ResourceLocation("spore", "specter")).toString()));
-      HVINDICATOR = SPORE_ENTITIES.register("hvindicator", () -> Builder.of(Hvindicator::new, INFECTED).sized(1.1F, 3.5F).build((new ResourceLocation("spore", "hvindicator")).toString()));
-      NUKE = SPORE_ENTITIES.register("nuke", () -> Builder.of(NukeEntity::new, MobCategory.MISC).sized(1.1F, 3.0F).build((new ResourceLocation("spore", "nuke")).toString()));
-      VOMIT_BALL = register("vomit_ball", Builder.of(VomitHohlBall::new, MobCategory.MISC).setCustomClientFactory((spawnEntity, level) -> new VomitHohlBall(level)).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      DROWNED_FLESH_BOMB = register("drowned_flesh_bomb", Builder.of(DrownedFleshBomb::new, MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      USURPER_VOMIT_BALL = register("usurper_vomit_ball", Builder.of(VomitUsurperBall::new, MobCategory.MISC).setCustomClientFactory((spawnEntity, level) -> new VomitUsurperBall(level)).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      ACID_BALL = register("acid_ball", Builder.of(AcidBall::new, MobCategory.MISC).setCustomClientFactory((spawnEntity, level) -> new AcidBall(level)).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      ACID = register("acid", Builder.of(Vomit::new, MobCategory.MISC).setCustomClientFactory(Vomit::new).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      ASSASSIN_BULLET = register("assassin_bullet", Builder.of(AssassinBullet::new, MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      GORE_BULLET = register("gore_bullet", Builder.of(GoreBullet::new, MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      BILE_BULLET = register("bile_bullet", Builder.of(BileBullet::new, MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      THROWN_SPEAR = register("thrown_spear", Builder.of(ThrownSpear::new, MobCategory.MISC).setCustomClientFactory(ThrownSpear::new).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      THROWN_BOOMERANG = register("thrown_boomerang", Builder.of(ThrownBoomerang::new, MobCategory.MISC).setCustomClientFactory(ThrownBoomerang::new).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(1.0F, 0.5F));
-      THROWN_KNIFE = register("thrown_knife", Builder.of(ThrownKnife::new, MobCategory.MISC).setCustomClientFactory(ThrownKnife::new).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      THROWN_TUMOR = register("thrown_tumor", Builder.of(ThrownTumor::new, MobCategory.MISC).setCustomClientFactory(ThrownTumor::new).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      FALLEN_ACID_BULB = register("fallen_acid_sack", Builder.of((p_33002_, level) -> new FallenAcidSack(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      BILE = register("bile", Builder.of((p_33002_, level) -> new BileProjectile(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      SPIT = register("spit", Builder.of((p_33002_, level) -> new AdaptableProjectile(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      STINGER = register("stinger", Builder.of((p_33002_, level) -> new StingerProjectile(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      HARPOON = register("harpoon", Builder.of((p_33002_, level) -> new HarpoonProjectile(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      THROWN_TOOL = register("thrown_tool", Builder.of((p_33002_, level) -> new ThrownItemProjectile(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      THROWN_SYRINGE = register("thrown_syringe", Builder.of((p_33002_, level) -> new SyringeProjectile(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      THROWN_SICKEL = register("thrown_sickle", Builder.of((p_33002_, level) -> new ThrownSickle(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4F, 0.4F));
-      THROWN_BLOCK = register("thrown_block", Builder.of((p_33002_, level) -> new ThrownBlockProjectile(level), MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(1.0F, 1.0F));
-      FLESH_BOMB = register("flesh_bomb", Builder.of(FleshBomb::new, MobCategory.MISC).setCustomClientFactory(FleshBomb::new).setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5F, 0.5F));
-      SCENT = SPORE_ENTITIES.register("scent", () -> Builder.of(ScentEntity::new, MobCategory.MISC).sized(0.2F, 0.2F).build((new ResourceLocation("spore", "scent")).toString()));
-      CLAW = SPORE_ENTITIES.register("claw", () -> Builder.of(InfEvoClaw::new, INFECTED).sized(0.5F, 1.0F).build((new ResourceLocation("spore", "claw")).toString()));
-      CORPSE_PIECE = SPORE_ENTITIES.register("corpse_piece", () -> Builder.of(CorpseEntity::new, MobCategory.MISC).sized(1.0F, 1.0F).clientTrackingRange(10).build((new ResourceLocation("spore", "corpse_piece")).toString()));
-      MOUND = SPORE_ENTITIES.register("mound", () -> Builder.of(Mound::new, ORGANOID).sized(0.3F, 0.3F).build((new ResourceLocation("spore", "mound")).toString()));
-      RECONSTRUCTOR = SPORE_ENTITIES.register("reconstructor", () -> Builder.of(Womb::new, ORGANOID).sized(1.0F, 1.0F).build((new ResourceLocation("spore", "reconstructor")).toString()));
-      VERVA = SPORE_ENTITIES.register("verva", () -> Builder.of(Verwa::new, ORGANOID).sized(1.0F, 2.0F).build((new ResourceLocation("spore", "verva")).toString()));
-      USURPER = SPORE_ENTITIES.register("usurper", () -> Builder.of(Usurper::new, ORGANOID).sized(1.0F, 2.2F).build((new ResourceLocation("spore", "usurper")).toString()));
-      PROTO = SPORE_ENTITIES.register("proto", () -> Builder.of(Proto::new, ORGANOID).sized(1.0F, 3.5F).build((new ResourceLocation("spore", "proto")).toString()));
-      HIVETUMOR = SPORE_ENTITIES.register("hivetumor", () -> Builder.of(HiveTumor::new, ORGANOID).sized(1.2F, 3.0F).build((new ResourceLocation("spore", "hivetumor")).toString()));
-      TENDRIL = SPORE_ENTITIES.register("tendril", () -> Builder.of(InfectionTendril::new, MobCategory.MISC).sized(0.8F, 0.1F).build((new ResourceLocation("spore", "tendril")).toString()));
-      TUMOROID_NUKE = SPORE_ENTITIES.register("tumoroid_nuke", () -> Builder.of(TumoroidNuke::new, MobCategory.MISC).sized(3.0F, 3.0F).build((new ResourceLocation("spore", "tumoroid_nuke")).toString()));
-      WAVE = SPORE_ENTITIES.register("wave", () -> Builder.of(WaveEntity::new, MobCategory.MISC).sized(0.8F, 0.1F).build((new ResourceLocation("spore", "wave")).toString()));
-      SIEGER = SPORE_ENTITIES.register("sieger", () -> Builder.of(Sieger::new, INFECTED).sized(2.5F, 3.0F).build((new ResourceLocation("spore", "sieger")).toString()));
-      SIEGER_TAIL = SPORE_ENTITIES.register("sieger_tail", () -> Builder.of(SiegerTail::new, MobCategory.MISC).sized(2.1F, 1.0F).build((new ResourceLocation("spore", "sieger_tail")).toString()));
-      HOWIT_ARM = SPORE_ENTITIES.register("howit_arm", () -> Builder.of(HowitzerArm::new, MobCategory.MISC).sized(2.1F, 1.0F).build((new ResourceLocation("spore", "howit_arm")).toString()));
-      GAZENBREACHER = SPORE_ENTITIES.register("gazenbreacher", () -> Builder.of(Gazenbrecher::new, INFECTED).sized(3.5F, 3.0F).build((new ResourceLocation("spore", "gazenbreacher")).toString()));
-      KRAKEN = SPORE_ENTITIES.register("kraken", () -> Builder.of(Grakensenker::new, INFECTED).sized(3.0F, 3.0F).build((new ResourceLocation("spore", "kraken")).toString()));
-      LICKER = SPORE_ENTITIES.register("licker", () -> Builder.of(Licker::new, MobCategory.MISC).sized(1.4F, 1.0F).build((new ResourceLocation("spore", "licker")).toString()));
-      HINDENBURG = SPORE_ENTITIES.register("hindenburg", () -> Builder.of(Hinderburg::new, INFECTED).sized(5.0F, 5.0F).build((new ResourceLocation("spore", "hindenburg")).toString()));
-      HOWITZER = SPORE_ENTITIES.register("howitzer", () -> Builder.of(Howitzer::new, INFECTED).sized(5.0F, 5.0F).build((new ResourceLocation("spore", "howitzer")).toString()));
-      STALH = SPORE_ENTITIES.register("stahl", () -> Builder.of(Stahlmorder::new, INFECTED).sized(3.0F, 6.0F).build((new ResourceLocation("spore", "stahl")).toString()));
-      HOHLFRESSER = SPORE_ENTITIES.register("hohlfresser", () -> Builder.of(Hohlfresser::new, INFECTED).sized(3.5F, 3.5F).build((new ResourceLocation("spore", "hohlfresser")).toString()));
-      HOHLFRESSER_SEG = SPORE_ENTITIES.register("hohlfresser_seg", () -> Builder.of(HohlMultipart::new, INFECTED).sized(3.5F, 3.5F).build((new ResourceLocation("spore", "hohlfresser_seg")).toString()));
-      STAHL_ARM = SPORE_ENTITIES.register("stahl_arm", () -> Builder.of(StalhArm::new, MobCategory.MISC).sized(3.0F, 1.0F).build((new ResourceLocation("spore", "stahl_arm")).toString()));
-      LEVIATHAN = SPORE_ENTITIES.register("leviathan", () -> Builder.of(Leviathan::new, INFECTED).sized(3.5F, 3.5F).build((new ResourceLocation("spore", "leviathan")).toString()));
-      LEVIATHAN_SEG = SPORE_ENTITIES.register("leviathan_seg", () -> Builder.of(LeviathanMultipart::new, INFECTED).sized(3.5F, 3.5F).build((new ResourceLocation("spore", "leviathan_seg")).toString()));
-   }
+    public static final RegistryObject<EntityType<InfectedHuman>> INF_HUMAN = SPORE_ENTITIES.register("inf_human",
+            () -> EntityType.Builder.of((EntityType<InfectedHuman> p_33002_, Level level) -> new InfectedHuman(level), INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_human").toString()));
+
+    public static final RegistryObject<EntityType<InfectedHusk>> INF_HUSK = SPORE_ENTITIES.register("inf_husk",
+            () -> EntityType.Builder.of((EntityType<InfectedHusk> p_33002_, Level level) -> new InfectedHusk(level), INFECTED).sized(0.6f, 2.1f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_husk").toString()));
+
+    public static final RegistryObject<EntityType<InfectedPlayer>> INF_PLAYER = SPORE_ENTITIES.register("inf_player",
+            () -> EntityType.Builder.of(InfectedPlayer::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_player").toString()));
+
+    public static final RegistryObject<EntityType<Knight>> KNIGHT = SPORE_ENTITIES.register("knight",
+            () -> EntityType.Builder.of(Knight::new, INFECTED).sized(0.6f, 2f)
+                    .build(new ResourceLocation(Spore.MODID, "knight").toString()));
+
+    public static final RegistryObject<EntityType<Protector>> PROTECTOR = SPORE_ENTITIES.register("protector",
+            () -> EntityType.Builder.of(Protector::new, INFECTED).sized(0.6f, 2f)
+                    .build(new ResourceLocation(Spore.MODID, "protector").toString()));
+
+    public static final RegistryObject<EntityType<Inebriator>> INEBRIATER = SPORE_ENTITIES.register("inebriater",
+            () -> EntityType.Builder.of(Inebriator::new, INFECTED).sized(0.6f, 1.8f)
+                    .build(new ResourceLocation(Spore.MODID, "inebriater").toString()));
+
+    public static final RegistryObject<EntityType<Saugling>> SAUGLING = SPORE_ENTITIES.register("saugling",
+            () -> EntityType.Builder.of(Saugling::new, EXPERIMENTS).sized(0.9f, 0.9f)
+                    .build(new ResourceLocation(Spore.MODID, "saugling").toString()));
+
+    public static final RegistryObject<EntityType<Griefer>> GRIEFER = SPORE_ENTITIES.register("griefer",
+            () -> EntityType.Builder.of(Griefer::new, INFECTED).sized(0.8f, 2.1f)
+                    .build(new ResourceLocation(Spore.MODID, "griefer").toString()));
+
+    public static final RegistryObject<EntityType<Braionmil>> BRAIOMIL = SPORE_ENTITIES.register("braiomil",
+            () -> EntityType.Builder.of(Braionmil::new, INFECTED).sized(0.6f, 2f)
+                    .build(new ResourceLocation(Spore.MODID, "braiomil").toString()));
+
+    public static final RegistryObject<EntityType<InfectedVillager>> INF_VILLAGER = SPORE_ENTITIES.register("inf_villager",
+            () -> EntityType.Builder.of(InfectedVillager::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_villager").toString()));
+
+    public static final RegistryObject<EntityType<InfectedDiseasedVillager>> INF_DISEASED_VILLAGER = SPORE_ENTITIES.register("inf_diseased_villager",
+            () -> EntityType.Builder.of(InfectedDiseasedVillager::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_diseased_villager").toString()));
+
+    public static final RegistryObject<EntityType<InfectedWanderingTrader>> INF_WANDERER = SPORE_ENTITIES.register("inf_wanderer",
+            () -> EntityType.Builder.of(InfectedWanderingTrader::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_wanderer").toString()));
+
+    public static final RegistryObject<EntityType<InfectedWitch>> INF_WITCH = SPORE_ENTITIES.register("inf_witch",
+            () -> EntityType.Builder.of(InfectedWitch::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_witch").toString()));
+
+    public static final RegistryObject<EntityType<Leaper>> LEAPER = SPORE_ENTITIES.register("leaper",
+            () -> EntityType.Builder.of(Leaper::new, INFECTED).sized(0.6f, 2.3f)
+                    .build(new ResourceLocation(Spore.MODID, "leaper").toString()));
+
+    public static final RegistryObject<EntityType<Slasher>> SLASHER = SPORE_ENTITIES.register("slasher",
+            () -> EntityType.Builder.of(Slasher::new, INFECTED).sized(0.6f, 2.2f)
+                    .build(new ResourceLocation(Spore.MODID, "slasher").toString()));
+
+    public static final RegistryObject<EntityType<Spitter>> SPITTER = SPORE_ENTITIES.register("spitter",
+            () -> EntityType.Builder.of(Spitter::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "spitter").toString()));
+
+    public static final RegistryObject<EntityType<Thorn>> THORN = SPORE_ENTITIES.register("thorn",
+            () -> EntityType.Builder.of(Thorn::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "thorn").toString()));
+
+    public static final RegistryObject<EntityType<Mephetic>> MEPHETIC = SPORE_ENTITIES.register("mephitic",
+            () -> EntityType.Builder.of(Mephetic::new, INFECTED).sized(0.6f, 2.2f)
+                    .build(new ResourceLocation(Spore.MODID, "mephitic").toString()));
+
+    public static final RegistryObject<EntityType<Jagdhund>> JAGD = SPORE_ENTITIES.register("jagd",
+            () -> EntityType.Builder.of(Jagdhund::new, INFECTED).sized(1.3f, 1.1f)
+                    .build(new ResourceLocation(Spore.MODID, "jagd").toString()));
+
+    public static final RegistryObject<EntityType<Scavenger>> SCAVENGER = SPORE_ENTITIES.register("scavenger",
+            () -> EntityType.Builder.of(Scavenger::new, INFECTED).sized(1.3f, 1.1f)
+                    .build(new ResourceLocation(Spore.MODID, "scavenger").toString()));
+
+    public static final RegistryObject<EntityType<Bloater>> BLOATER = SPORE_ENTITIES.register("bloater",
+            () -> EntityType.Builder.of(Bloater::new, INFECTED).sized(0.8f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "bloater").toString()));
+
+    public static final RegistryObject<EntityType<Nuclealave>> NUCLEA = SPORE_ENTITIES.register("nuclea",
+            () -> EntityType.Builder.of(Nuclealave::new, INFECTED).sized(1.1f, 2.2f)
+                    .build(new ResourceLocation(Spore.MODID, "nuclea").toString()));
+
+    public static final RegistryObject<EntityType<Scamper>> SCAMPER = SPORE_ENTITIES.register("scamper",
+            () -> EntityType.Builder.of(Scamper::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "scamper").toString()));
+
+    public static final RegistryObject<EntityType<InfectedPillager>> INF_PILLAGER = SPORE_ENTITIES.register("inf_pillager",
+            () -> EntityType.Builder.of(InfectedPillager::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_pillager").toString()));
+
+    public static final RegistryObject<EntityType<Plagued>> PLAGUED = SPORE_ENTITIES.register("plagued",
+            () -> EntityType.Builder.of(Plagued::new, EXPERIMENTS).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "plagued").toString()));
+
+    public static final RegistryObject<EntityType<Lacerator>> LACERATOR = SPORE_ENTITIES.register("lacerator",
+            () -> EntityType.Builder.of(Lacerator::new, EXPERIMENTS).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "lacerator").toString()));
+
+    public static final RegistryObject<EntityType<Biobloob>> BIOBLOOB = SPORE_ENTITIES.register("biobloob",
+            () -> EntityType.Builder.of(Biobloob::new, EXPERIMENTS).sized(2.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "biobloob").toString()));
+
+    public static final RegistryObject<EntityType<InfectedHazmat>> INF_HAZMAT = SPORE_ENTITIES.register("inf_hazmat",
+            () -> EntityType.Builder.of(InfectedHazmat::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_hazmat").toString()));
+
+    public static final RegistryObject<EntityType<InfectedVendicator>> INF_VINDICATOR = SPORE_ENTITIES.register("inf_vindicator",
+            () -> EntityType.Builder.of(InfectedVendicator::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_vindicator").toString()));
+
+    public static final RegistryObject<EntityType<InfestedConstruct>> INF_CONSTRUCT = SPORE_ENTITIES.register("inf_contruct",
+            () -> EntityType.Builder.of(InfestedConstruct::new, INFECTED).sized(1.5f, 2.6f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_contruct").toString()));
+
+    public static final Supplier<EntityType<Bairn>> BAIRN = SPORE_ENTITIES.register("bairn",
+            () -> EntityType.Builder.of(Bairn::new, INFECTED).sized(0.8f, 0.8f)
+                    .build(new ResourceLocation(Spore.MODID, "bairn").toString()));
+
+    public static final RegistryObject<EntityType<InfectedEvoker>> INF_EVOKER = SPORE_ENTITIES.register("inf_evoker",
+            () -> EntityType.Builder.of(InfectedEvoker::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_evoker").toString()));
+
+    public static final RegistryObject<EntityType<Howler>> HOWLER = SPORE_ENTITIES.register("howler",
+            () -> EntityType.Builder.of(Howler::new, INFECTED).sized(0.6f, 2.1f)
+                    .build(new ResourceLocation(Spore.MODID, "howler").toString()));
+
+    public static final Supplier<EntityType<Gorgon>> GORGON = SPORE_ENTITIES.register("gorgon",
+            () -> EntityType.Builder.of(Gorgon::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "gorgon").toString()));
+
+    public static final RegistryObject<EntityType<Stalker>> STALKER = SPORE_ENTITIES.register("stalker",
+            () -> EntityType.Builder.of(Stalker::new, INFECTED).sized(0.6f, 2.3f)
+                    .build(new ResourceLocation(Spore.MODID, "stalker").toString()));
+
+    public static final RegistryObject<EntityType<Wendigo>> WENDIGO = SPORE_ENTITIES.register("wendigo",
+            () -> EntityType.Builder.of(Wendigo::new, INFECTED).sized(1f, 3.3f)
+                    .build(new ResourceLocation(Spore.MODID, "wendigo").toString()));
+
+    public static final RegistryObject<EntityType<Inquisitor>> INQUISITOR = SPORE_ENTITIES.register("inquisitor",
+            () -> EntityType.Builder.of(Inquisitor::new, INFECTED).sized(1f, 2.8f)
+                    .build(new ResourceLocation(Spore.MODID, "inquisitor").toString()));
+
+    public static final Supplier<EntityType<Hollenhund>> HOLLEN = SPORE_ENTITIES.register("hollen",
+            () -> EntityType.Builder.of(Hollenhund::new, INFECTED).sized(2f, 1.1f)
+                    .build(new ResourceLocation(Spore.MODID, "hollen").toString()));
+
+    public static final Supplier<EntityType<Grober>> GROBER = SPORE_ENTITIES.register("grober",
+            () -> EntityType.Builder.of(Grober::new, INFECTED).sized(1f, 2.5f)
+                    .build(new ResourceLocation(Spore.MODID, "grober").toString()));
+
+    public static final RegistryObject<EntityType<Hevoker>> HEVOKER = SPORE_ENTITIES.register("hevoker",
+            () -> EntityType.Builder.of(Hevoker::new, INFECTED).sized(1f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "hevoker").toString()));
+
+    public static final RegistryObject<EntityType<HyperClaw>> HEVOKER_ARM = SPORE_ENTITIES.register("hevoker_arm",
+            () -> EntityType.Builder.of(HyperClaw::new, INFECTED).sized(1.2f, 1.8f)
+                    .build(new ResourceLocation(Spore.MODID, "hevoker_arm").toString()));
+
+    public static final RegistryObject<EntityType<Brot>> BROTKATZE = SPORE_ENTITIES.register("brot",
+            () -> EntityType.Builder.of(Brot::new, INFECTED).sized(1.8f, 1.8f)
+                    .build(new ResourceLocation(Spore.MODID, "brot").toString()));
+
+    public static final RegistryObject<EntityType<Ogre>> OGRE = SPORE_ENTITIES.register("ogre",
+            () -> EntityType.Builder.of(Ogre::new, INFECTED).sized(2.5f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "ogre").toString()));
+
+    public static final RegistryObject<EntityType<Brute>> BRUTE = SPORE_ENTITIES.register("brute",
+            () -> EntityType.Builder.of(Brute::new, INFECTED).sized(1.8f,1.6f)
+                    .build(new ResourceLocation(Spore.MODID, "brute").toString()));
+
+    public static final RegistryObject<EntityType<Busser>> BUSSER = SPORE_ENTITIES.register("busser",
+            () -> EntityType.Builder.of(Busser::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "busser").toString()));
+
+    public static final RegistryObject<EntityType<Volatile>> VOLATILE = SPORE_ENTITIES.register("volatile",
+            () -> EntityType.Builder.of(Volatile::new, INFECTED).sized(0.6f, 2.3f)
+                    .build(new ResourceLocation(Spore.MODID, "volatile").toString()));
+
+    public static final RegistryObject<EntityType<InfectedDrowned>> INF_DROWNED = SPORE_ENTITIES.register("inf_drowned",
+            () -> EntityType.Builder.of(InfectedDrowned::new, INFECTED).sized(0.6f, 2f)
+                    .build(new ResourceLocation(Spore.MODID, "inf_drowned").toString()));
+
+    public static final RegistryObject<EntityType<Chemist>> CHEMIST = SPORE_ENTITIES.register("chemist",
+            () -> EntityType.Builder.of(Chemist::new, INFECTED).sized(0.6f, 1.8f)
+                    .build(new ResourceLocation(Spore.MODID, "chemist").toString()));
+
+    public static final RegistryObject<EntityType<Conductor>> CONDUCTOR = SPORE_ENTITIES.register("conductor",
+            () -> EntityType.Builder.of(Conductor::new, INFECTED).sized(0.6f, 2.2f)
+                    .build(new ResourceLocation(Spore.MODID, "chemist").toString()));
+
+    public static final Supplier<EntityType<Gargoyl>> GARGOYLE = SPORE_ENTITIES.register("gargoyle",
+            () -> EntityType.Builder.of(Gargoyl::new, INFECTED).sized(0.6f, 1.9f)
+                    .build(new ResourceLocation(Spore.MODID, "gargoyle").toString()));
+
+    public static final RegistryObject<EntityType<Vanguard>> VANGUARD = SPORE_ENTITIES.register("vanguard",
+            () -> EntityType.Builder.of(Vanguard::new, INFECTED).sized(0.8f, 2.5f)
+                    .build(new ResourceLocation(Spore.MODID, "vanguard").toString()));
+
+    public static final Supplier<EntityType<Reaper>> REAPER = SPORE_ENTITIES.register("reaper",
+            () -> EntityType.Builder.of(Reaper::new, INFECTED).sized(0.8f, 2.4f)
+                    .build(new ResourceLocation(Spore.MODID, "reaper").toString()));
+
+    public static final RegistryObject<EntityType<Naiad>> NAIAD = SPORE_ENTITIES.register("naiad",
+            () -> EntityType.Builder.of(Naiad::new, INFECTED).sized(1.25f, 0.75f)
+                    .build(new ResourceLocation(Spore.MODID, "naiad").toString()));
+
+    public static final RegistryObject<EntityType<Vigil>> VIGIL = SPORE_ENTITIES.register("vigil",
+            () -> EntityType.Builder.of(Vigil::new, ORGANOID).sized(1f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "vigil").toString()));
+
+    public static final RegistryObject<EntityType<Delusionare>> DELUSIONARE = SPORE_ENTITIES.register("delusioner",
+            () -> EntityType.Builder.of(Delusionare::new, ORGANOID).sized(1f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "delusioner").toString()));
+
+    public static final RegistryObject<EntityType<Umarmer>> UMARMED = SPORE_ENTITIES.register("umarmed",
+            () -> EntityType.Builder.of(Umarmer::new, ORGANOID).sized(1f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "umarmed").toString()));
+
+    public static final RegistryObject<EntityType<Brauerei>> BRAUREI = SPORE_ENTITIES.register("braurei",
+            () -> EntityType.Builder.of(Brauerei::new, ORGANOID).sized(3f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "braurei").toString()));
+
+    public static final RegistryObject<EntityType<Tentacle>> TENTACLE = SPORE_ENTITIES.register("tentacle",
+            () -> EntityType.Builder.of(Tentacle::new, ORGANOID).sized(1f, 1f)
+                    .build(new ResourceLocation(Spore.MODID, "tentacle").toString()));
+
+    public static final RegistryObject<EntityType<Illusion>> ILLUSION = SPORE_ENTITIES.register("illusion",
+            () -> EntityType.Builder.of(Illusion::new, MobCategory.MISC).sized(1f, 2f)
+                    .build(new ResourceLocation(Spore.MODID, "illusion").toString()));
+
+    public static final RegistryObject<EntityType<ArenaEntity>> ARENA_TENDRIL = SPORE_ENTITIES.register("arena_tendril",
+            () -> EntityType.Builder.of(ArenaEntity::new, ORGANOID).sized(1f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "arena_tendril").toString()));
+
+    public static final RegistryObject<EntityType<GastGeber>> GASTGABER = SPORE_ENTITIES.register("gastgaber",
+            () -> EntityType.Builder.of(GastGeber::new, ORGANOID).sized(1.1f, 2f)
+                    .build(new ResourceLocation(Spore.MODID, "gastgaber").toString()));
+
+    public static final RegistryObject<EntityType<Specter>> SPECTER = SPORE_ENTITIES.register("specter",
+            () -> EntityType.Builder.of(Specter::new, INFECTED).sized(1.1f, 2.5f)
+                    .build(new ResourceLocation(Spore.MODID, "specter").toString()));
+
+    public static final RegistryObject<EntityType<Hvindicator>> HVINDICATOR = SPORE_ENTITIES.register("hvindicator",
+            () -> EntityType.Builder.of(Hvindicator::new, INFECTED).sized(1.1f, 3.5f)
+                    .build(new ResourceLocation(Spore.MODID, "hvindicator").toString()));
+
+    public static final RegistryObject<EntityType<NukeEntity>> NUKE = SPORE_ENTITIES.register("nuke",
+            () -> EntityType.Builder.of(NukeEntity::new, MobCategory.MISC).sized(1.1f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "nuke").toString()));
+
+    public static final RegistryObject<EntityType<VomitHohlBall>> VOMIT_BALL = register("vomit_ball",
+            EntityType.Builder.<VomitHohlBall>of(VomitHohlBall::new, MobCategory.MISC).setCustomClientFactory((spawnEntity, level) -> new VomitHohlBall(level))
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<TarBall>> TAR_BALL = register("tar_ball",
+            EntityType.Builder.<TarBall>of(TarBall::new, MobCategory.MISC).setCustomClientFactory((spawnEntity, level) -> new TarBall(level))
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+
+    public static final Supplier<EntityType<DrownedFleshBomb>> DROWNED_FLESH_BOMB = register("drowned_flesh_bomb",
+            EntityType.Builder.<DrownedFleshBomb>of(DrownedFleshBomb::new, MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<VomitUsurperBall>> USURPER_VOMIT_BALL = register("usurper_vomit_ball",
+            EntityType.Builder.<VomitUsurperBall>of(VomitUsurperBall::new, MobCategory.MISC).setCustomClientFactory((spawnEntity, level) -> new VomitUsurperBall(level))
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<AcidBall>> ACID_BALL = register("acid_ball",
+            EntityType.Builder.<AcidBall>of(AcidBall::new, MobCategory.MISC).setCustomClientFactory((spawnEntity, level) -> new AcidBall(level))
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<Vomit>> ACID = register("acid",
+            EntityType.Builder.<Vomit>of(Vomit::new, MobCategory.MISC).setCustomClientFactory(Vomit::new)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final Supplier<EntityType<AssassinBullet>> ASSASSIN_BULLET = register("assassin_bullet",
+            EntityType.Builder.of(AssassinBullet::new, MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final Supplier<EntityType<GoreBullet>> GORE_BULLET = register("gore_bullet",
+            EntityType.Builder.of(GoreBullet::new, MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final Supplier<EntityType<BileBullet>> BILE_BULLET = register("bile_bullet",
+            EntityType.Builder.of(BileBullet::new, MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final Supplier<EntityType<ToxinBullet>> TOXIN_BULLET = register("toxin_bullet",
+            EntityType.Builder.of(ToxinBullet::new, MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<ThrownSpear>> THROWN_SPEAR = register("thrown_spear",
+            EntityType.Builder.<ThrownSpear>of(ThrownSpear::new, MobCategory.MISC).setCustomClientFactory(ThrownSpear::new)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<ThrownBoomerang>> THROWN_BOOMERANG = register("thrown_boomerang",
+            EntityType.Builder.<ThrownBoomerang>of(ThrownBoomerang::new, MobCategory.MISC).setCustomClientFactory(ThrownBoomerang::new)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(1f, 0.5f));
+
+    public static final RegistryObject<EntityType<ThrownKnife>> THROWN_KNIFE = register("thrown_knife",
+            EntityType.Builder.<ThrownKnife>of(ThrownKnife::new, MobCategory.MISC).setCustomClientFactory(ThrownKnife::new)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<ThrownTumor>> THROWN_TUMOR = register("thrown_tumor",
+            EntityType.Builder.<ThrownTumor>of(ThrownTumor::new, MobCategory.MISC).setCustomClientFactory(ThrownTumor::new)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<FallenAcidSack>> FALLEN_ACID_BULB = register("fallen_acid_sack",
+            EntityType.Builder.of((EntityType<FallenAcidSack> p_33002_, Level level) -> new FallenAcidSack(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<BileProjectile>> BILE = register("bile",
+            EntityType.Builder.of((EntityType<BileProjectile> p_33002_, Level level) -> new BileProjectile(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<AdaptableProjectile>> SPIT = register("spit",
+            EntityType.Builder.of((EntityType<AdaptableProjectile> p_33002_, Level level) -> new AdaptableProjectile(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<StingerProjectile>> STINGER = register("stinger",
+            EntityType.Builder.of((EntityType<StingerProjectile> p_33002_, Level level) -> new StingerProjectile(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<HarpoonProjectile>> HARPOON = register("harpoon",
+            EntityType.Builder.of((EntityType<HarpoonProjectile> p_33002_, Level level) -> new HarpoonProjectile(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<ThrownItemProjectile>> THROWN_TOOL = register("thrown_tool",
+            EntityType.Builder.of((EntityType<ThrownItemProjectile> p_33002_, Level level) -> new ThrownItemProjectile(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<SyringeProjectile>> THROWN_SYRINGE = register("thrown_syringe",
+            EntityType.Builder.of((EntityType<SyringeProjectile> p_33002_, Level level) -> new SyringeProjectile(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<ThrownSickle>> THROWN_SICKEL = register("thrown_sickle",
+            EntityType.Builder.of((EntityType<ThrownSickle> p_33002_, Level level) -> new ThrownSickle(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.4f, 0.4f));
+
+    public static final RegistryObject<EntityType<ThrownBlockProjectile>> THROWN_BLOCK = register("thrown_block",
+            EntityType.Builder.of((EntityType<ThrownBlockProjectile> p_33002_, Level level) -> new ThrownBlockProjectile(level), MobCategory.MISC)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(1f, 1f));
+
+    public static final RegistryObject<EntityType<FleshBomb>> FLESH_BOMB = register("flesh_bomb",
+            EntityType.Builder.<FleshBomb>of(FleshBomb::new, MobCategory.MISC).setCustomClientFactory(FleshBomb::new)
+                    .setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
+
+    public static final RegistryObject<EntityType<ScentEntity>> SCENT = SPORE_ENTITIES.register("scent",
+            () -> EntityType.Builder.of(ScentEntity::new, MobCategory.MISC).sized(0.2f,0.2f)
+                    .build(new ResourceLocation(Spore.MODID, "scent").toString()));
+
+    public static final RegistryObject<EntityType<InfEvoClaw>> CLAW = SPORE_ENTITIES.register("claw",
+            () -> EntityType.Builder.of(InfEvoClaw::new, INFECTED).sized(0.5f, 1f)
+                    .build(new ResourceLocation(Spore.MODID, "claw").toString()));
+
+    public static final RegistryObject<EntityType<CorpseEntity>> CORPSE_PIECE =
+            SPORE_ENTITIES.register("corpse_piece",
+                    () -> EntityType.Builder.<CorpseEntity>of(CorpseEntity::new, MobCategory.MISC)
+                            .sized(1.0f, 1.0f)
+                            .clientTrackingRange(10)
+                            .build(new ResourceLocation(Spore.MODID, "corpse_piece").toString()));
+
+
+    public static final RegistryObject<EntityType<Mound>> MOUND = SPORE_ENTITIES.register("mound",
+            () -> EntityType.Builder.of(Mound::new, ORGANOID).sized(0.3f, 0.3f)
+                    .build(new ResourceLocation(Spore.MODID, "mound").toString()));
+
+    public static final RegistryObject<EntityType<Womb>> RECONSTRUCTOR = SPORE_ENTITIES.register("reconstructor",
+            () -> EntityType.Builder.of((EntityType.EntityFactory<Womb>) Womb::new, ORGANOID).sized(1f, 1f)
+                    .build(new ResourceLocation(Spore.MODID, "reconstructor").toString()));
+
+    public static final RegistryObject<EntityType<Verwa>> VERVA = SPORE_ENTITIES.register("verva",
+            () -> EntityType.Builder.of(Verwa::new, ORGANOID).sized(1f, 2f)
+                    .build(new ResourceLocation(Spore.MODID, "verva").toString()));
+
+    public static final RegistryObject<EntityType<Usurper>> USURPER = SPORE_ENTITIES.register("usurper",
+            () -> EntityType.Builder.of(Usurper::new, ORGANOID).sized(1f, 2.2f)
+                    .build(new ResourceLocation(Spore.MODID, "usurper").toString()));
+
+    public static final RegistryObject<EntityType<Proto>> PROTO = SPORE_ENTITIES.register("proto",
+            () -> EntityType.Builder.of(Proto::new, ORGANOID).sized(1f, 3.5f)
+                    .build(new ResourceLocation(Spore.MODID, "proto").toString()));
+
+    public static final Supplier<EntityType<HiveTumor>> HIVETUMOR = SPORE_ENTITIES.register("hivetumor",
+            () -> EntityType.Builder.of(HiveTumor::new, ORGANOID).sized(1.2f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "hivetumor").toString()));
+
+    public static final RegistryObject<EntityType<InfectionTendril>> TENDRIL = SPORE_ENTITIES.register("tendril",
+            () -> EntityType.Builder.of(InfectionTendril::new, MobCategory.MISC).sized(0.8f, 0.1f)
+                    .build(new ResourceLocation(Spore.MODID, "tendril").toString()));
+
+    public static final RegistryObject<EntityType<TumoroidNuke>> TUMOROID_NUKE = SPORE_ENTITIES.register("tumoroid_nuke",
+            () -> EntityType.Builder.of((EntityType.EntityFactory<TumoroidNuke>) TumoroidNuke::new, MobCategory.MISC).sized(3f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "tumoroid_nuke").toString()));
+
+    public static final RegistryObject<EntityType<WaveEntity>> WAVE = SPORE_ENTITIES.register("wave",
+            () -> EntityType.Builder.of((EntityType.EntityFactory<WaveEntity>) WaveEntity::new, MobCategory.MISC).sized(0.8f, 0.1f)
+                    .build(new ResourceLocation(Spore.MODID, "wave").toString()));
+
+    public static final RegistryObject<EntityType<Sieger>> SIEGER = SPORE_ENTITIES.register("sieger",
+            () -> EntityType.Builder.of(Sieger::new, INFECTED).sized(2.5f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "sieger").toString()));
+    public static final RegistryObject<EntityType<SiegerTail>> SIEGER_TAIL = SPORE_ENTITIES.register("sieger_tail",
+            () -> EntityType.Builder.of(SiegerTail::new, MobCategory.MISC).sized(2.1f, 1f)
+                    .build(new ResourceLocation(Spore.MODID, "sieger_tail").toString()));
+    public static final RegistryObject<EntityType<HowitzerArm>> HOWIT_ARM = SPORE_ENTITIES.register("howit_arm",
+            () -> EntityType.Builder.of(HowitzerArm::new, MobCategory.MISC).sized(2.1f, 1f)
+                    .build(new ResourceLocation(Spore.MODID, "howit_arm").toString()));
+
+    public static final RegistryObject<EntityType<Gazenbrecher>> GAZENBREACHER = SPORE_ENTITIES.register("gazenbreacher",
+            () -> EntityType.Builder.of(Gazenbrecher::new, INFECTED).sized(3.5f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "gazenbreacher").toString()));
+    public static final RegistryObject<EntityType<Grakensenker>> KRAKEN = SPORE_ENTITIES.register("kraken",
+            () -> EntityType.Builder.of(Grakensenker::new, INFECTED).sized(3f, 3f)
+                    .build(new ResourceLocation(Spore.MODID, "kraken").toString()));
+
+    public static final RegistryObject<EntityType<Licker>> LICKER = SPORE_ENTITIES.register("licker",
+            () -> EntityType.Builder.of(Licker::new, MobCategory.MISC).sized(1.4f, 1f)
+                    .build(new ResourceLocation(Spore.MODID, "licker").toString()));
+
+    public static final RegistryObject<EntityType<Hinderburg>> HINDENBURG = SPORE_ENTITIES.register("hindenburg",
+            () -> EntityType.Builder.of(Hinderburg::new, INFECTED).sized(5f, 5f)
+                    .build(new ResourceLocation(Spore.MODID, "hindenburg").toString()));
+    public static final RegistryObject<EntityType<Verfalldrachen>> VERFALL = SPORE_ENTITIES.register("verfall",
+            () -> EntityType.Builder.of(Verfalldrachen::new, INFECTED).sized(4f, 5f)
+                    .build(new ResourceLocation(Spore.MODID, "verfall").toString()));
+    public static final RegistryObject<EntityType<DragonHead>> VERFALL_HEAD = SPORE_ENTITIES.register("verfall_head",
+            () -> EntityType.Builder.of(DragonHead::new, INFECTED).sized(1.5f, 1.5f)
+                    .build(new ResourceLocation(Spore.MODID, "verfall_head").toString()));
+
+
+    public static final RegistryObject<EntityType<Howitzer>> HOWITZER = SPORE_ENTITIES.register("howitzer",
+            () -> EntityType.Builder.of(Howitzer::new, INFECTED).sized(5f, 5f)
+                    .build(new ResourceLocation(Spore.MODID, "howitzer").toString()));
+
+    public static final Supplier<EntityType<Stahlmorder>> STALH = SPORE_ENTITIES.register("stahl",
+            () -> EntityType.Builder.of(Stahlmorder::new, INFECTED).sized(3f, 6f)
+                    .build(new ResourceLocation(Spore.MODID, "stahl").toString()));
+
+    public static final RegistryObject<EntityType<Hohlfresser>> HOHLFRESSER = SPORE_ENTITIES.register("hohlfresser",
+            () -> EntityType.Builder.of(Hohlfresser::new, INFECTED).sized(3.5f, 3.5f)
+                    .build(new ResourceLocation(Spore.MODID, "hohlfresser").toString()));
+    public static final RegistryObject<EntityType<HohlMultipart>> HOHLFRESSER_SEG = SPORE_ENTITIES.register("hohlfresser_seg",
+            () -> EntityType.Builder.of(HohlMultipart::new, INFECTED).sized(3.5f, 3.5f)
+                    .build(new ResourceLocation(Spore.MODID, "hohlfresser_seg").toString()));
+    public static final Supplier<EntityType<StalhArm>> STAHL_ARM = SPORE_ENTITIES.register("stahl_arm",
+            () -> EntityType.Builder.of(StalhArm::new, MobCategory.MISC).sized(3f, 1f)
+                    .build(new ResourceLocation(Spore.MODID, "stahl_arm").toString()));
+
+    public static final Supplier<EntityType<Leviathan>> LEVIATHAN = SPORE_ENTITIES.register("leviathan",
+            () -> EntityType.Builder.of(Leviathan::new, INFECTED).sized(3.5f, 3.5f)
+                    .build(new ResourceLocation(Spore.MODID, "leviathan").toString()));
+    public static final Supplier<EntityType<LeviathanMultipart>> LEVIATHAN_SEG = SPORE_ENTITIES.register("leviathan_seg",
+            () -> EntityType.Builder.of(LeviathanMultipart::new, INFECTED).sized(3.5f, 3.5f)
+                    .build(new ResourceLocation(Spore.MODID, "leviathan_seg").toString()));
 }

@@ -1,27 +1,13 @@
+
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
-import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
-import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Ssounds;
-import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
-import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
+import com.Harbinger.Spore.Sentities.BaseEntities.IkUtil.IkLeviLeg;
+import com.Harbinger.Spore.Sentities.Calamities.Leviathan;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.TrueCalamity;
-import com.Harbinger.Spore.Sentities.BaseEntities.IkUtil.IkLeviLeg;
-import com.Harbinger.Spore.Sentities.Calamities.Leviathan;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
-
-import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
-import dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -34,542 +20,444 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Entity.RemovalReason;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fml.ModList;
-import org.jetbrains.annotations.NotNull;
 
-public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness,ICustomLifeCycleEntity,IEventTickable, ICalamityMultipart {
-   private double prevHeight = (double)0.0F;
-   private int headEntityId = -1;
-   private final IkLeviLeg[] legs;
-   private static final EntityDataAccessor CHILD_UUID;
-   private static final EntityDataAccessor PARENT_UUID;
-   private static final EntityDataAccessor COLOR;
-   private static final EntityDataAccessor PARENT_ID;
-   private static final EntityDataAccessor ADAPTED;
-   private static final EntityDataAccessor IS_TAIL;
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.function.Predicate;
 
-   public LeviathanMultipart(EntityType p_20966_, Level p_20967_) {
-      super(p_20966_, p_20967_);
-      IkLeviLeg frontRightLeg = new IkLeviLeg(this, 4, LEG_POSITIONS.FRONT_RIGHT_TENTACLE.bodySet, LEG_POSITIONS.FRONT_RIGHT_TENTACLE.offset, 4.0F);
-      IkLeviLeg frontLeftLeg = new IkLeviLeg(this, 4, LEG_POSITIONS.FRONT_LEFT_TENTACLE.bodySet, LEG_POSITIONS.FRONT_LEFT_TENTACLE.offset, 4.0F);
-      IkLeviLeg backRightLeg = new IkLeviLeg(this, 4, LEG_POSITIONS.BACK_RIGHT_TENTACLE.bodySet, LEG_POSITIONS.BACK_RIGHT_TENTACLE.offset, 2.0F);
-      IkLeviLeg backLeftLeg = new IkLeviLeg(this, 4, LEG_POSITIONS.BACK_LEFT_TENTACLE.bodySet, LEG_POSITIONS.BACK_LEFT_TENTACLE.offset, 2.0F);
-      this.legs = new IkLeviLeg[]{frontLeftLeg, frontRightLeg, backLeftLeg, backRightLeg};
-      initCustom();
-   }
-   public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
-   }
-   public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-      LazyOptional<T> opt=super.getCapability(cap, side);
-      if(opt.resolve().isEmpty()||
-              !ModList.get().isLoaded("l2hostility")){
-         return opt;
-      }
-      T traitCap = opt.resolve().get();
-      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
-         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
-            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
-               KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
-            }
-         });
-      }
-      return opt;
-   }
-   public IkLeviLeg[] getLegs() {
-      return this.legs;
-   }
+public class LeviathanMultipart extends LivingEntity implements TrueCalamity, ColdWeakness, ICustomLifeCycleEntity, IEventTickable, ICalamityMultipart {
+    private double prevHeight = 0;
+    private int headEntityId = -1;
+    private final IkLeviLeg[] legs;
+    private static final EntityDataAccessor<Optional<UUID>> CHILD_UUID = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Optional<UUID>> PARENT_UUID = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Integer> COLOR = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> PARENT_ID = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> ADAPTED = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_TAIL = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.BOOLEAN);
+    public LeviathanMultipart(EntityType<? extends LivingEntity> p_20966_, Level p_20967_) {
+        super(p_20966_, p_20967_);
+        IkLeviLeg frontRightLeg = new IkLeviLeg(this,4, LEG_POSITIONS.FRONT_RIGHT_TENTACLE.bodySet, LEG_POSITIONS.FRONT_RIGHT_TENTACLE.offset,4);
+        IkLeviLeg frontLeftLeg = new IkLeviLeg(this,4, LEG_POSITIONS.FRONT_LEFT_TENTACLE.bodySet, LEG_POSITIONS.FRONT_LEFT_TENTACLE.offset,4);
+        IkLeviLeg backRightLeg = new IkLeviLeg(this,4, LEG_POSITIONS.BACK_RIGHT_TENTACLE.bodySet, LEG_POSITIONS.BACK_RIGHT_TENTACLE.offset,2);
+        IkLeviLeg backLeftLeg = new IkLeviLeg(this,4, LEG_POSITIONS.BACK_LEFT_TENTACLE.bodySet, LEG_POSITIONS.BACK_LEFT_TENTACLE.offset,2);
+        legs = new IkLeviLeg[]{frontLeftLeg,frontRightLeg,backLeftLeg,backRightLeg};
+        initCustom();
+    }
+    public IkLeviLeg[] getLegs(){
+        return legs;
+    }
 
-   public ColdEndurance getEndurance() {
-      return ColdEndurance.CALAMITY;
-   }
+    @Override
+    public ColdEndurance getEndurance() {
+        return ColdEndurance.CALAMITY;
+    }
 
-   public SoundEvent getHurtSound(DamageSource p_34327_) {
-      return (SoundEvent)Ssounds.CALAMITY_DAMAGE.get();
-   }
+    enum LEG_POSITIONS{
+        BACK_LEFT_TENTACLE(new Vec3(-1.5,0.5,0.25),new Vec3(-2.5, -1, 4)),
+        BACK_RIGHT_TENTACLE(new Vec3(-1.5,0.5,-0.25),new Vec3(-2.5, -1, -4)),
+        FRONT_LEFT_TENTACLE(new Vec3(0.5,0.5,0.75),new Vec3(-1.5, -1, 6)),
+        FRONT_RIGHT_TENTACLE(new Vec3(0.5,0.5,-0.75),new Vec3(-1.5, -1, -6));
+        private final Vec3 bodySet;
+        private final Vec3 offset;
 
-   public boolean canBeCollidedWith() {
-      return false;
-   }
+        LEG_POSITIONS(Vec3 bodySet, Vec3 offset) {
+            this.bodySet = bodySet;
+            this.offset = offset;
+        }
+    }
+    public SoundEvent getHurtSound(DamageSource p_34327_) {
+        return Ssounds.CALAMITY_DAMAGE.get();
+    }
+    @Override
+    public boolean canBeCollidedWith() {
+        return false;
+    }
+    @Override
+    public boolean canDrownInFluidType(FluidType type) {
+        return false;
+    }
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(CHILD_UUID, Optional.empty());
+        entityData.define(PARENT_UUID, Optional.empty());
+        entityData.define(COLOR, 0);
+        entityData.define(PARENT_ID,-1);
+        entityData.define(ADAPTED,false);
+        entityData.define(IS_TAIL,false);
+    }
 
-   public boolean canDrownInFluidType(FluidType type) {
-      return false;
-   }
-
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(CHILD_UUID, Optional.empty());
-      this.entityData.define(PARENT_UUID, Optional.empty());
-      this.entityData.define(COLOR, 0);
-      this.entityData.define(PARENT_ID, -1);
-      this.entityData.define(ADAPTED, false);
-      this.entityData.define(IS_TAIL, false);
-   }
-
-   public boolean isAdapted() {
-      return (Boolean)this.entityData.get(ADAPTED);
-   }
-
-   public Entity getChild() {
-      UUID id = this.getChildId();
-      if (id != null) {
-         Level var3 = this.level();
-         if (var3 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var3;
+    public boolean isAdapted(){
+        return entityData.get(ADAPTED);
+    }
+    public Entity getChild() {
+        UUID id = getChildId();
+        if (id != null && level() instanceof ServerLevel serverLevel) {
             return serverLevel.getEntity(id);
-         }
-      }
+        }
+        return null;
+    }
+    public int getParentIntId(){
+        return entityData.get(PARENT_ID);
+    }
+    @Override
+    public void onRemovedFromWorld() {
+        onRemoved();
+    }
 
-      return null;
-   }
+    @Override
+    public LivingEntity entity() {
+        return this;
+    }
 
-   public int getParentIntId() {
-      return (Integer)this.entityData.get(PARENT_ID);
-   }
+    @Override
+    public boolean isProtoOrCalamity() {
+        return true;
+    }
 
-   public void tick() {
-      super.tick();
-      tickEventBus();
-      for(IkLeviLeg leg : this.legs) {
-         leg.refreshLegStandingPoint();
-         leg.applyIK();
-      }
+    @Override
+    public void actuallyHurt(DamageSource source, float damage) {
+    }
 
-      if (this.tickCount > 1) {
-         Entity parent = this.getParentSafe();
-         if (!this.level().isClientSide) {
-            if (parent != null && !parent.isRemoved()) {
-               label45: {
-                  if (parent instanceof Leviathan) {
-                     Leviathan leviathan = (Leviathan)parent;
-                     if (!Objects.equals(leviathan.getChildId(), this.uuid)) {
-                        break label45;
-                     }
-                  }
+    @Override
+    public void heal(float amount) {
+        Calamity calamity = this.getCalamityHead();
+        if (calamity != null) {
+            calamity.healSelf(amount);
+        }
+    }
 
-                  if (parent instanceof LivingEntity) {
-                     LivingEntity living = (LivingEntity)parent;
-                     this.hurtTime = living.hurtTime;
-                     this.deathTime = living.deathTime;
-                  }
-
-                  return;
-               }
+    @Override
+    public void tick() {
+        super.tick();
+        tickEventBus();
+        for (IkLeviLeg leg : legs) {
+            leg.refreshLegStandingPoint();
+            leg.applyIK();
+        }
+        if (tickCount > 1) {
+            Entity parent = getParentSafe();
+            if (!level().isClientSide) {
+                if (parent == null || parent.isRemoved() || (parent instanceof Leviathan leviathan && !Objects.equals(leviathan.getChildId(), this.uuid))) {
+                    this.remove(RemovalReason.DISCARDED);
+                } else {
+                    if (parent instanceof LivingEntity living) {
+                        this.hurtTime = living.hurtTime;
+                        this.deathTime = living.deathTime;
+                    }
+                }
             }
+        }
+    }
+    public Vec3 tickMultipartPosition(int headId, Vec3 parentPos, float parentXRot, float parentYRot, float ourYRot, boolean doHeight) {
+        double spacing = 1.5f * this.getBbWidth();
+        Vec3 buttOffset = calcOffsetVec((float) -spacing, parentXRot, parentYRot);
+        Vec3 targetPos = parentPos.add(buttOffset);
 
-            this.remove(RemovalReason.DISCARDED);
-         }
-      }
+        Vec3 currentPos = this.position();
+        Vec3 smoothedPos = currentPos.lerp(targetPos, 0.25); // Smoother movement
+        Vec3 dir = this.position().subtract(targetPos);
+        if (dir.length() > 5){
+            setPos(targetPos);
+        }
 
-   }
-
-   public Vec3 tickMultipartPosition(int headId, Vec3 parentPos, float parentXRot, float parentYRot, float ourYRot, boolean doHeight) {
-      double spacing = (double)(1.5F * this.getBbWidth());
-      Vec3 buttOffset = this.calcOffsetVec((float)(-spacing), parentXRot, parentYRot);
-      Vec3 targetPos = parentPos.add(buttOffset);
-      Vec3 currentPos = this.position();
-      Vec3 smoothedPos = currentPos.lerp(targetPos, (double)0.25F);
-      Vec3 dir = this.position().subtract(targetPos);
-      if (dir.length() > (double)5.0F) {
-         this.setPos(targetPos);
-      }
-
-      double yOffset = (double)0.0F;
-      if (doHeight) {
-         double hgt = this.getLowPartHeight(targetPos.x, targetPos.y, targetPos.z) + this.getHighPartHeight(targetPos.x, targetPos.y, targetPos.z);
-         if (Math.abs(hgt - this.prevHeight) > (double)0.2F) {
-            this.prevHeight = hgt;
-         }
-
-         yOffset = Mth.clamp((double)this.getScale() * this.prevHeight, (double)-0.6F, (double)0.6F);
-      }
-
-      double dx = parentPos.x - smoothedPos.x;
-      double dz = parentPos.z - smoothedPos.z;
-      double horizontalDist = Math.sqrt(dx * dx + dz * dz);
-      float targetYaw = (float)(Mth.atan2(dz, dx) * (double)(180F / (float)Math.PI)) - 90.0F;
-      float smoothedYaw = this.limitAngle(this.getYRot(), targetYaw, 7.5F);
-      float targetPitch = (float)(-Mth.atan2(yOffset, horizontalDist) * (double)(180F / (float)Math.PI));
-      float smoothedPitch = this.limitAngle(this.getXRot(), targetPitch, 5.0F);
-      double distanceToParent = this.position().distanceTo(parentPos);
-      boolean disablePhysics = distanceToParent > (double)5.0F;
-      Entity entity = this.getParentSafe();
-      if (entity != null) {
-         this.setNoGravity(disablePhysics || entity.isNoGravity());
-         this.noPhysics = disablePhysics || entity.noPhysics;
-         if (disablePhysics) {
-            this.teleportTo(entity.getX(), entity.getY(), entity.getZ());
-         }
-
-         this.setDeltaMovement(disablePhysics ? entity.getDeltaMovement().multiply((double)1.0F, (double)0.0F, (double)1.0F) : entity.getDeltaMovement());
-      }
-
-      this.moveTo(smoothedPos.x, this.onGround() ? this.position().y : smoothedPos.y, smoothedPos.z, smoothedYaw, smoothedPitch);
-      this.setYRot(smoothedYaw);
-      this.setXRot(smoothedPitch);
-      this.yHeadRot = smoothedYaw;
-      this.headEntityId = headId;
-      return smoothedPos;
-   }
-
-   private Vec3 calcOffsetVec(float offsetZ, float xRot, float yRot) {
-      return (new Vec3((double)0.0F, (double)0.0F, (double)offsetZ)).xRot(xRot * ((float)Math.PI / 180F)).yRot(-yRot * ((float)Math.PI / 180F));
-   }
-
-   public boolean isInvulnerableTo(DamageSource source) {
-      return source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.FALL);
-   }
-
-   public boolean isOpaqueBlockAt(double x, double y, double z) {
-      if (this.noPhysics) {
-         return false;
-      } else {
-         Vec3 pos = new Vec3(x, y, z);
-         AABB box = AABB.ofSize(pos, (double)1.0F, 1.0E-6, (double)1.0F);
-         return this.level().getBlockStates(box).filter(Predicate.not(BlockBehaviour.BlockStateBase::isAir)).anyMatch((state) -> state.isSuffocating(this.level(), BlockPos.containing(pos)) && Shapes.joinIsNotEmpty(state.getCollisionShape(this.level(), BlockPos.containing(pos)).move(pos.x, pos.y, pos.z), Shapes.create(box), BooleanOp.AND));
-      }
-   }
-
-   public double getLowPartHeight(double x, double y, double z) {
-      if (this.isFluidAt(x, y, z)) {
-         return (double)0.0F;
-      } else {
-         double dy;
-         for(dy = (double)0.0F; dy > (double)-3.0F && !this.isOpaqueBlockAt(x, y + dy, z); dy -= 0.2) {
-         }
-
-         return dy;
-      }
-   }
-
-   public double getHighPartHeight(double x, double y, double z) {
-      if (this.isFluidAt(x, y, z)) {
-         return (double)0.0F;
-      } else {
-         double dy;
-         for(dy = (double)0.0F; dy <= (double)3.0F && this.isOpaqueBlockAt(x, y + dy, z); dy += 0.2) {
-         }
-
-         return dy;
-      }
-   }
-
-   public boolean canBeSeenAsEnemy() {
-      return false;
-   }
-
-   public boolean isPushable() {
-      return false;
-   }
-
-   public boolean isFluidAt(double x, double y, double z) {
-      if (this.noPhysics) {
-         return false;
-      } else {
-         return !this.level().getFluidState(BlockPos.containing(x, y, z)).isEmpty();
-      }
-   }
-
-   public float limitAngle(float source, float target, float maxChange) {
-      float delta = Mth.wrapDegrees(target - source);
-      delta = Mth.clamp(delta, -maxChange, maxChange);
-      float result = source + delta;
-      return Mth.wrapDegrees(result);
-   }
-   @Override
-   public void onRemovedFromWorld() {
-      onRemoved();
-   }
-   @Override
-   public LivingEntity entity() {
-      return this;
-   }
-   @Override
-   public boolean isProtoOrCalamity(){
-      return true;
-   }
-   @Override
-   public void actuallyHurt(DamageSource source, float damage) {
-
-   }
-   @Override
-   public void heal(float amount) {
-      Calamity calamity = this.getCalamityHead();
-      if(calamity != null){
-         calamity.healSelf(amount);
-      }
-   }
-
-   @Nullable
-   public Entity getHeadEntity() {
-      return this.level().getEntity(this.headEntityId);
-   }
-
-   @Nullable
-   @Override
-   public Calamity getCalamityHead() {
-      Entity head = this.getHeadEntity();
-      if (head instanceof Leviathan leviathan) {
-         return leviathan;
-      }
-
-      Entity current = this.getLeviathanParentEntity();
-      for(int i = 0; i < 32 && current != null; ++i) {
-         if (current instanceof Leviathan leviathan) {
-            return leviathan;
-         }
-
-         if (!(current instanceof LeviathanMultipart currentPart)) {
-            return null;
-         }
-
-         head = currentPart.getHeadEntity();
-         if (head instanceof Leviathan leviathan) {
-            return leviathan;
-         }
-
-         Entity next = currentPart.getLeviathanParentEntity();
-         if (next == current) {
-            return null;
-         }
-         current = next;
-      }
-
-      return null;
-   }
-
-   @Nullable
-   private Entity getLeviathanParentEntity() {
-      Entity parent = this.getParentSafe();
-      if (parent != null) {
-         return parent;
-      }
-
-      int parentId = this.getParentIntId();
-      return parentId >= 0 ? this.level().getEntity(parentId) : null;
-   }
-
-   public boolean hurt(DamageSource source, float damage) {
-      this.hurtMarked = true;
-      this.hurtTime = 20;
-      return this.hurtHeadId(source, damage);
-   }
-
-   public boolean hurtHeadId(DamageSource source, float damage) {
-      Calamity calamity = this.getCalamityHead();
-      if (calamity != null) {
-         return calamity.hurt(source, damage);
-      }
-
-      return true;
-   }
-
-   public Entity getParentSafe() {
-      UUID id = this.getParentId();
-      if (id != null) {
-         Level var3 = this.level();
-         if (var3 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var3;
-            Entity parent = serverLevel.getEntity(id);
-            if (parent == null) {
-               return null;
+        // Optional vertical adjustment
+        double yOffset = 0.0;
+        if (doHeight) {
+            double hgt = getLowPartHeight(targetPos.x, targetPos.y, targetPos.z) + getHighPartHeight(targetPos.x, targetPos.y, targetPos.z);
+            if (Math.abs(hgt - prevHeight) > 0.2F) {
+                prevHeight = hgt;
             }
+            yOffset = Mth.clamp(this.getScale() * prevHeight, -0.6F, 0.6F);
+        }
 
-            this.entityData.set(PARENT_ID, parent.getId());
+        // Calculate direction to face toward parent
+        double dx = parentPos.x - smoothedPos.x;
+        double dz = parentPos.z - smoothedPos.z;
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+
+        float targetYaw = (float)(Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
+        float smoothedYaw = limitAngle(this.getYRot(), targetYaw, 7.5F);
+
+        float targetPitch = (float)(-Mth.atan2(yOffset, horizontalDist) * Mth.RAD_TO_DEG);
+        float smoothedPitch = limitAngle(this.getXRot(), targetPitch, 5F);
+
+        // === NEW: Disable gravity & physics if too far from parent ===
+        double distanceToParent = this.position().distanceTo(parentPos);
+        boolean disablePhysics = distanceToParent > 5.0;
+
+        Entity entity = getParentSafe();
+        if (entity != null){
+            this.setNoGravity(disablePhysics || entity.isNoGravity());
+            noPhysics = disablePhysics || entity.noPhysics;
+            if (disablePhysics){
+                teleportTo(entity.getX(),entity.getY(),entity.getZ());
+            }
+            this.setDeltaMovement(disablePhysics ? entity.getDeltaMovement().multiply(1,0,1) : entity.getDeltaMovement());
+        }
+        // Move to new location
+        this.moveTo(smoothedPos.x, onGround() ? this.position().y : smoothedPos.y, smoothedPos.z, smoothedYaw, smoothedPitch);
+        this.setYRot(smoothedYaw);
+        this.setXRot(smoothedPitch);
+        this.yHeadRot = smoothedYaw;
+
+        this.headEntityId = headId;
+        return smoothedPos;
+    }
+
+
+
+    private Vec3 calcOffsetVec(float offsetZ, float xRot, float yRot){
+        return new Vec3(0, 0, offsetZ).xRot(xRot * Mth.DEG_TO_RAD).yRot(-yRot * Mth.DEG_TO_RAD);
+    }
+
+
+    @Override
+    public boolean isInvulnerableTo(DamageSource source) {
+        return source.is(DamageTypes.IN_WALL)  || source.is(DamageTypes.FALL);
+    }
+
+    public boolean isOpaqueBlockAt(double x, double y, double z) {
+        if (this.noPhysics) return false;
+        Vec3 pos = new Vec3(x, y, z);
+        AABB box = AABB.ofSize(pos, 1, 1e-6, 1);
+        return level().getBlockStates(box).filter(Predicate.not(BlockBehaviour.BlockStateBase::isAir))
+                .anyMatch(state -> state.isSuffocating(level(), BlockPos.containing(pos)) &&
+                        Shapes.joinIsNotEmpty(state.getCollisionShape(level(), BlockPos.containing(pos)).move(pos.x, pos.y, pos.z), Shapes.create(box), BooleanOp.AND));
+    }
+
+    public double getLowPartHeight(double x, double y, double z) {
+        if (isFluidAt(x, y, z)) return 0.0D;
+        double dy = 0D;
+        while (dy > -3D && !isOpaqueBlockAt(x, y + dy, z)) dy -= 0.2D;
+        return dy;
+    }
+
+    public double getHighPartHeight(double x, double y, double z) {
+        if (isFluidAt(x, y, z)) return 0.0D;
+        double dy = 0D;
+        while (dy <= 3D) {
+            if (isOpaqueBlockAt(x, y + dy, z)) dy += 0.2D;
+            else break;
+        }
+        return dy;
+    }
+
+    @Override
+    public boolean canBeSeenAsEnemy() {
+        return false;
+    }
+
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+
+    public boolean isFluidAt(double x, double y, double z) {
+        if (this.noPhysics) return false;
+        return !level().getFluidState(BlockPos.containing(x, y, z)).isEmpty();
+    }
+
+    public float limitAngle(float source, float target, float maxChange) {
+        float delta = Mth.wrapDegrees(target - source);
+        delta = Mth.clamp(delta, -maxChange, maxChange);
+        float result = source + delta;
+        return Mth.wrapDegrees(result);
+    }
+
+    @Nullable
+    public Entity getHeadEntity() {
+        return this.level().getEntity(this.headEntityId);
+    }
+
+    @Nullable
+    @Override
+    public Calamity getCalamityHead() {
+        Entity head = this.getHeadEntity();
+        if (head instanceof Leviathan leviathan) {
+            return leviathan;
+        }
+
+        Entity current = this.getLeviathanParentEntity();
+        for (int i = 0; i < 32 && current != null; ++i) {
+            if (current instanceof Leviathan leviathan) {
+                return leviathan;
+            }
+            if (!(current instanceof LeviathanMultipart currentPart)) {
+                return null;
+            }
+            head = currentPart.getHeadEntity();
+            if (head instanceof Leviathan leviathan) {
+                return leviathan;
+            }
+            Entity next = currentPart.getLeviathanParentEntity();
+            if (next == current) {
+                return null;
+            }
+            current = next;
+        }
+
+        return null;
+    }
+
+    @Nullable
+    private Entity getLeviathanParentEntity() {
+        Entity parent = this.getParentSafe();
+        if (parent != null) {
             return parent;
-         }
-      }
+        }
 
-      return null;
-   }
+        int parentId = this.getParentIntId();
+        return parentId >= 0 ? this.level().getEntity(parentId) : null;
+    }
 
-   public void setParent(Entity entity) {
-      this.setParentId(entity.getUUID());
-   }
+    @Override
+    public boolean hurt(DamageSource source, float damage) {
+        this.hurtMarked = true;
+        this.hurtTime = 20;
+        return hurtHeadId(source, damage);
+    }
 
-   public UUID getParentId() {
-      return (UUID)((Optional)this.entityData.get(PARENT_UUID)).orElse((Object)null);
-   }
+    public boolean hurtHeadId(DamageSource source, float damage) {
+        Calamity calamity = this.getCalamityHead();
+        if (calamity != null) {
+            return calamity.hurt(source, damage);
+        }
+        return true;
+    }
 
-   public void setParentId(@Nullable UUID uniqueId) {
-      this.entityData.set(PARENT_UUID, Optional.ofNullable(uniqueId));
-   }
+    public Entity getParentSafe() {
+        UUID id = getParentId();
+        if (id != null && level() instanceof ServerLevel serverLevel) {
+            Entity parent = serverLevel.getEntity(id);
+            if (parent == null){return null;}
+            this.entityData.set(PARENT_ID,parent.getId());
+            return parent;
+        }
+        return null;
+    }
 
-   public UUID getChildId() {
-      return (UUID)((Optional)this.entityData.get(CHILD_UUID)).orElse((Object)null);
-   }
+    public void setParent(Entity entity) {
+        setParentId(entity.getUUID());
+    }
 
-   public void setChildId(@Nullable UUID uniqueId) {
-      this.entityData.set(CHILD_UUID, Optional.ofNullable(uniqueId));
-   }
+    public UUID getParentId() {
+        return this.entityData.get(PARENT_UUID).orElse(null);
+    }
 
-   public boolean shouldShowName() {
-      return false;
-   }
+    public void setParentId(@Nullable UUID uniqueId) {
+        this.entityData.set(PARENT_UUID, Optional.ofNullable(uniqueId));
+    }
 
-   protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
-      super.onEffectAdded(instance, source);
-      if (instance.getEffect().isBeneficial() || instance.getAmplifier() >= 2) {
-         Entity parent = this.getParentSafe();
-         if (parent instanceof LivingEntity) {
-            LivingEntity livingParent = (LivingEntity)parent;
-            MobEffectInstance existing = livingParent.getEffect(instance.getEffect());
-            if (existing == null || existing.getDuration() < instance.getDuration() - 5) {
-               livingParent.addEffect(new MobEffectInstance(instance));
-            }
+    public UUID getChildId() {
+        return this.entityData.get(CHILD_UUID).orElse(null);
+    }
 
-         }
-      }
-   }
+    public void setChildId(@Nullable UUID uniqueId) {
+        this.entityData.set(CHILD_UUID, Optional.ofNullable(uniqueId));
+    }
 
-   public InteractionResult interact(Player player, InteractionHand hand) {
-      Entity parent = this.getParentSafe();
-      InteractionResult var10000;
-      if (parent instanceof LivingEntity living) {
-         var10000 = living.interact(player, hand);
-      } else {
-         var10000 = super.interact(player, hand);
-      }
+    @Override
+    public boolean shouldShowName() {
+        return false;
+    }
 
-      return var10000;
-   }
+    @Override
+    protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
+        super.onEffectAdded(instance, source);
+        if (!instance.getEffect().isBeneficial() && instance.getAmplifier() < 2){
+            return;
+        }
+        Entity parent = this.getParentSafe();
+        if (!(parent instanceof LivingEntity livingParent)) return;
+        MobEffectInstance existing = livingParent.getEffect(instance.getEffect());
+        if (existing == null || existing.getDuration() < instance.getDuration() - 5) {
+            livingParent.addEffect(new MobEffectInstance(instance));
+        }
+    }
 
-   public Iterable getArmorSlots() {
-      return List.of();
-   }
+    @Override
+    public InteractionResult interact(Player player, InteractionHand hand) {
+        Entity parent = getParentSafe();
+        return parent instanceof LivingEntity living ? living.interact(player, hand) : super.interact(player, hand);
+    }
 
-   public ItemStack getItemBySlot(EquipmentSlot slot) {
-      return ItemStack.EMPTY;
-   }
+    @Override public Iterable<ItemStack> getArmorSlots() { return List.of(); }
+    @Override public ItemStack getItemBySlot(EquipmentSlot slot) { return ItemStack.EMPTY; }
+    @Override public void setItemSlot(EquipmentSlot slot, ItemStack stack) {}
+    @Override public HumanoidArm getMainArm() { return HumanoidArm.RIGHT; }
 
-   public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
-   }
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        if (getParentId() != null) tag.putUUID("ParentUUID", getParentId());
+        if (getChildId() != null) tag.putUUID("ChildUUID", getChildId());
+        tag.putInt("color",entityData.get(COLOR));
+        tag.putBoolean("adapted",entityData.get(ADAPTED));
+        tag.putBoolean("tail",entityData.get(IS_TAIL));
+        for(int e = 0;e<legs.length;e++){
+            legs[e].writeVariants(tag,e);
+        }
+    }
 
-   public HumanoidArm getMainArm() {
-      return HumanoidArm.RIGHT;
-   }
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.hasUUID("ParentUUID")) setParentId(tag.getUUID("ParentUUID"));
+        if (tag.hasUUID("ChildUUID")) setChildId(tag.getUUID("ChildUUID"));
+        entityData.set(COLOR,tag.getInt("color"));
+        entityData.set(IS_TAIL,tag.getBoolean("adapted"));
+        entityData.set(ADAPTED,tag.getBoolean("tail"));
+        for(int e = 0;e<legs.length;e++){
+            legs[e].readVariants(tag,e);
+        }
+    }
 
-   public void addAdditionalSaveData(CompoundTag tag) {
-      super.addAdditionalSaveData(tag);
-      if (this.getParentId() != null) {
-         tag.putUUID("ParentUUID", this.getParentId());
-      }
+    public void setAdapted(boolean val){
+        entityData.set(ADAPTED,val);
+    }
+    public void setColor(int val){
+        entityData.set(COLOR,val);
+    }
+    public int getColor(){
+        return entityData.get(COLOR);
+    }
 
-      if (this.getChildId() != null) {
-         tag.putUUID("ChildUUID", this.getChildId());
-      }
+    public boolean isTail(){
+        return entityData.get(IS_TAIL);
+    }
+    public void setTail(boolean v){
+        entityData.set(IS_TAIL,v);
+    }
+    @Override
+    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
+        return false;
+    }
 
-      tag.putInt("color", (Integer)this.entityData.get(COLOR));
-      tag.putBoolean("adapted", (Boolean)this.entityData.get(ADAPTED));
-      tag.putBoolean("tail", (Boolean)this.entityData.get(IS_TAIL));
+    @Override
+    public int chemicalRange() {
+        return 0;
+    }
 
-      for(int e = 0; e < this.legs.length; ++e) {
-         this.legs[e].writeVariants(tag, e);
-      }
-      addSaveData(tag);
-   }
+    @Override
+    public List<? extends String> buffs() {
+        return List.of();
+    }
 
-   public void readAdditionalSaveData(CompoundTag tag) {
-      super.readAdditionalSaveData(tag);
-      if (tag.hasUUID("ParentUUID")) {
-         this.setParentId(tag.getUUID("ParentUUID"));
-      }
+    @Override
+    public List<? extends String> debuffs() {
+        return List.of();
+    }
 
-      if (tag.hasUUID("ChildUUID")) {
-         this.setChildId(tag.getUUID("ChildUUID"));
-      }
-
-      this.entityData.set(COLOR, tag.getInt("color"));
-      this.entityData.set(IS_TAIL, tag.getBoolean("adapted"));
-      this.entityData.set(ADAPTED, tag.getBoolean("tail"));
-
-      for(int e = 0; e < this.legs.length; ++e) {
-         this.legs[e].readVariants(tag, e);
-      }
-      readSaveData(tag);
-   }
-
-   public void setAdapted(boolean val) {
-      this.entityData.set(ADAPTED, val);
-   }
-
-   public void setColor(int val) {
-      this.entityData.set(COLOR, val);
-   }
-
-   public int getColor() {
-      return (Integer)this.entityData.get(COLOR);
-   }
-
-   public boolean isTail() {
-      return (Boolean)this.entityData.get(IS_TAIL);
-   }
-
-   public void setTail(boolean v) {
-      this.entityData.set(IS_TAIL, v);
-   }
-
-   public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-      return false;
-   }
-
-   public int chemicalRange() {
-      return 0;
-   }
-
-   public List buffs() {
-      return List.of();
-   }
-
-   public List debuffs() {
-      return List.of();
-   }
-
-   static {
-      CHILD_UUID = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.OPTIONAL_UUID);
-      PARENT_UUID = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.OPTIONAL_UUID);
-      COLOR = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.INT);
-      PARENT_ID = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.INT);
-      ADAPTED = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.BOOLEAN);
-      IS_TAIL = SynchedEntityData.defineId(LeviathanMultipart.class, EntityDataSerializers.BOOLEAN);
-   }
-
-
-   enum LEG_POSITIONS {
-      BACK_LEFT_TENTACLE(new Vec3((double)-1.5F, (double)0.5F, (double)0.25F), new Vec3((double)-2.5F, (double)-1.0F, (double)4.0F)),
-      BACK_RIGHT_TENTACLE(new Vec3((double)-1.5F, (double)0.5F, (double)-0.25F), new Vec3((double)-2.5F, (double)-1.0F, (double)-4.0F)),
-      FRONT_LEFT_TENTACLE(new Vec3((double)0.5F, (double)0.5F, (double)0.75F), new Vec3((double)-1.5F, (double)-1.0F, (double)6.0F)),
-      FRONT_RIGHT_TENTACLE(new Vec3((double)0.5F, (double)0.5F, (double)-0.75F), new Vec3((double)-1.5F, (double)-1.0F, (double)-6.0F));
-
-      private final Vec3 bodySet;
-      private final Vec3 offset;
-
-      private LEG_POSITIONS(Vec3 bodySet, Vec3 offset) {
-         this.bodySet = bodySet;
-         this.offset = offset;
-      }
-
-      // $FF: synthetic method
-      private static LEG_POSITIONS[] $values() {
-         return new LEG_POSITIONS[]{BACK_LEFT_TENTACLE, BACK_RIGHT_TENTACLE, FRONT_LEFT_TENTACLE, FRONT_RIGHT_TENTACLE};
-      }
-   }
 }

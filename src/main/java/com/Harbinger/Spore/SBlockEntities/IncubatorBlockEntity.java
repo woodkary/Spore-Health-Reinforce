@@ -3,6 +3,7 @@ package com.Harbinger.Spore.SBlockEntities;
 import com.Harbinger.Spore.Core.SblockEntities;
 import com.Harbinger.Spore.Screens.IncubatorMenu;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorData;
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,221 +20,214 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 
 public class IncubatorBlockEntity extends BlockEntity implements AnimatedEntity, WorldlyContainer, MenuProvider {
-   private static final int[] slotsTop = new int[]{0};
-   private static final int[] slotsBottom = new int[]{0};
-   private NonNullList<ItemStack> stacks;
-   public int fuel;
-   private int tick;
-   private int side;
+    private static final int[] slotsTop = new int[]{0};
+    private static final int[] slotsBottom = new int[]{0};
+    private NonNullList<ItemStack> stacks = NonNullList.withSize(1, ItemStack.EMPTY);
+    public int fuel;
+    private int tick;
+    private int side;
+    public IncubatorBlockEntity(BlockPos pos, BlockState state) {
+        super(SblockEntities.INCUBATOR.get(), pos, state);
+        side = setSide(state);
+    }
+    private int setSide(BlockState state){
+        if (state.getBlock().getStateDefinition().getProperty("facing") instanceof DirectionProperty directionProperty){
+            return state.getValue(directionProperty).get3DDataValue();
+        }
+        return 2;
+    }
+    public void setSide(int i){this.side = i;}
+    public int getSide(){return this.side;}
 
-   public IncubatorBlockEntity(BlockPos pos, BlockState state) {
-      super((BlockEntityType)SblockEntities.INCUBATOR.get(), pos, state);
-      this.stacks = NonNullList.withSize(1, ItemStack.EMPTY);
-      this.side = this.setSide(state);
-   }
+    public NonNullList<ItemStack> getStacks() {
+        return stacks;
+    }
 
-   private int setSide(BlockState state) {
-      Property var3 = state.getBlock().getStateDefinition().getProperty("facing");
-      if (var3 instanceof DirectionProperty directionProperty) {
-         return ((Direction)state.getValue(directionProperty)).get3DDataValue();
-      } else {
-         return 2;
-      }
-   }
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.putInt("fuel",this.getFuel());
+        tag.putInt("side",getSide());
+        ContainerHelper.saveAllItems(tag, this.stacks);
+    }
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        this.fuel = tag.getInt("fuel");
+        this.side = tag.getInt("side");
+        this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(tag, this.stacks);
+    }
 
-   public void setSide(int i) {
-      this.side = i;
-   }
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
 
-   public int getSide() {
-      return this.side;
-   }
+    @Override
+    public CompoundTag getUpdateTag() {
+        this.setChanged();
+        return this.saveWithFullMetadata();
+    }
 
-   public NonNullList<ItemStack> getStacks() {
-      return this.stacks;
-   }
+    public void setFuel(int i){
+        this.fuel = i;
+    }
+    public int getFuel(){
+        return this.fuel;
+    }
+    public void addTick(){
+        if (tick < 720){
+            tick++;
+        }else{
+            tick = 0;
+        }
+    }
+    public void HealItemStack(){
+        for (ItemStack stack : stacks) {
+            if (stack != ItemStack.EMPTY) {
+                if (getFuel() > 0 && stack.isDamaged()){
+                    if (stack.getItem() instanceof SporeWeaponData data){
+                        data.healTool(stack,1);
+                    }else if (stack.getItem() instanceof SporeArmorData data){
+                        data.healTool(stack,1);
+                    }else {
+                        int l = stack.getDamageValue()-1;
+                        stack.setDamageValue(l);
+                    }
+                    setFuel(getFuel()-1);
+                }
+            }
+        }
+    }
+    public static <E extends BlockEntity> void serverTick(Level level, BlockPos blockPos, BlockState blockState, IncubatorBlockEntity e) {
+        e.HealItemStack();
+    }
 
-   protected void saveAdditional(CompoundTag tag) {
-      super.saveAdditional(tag);
-      tag.putInt("fuel", this.getFuel());
-      tag.putInt("side", this.getSide());
-      ContainerHelper.saveAllItems(tag, this.stacks);
-   }
+    public static <E extends BlockEntity> void clientTick(Level level, BlockPos pos, BlockState state, IncubatorBlockEntity e) {
+        e.addTick();
+    }
 
-   public void load(CompoundTag tag) {
-      super.load(tag);
-      this.fuel = tag.getInt("fuel");
-      this.side = tag.getInt("side");
-      this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-      ContainerHelper.loadAllItems(tag, this.stacks);
-   }
+    public boolean isActive(){
+        return getFuel()>0 && stacks.get(0) != ItemStack.EMPTY;
+    }
 
-   public ClientboundBlockEntityDataPacket getUpdatePacket() {
-      return ClientboundBlockEntityDataPacket.create(this);
-   }
+    @Override
+    public int getTicks() {
+        return tick;
+    }
 
-   public CompoundTag getUpdateTag() {
-      this.setChanged();
-      return this.saveWithFullMetadata();
-   }
+    @Override
+    public int[] getSlotsForFace(Direction direction) {
+        return direction == Direction.UP ? slotsTop : slotsBottom;
+    }
 
-   public void setFuel(int i) {
-      this.fuel = i;
-   }
+    @Override
+    public boolean canPlaceItemThroughFace(int p_19235_, ItemStack item, @Nullable Direction direction) {
+        if (direction == Direction.NORTH || direction == Direction.SOUTH || direction == Direction.EAST || direction == Direction.WEST){
+          if (this.getFuel() <= 750){
+              setFuel(getFuel()+250);
+              item.shrink(1);
+          }
+        }
+        return direction == Direction.UP && item.is(ItemTags.create(new ResourceLocation("spore:weapons")));
+    }
 
-   public int getFuel() {
-      return this.fuel;
-   }
+    @Override
+    public boolean canTakeItemThroughFace(int p_19239_, ItemStack stack, Direction direction) {
+        return direction == Direction.DOWN && !stack.isDamaged();
+    }
 
-   public void addTick() {
-      if (this.tick < 720) {
-         ++this.tick;
-      } else {
-         this.tick = 0;
-      }
+    @Override
+    public int getContainerSize() {
+        return stacks.size();
+    }
 
-   }
+    @Override
+    public boolean isEmpty() {
+        for (int i = 0; i < this.getContainerSize(); i++) {
+            if (!this.getItem(i).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-   public void HealItemStack() {
-      for(ItemStack stack : this.stacks) {
-         if (stack != ItemStack.EMPTY && this.getFuel() > 0 && stack.isDamaged()) {
-            Item var5 = stack.getItem();
-            if (var5 instanceof SporeWeaponData) {
-               SporeWeaponData data = (SporeWeaponData)var5;
-               data.healTool(stack, 1);
+    @Override
+    public ItemStack getItem(int index) {
+        return this.stacks.get(index);
+    }
+
+    @Override
+    public ItemStack removeItem(int index, int count) {
+        if (!this.stacks.get(index).isEmpty()) {
+            ItemStack itemstack;
+
+            if (this.stacks.get(index).getCount() <= count) {
+                itemstack = this.stacks.get(index);
+                this.stacks.set(index, ItemStack.EMPTY);
             } else {
-               var5 = stack.getItem();
-               if (var5 instanceof SporeArmorData) {
-                  SporeArmorData data = (SporeArmorData)var5;
-                  data.healTool(stack, 1);
-               } else {
-                  int l = stack.getDamageValue() - 1;
-                  stack.setDamageValue(l);
-               }
+                itemstack = this.stacks.get(index).split(count);
+
+                if (this.stacks.get(index).isEmpty()) {
+                    this.stacks.set(index, ItemStack.EMPTY);
+                }
+
             }
+            return itemstack;
+        } else {
+            return ItemStack.EMPTY;
+        }
+    }
 
-            this.setFuel(this.getFuel() - 1);
-         }
-      }
+    @Override
+    public ItemStack removeItemNoUpdate(int index) {
+        ItemStack stack = this.stacks.get(index);
+        this.stacks.set(index, ItemStack.EMPTY);
+        return stack;
+    }
 
-   }
+    @Override
+    public void setItem(int index, ItemStack stack) {
+        this.stacks.set(index, stack);
+        if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
+            stack.setCount(this.getMaxStackSize());
+        }
+        this.saveAdditional(this.getUpdateTag());
+    }
 
-   public static void serverTick(Level level, BlockPos blockPos, BlockState blockState, IncubatorBlockEntity e) {
-      e.HealItemStack();
-   }
+    @Override
+    public boolean stillValid(Player p_18946_) {
+        return true;
+    }
 
-   public static void clientTick(Level level, BlockPos pos, BlockState state, IncubatorBlockEntity e) {
-      e.addTick();
-   }
+    @Override
+    public void clearContent() {
+        this.stacks.clear();
+    }
 
-   public boolean isActive() {
-      return this.getFuel() > 0 && this.stacks.get(0) != ItemStack.EMPTY;
-   }
+    @Override
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
+        if (packet != null && packet.getTag() != null) {
+            this.load(packet.getTag());
+        }
+    }
 
-   public int getTicks() {
-      return this.tick;
-   }
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("block.spore.incubator");
+    }
 
-   public int[] getSlotsForFace(Direction direction) {
-      return direction == Direction.UP ? slotsTop : slotsBottom;
-   }
-
-   public boolean canPlaceItemThroughFace(int p_19235_, ItemStack item, @Nullable Direction direction) {
-      if ((direction == Direction.NORTH || direction == Direction.SOUTH || direction == Direction.EAST || direction == Direction.WEST) && this.getFuel() <= 750) {
-         this.setFuel(this.getFuel() + 250);
-         item.shrink(1);
-      }
-
-      return direction == Direction.UP && item.is(ItemTags.create(new ResourceLocation("spore:weapons")));
-   }
-
-   public boolean canTakeItemThroughFace(int p_19239_, ItemStack stack, Direction direction) {
-      return direction == Direction.DOWN && !stack.isDamaged();
-   }
-
-   public int getContainerSize() {
-      return this.stacks.size();
-   }
-
-   public boolean isEmpty() {
-      for(int i = 0; i < this.getContainerSize(); ++i) {
-         if (!this.getItem(i).isEmpty()) {
-            return false;
-         }
-      }
-
-      return true;
-   }
-
-   public ItemStack getItem(int index) {
-      return (ItemStack)this.stacks.get(index);
-   }
-
-   public ItemStack removeItem(int index, int count) {
-      if (!((ItemStack)this.stacks.get(index)).isEmpty()) {
-         ItemStack itemstack;
-         if (((ItemStack)this.stacks.get(index)).getCount() <= count) {
-            itemstack = (ItemStack)this.stacks.get(index);
-            this.stacks.set(index, ItemStack.EMPTY);
-         } else {
-            itemstack = ((ItemStack)this.stacks.get(index)).split(count);
-            if (((ItemStack)this.stacks.get(index)).isEmpty()) {
-               this.stacks.set(index, ItemStack.EMPTY);
-            }
-         }
-
-         return itemstack;
-      } else {
-         return ItemStack.EMPTY;
-      }
-   }
-
-   public ItemStack removeItemNoUpdate(int index) {
-      ItemStack stack = (ItemStack)this.stacks.get(index);
-      this.stacks.set(index, ItemStack.EMPTY);
-      return stack;
-   }
-
-   public void setItem(int index, ItemStack stack) {
-      this.stacks.set(index, stack);
-      if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
-         stack.setCount(this.getMaxStackSize());
-      }
-
-      this.saveAdditional(this.getUpdateTag());
-   }
-
-   public boolean stillValid(Player p_18946_) {
-      return true;
-   }
-
-   public void clearContent() {
-      this.stacks.clear();
-   }
-
-   public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-      if (packet != null && packet.getTag() != null) {
-         this.load(packet.getTag());
-      }
-
-   }
-
-   public Component getDisplayName() {
-      return Component.translatable("block.spore.incubator");
-   }
-
-   public @Nullable AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-      return new IncubatorMenu(i, inventory);
-   }
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
+        return new IncubatorMenu(i,inventory);
+    }
 }

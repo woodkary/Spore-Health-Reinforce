@@ -4,58 +4,68 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.control.LookControl;
 
 public class SmoothLookControl extends LookControl {
-   private final Mob mob;
-   private final float maxYawChange;
-   private final float maxPitchChange;
-   private final float smoothing;
 
-   public SmoothLookControl(Mob mob, float maxYawChange, float maxPitchChange, float smoothing) {
-      super(mob);
-      this.mob = mob;
-      this.maxYawChange = maxYawChange;
-      this.maxPitchChange = maxPitchChange;
-      this.smoothing = smoothing;
-   }
+    private final Mob mob;
 
-   public void tick() {
-      super.tick();
-      float currentYaw = this.mob.getYRot();
-      float currentPitch = this.mob.getXRot();
-      float targetYaw = this.mob.yHeadRot;
-      float targetPitch = this.mob.getXRot();
-      float yawDelta = this.wrapDegrees(targetYaw - currentYaw);
-      float pitchDelta = targetPitch - currentPitch;
-      yawDelta = this.clamp(yawDelta, -this.maxYawChange, this.maxYawChange);
-      pitchDelta = this.clamp(pitchDelta, -this.maxPitchChange, this.maxPitchChange);
-      float newYaw = currentYaw + yawDelta * this.smoothing;
-      float newPitch = currentPitch + pitchDelta * this.smoothing;
-      this.applyRotation(newYaw, newPitch);
-   }
+    // Max degrees the mob can rotate per tick
+    private final float maxYawChange;
+    private final float maxPitchChange;
 
-   private void applyRotation(float yaw, float pitch) {
-      this.mob.setYRot(yaw);
-      this.mob.setYHeadRot(yaw);
-      this.mob.setYBodyRot(yaw);
-      this.mob.setXRot(pitch);
-      this.mob.yRotO = yaw;
-      this.mob.yHeadRotO = yaw;
-      this.mob.yBodyRotO = yaw;
-      this.mob.xRotO = pitch;
-   }
+    // How strong the smoothing is (0–1). Lower = heavier/slower
+    private final float smoothing;
 
-   private float clamp(float value, float min, float max) {
-      return Math.max(min, Math.min(max, value));
-   }
+    public SmoothLookControl(Mob mob, float maxYawChange, float maxPitchChange, float smoothing) {
+        super(mob);
+        this.mob = mob;
+        this.maxYawChange = maxYawChange;
+        this.maxPitchChange = maxPitchChange;
+        this.smoothing = smoothing;
+    }
 
-   private float wrapDegrees(float degrees) {
-      while(degrees > 180.0F) {
-         degrees -= 360.0F;
-      }
+    @Override
+    public void tick() {
+        // Let vanilla calculate the desired look direction
+        super.tick();
 
-      while(degrees < -180.0F) {
-         degrees += 360.0F;
-      }
+        float currentYaw = mob.getYRot();
+        float currentPitch = mob.getXRot();
 
-      return degrees;
-   }
+        float targetYaw = mob.yHeadRot;
+        float targetPitch = mob.getXRot();
+
+        float yawDelta = wrapDegrees(targetYaw - currentYaw);
+        float pitchDelta = targetPitch - currentPitch;
+
+        // Clamp max rotation speed per tick
+        yawDelta = clamp(yawDelta, -maxYawChange, maxYawChange);
+        pitchDelta = clamp(pitchDelta, -maxPitchChange, maxPitchChange);
+
+        // Lerp toward target (adds inertia / weight)
+        float newYaw = currentYaw + yawDelta * smoothing;
+        float newPitch = currentPitch + pitchDelta * smoothing;
+
+        applyRotation(newYaw, newPitch);
+    }
+
+    private void applyRotation(float yaw, float pitch) {
+        mob.setYRot(yaw);
+        mob.setYHeadRot(yaw);
+        mob.setYBodyRot(yaw);
+        mob.setXRot(pitch);
+
+        mob.yRotO = yaw;
+        mob.yHeadRotO = yaw;
+        mob.yBodyRotO = yaw;
+        mob.xRotO = pitch;
+    }
+
+    private float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private float wrapDegrees(float degrees) {
+        while (degrees > 180F) degrees -= 360F;
+        while (degrees < -180F) degrees += 360F;
+        return degrees;
+    }
 }

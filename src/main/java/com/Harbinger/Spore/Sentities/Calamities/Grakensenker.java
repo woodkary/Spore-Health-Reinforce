@@ -4,25 +4,19 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Ssounds;
-import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
-import com.Harbinger.Spore.Sentities.HitboxesForParts;
-import com.Harbinger.Spore.Sentities.TrueCalamity;
-import com.Harbinger.Spore.Sentities.WaterInfected;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
-import com.Harbinger.Spore.Sentities.AI.GrakensenkerPathNavigation;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SummonScentInCombat;
+import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.*;
+import com.Harbinger.Spore.Sentities.AI.HybridPathNavigation;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.CalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.IkUtil.IkKrakenArm;
 import com.Harbinger.Spore.Sentities.BaseEntities.IkUtil.IkKrakenLeg;
 import com.Harbinger.Spore.Sentities.BaseEntities.IkUtil.IkVortexFunnel;
+import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.Projectile.HarpoonProjectile;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
+import com.Harbinger.Spore.Sentities.TrueCalamity;
+import com.Harbinger.Spore.Sentities.WaterInfected;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -36,15 +30,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
@@ -52,1012 +38,985 @@ import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.PartEntity;
-import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.*;
+
 public class Grakensenker extends Calamity implements TrueCalamity, WaterInfected, RangedAttackMob {
-   public static final EntityDataAccessor HEIGHT;
-   public static final EntityDataAccessor WATER_TICKS;
-   public static final EntityDataAccessor RIGHT_ARM_TIP;
-   public static final EntityDataAccessor LEFT_ARM_TIP;
-   public static final EntityDataAccessor RIGHT_ARM_ENTITY;
-   public static final EntityDataAccessor LEFT_ARM_ENTITY;
-   public static final EntityDataAccessor RIGHT_ARM_DELAY;
-   public static final EntityDataAccessor LEFT_ARM_DELAY;
-   public static final EntityDataAccessor VORTEX_VECTOR;
-   public static final EntityDataAccessor VORTEX_TIMEOUT;
-   public static final EntityDataAccessor WOOD;
-   public static final EntityDataAccessor HOOK;
-   public static final float MIN_HEIGHT = 0.0F;
-   public static final float MAX_HEIGHT = 4.0F;
-   private final IkKrakenLeg BackRightTentacle;
-   private final IkKrakenLeg BackLeftTentacle;
-   private final IkKrakenLeg MiddleRightTentacle;
-   private final IkKrakenLeg MiddleLeftTentacle;
-   private final IkKrakenLeg FrontRightTentacle;
-   private final IkKrakenLeg FrontLeftTentacle;
-   private final IkKrakenArm RightArmTentacle;
-   private final IkKrakenArm LeftArmTentacle;
-   private final IkVortexFunnel VortexFunnel;
-   private final IkKrakenLeg[] TickTentacles;
-   private final CalamityMultipart[] subEntities;
-   public final CalamityMultipart Body;
-   public final CalamityMultipart Body2;
-   public final CalamityMultipart RightHand;
-   public final CalamityMultipart LeftHand;
-   private static final Vector3f V0;
-   private final List<HitboxesForParts> innatePartList;
-
-   public Grakensenker(EntityType type, Level level) {
-      super(type, level);
-      this.innatePartList = List.of(HitboxesForParts.GRAKEN_FRONT_MAW, HitboxesForParts.GRAKEN_HINGE, HitboxesForParts.GRAKEN_BODY, HitboxesForParts.GRAKEN_BACK_MAW);
-      this.Body = new CalamityMultipart(this, "body", 5.0F, 5.0F);
-      this.Body2 = new CalamityMultipart(this, "body2", 3.0F, 3.0F);
-      this.RightHand = new CalamityMultipart(this, "right", 1.5F, 1.5F);
-      this.LeftHand = new CalamityMultipart(this, "left", 1.5F, 1.5F);
-      this.BackRightTentacle = new IkKrakenLeg(this, 7, GrakenLegsModifiers.BACK_RIGHT_TENTACLE.bodySet, GrakenLegsModifiers.BACK_RIGHT_TENTACLE.offset, 4.0F, true);
-      this.BackLeftTentacle = new IkKrakenLeg(this, 7, GrakenLegsModifiers.BACK_LEFT_TENTACLE.bodySet, GrakenLegsModifiers.BACK_LEFT_TENTACLE.offset, 4.0F, false);
-      this.MiddleRightTentacle = new IkKrakenLeg(this, 7, GrakenLegsModifiers.MIDDLE_RIGHT_TENTACLE.bodySet, GrakenLegsModifiers.MIDDLE_RIGHT_TENTACLE.offset, 6.0F, false);
-      this.MiddleLeftTentacle = new IkKrakenLeg(this, 7, GrakenLegsModifiers.MIDDLE_LEFT_TENTACLE.bodySet, GrakenLegsModifiers.MIDDLE_LEFT_TENTACLE.offset, 6.0F, true);
-      this.FrontRightTentacle = new IkKrakenLeg(this, 10, GrakenLegsModifiers.FRONT_RIGHT_TENTACLE.bodySet, GrakenLegsModifiers.FRONT_RIGHT_TENTACLE.offset, 8.0F, true);
-      this.FrontLeftTentacle = new IkKrakenLeg(this, 10, GrakenLegsModifiers.FRONT_LEFT_TENTACLE.bodySet, GrakenLegsModifiers.FRONT_LEFT_TENTACLE.offset, 8.0F, false);
-      this.RightArmTentacle = new IkKrakenArm(this, 16, GrakenLegsModifiers.RIGHT_ARM.bodySet, GrakenLegsModifiers.RIGHT_ARM.offset, 4.0F, true);
-      this.LeftArmTentacle = new IkKrakenArm(this, 16, GrakenLegsModifiers.LEFT_ARM.bodySet, GrakenLegsModifiers.LEFT_ARM.offset, 4.0F, false);
-      this.VortexFunnel = new IkVortexFunnel(this);
-      this.TickTentacles = new IkKrakenLeg[]{this.BackRightTentacle, this.BackLeftTentacle, this.MiddleRightTentacle, this.MiddleLeftTentacle, this.FrontRightTentacle, this.FrontLeftTentacle, this.RightArmTentacle, this.LeftArmTentacle, this.VortexFunnel};
-      this.subEntities = new CalamityMultipart[]{this.Body, this.Body2, this.RightHand, this.LeftHand};
-      this.setId(ENTITY_COUNTER.getAndAdd(this.subEntities.length + 1) + 1);
-      this.navigation = new GrakensenkerPathNavigation(this, this.level());
-      this.setMaxUpStep(1.5F);
-   }
-
-   public void setId(int p_20235_) {
-      super.setId(p_20235_);
-
-      for(int i = 0; i < this.subEntities.length; ++i) {
-         this.subEntities[i].setId(p_20235_ + i + 1);
-      }
-
-   }
-
-   public CalamityMultipart[] getSubEntities() {
-      return this.subEntities;
-   }
-
-   public boolean isMultipartEntity() {
-      return true;
-   }
-
-   public @Nullable PartEntity[] getParts() {
-      return this.subEntities;
-   }
-
-   public void recreateFromPacket(ClientboundAddEntityPacket p_218825_) {
-      super.recreateFromPacket(p_218825_);
-   }
-
-   public String getMutation() {
-      return this.getAdaptation() ? "spore.entity.variant.ship" : super.getMutation();
-   }
-
-   public IkKrakenLeg getBackRightTentacle() {
-      return this.BackRightTentacle;
-   }
-
-   public IkKrakenLeg getBackLeftTentacle() {
-      return this.BackLeftTentacle;
-   }
-
-   public IkKrakenLeg getMiddleRightTentacle() {
-      return this.MiddleRightTentacle;
-   }
-
-   public IkKrakenLeg getMiddleLeftTentacle() {
-      return this.MiddleLeftTentacle;
-   }
-
-   public IkKrakenLeg getFrontRightTentacle() {
-      return this.FrontRightTentacle;
-   }
-
-   public IkKrakenLeg getFrontLeftTentacle() {
-      return this.FrontLeftTentacle;
-   }
-
-   public IkKrakenLeg[] getTentacles() {
-      return this.TickTentacles;
-   }
-
-   public IkKrakenArm getRightArmTentacle() {
-      return this.RightArmTentacle;
-   }
-
-   public IkKrakenArm getLeftArmTentacle() {
-      return this.LeftArmTentacle;
-   }
-
-   public IkVortexFunnel getVortexFunnel() {
-      return this.VortexFunnel;
-   }
-
-   public void performRangedAttack(LivingEntity target, float v) {
-      float yawRad = this.getYRot() * ((float)Math.PI / 180F);
-      float spinRad = (float)this.getWaterTicks() * 0.05F;
-      Vec3 offset = new Vec3((double)5.5F, (double)(4.0F + this.getExtendedHeight()), (double)1.0F);
-      Vec3 pos = this.position().add(offset.yRot(-yawRad - ((float)Math.PI / 2F) + spinRad));
-      HarpoonProjectile projectile = new HarpoonProjectile(this.level(), this, (float)((Double)SConfig.SERVER.graken_damage.get() * (double)0.5F));
-      projectile.moveTo(pos.x, pos.y, pos.z);
-      Vec3 look = this.getViewVector(1.0F);
-      projectile.shoot(look.x, look.y, look.z, 3.0F, 0.0F);
-      this.level().addFreshEntity(projectile);
-      this.shootHook(false);
-      this.playSound(SoundEvents.DISPENSER_LAUNCH);
-   }
-
-   public boolean doHurtTarget(Entity entity) {
-      this.playSound((SoundEvent)Ssounds.SIEGER_BITE.get());
-      return super.doHurtTarget(entity);
-   }
-
-   public void travel(Vec3 vec) {
-      if (this.isEffectiveAi() && this.isInFluidType()) {
-         this.moveRelative(0.1F, vec);
-         this.move(MoverType.SELF, this.getDeltaMovement());
-         this.setDeltaMovement(this.getDeltaMovement().scale(0.9).add((double)0.0F, -0.1, (double)0.0F));
-      } else {
-         super.travel(vec);
-      }
-
-   }
-
-   public boolean canDrownInFluidType(FluidType type) {
-      return false;
-   }
-
-   public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-      if (calamityMultipart == this.RightHand) {
-         this.entityData.set(RIGHT_ARM_DELAY, 100);
-      }
-
-      if (calamityMultipart == this.LeftHand) {
-         this.entityData.set(LEFT_ARM_DELAY, 100);
-      }
-
-      value = calamityMultipart == this.Body ? value * 3.0F : value;
-      if(calamityMultipart == this.Body) {
-         SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 2.0f);
-      }
-      return this.hurt(source, value);
-   }
-
-   protected boolean canAddPassenger(Entity passenger) {
-      return true;
-   }
-
-   public int chemicalRange() {
-      return 16;
-   }
-
-   public List buffs() {
-      return (List)SConfig.SERVER.graken_buffs.get();
-   }
-
-   public List debuffs() {
-      return (List)SConfig.SERVER.graken_debuffs.get();
-   }
-
-   public float getExtendedHeight() {
-      return (Float)this.entityData.get(HEIGHT);
-   }
-
-   public void setHeight(float value) {
-      this.entityData.set(HEIGHT, value);
-   }
-
-   public int getWaterTicks() {
-      return (Integer)this.entityData.get(WATER_TICKS);
-   }
-
-   public void setWaterTicks(int value) {
-      this.entityData.set(WATER_TICKS, value);
-   }
-
-   public boolean isInDeepWater() {
-      return (Integer)this.entityData.get(WATER_TICKS) >= 40;
-   }
-
-   public Vector3f getRightArm() {
-      return (Vector3f)this.entityData.get(RIGHT_ARM_TIP);
-   }
-
-   public Vector3f getLeftArm() {
-      return (Vector3f)this.entityData.get(LEFT_ARM_TIP);
-   }
-
-   public void setRightArm(Vector3f vector3f) {
-      this.entityData.set(RIGHT_ARM_TIP, vector3f);
-   }
-
-   public void setLeftArm(Vector3f vector3f) {
-      this.entityData.set(LEFT_ARM_TIP, vector3f);
-   }
-
-   public int getRightArmDelay() {
-      return (Integer)this.entityData.get(RIGHT_ARM_DELAY);
-   }
-
-   public int getLeftArmDelay() {
-      return (Integer)this.entityData.get(LEFT_ARM_DELAY);
-   }
-
-   public BlockPos getVortexVector() {
-      return (BlockPos)this.entityData.get(VORTEX_VECTOR);
-   }
-
-   public int getVortexTimeOut() {
-      return (Integer)this.entityData.get(VORTEX_TIMEOUT);
-   }
-
-   public void setVortexVector(BlockPos vector3f) {
-      this.entityData.set(VORTEX_VECTOR, vector3f);
-   }
-
-   public boolean hasVortex() {
-      return this.entityData.get(VORTEX_VECTOR) != BlockPos.ZERO;
-   }
-
-   public void setVortexTimeout(int value) {
-      this.entityData.set(VORTEX_TIMEOUT, value);
-   }
-
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(HEIGHT, 0.0F);
-      this.entityData.define(WATER_TICKS, 0);
-      this.entityData.define(RIGHT_ARM_TIP, V0);
-      this.entityData.define(LEFT_ARM_TIP, V0);
-      this.entityData.define(RIGHT_ARM_ENTITY, -1);
-      this.entityData.define(LEFT_ARM_ENTITY, -1);
-      this.entityData.define(RIGHT_ARM_DELAY, 0);
-      this.entityData.define(LEFT_ARM_DELAY, 0);
-      this.entityData.define(VORTEX_VECTOR, BlockPos.ZERO);
-      this.entityData.define(VORTEX_TIMEOUT, 0);
-      this.entityData.define(WOOD, 0);
-      this.entityData.define(HOOK, true);
-   }
-
-   public void addAdditionalSaveData(CompoundTag tag) {
-      super.addAdditionalSaveData(tag);
-      tag.putFloat("height", (Float)this.entityData.get(HEIGHT));
-      tag.putInt("water", (Integer)this.entityData.get(WATER_TICKS));
-
-      for(int e = 0; e < this.TickTentacles.length; ++e) {
-         this.TickTentacles[e].writeVariants(tag, e);
-      }
-
-      tag.putInt("VX", this.getVortexVector().getX());
-      tag.putInt("VY", this.getVortexVector().getY());
-      tag.putInt("VZ", this.getVortexVector().getZ());
-      tag.putInt("timeOut", this.getVortexTimeOut());
-      tag.putInt("wood", (Integer)this.entityData.get(WOOD));
-   }
-
-   public void readAdditionalSaveData(CompoundTag tag) {
-      super.readAdditionalSaveData(tag);
-      this.entityData.set(HEIGHT, tag.getFloat("height"));
-      this.entityData.set(WATER_TICKS, tag.getInt("water"));
-
-      for(int e = 0; e < this.TickTentacles.length; ++e) {
-         this.TickTentacles[e].readVariants(tag, e);
-      }
-
-      int x = tag.getInt("VX");
-      int y = tag.getInt("VY");
-      int z = tag.getInt("VZ");
-      this.setVortexVector(new BlockPos(x, y, z));
-      this.setVortexTimeout(tag.getInt("timeOut"));
-      this.entityData.set(WOOD, tag.getInt("wood"));
-   }
-
-   public boolean shotHook() {
-      return (Boolean)this.entityData.get(HOOK);
-   }
-
-   public void shootHook(boolean val) {
-      this.entityData.set(HOOK, val);
-   }
-
-   public EntityDimensions getDimensions(Pose pose) {
-      return super.getDimensions(pose).scale(1.0F, 1.0F + this.getExtendedHeight() * 0.5F);
-   }
-
-   public void applyYaw(CalamityMultipart part, Vec3 offset) {
-      float yawRad = this.getYRot() * ((float)Math.PI / 180F);
-      float spinRad = (float)this.getWaterTicks() * 0.05F;
-      Vec3 pos = this.position().add(offset.yRot(-yawRad - ((float)Math.PI / 2F) + spinRad));
-      part.setPos(pos.x, pos.y, pos.z);
-   }
-
-   public void aiStep() {
-      Vec3[] avec3 = new Vec3[this.subEntities.length];
-
-      for(int j = 0; j < this.subEntities.length; ++j) {
-         avec3[j] = new Vec3(this.subEntities[j].getX(), this.subEntities[j].getY(), this.subEntities[j].getZ());
-      }
-
-      this.applyYaw(this.Body, new Vec3((double)-4.5F, (double)5.0F + (double)this.getExtendedHeight(), (double)0.0F));
-      this.applyYaw(this.Body2, new Vec3((double)-2.5F, (double)2.0F + (double)this.getExtendedHeight(), (double)0.0F));
-      this.RightHand.setPos((double)this.getRightArm().x, (double)this.getRightArm().y, (double)this.getRightArm().z);
-      this.LeftHand.setPos((double)this.getLeftArm().x, (double)this.getLeftArm().y, (double)this.getLeftArm().z);
-
-      for(int l = 0; l < this.subEntities.length; ++l) {
-         this.subEntities[l].xo = avec3[l].x;
-         this.subEntities[l].yo = avec3[l].y;
-         this.subEntities[l].zo = avec3[l].z;
-         this.subEntities[l].xOld = avec3[l].x;
-         this.subEntities[l].yOld = avec3[l].y;
-         this.subEntities[l].zOld = avec3[l].z;
-      }
-
-      super.aiStep();
-   }
-
-   public void setRightArmEntity(int id) {
-      this.entityData.set(RIGHT_ARM_ENTITY, id);
-   }
-
-   public void setLeftArmEntity(int id) {
-      this.entityData.set(LEFT_ARM_ENTITY, id);
-   }
-
-   private void validateArms() {
-      if (!this.level().isClientSide()) {
-         int rightId = (Integer)this.entityData.get(RIGHT_ARM_ENTITY);
-         int leftId = (Integer)this.entityData.get(LEFT_ARM_ENTITY);
-         if (rightId != -1) {
-            label29: {
-               Entity e = this.level().getEntity(rightId);
-               if (e instanceof LivingEntity) {
-                  LivingEntity le = (LivingEntity)e;
-                  if (le.isAlive() && le.isPassengerOfSameVehicle(this)) {
-                     break label29;
-                  }
-               }
-
-               this.entityData.set(RIGHT_ARM_ENTITY, -1);
+    public static final EntityDataAccessor<Float> HEIGHT = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Integer> WATER_TICKS = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Vector3f> RIGHT_ARM_TIP = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.VECTOR3);
+    public static final EntityDataAccessor<Vector3f> LEFT_ARM_TIP = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.VECTOR3);
+    public static final EntityDataAccessor<Integer> RIGHT_ARM_ENTITY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> LEFT_ARM_ENTITY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> RIGHT_ARM_DELAY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> LEFT_ARM_DELAY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<BlockPos> VORTEX_VECTOR = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.BLOCK_POS);
+    public static final EntityDataAccessor<Integer> VORTEX_TIMEOUT = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> WOOD = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> HOOK = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.BOOLEAN);
+    public static final float MIN_HEIGHT = 0f;
+    public static final float MAX_HEIGHT = 4f;
+    private final IkKrakenLeg BackRightTentacle;
+    private final IkKrakenLeg BackLeftTentacle;
+    private final IkKrakenLeg MiddleRightTentacle;
+    private final IkKrakenLeg MiddleLeftTentacle;
+    private final IkKrakenLeg FrontRightTentacle;
+    private final IkKrakenLeg FrontLeftTentacle;
+    private final IkKrakenArm RightArmTentacle;
+    private final IkKrakenArm LeftArmTentacle;
+    private final IkVortexFunnel VortexFunnel;
+    private final IkKrakenLeg[] TickTentacles;
+    private final CalamityMultipart[] subEntities;
+    public final CalamityMultipart Body;
+    public final CalamityMultipart Body2;
+    public final CalamityMultipart RightHand;
+    public final CalamityMultipart LeftHand;
+    private static final Vector3f V0 = new Vector3f();
+    public Grakensenker(EntityType<? extends PathfinderMob> type, Level level) {
+        super(type, level);
+        this.Body = new CalamityMultipart(this, "body", 5F, 5F);
+        this.Body2 = new CalamityMultipart(this, "body2", 3F, 3F);
+        this.RightHand = new CalamityMultipart(this, "right", 1.5F, 1.5F);
+        this.LeftHand = new CalamityMultipart(this, "left", 1.5F, 1.5F);
+        BackRightTentacle = new IkKrakenLeg(this,7,GrakenLegsModifiers.BACK_RIGHT_TENTACLE.bodySet, GrakenLegsModifiers.BACK_RIGHT_TENTACLE.offset, 4,true);
+        BackLeftTentacle = new IkKrakenLeg(this,7,GrakenLegsModifiers.BACK_LEFT_TENTACLE.bodySet, GrakenLegsModifiers.BACK_LEFT_TENTACLE.offset,  4,false);
+        MiddleRightTentacle = new IkKrakenLeg(this,7,GrakenLegsModifiers.MIDDLE_RIGHT_TENTACLE.bodySet, GrakenLegsModifiers.MIDDLE_RIGHT_TENTACLE.offset,  6,false);
+        MiddleLeftTentacle = new IkKrakenLeg(this,7,GrakenLegsModifiers.MIDDLE_LEFT_TENTACLE.bodySet, GrakenLegsModifiers.MIDDLE_LEFT_TENTACLE.offset, 6,true);
+        FrontRightTentacle = new IkKrakenLeg(this,10,GrakenLegsModifiers.FRONT_RIGHT_TENTACLE.bodySet, GrakenLegsModifiers.FRONT_RIGHT_TENTACLE.offset, 8,true);
+        FrontLeftTentacle = new IkKrakenLeg(this,10,GrakenLegsModifiers.FRONT_LEFT_TENTACLE.bodySet, GrakenLegsModifiers.FRONT_LEFT_TENTACLE.offset,  8,false);
+        RightArmTentacle = new IkKrakenArm(this,16,GrakenLegsModifiers.RIGHT_ARM.bodySet, GrakenLegsModifiers.RIGHT_ARM.offset, 4,true);
+        LeftArmTentacle = new IkKrakenArm(this,16,GrakenLegsModifiers.LEFT_ARM.bodySet, GrakenLegsModifiers.LEFT_ARM.offset,  4,false);
+        VortexFunnel = new IkVortexFunnel(this);
+        TickTentacles = new IkKrakenLeg[]{BackRightTentacle,BackLeftTentacle,MiddleRightTentacle,MiddleLeftTentacle,FrontRightTentacle,FrontLeftTentacle,RightArmTentacle,LeftArmTentacle,VortexFunnel};
+        this.subEntities = new CalamityMultipart[]{ this.Body,this.Body2, this.RightHand,this.LeftHand};
+        this.setId(ENTITY_COUNTER.getAndAdd(this.subEntities.length + 1) + 1);
+        this.navigation = new HybridPathNavigation(this,this.level());
+        this.setMaxUpStep(1.5f);
+    }
+    @Override
+    public void setId(int p_20235_) {
+        super.setId(p_20235_);
+        for (int i = 0; i < this.subEntities.length; i++)
+            this.subEntities[i].setId(p_20235_ + i + 1);
+    }
+    public CalamityMultipart[] getSubEntities() {
+        return this.subEntities;
+    }
+
+    @Override
+    public boolean isMultipartEntity() {
+        return true;
+    }
+
+    @Override
+    public @Nullable PartEntity<?>[] getParts() {
+        return subEntities;
+    }
+
+    public void recreateFromPacket(ClientboundAddEntityPacket p_218825_) {
+        super.recreateFromPacket(p_218825_);
+        if (true) return;
+        CalamityMultipart[] calamityMultiparts = this.getSubEntities();
+
+        for(int i = 0; i < calamityMultiparts.length; ++i) {
+            calamityMultiparts[i].setId(i + p_218825_.getId());
+        }
+
+    }
+    @Override
+    public String getMutation() {
+        if (getAdaptation()){
+            return "spore.entity.variant.ship";
+        }
+        return super.getMutation();
+    }
+    enum GrakenLegsModifiers{
+        BACK_LEFT_TENTACLE(new Vec3(-3,3.5,0.75),new Vec3(-6, -1, 6),new Vec3(1, -3, 4)),
+        BACK_RIGHT_TENTACLE(new Vec3(-3,3.5,-0.75),new Vec3(-6, -1, -6),new Vec3(1, -3, -4)),
+        MIDDLE_LEFT_TENTACLE(new Vec3(-1,2,0.75),new Vec3(0, -1, 6),new Vec3(0, 1, 7)),
+        MIDDLE_RIGHT_TENTACLE(new Vec3(-1,2,-0.75),new Vec3(0, -1, -6),new Vec3(0, 1, -7)),
+        FRONT_LEFT_TENTACLE(new Vec3(-2,3,0.75),new Vec3(9, -1, 6),new Vec3(8, 1, 4)),
+        FRONT_RIGHT_TENTACLE(new Vec3(-2,3,-0.75),new Vec3(9, -1, -6),new Vec3(8, 1, -4)),
+        LEFT_ARM(new Vec3(0,3,1),new Vec3(8, 2.5, 6),new Vec3(16, 4.5, 8)),
+        RIGHT_ARM(new Vec3(0,3,-1),new Vec3(8, 2.5, -6),new Vec3(16, 4.5, -8));
+        private final Vec3 bodySet;
+        private final Vec3 offset;
+        private final Vec3 underwaterOffset;
+
+        GrakenLegsModifiers(Vec3 bodySet, Vec3 offset, Vec3 underwaterOffset) {
+            this.bodySet = bodySet;
+            this.offset = offset;
+            this.underwaterOffset = underwaterOffset;
+        }
+    }
+    public IkKrakenLeg getBackRightTentacle(){
+        return BackRightTentacle;
+    }
+    public IkKrakenLeg getBackLeftTentacle(){
+        return BackLeftTentacle;
+    }
+    public IkKrakenLeg getMiddleRightTentacle(){
+        return MiddleRightTentacle;
+    }
+    public IkKrakenLeg getMiddleLeftTentacle(){
+        return MiddleLeftTentacle;
+    }
+    public IkKrakenLeg getFrontRightTentacle(){
+        return FrontRightTentacle;
+    }
+    public IkKrakenLeg getFrontLeftTentacle(){
+        return FrontLeftTentacle;
+    }
+    public IkKrakenLeg[] getTentacles(){
+        return TickTentacles;
+    }
+    public IkKrakenArm getRightArmTentacle(){
+        return RightArmTentacle;
+    }
+    public IkKrakenArm getLeftArmTentacle(){
+        return LeftArmTentacle;
+    }
+    public IkVortexFunnel getVortexFunnel(){
+        return VortexFunnel;
+    }
+
+    @Override
+    public void performRangedAttack(LivingEntity target, float v) {
+
+        float yawRad = this.getYRot() * Mth.DEG_TO_RAD;
+        float spinRad = this.getWaterTicks() * 0.05f;
+
+        Vec3 offset = new Vec3(5.5,4+getExtendedHeight(),1);
+        Vec3 pos = this.position().add(offset.yRot(-yawRad - Mth.HALF_PI + spinRad));
+        HarpoonProjectile projectile = new HarpoonProjectile(
+                this.level(),
+                this,
+                (float)(SConfig.SERVER.graken_damage.get() * 0.5f)
+        );
+        projectile.moveTo(pos.x,pos.y,pos.z);
+
+        Vec3 look = this.getViewVector(1.0F);
+
+        projectile.shoot(
+                look.x,
+                look.y,
+                look.z,
+                3.0F,
+                0.0F
+        );
+        this.level().addFreshEntity(projectile);
+        shootHook(false);
+        this.playSound(SoundEvents.DISPENSER_LAUNCH);
+    }
+
+
+    @Override
+    public boolean doHurtTarget(Entity entity) {
+        this.playSound(Ssounds.SIEGER_BITE.get());
+        return super.doHurtTarget(entity);
+    }
+    public void travel(Vec3 vec) {
+        if (this.isEffectiveAi() && this.isInFluidType()) {
+            this.moveRelative(0.1F, vec);
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.9D).add(0,-0.1,0));
+        } else {
+            super.travel(vec);
+        }
+    }
+    @Override
+    public boolean canDrownInFluidType(FluidType type) {
+        return false;
+    }
+
+    @Override
+    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
+        if (calamityMultipart == RightHand){
+            this.entityData.set(RIGHT_ARM_DELAY,100);
+        }
+        if (calamityMultipart == LeftHand){
+            this.entityData.set(LEFT_ARM_DELAY,100);
+        }
+        value = calamityMultipart == this.Body ? value * 3 : value;
+        return this.hurt(source,value);
+    }
+
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return true;
+    }
+
+    @Override
+    public int chemicalRange() {
+        return 16;
+    }
+
+    @Override
+    public List<? extends String> buffs() {
+        return SConfig.SERVER.graken_buffs.get();
+    }
+
+    @Override
+    public List<? extends String> debuffs() {
+        return SConfig.SERVER.graken_debuffs.get();
+    }
+
+    public float getExtendedHeight(){
+        return entityData.get(HEIGHT);
+    }
+    public void setHeight(float value){
+        entityData.set(HEIGHT,value);
+    }
+    public int getWaterTicks(){
+        return entityData.get(WATER_TICKS);
+    }
+    public void setWaterTicks(int value){
+        entityData.set(WATER_TICKS,value);
+    }
+    public boolean isInDeepWater(){
+        return entityData.get(WATER_TICKS) >= 40;
+    }
+    public Vector3f getRightArm(){return entityData.get(RIGHT_ARM_TIP);}
+    public Vector3f getLeftArm(){return entityData.get(LEFT_ARM_TIP);}
+    public void setRightArm(Vector3f vector3f){ entityData.set(RIGHT_ARM_TIP,vector3f);}
+    public void setLeftArm(Vector3f vector3f){ entityData.set(LEFT_ARM_TIP,vector3f);}
+    public int getRightArmDelay(){return entityData.get(RIGHT_ARM_DELAY);};
+    public int getLeftArmDelay(){return entityData.get(LEFT_ARM_DELAY);}
+    public BlockPos getVortexVector(){return entityData.get(VORTEX_VECTOR);}
+    public int getVortexTimeOut(){return entityData.get(VORTEX_TIMEOUT);}
+    public void setVortexVector(BlockPos vector3f){entityData.set(VORTEX_VECTOR,vector3f);}
+    public boolean hasVortex() {
+        return entityData.get(VORTEX_VECTOR) != BlockPos.ZERO;
+    }
+    public void setVortexTimeout(int value){entityData.set(VORTEX_TIMEOUT,value);}
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(HEIGHT, 0f);
+        entityData.define(WATER_TICKS, 0);
+        entityData.define(RIGHT_ARM_TIP, V0);
+        entityData.define(LEFT_ARM_TIP,  V0);
+        entityData.define(RIGHT_ARM_ENTITY,  -1);
+        entityData.define(LEFT_ARM_ENTITY,  -1);
+        entityData.define(RIGHT_ARM_DELAY,  0);
+        entityData.define(LEFT_ARM_DELAY,  0);
+        entityData.define(VORTEX_VECTOR,   BlockPos.ZERO);
+        entityData.define(VORTEX_TIMEOUT,  0);
+        entityData.define(WOOD,  0);
+        entityData.define(HOOK,  true);
+    }
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putFloat("height", entityData.get(HEIGHT));
+        tag.putInt("water", entityData.get(WATER_TICKS));
+        for(int e = 0;e<TickTentacles.length;e++){
+            TickTentacles[e].writeVariants(tag,e);
+        }
+        tag.putInt("VX",getVortexVector().getX());
+        tag.putInt("VY",getVortexVector().getY());
+        tag.putInt("VZ",getVortexVector().getZ());
+        tag.putInt("timeOut",getVortexTimeOut());
+        tag.putInt("wood",entityData.get(WOOD));
+    }
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        entityData.set(HEIGHT,tag.getFloat("height"));
+        entityData.set(WATER_TICKS,tag.getInt("water"));
+        for(int e = 0;e<TickTentacles.length;e++){
+            TickTentacles[e].readVariants(tag,e);
+        }
+        int x = tag.getInt("VX");
+        int y = tag.getInt("VY");
+        int z = tag.getInt("VZ");
+        this.setVortexVector(new BlockPos(x,y,z));
+        setVortexTimeout(tag.getInt("timeOut"));
+        entityData.set(WOOD,tag.getInt("wood"));
+    }
+
+    public boolean shotHook(){
+        return entityData.get(HOOK);
+    }
+    public void shootHook(boolean val){
+        entityData.set(HOOK,val);
+    }
+    @Override
+    public EntityDimensions getDimensions(Pose pose) {
+        return super.getDimensions(pose).scale(1,1+(getExtendedHeight() * 0.5f));
+    }
+
+    public void applyYaw(CalamityMultipart part, Vec3 offset) {
+        float yawRad = this.getYRot() * Mth.DEG_TO_RAD;
+        float spinRad = this.getWaterTicks() * 0.05f;
+        Vec3 pos = this.position().add(offset.yRot(-yawRad - Mth.HALF_PI + spinRad));
+        part.setPos(pos.x, pos.y, pos.z);
+    }
+    @Override
+    public void aiStep() {
+        Vec3[] avec3 = new Vec3[this.subEntities.length];
+        for(int j = 0; j < this.subEntities.length; ++j) {
+            avec3[j] = new Vec3(this.subEntities[j].getX(), this.subEntities[j].getY(), this.subEntities[j].getZ());
+        }
+        this.applyYaw(this.Body,new Vec3 (-4.5, 5.0D+getExtendedHeight(), 0));
+        this.applyYaw(this.Body2,new Vec3 (-2.5, 2.0D+getExtendedHeight(), 0));
+        this.RightHand.setPos(getRightArm().x, getRightArm().y, getRightArm().z);
+        this.LeftHand.setPos(getLeftArm().x, getLeftArm().y, getLeftArm().z);
+        for(int l = 0; l < this.subEntities.length; ++l) {
+            this.subEntities[l].xo = avec3[l].x;
+            this.subEntities[l].yo = avec3[l].y;
+            this.subEntities[l].zo = avec3[l].z;
+            this.subEntities[l].xOld = avec3[l].x;
+            this.subEntities[l].yOld = avec3[l].y;
+            this.subEntities[l].zOld = avec3[l].z;
+        }
+        super.aiStep();
+    }
+    public void setRightArmEntity(int id){
+        entityData.set(RIGHT_ARM_ENTITY,id);
+    }
+    public void setLeftArmEntity(int id){
+        entityData.set(LEFT_ARM_ENTITY,id);
+    }
+    private void validateArms() {
+        if (level().isClientSide()) return;
+
+        int rightId = entityData.get(RIGHT_ARM_ENTITY);
+        int leftId  = entityData.get(LEFT_ARM_ENTITY);
+
+        if (rightId != -1) {
+            Entity e = level().getEntity(rightId);
+            if (!(e instanceof LivingEntity le) || !le.isAlive() || !le.isPassengerOfSameVehicle(this)) {
+                entityData.set(RIGHT_ARM_ENTITY, -1);
             }
-         }
+        }
 
-         if (leftId != -1) {
-            Entity e = this.level().getEntity(leftId);
-            if (e instanceof LivingEntity) {
-               LivingEntity le = (LivingEntity)e;
-               if (le.isAlive() && le.isPassengerOfSameVehicle(this)) {
-                  return;
-               }
+        if (leftId != -1) {
+            Entity e = level().getEntity(leftId);
+            if (!(e instanceof LivingEntity le) || !le.isAlive() || !le.isPassengerOfSameVehicle(this)) {
+                entityData.set(LEFT_ARM_ENTITY, -1);
+            }
+        }
+    }
+    public SoundEvent getDeathSound() {
+        return Ssounds.INF_DAMAGE.get();
+    }
+
+    protected SoundEvent getStepSound() {
+        if (this.onGround()){
+            return SoundEvents.RAVAGER_STEP;
+        }
+        return SoundEvents.GENERIC_SWIM;
+    }
+
+    protected SoundEvent getAmbientSound() {
+        if (this.getTarget() != null && this.distanceToSqr(this.getTarget()) > 200){
+            return null;
+        }
+        return Ssounds.KRAKEN_GROWL.get();
+    }
+    @Override
+    public void tick() {
+        super.tick();
+        if (tickCount % 1200 == 0 && getSearchArea() == BlockPos.ZERO && !isOcean(level().getBiome(this.getOnPos()))){
+            BlockPos pos = findOcean(level(),this.getOnPos());
+            if (pos != null){
+                setSearchArea(pos);
+            }
+        }
+        updateHeight();
+        handleVortexBehavior();
+        if (getVortexTimeOut() > 0) {
+            setVortexTimeout(getVortexTimeOut() - 1);
+        }
+        for (IkKrakenLeg leg : TickTentacles) {
+            leg.refreshLegStandingPoint();
+            leg.applyIK();
+        }
+        if (tickCount % 10 == 0){
+            tryGrab(getRightArm(),true,getRightArmDelay() <= 0);
+            tryGrab(getLeftArm(),false,getLeftArmDelay() <= 0);
+        }
+        if (tickCount % 20 == 0){
+            validateArms();
+            if (isInDeepWater()){
+                if (!hasVortex() && getVortexTimeOut() <= 0 && getTarget() == null && getSearchArea() == BlockPos.ZERO){
+                    BlockPos vec3 = findVortexCenter(level());
+                    if (vec3 != null){
+                        setVortexVector(vec3);
+                    }
+                }
+            }
+        }
+        if (hasVortex()){
+            int range = 8;
+            for(int i = 0; i <=2* range; ++i) {
+                for(int k = 0; k <=2* range; ++k) {
+                    double distance = Mth.sqrt((float) ((i-range)*(i-range) + (k-range)*(k-range)));
+                    if (Math.abs(i) != 2 || Math.abs(k) != 2) {
+                        if (distance<range+(0.5) && Math.random() < 0.1){
+                            BlockPos vector3f = getVortexVector().offset( i- range,0,k- range);
+                            level().addParticle(ParticleTypes.BUBBLE,vector3f.getX(),vector3f.getY()+1,vector3f.getZ(),0,0.05,0);
+                        }}}}
+            applyVortexForces();
+        }
+        if (getRightArmDelay() > 0){
+            entityData.set(RIGHT_ARM_DELAY,getRightArmDelay()-1);
+        }
+        if (getLeftArmDelay() > 0){
+            entityData.set(LEFT_ARM_DELAY,getLeftArmDelay()-1);
+        }
+        if (isInWater()){
+            LivingEntity target = this.getTarget();
+            Vec3 vec3 = target == null ? this.getDeltaMovement() : target.position();
+
+            if (vec3.horizontalDistanceSqr() > 2.5E-7F) {
+                double dx = vec3.x;
+                double dy = vec3.y;
+                double dz = vec3.z;
+
+                double horizontal = Math.sqrt(dx * dx + dz * dz);
+
+                float yaw = (float)(Mth.atan2(dz, dx) * (180F / Math.PI)) - 90F;
+
+                float pitch = (float)(Mth.atan2(dy, horizontal) * (180F / Math.PI));
+
+                this.setYRot(yaw);
+                this.setXRot(pitch);
+
+                this.yBodyRot = lerpRotation(this.yRotO, this.getYRot());
+            }
+        }
+        if (tickCount % 600 == 0 && !shotHook()){
+            AABB aabb = this.getBoundingBox().inflate(8);
+            List<HarpoonProjectile> harpoons  = level().getEntitiesOfClass(HarpoonProjectile.class,aabb);
+            if (harpoons.isEmpty()){
+                this.shootHook(true);
+            }
+        }
+        if (tickCount % 40 == 0 && shotHook() && getAdaptation() && !isInDeepWater()){
+            LivingEntity living = this.getTarget();
+            if (living != null && living.hasLineOfSight(living) && !this.isVehicle()){
+                performRangedAttack(living,0);
+            }
+        }
+    }
+    protected static float lerpRotation(float currentRotation, float targetRotation) {
+        while(targetRotation - currentRotation < -180.0F) {
+            currentRotation -= 360.0F;
+        }
+
+        while(targetRotation - currentRotation >= 180.0F) {
+            currentRotation += 360.0F;
+        }
+
+        return Mth.lerp(0.2F, currentRotation, targetRotation);
+    }
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (getAdaptation()){
+            amount = amount*0.8f;
+        }
+        setVortexTimeout(1200);
+        setVortexVector(BlockPos.ZERO);
+        return super.hurt(source, amount);
+    }
+
+    private void tryGrab(Vector3f handPos, boolean right , boolean canGrab) {
+        boolean active = right ? isRightArmFull() : isLeftArmFull();
+        if (active && canGrab){
+            return;
+        }
+        AABB aabb = new AABB(
+                handPos.x - 2.0, handPos.y - 2.0, handPos.z - 2.0,
+                handPos.x + 2.0, handPos.y + 2.0, handPos.z + 2.0
+        );
+
+        List<LivingEntity> targets = level().getEntitiesOfClass(
+                LivingEntity.class,
+                aabb,
+                e ->
+                        e.isAlive()
+                                && e != this
+                                && !e.isPassenger()
+                                && !e.isInvulnerable()
+                                && Utilities.TARGET_SELECTOR.Test(e)
+                                && TargetingConditions.forCombat().test(this, e)
+        );
+
+        if (targets.isEmpty()) return;
+        LivingEntity living = targets.get(0);
+        if (right){
+            setRightArmEntity(living.getId());
+        }else {
+            setLeftArmEntity(living.getId());
+        }
+        living.startRiding(this);
+    }
+    public boolean isRightArmFull(){return entityData.get(RIGHT_ARM_ENTITY) != -1;}
+    public boolean isLeftArmFull(){return entityData.get(LEFT_ARM_ENTITY) != -1;}
+    public int getRightArmEntity(){return entityData.get(RIGHT_ARM_ENTITY);}
+    public int getLeftArmEntity(){return entityData.get(LEFT_ARM_ENTITY);}
+
+    @Override
+    protected void positionRider(Entity passenger, MoveFunction callback) {
+        float tall = passenger.getBbHeight()/2;
+        passenger.setPose(Pose.STANDING);
+        if (passenger.getId() == entityData.get(RIGHT_ARM_ENTITY)){
+            Vector3f pos = getRightArm();
+            callback.accept(passenger, pos.x, pos.y-tall, pos.z);
+            strangleVictim(passenger);
+            if (passenger.distanceToSqr(this.position().add(0,getExtendedHeight(),0))<=4){
+                setRightArmEntity(-1);
+            }
+        }else if (passenger.getId() == entityData.get(LEFT_ARM_ENTITY)){
+            Vector3f pos = getLeftArm();
+            callback.accept(passenger, pos.x, pos.y-tall, pos.z);
+            strangleVictim(passenger);
+            if (passenger.distanceToSqr(this.position().add(0,getExtendedHeight(),0))<=4){
+                setLeftArmEntity(-1);
+            }
+        }else {
+            callback.accept(passenger,this.getX(),this.getY()+getExtendedHeight(),this.getZ());
+            if (tickCount % 20 == 0 && passenger instanceof LivingEntity living){
+                this.doHurtTarget(living);
+            }
+        }
+    }
+    public void strangleVictim(Entity entity){
+        if (entity instanceof LivingEntity living){
+            int air = living.getAirSupply();
+            living.setAirSupply(--air);
+        }
+    }
+
+    @Override
+    public double getDamageCap() {
+        return SConfig.SERVER.graken_dpsr.get();
+    }
+
+    @Override
+    protected void removePassenger(Entity passenger) {
+        super.removePassenger(passenger);
+        if (passenger.getId() == entityData.get(RIGHT_ARM_ENTITY)){
+            entityData.set(RIGHT_ARM_ENTITY,-1);
+        }
+        if (passenger.getId() == entityData.get(LEFT_ARM_ENTITY)){
+            entityData.set(LEFT_ARM_ENTITY,-1);
+        }
+    }
+
+    @Override
+    public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        if (passenger.getId() == entityData.get(RIGHT_ARM_ENTITY)){
+            return new Vec3(getRightArm());
+        }
+        if (passenger.getId() == entityData.get(LEFT_ARM_ENTITY)){
+            return new Vec3(getLeftArm());
+        }
+        this.entityData.set(RIGHT_ARM_DELAY,100);
+        this.entityData.set(LEFT_ARM_DELAY,100);
+        return super.getDismountLocationForPassenger(passenger);
+    }
+
+    public void updateHeight() {
+        if (level().isClientSide) return;
+
+        float current = getExtendedHeight();
+        float target = current;
+        boolean deep = inDeepWater(getOnPos());
+        if (deep){
+            if (getWaterTicks() <= 180){
+                setWaterTicks(getWaterTicks()+5);
+            }
+        }else {
+            if (getWaterTicks() > 0){
+                setWaterTicks(getWaterTicks()-5);
+            }
+        }
+        boolean deepWater = isInDeepWater();
+        double wantedY = moveControl.getWantedY() + 2;
+        boolean wantsLowStance = (wantedY < this.getY() + this.getBbHeight()) && this.horizontalCollision;
+        if (wantsLowStance || deepWater) {
+            target -= 0.05f;
+        }else {
+            target += 0.08f;
+        }
+        target = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, target));
+        if (Math.abs(target - current) > 0.01f) {
+            setHeight(target);
+        }
+    }
+
+    protected boolean inDeepWater(BlockPos pos){
+        BlockPos firstPos = pos.offset(-3,2,-3);
+        BlockPos secondPos = pos.offset(3,5,3);
+        return BlockPos.betweenClosedStream(firstPos, secondPos).allMatch(this::checkForFluid);
+    }
+    boolean checkForFluid(BlockPos pos){
+        BlockState state = level().getBlockState(pos);
+        FluidState fluidstate = state.getFluidState();
+        return state.getCollisionShape(this.level(), pos).isEmpty() && fluidstate.is(FluidTags.WATER);
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes()
+                .add(Attributes.MAX_HEALTH, SConfig.SERVER.graken_hp.get() * SConfig.SERVER.global_health.get())
+                .add(Attributes.MOVEMENT_SPEED, 0.2)
+                .add(Attributes.ATTACK_DAMAGE, SConfig.SERVER.graken_damage.get() * SConfig.SERVER.global_damage.get())
+                .add(Attributes.ARMOR, SConfig.SERVER.graken_armor.get() * SConfig.SERVER.global_armor.get())
+                .add(Attributes.FOLLOW_RANGE, 64)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1)
+                .add(Attributes.ATTACK_KNOCKBACK, 2)
+                .add(SAttributes.REJUVENATION.get(), 0.0D)
+                .add(SAttributes.LOCALIZATION.get(), 0.0D)
+                .add(SAttributes.LACERATION.get(), 0.0D)
+                .add(SAttributes.CORROSIVES.get(), 0.0D)
+                .add(SAttributes.BALLISTIC.get(), 0.0D)
+                .add(SAttributes.GRINDING.get(), 0.0D);
+
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
+        if (HEIGHT.equals(dataAccessor)){
+            this.setMaxUpStep((float) (1.5 + getExtendedHeight()));
+            this.refreshDimensions();
+        }
+        if (SEARCH_AREA.equals(dataAccessor)){
+            if (getSearchArea() != BlockPos.ZERO){
+                setVortexTimeout(1200);
+                setVortexVector(BlockPos.ZERO);
+            }
+        }
+        if (WATER_TICKS.equals(dataAccessor)){
+            if (hasVortex() && !isInDeepWater()){
+                setVortexTimeout(1200);
+                setVortexVector(BlockPos.ZERO);
+            }
+        }
+        super.onSyncedDataUpdated(dataAccessor);
+    }
+
+    @Override
+    public List<? extends String> getDropList() {
+        return SConfig.DATAGEN.graken_loot.get();
+    }
+
+    @Override
+    public void registerGoals() {
+        this.goalSelector.addGoal(4, new AOEMeleeAttackGoal(this, 1.5, false,2.5 ,6, livingEntity -> {return TARGET_SELECTOR.test(livingEntity);}){
+            @Override
+            public boolean canUse() {
+                return !hasVortex() && super.canUse();
             }
 
-            this.entityData.set(LEFT_ARM_ENTITY, -1);
-         }
-
-      }
-   }
-
-   public SoundEvent getDeathSound() {
-      return (SoundEvent)Ssounds.INF_DAMAGE.get();
-   }
-
-   protected SoundEvent getStepSound() {
-      return this.onGround() ? SoundEvents.RAVAGER_STEP : SoundEvents.GENERIC_SWIM;
-   }
-
-   protected SoundEvent getAmbientSound() {
-      return this.getTarget() != null && this.distanceToSqr(this.getTarget()) > (double)200.0F ? null : (SoundEvent)Ssounds.KRAKEN_GROWL.get();
-   }
-
-   public void tick() {
-      super.tick();
-      if (this.tickCount % 1200 == 0 && this.getSearchArea() == BlockPos.ZERO && !this.isOcean(this.level().getBiome(this.getOnPos()))) {
-         BlockPos pos = this.findOcean(this.level(), this.getOnPos());
-         if (pos != null) {
-            this.setSearchArea(pos);
-         }
-      }
-
-      this.updateHeight();
-      this.handleVortexBehavior();
-      if (this.getVortexTimeOut() > 0) {
-         this.setVortexTimeout(this.getVortexTimeOut() - 1);
-      }
-
-      for(IkKrakenLeg leg : this.TickTentacles) {
-         leg.refreshLegStandingPoint();
-         leg.applyIK();
-      }
-
-      if (this.tickCount % 10 == 0) {
-         this.tryGrab(this.getRightArm(), true, this.getRightArmDelay() <= 0);
-         this.tryGrab(this.getLeftArm(), false, this.getLeftArmDelay() <= 0);
-      }
-
-      if (this.tickCount % 20 == 0) {
-         this.validateArms();
-         if (this.isInDeepWater() && !this.hasVortex() && this.getVortexTimeOut() <= 0 && this.getTarget() == null && this.getSearchArea() == BlockPos.ZERO) {
-            BlockPos vec3 = this.findVortexCenter(this.level());
-            if (vec3 != null) {
-               this.setVortexVector(vec3);
+            protected double getAttackReachSqr(LivingEntity entity) {
+                float f = Grakensenker.this.getBbWidth();
+                return (double)(f * 2F * f * 2F + entity.getBbWidth());
             }
-         }
-      }
-
-      if (this.hasVortex()) {
-         int range = 8;
-
-         for(int i = 0; i <= 2 * range; ++i) {
-            for(int k = 0; k <= 2 * range; ++k) {
-               double distance = (double)Mth.sqrt((float)((i - range) * (i - range) + (k - range) * (k - range)));
-               if ((Math.abs(i) != 2 || Math.abs(k) != 2) && distance < (double)range + (double)0.5F && Math.random() < 0.1) {
-                  BlockPos vector3f = this.getVortexVector().offset(i - range, 0, k - range);
-                  this.level().addParticle(ParticleTypes.BUBBLE, (double)vector3f.getX(), (double)(vector3f.getY() + 1), (double)vector3f.getZ(), (double)0.0F, 0.05, (double)0.0F);
-               }
+        });
+        this.goalSelector.addGoal(5, new RandomStrollGoal(this, 1.2));
+        this.goalSelector.addGoal(6,new CalamityInfectedCommand(this));
+        this.goalSelector.addGoal(7,new SummonScentInCombat(this));
+        this.goalSelector.addGoal(8,new SporeBurstSupport(this));
+        super.registerGoals();
+    }
+    private final List<HitboxesForParts> innatePartList = List.of(HitboxesForParts.GRAKEN_FRONT_MAW,
+            HitboxesForParts.GRAKEN_HINGE, HitboxesForParts.GRAKEN_BODY,HitboxesForParts.GRAKEN_BACK_MAW);
+    @Override
+    public List<HitboxesForParts> parts() {
+        List<HitboxesForParts> values = new ArrayList<>();
+        for (HitboxesForParts hitboxes : innatePartList){
+            HitboxesForParts part = calculateChance(hitboxes,0.85f);
+            if (part != null){
+                values.add(part);
             }
-         }
+        }
+        return values;
+    }
+    public Vec3 applyYaw(Vec3 offset) {
+        float yawRad = this.getYRot() * Mth.DEG_TO_RAD;
+        float spinRad = this.getWaterTicks() * 0.05f;
 
-         this.applyVortexForces();
-      }
+        return offset.yRot(-yawRad - Mth.HALF_PI + spinRad);
+    }
+    @Nullable
+    public BlockPos findVortexCenter(Level level) {
+        if (!isInWater()) return null;
+        Vec3 random = applyYaw(new Vec3(getRandom().nextInt(3,7),0,getRandom().nextInt(-5,5)));
+        Vec3 base = this.position().add(random);
+        for (int dy = 0; dy <= 32; dy++) {
+            BlockPos pos = BlockPos.containing(base.x, base.y + dy, base.z);
 
-      if (this.getRightArmDelay() > 0) {
-         this.entityData.set(RIGHT_ARM_DELAY, this.getRightArmDelay() - 1);
-      }
-
-      if (this.getLeftArmDelay() > 0) {
-         this.entityData.set(LEFT_ARM_DELAY, this.getLeftArmDelay() - 1);
-      }
-
-      if (this.isInWater()) {
-         LivingEntity target = this.getTarget();
-         Vec3 vec3 = target == null ? this.getDeltaMovement() : target.position();
-         if (vec3.horizontalDistanceSqr() > (double)2.5E-7F) {
-            double dx = vec3.x;
-            double dy = vec3.y;
-            double dz = vec3.z;
-            double horizontal = Math.sqrt(dx * dx + dz * dz);
-            float yaw = (float)(Mth.atan2(dz, dx) * (180D / Math.PI)) - 90.0F;
-            float pitch = (float)(Mth.atan2(dy, horizontal) * (180D / Math.PI));
-            this.setYRot(yaw);
-            this.setXRot(pitch);
-            this.yBodyRot = lerpRotation(this.yRotO, this.getYRot());
-         }
-      }
-
-      if (this.tickCount % 600 == 0 && !this.shotHook()) {
-         AABB aabb = this.getBoundingBox().inflate((double)8.0F);
-         List<HarpoonProjectile> harpoons = this.level().getEntitiesOfClass(HarpoonProjectile.class, aabb);
-         if (harpoons.isEmpty()) {
-            this.shootHook(true);
-         }
-      }
-
-      if (this.tickCount % 40 == 0 && this.shotHook() && this.getAdaptation() && !this.isInDeepWater()) {
-         LivingEntity living = this.getTarget();
-         if (living != null && living.hasLineOfSight(living) && !this.isVehicle()) {
-            this.performRangedAttack(living, 0.0F);
-         }
-      }
-
-   }
-
-   protected static float lerpRotation(float currentRotation, float targetRotation) {
-      while(targetRotation - currentRotation < -180.0F) {
-         currentRotation -= 360.0F;
-      }
-
-      while(targetRotation - currentRotation >= 180.0F) {
-         currentRotation += 360.0F;
-      }
-
-      return Mth.lerp(0.2F, currentRotation, targetRotation);
-   }
-
-   public boolean hurt(DamageSource source, float amount) {
-      if (this.getAdaptation()) {
-         amount *= 0.8F;
-      }
-
-      this.setVortexTimeout(1200);
-      this.setVortexVector(BlockPos.ZERO);
-      return super.hurt(source, amount);
-   }
-
-   private void tryGrab(Vector3f handPos, boolean right, boolean canGrab) {
-      boolean active = right ? this.isRightArmFull() : this.isLeftArmFull();
-      if (!active || !canGrab) {
-         AABB aabb = new AABB((double)handPos.x - (double)2.0F, (double)handPos.y - (double)2.0F, (double)handPos.z - (double)2.0F, (double)handPos.x + (double)2.0F, (double)handPos.y + (double)2.0F, (double)handPos.z + (double)2.0F);
-         List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, aabb, (e) -> e.isAlive() && e != this && !e.isPassenger() && !e.isInvulnerable() && Utilities.TARGET_SELECTOR.Test(e) && TargetingConditions.forCombat().test(this, e));
-         if (!targets.isEmpty()) {
-            LivingEntity living = (LivingEntity)targets.get(0);
-            if (right) {
-               this.setRightArmEntity(living.getId());
-            } else {
-               this.setLeftArmEntity(living.getId());
-            }
-
-            living.startRiding(this);
-         }
-      }
-   }
-
-   public boolean isRightArmFull() {
-      return (Integer)this.entityData.get(RIGHT_ARM_ENTITY) != -1;
-   }
-
-   public boolean isLeftArmFull() {
-      return (Integer)this.entityData.get(LEFT_ARM_ENTITY) != -1;
-   }
-
-   public int getRightArmEntity() {
-      return (Integer)this.entityData.get(RIGHT_ARM_ENTITY);
-   }
-
-   public int getLeftArmEntity() {
-      return (Integer)this.entityData.get(LEFT_ARM_ENTITY);
-   }
-
-   protected void positionRider(Entity passenger, MoveFunction callback) {
-      float tall = passenger.getBbHeight() / 2.0F;
-      passenger.setPose(Pose.STANDING);
-      if (passenger.getId() == (Integer)this.entityData.get(RIGHT_ARM_ENTITY)) {
-         Vector3f pos = this.getRightArm();
-         callback.accept(passenger, (double)pos.x, (double)(pos.y - tall), (double)pos.z);
-         this.strangleVictim(passenger);
-         if (passenger.distanceToSqr(this.position().add((double)0.0F, (double)this.getExtendedHeight(), (double)0.0F)) <= (double)4.0F) {
-            this.setRightArmEntity(-1);
-         }
-      } else if (passenger.getId() == (Integer)this.entityData.get(LEFT_ARM_ENTITY)) {
-         Vector3f pos = this.getLeftArm();
-         callback.accept(passenger, (double)pos.x, (double)(pos.y - tall), (double)pos.z);
-         this.strangleVictim(passenger);
-         if (passenger.distanceToSqr(this.position().add((double)0.0F, (double)this.getExtendedHeight(), (double)0.0F)) <= (double)4.0F) {
-            this.setLeftArmEntity(-1);
-         }
-      } else {
-         callback.accept(passenger, this.getX(), this.getY() + (double)this.getExtendedHeight(), this.getZ());
-         if (this.tickCount % 20 == 0 && passenger instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity)passenger;
-            this.doHurtTarget(living);
-         }
-      }
-
-   }
-
-   public void strangleVictim(Entity entity) {
-      if (entity instanceof LivingEntity living) {
-         int air = living.getAirSupply();
-         --air;
-         living.setAirSupply(air);
-      }
-
-   }
-
-   public double getDamageCap() {
-      return (Double)SConfig.SERVER.graken_dpsr.get();
-   }
-
-   protected void removePassenger(Entity passenger) {
-      super.removePassenger(passenger);
-      if (passenger.getId() == (Integer)this.entityData.get(RIGHT_ARM_ENTITY)) {
-         this.entityData.set(RIGHT_ARM_ENTITY, -1);
-      }
-
-      if (passenger.getId() == (Integer)this.entityData.get(LEFT_ARM_ENTITY)) {
-         this.entityData.set(LEFT_ARM_ENTITY, -1);
-      }
-
-   }
-
-   public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
-      if (passenger.getId() == (Integer)this.entityData.get(RIGHT_ARM_ENTITY)) {
-         return new Vec3(this.getRightArm());
-      } else if (passenger.getId() == (Integer)this.entityData.get(LEFT_ARM_ENTITY)) {
-         return new Vec3(this.getLeftArm());
-      } else {
-         this.entityData.set(RIGHT_ARM_DELAY, 100);
-         this.entityData.set(LEFT_ARM_DELAY, 100);
-         return super.getDismountLocationForPassenger(passenger);
-      }
-   }
-
-   public void updateHeight() {
-      if (!this.level().isClientSide) {
-         float current = this.getExtendedHeight();
-         boolean deep = this.inDeepWater(this.getOnPos());
-         if (deep) {
-            if (this.getWaterTicks() <= 180) {
-               this.setWaterTicks(this.getWaterTicks() + 5);
-            }
-         } else if (this.getWaterTicks() > 0) {
-            this.setWaterTicks(this.getWaterTicks() - 5);
-         }
-
-         boolean deepWater = this.isInDeepWater();
-         double wantedY = this.moveControl.getWantedY() + (double)2.0F;
-         boolean wantsLowStance = wantedY < this.getY() + (double)this.getBbHeight() && this.horizontalCollision;
-         float target;
-         if (!wantsLowStance && !deepWater) {
-            target = current + 0.08F;
-         } else {
-            target = current - 0.05F;
-         }
-
-         target = Math.max(0.0F, Math.min(4.0F, target));
-         if (Math.abs(target - current) > 0.01F) {
-            this.setHeight(target);
-         }
-
-      }
-   }
-
-   protected boolean inDeepWater(BlockPos pos) {
-      BlockPos firstPos = pos.offset(-3, 2, -3);
-      BlockPos secondPos = pos.offset(3, 5, 3);
-      return BlockPos.betweenClosedStream(firstPos, secondPos).allMatch(this::checkForFluid);
-   }
-
-   boolean checkForFluid(BlockPos pos) {
-      BlockState state = this.level().getBlockState(pos);
-      FluidState fluidstate = state.getFluidState();
-      return state.getCollisionShape(this.level(), pos).isEmpty() && fluidstate.is(FluidTags.WATER);
-   }
-
-   public static AttributeSupplier.Builder createAttributes() {
-      return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, (Double)SConfig.SERVER.graken_hp.get() * (Double)SConfig.SERVER.global_health.get()).add(Attributes.MOVEMENT_SPEED, 0.2).add(Attributes.ATTACK_DAMAGE, (Double)SConfig.SERVER.graken_damage.get() * (Double)SConfig.SERVER.global_damage.get()).add(Attributes.ARMOR, (Double)SConfig.SERVER.graken_armor.get() * (Double)SConfig.SERVER.global_armor.get()).add(Attributes.FOLLOW_RANGE, (double)64.0F).add(Attributes.KNOCKBACK_RESISTANCE, (double)1.0F).add(Attributes.ATTACK_KNOCKBACK, (double)2.0F).add((Attribute)SAttributes.REJUVENATION.get(), (double)0.0F).add((Attribute)SAttributes.LOCALIZATION.get(), (double)0.0F).add((Attribute)SAttributes.LACERATION.get(), (double)0.0F).add((Attribute)SAttributes.CORROSIVES.get(), (double)0.0F).add((Attribute)SAttributes.BALLISTIC.get(), (double)0.0F).add((Attribute)SAttributes.GRINDING.get(), (double)0.0F);
-   }
-
-   public void onSyncedDataUpdated(EntityDataAccessor dataAccessor) {
-      if (HEIGHT.equals(dataAccessor)) {
-         this.setMaxUpStep((float)((double)1.5F + (double)this.getExtendedHeight()));
-         this.refreshDimensions();
-      }
-
-      if (SEARCH_AREA.equals(dataAccessor) && this.getSearchArea() != BlockPos.ZERO) {
-         this.setVortexTimeout(1200);
-         this.setVortexVector(BlockPos.ZERO);
-      }
-
-      if (WATER_TICKS.equals(dataAccessor) && this.hasVortex() && !this.isInDeepWater()) {
-         this.setVortexTimeout(1200);
-         this.setVortexVector(BlockPos.ZERO);
-      }
-
-      super.onSyncedDataUpdated(dataAccessor);
-   }
-
-   public List<String> getDropList() {
-      return (List)SConfig.DATAGEN.graken_loot.get();
-   }
-
-   public void registerGoals() {
-      this.goalSelector.addGoal(4, new AOEMeleeAttackGoal(this, (double)1.5F, false, (double)2.5F, 6.0F, (livingEntity) -> this.TARGET_SELECTOR.test(livingEntity)) {
-         public boolean canUse() {
-            return !Grakensenker.this.hasVortex() && super.canUse();
-         }
-
-         protected double getAttackReachSqr(LivingEntity entity) {
-            float f = Grakensenker.this.getBbWidth();
-            return (double)(f * 2.0F * f * 2.0F + entity.getBbWidth());
-         }
-      });
-      this.goalSelector.addGoal(5, new RandomStrollGoal(this, 1.2));
-      this.goalSelector.addGoal(6, new CalamityInfectedCommand(this));
-      this.goalSelector.addGoal(7, new SummonScentInCombat(this));
-      this.goalSelector.addGoal(8, new SporeBurstSupport(this));
-      super.registerGoals();
-   }
-
-   public List<HitboxesForParts> parts() {
-      List<HitboxesForParts> values = new ArrayList();
-
-      for(HitboxesForParts hitboxes : this.innatePartList) {
-         HitboxesForParts part = this.calculateChance(hitboxes, 0.85F);
-         if (part != null) {
-            values.add(part);
-         }
-      }
-
-      return values;
-   }
-
-   public Vec3 applyYaw(Vec3 offset) {
-      float yawRad = this.getYRot() * ((float)Math.PI / 180F);
-      float spinRad = (float)this.getWaterTicks() * 0.05F;
-      return offset.yRot(-yawRad - ((float)Math.PI / 2F) + spinRad);
-   }
-
-   public @Nullable BlockPos findVortexCenter(Level level) {
-      if (!this.isInWater()) {
-         return null;
-      } else {
-         Vec3 random = this.applyYaw(new Vec3((double)this.getRandom().nextInt(3, 7), (double)0.0F, (double)this.getRandom().nextInt(-5, 5)));
-         Vec3 base = this.position().add(random);
-
-         for(int dy = 0; dy <= 32; ++dy) {
-            BlockPos pos = BlockPos.containing(base.x, base.y + (double)dy, base.z);
             BlockState water = level.getBlockState(pos);
             BlockState air = level.getBlockState(pos.above());
+
             if (water.is(Blocks.WATER) && air.isAir()) {
-               if (dy <= 12) {
-                  return null;
-               }
+                if (dy <= 12) {return null;};
 
-               return pos;
+                return pos;
             }
-         }
+        }
+        return null;
+    }
 
-         return null;
-      }
-   }
 
-   public void handleVortexBehavior() {
-      if (this.hasVortex()) {
-         if (this.getVortexTimeOut() <= 0) {
-            this.getNavigation().stop();
-            this.setDeltaMovement(Vec3.ZERO);
-            this.hasImpulse = false;
-            this.lookAtVortex(this.getVortexVector());
-         }
-      }
-   }
+    public void handleVortexBehavior() {
+        if (!hasVortex()) return;
+        if (getVortexTimeOut() > 0) return;
+        this.getNavigation().stop();
+        this.setDeltaMovement(Vec3.ZERO);
+        this.hasImpulse = false;
 
-   private void lookAtVortex(BlockPos target) {
-      double dx = (double)target.getX() - this.getX();
-      double dz = (double)target.getZ() - this.getZ();
-      double dy = (double)target.getY() - this.getEyeY();
-      double dist = Math.sqrt(dx * dx + dz * dz);
-      float yaw = (float)(Math.atan2(dz, dx) * (180D / Math.PI)) - 90.0F;
-      float pitch = (float)(-(Math.atan2(dy, dist) * (180D / Math.PI)));
-      this.setYRot(yaw);
-      this.setXRot(pitch);
-      this.yBodyRot = yaw;
-      this.yHeadRot = yaw;
-   }
+        lookAtVortex(getVortexVector());
+    }
 
-   public void applyVortexForces() {
-      if (!this.level().isClientSide) {
-         Vec3[] funnelPoints = this.getVortexFunnel().getEntities();
-         if (funnelPoints != null && funnelPoints.length >= 2) {
-            Vec3 base = funnelPoints[0];
+    private void lookAtVortex(BlockPos target) {
+        double dx = target.getX() - this.getX();
+        double dz = target.getZ() - this.getZ();
+        double dy = target.getY() - this.getEyeY();
 
-            for(int i = 0; i < funnelPoints.length; ++i) {
-               Vec3 segmentPos = funnelPoints[i];
-               double distanceFromBase = (double)i / (double)(funnelPoints.length - 1);
-               double radius = (double)1.0F + distanceFromBase * (double)4.0F + (double)i / (double)4.0F;
-               AABB area = getAabb(distanceFromBase, segmentPos, radius);
+        double dist = Math.sqrt(dx * dx + dz * dz);
 
-               for(Entity entity : this.level().getEntitiesOfClass(Entity.class, area, (e) -> {
-                  boolean var10000;
-                  label23: {
-                     label22: {
-                        if (e instanceof LivingEntity living) {
-                           if (living != this && Utilities.TARGET_SELECTOR.Test(living) && TargetingConditions.forCombat().test(this, living)) {
-                              break label22;
-                           }
-                        }
+        float yaw = (float)(Math.atan2(dz, dx) * (180F / Math.PI)) - 90F;
+        float pitch = (float)-(Math.atan2(dy, dist) * (180F / Math.PI));
 
-                        if (!(e instanceof Boat)) {
-                           break label23;
-                        }
-                     }
+        this.setYRot(yaw);
+        this.setXRot(pitch);
 
-                     if (e.isInWater()) {
-                        var10000 = true;
-                        return var10000;
-                     }
-                  }
+        this.yBodyRot = yaw;
+        this.yHeadRot = yaw;
+    }
 
-                  var10000 = false;
-                  return var10000;
-               })) {
-                  if (entity.isVehicle() && this.getVortexVector().distToCenterSqr(entity.position()) < (double)120.0F) {
-                     entity.ejectPassengers();
-                  }
+    public void applyVortexForces() {
+        if (level().isClientSide) return;
+        Vec3[] funnelPoints = getVortexFunnel().getEntities();
+        if (funnelPoints == null || funnelPoints.length < 2) return;
 
-                  this.applyVortexForceToEntity(entity, segmentPos, radius, i, funnelPoints.length, base);
-               }
+        // Get entrance (last segment) and base (segment 0)
+        Vec3 base = funnelPoints[0];
+        for (int i = 0; i < funnelPoints.length; i++) {
+            Vec3 segmentPos = funnelPoints[i];
+
+            // Calculate distance from base (0 = at base, 1 = at entrance)
+            double distanceFromBase = (double) i / (funnelPoints.length - 1);
+
+            // Radius: smaller at base, larger at entrance
+            double radius = 1.0 + distanceFromBase * 4.0 + ((double) i /4);
+            AABB area = getAabb(distanceFromBase, segmentPos, radius);
+
+            List<Entity> entities = level().getEntitiesOfClass(
+                    Entity.class,
+                    area,
+                    e -> ((e instanceof LivingEntity living
+                            && living != this
+                            && Utilities.TARGET_SELECTOR.Test(living)
+                            && TargetingConditions.forCombat().test(this, living))
+                            || e instanceof Boat) && e.isInWater()
+            );
+
+            for (Entity entity : entities) {
+                if (entity.isVehicle() && getVortexVector().distToCenterSqr(entity.position()) < 120){
+                    entity.ejectPassengers();
+                }
+                applyVortexForceToEntity(entity, segmentPos, radius, i,
+                        funnelPoints.length, base);
             }
-
-         }
-      }
-   }
-
-   protected void grief(AABB aabb) {
-      boolean flag = false;
-
-      for(BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-         BlockState blockstate = this.level().getBlockState(blockpos);
-         if (blockstate.is(Utilities.biomass)) {
-            flag = this.level().setBlock(blockpos, ((Block)Sblocks.MEMBRANE_BLOCK.get()).defaultBlockState(), 3) || flag;
-            this.breakCounter = 0;
-         } else if (blockstate.getDestroySpeed(this.level(), blockpos) < (float)this.getDestroySpeed() && blockstate.getDestroySpeed(this.level(), blockpos) >= 0.0F && ForgeEventFactory.getMobGriefingEvent(this.level(), this)) {
-            if (blockstate.is(BlockTags.PLANKS) || blockstate.is(BlockTags.LOGS) || blockstate.is(BlockTags.WOODEN_FENCES)) {
-               this.entityData.set(WOOD, (Integer)this.entityData.get(WOOD) + 1);
+        }
+    }
+    @Override
+    protected void grief(AABB aabb) {
+        boolean flag = false;
+        for (BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
+            BlockState blockstate = this.level().getBlockState(blockpos);
+            if (blockstate.is(Utilities.biomass)){
+                flag = this.level().setBlock(blockpos, Sblocks.MEMBRANE_BLOCK.get().defaultBlockState(), 3) || flag;
+                breakCounter = 0;
+            }else{
+                if (blockstate.getDestroySpeed(level(), blockpos) < getDestroySpeed() && blockstate.getDestroySpeed(level(), blockpos) >= 0 && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this)) {
+                    if (blockstate.is(BlockTags.PLANKS) || blockstate.is(BlockTags.LOGS) || blockstate.is(BlockTags.WOODEN_FENCES)){
+                        this.entityData.set(WOOD,this.entityData.get(WOOD)+1);
+                    }
+                    flag = this.level().destroyBlock(blockpos, false, this) || flag;
+                    breakCounter = 0;
+                }
             }
+        }
+    }
+    @Override
+    public boolean getAdaptation() {
+        return entityData.get(WOOD) >= 20;
+    }
 
-            flag = this.level().destroyBlock(blockpos, false, this) || flag;
-            this.breakCounter = 0;
-         }
-      }
+    @Override
+    public void ActivateAdaptation() {
+        entityData.set(WOOD,20);
+    }
 
-   }
+    private static @NotNull AABB getAabb(double distanceFromBase, Vec3 segmentPos, double radius) {
+        double verticalScale = 1.0 + (1.0 - distanceFromBase) * 2.0; // Taller near base
+        double horizontalScale = 0.8 + distanceFromBase * 1.2; // Wider near entrance
 
-   public boolean getAdaptation() {
-      return (Integer)this.entityData.get(WOOD) >= 20;
-   }
+        // Below segment
+        // Above segment (for capture)
+        return new AABB(
+                segmentPos.x - radius * horizontalScale,
+                segmentPos.y - radius * verticalScale * 0.5, // Below segment
+                segmentPos.z - radius * horizontalScale,
+                segmentPos.x + radius * horizontalScale,
+                segmentPos.y + radius * verticalScale * 1.5, // Above segment (for capture)
+                segmentPos.z + radius * horizontalScale
+        );
+    }
 
-   public void ActivateAdaptation() {
-      this.entityData.set(WOOD, 20);
-   }
+    private void applyVortexForceToEntity(
+            Entity entity,
+            Vec3 center,
+            double radius,
+            int segmentIndex,
+            int totalSegments,
+            Vec3 basePosition
+    ) {
+        Vec3 entityPos = entity.position();
+        Vec3 toCenter = center.subtract(entityPos);
+        double distance = toCenter.length();
 
-   private static @NotNull AABB getAabb(double distanceFromBase, Vec3 segmentPos, double radius) {
-      double verticalScale = (double)1.0F + ((double)1.0F - distanceFromBase) * (double)2.0F;
-      double horizontalScale = 0.8 + distanceFromBase * 1.2;
-      return new AABB(segmentPos.x - radius * horizontalScale, segmentPos.y - radius * verticalScale * (double)0.5F, segmentPos.z - radius * horizontalScale, segmentPos.x + radius * horizontalScale, segmentPos.y + radius * verticalScale * (double)1.5F, segmentPos.z + radius * horizontalScale);
-   }
+        if (distance < 0.2 || distance > radius) return;
 
-   private void applyVortexForceToEntity(Entity entity, Vec3 center, double radius, int segmentIndex, int totalSegments, Vec3 basePosition) {
-      Vec3 entityPos = entity.position();
-      Vec3 toCenter = center.subtract(entityPos);
-      double distance = toCenter.length();
-      if (!(distance < 0.2) && !(distance > radius)) {
-         double normalizedDistance = distance / radius;
-         double funnelPosition = (double)segmentIndex / (double)(totalSegments - 1);
-         double baseMultiplier = Math.pow((double)1.0F - funnelPosition, (double)2.0F);
-         double pullStrength;
-         if (segmentIndex == 0) {
-            pullStrength = (double)0.25F * ((double)1.0F + normalizedDistance * (double)0.5F);
-         } else if (segmentIndex < totalSegments / 3) {
+        double normalizedDistance = distance / radius;
+
+        // Calculate position in funnel (0.0 = at base, 1.0 = at entrance)
+        double funnelPosition = (double) segmentIndex / (totalSegments - 1);
+
+        // Force multipliers based on position in funnel
+        double baseMultiplier = Math.pow(1.0 - funnelPosition, 2.0); // Strong near base
+
+        // 1. RADIAL PULL (toward segment center)
+        double pullStrength;
+        if (segmentIndex == 0) {
+            pullStrength = 0.25 * (1.0 + normalizedDistance * 0.5);
+        } else if (segmentIndex < totalSegments / 3) {
+            // Lower third: strong pull
             pullStrength = 0.18 * (0.8 + normalizedDistance * 0.4);
-         } else {
+        } else {
+            // Upper segments: moderate pull
             pullStrength = 0.12 * (0.6 + normalizedDistance * 0.3);
-         }
+        }
 
-         Vec3 radialPull = toCenter.normalize().scale(pullStrength);
-         Vec3 spinDir = (new Vec3(-toCenter.z, (double)0.0F, toCenter.x)).normalize();
-         double spinStrength = 0.8 * ((double)1.0F - normalizedDistance) * (0.3 + baseMultiplier * 0.7);
-         Vec3 spinForce = spinDir.scale(spinStrength);
-         Vec3 toBase = basePosition.subtract(entityPos);
-         double distanceToBase = toBase.length();
-         double flowStrength = getFlowStrength(segmentIndex, totalSegments, distanceToBase);
-         Vec3 flowForce = toBase.normalize().scale(flowStrength);
-         double sinkStrength;
-         if (segmentIndex > totalSegments - 4) {
-            sinkStrength = 0.01 * ((double)1.0F - funnelPosition);
-         } else {
+        Vec3 radialPull = toCenter.normalize().scale(pullStrength);
+
+        // 2. SPIN FORCE (tangential)
+        Vec3 spinDir = new Vec3(-toCenter.z, 0, toCenter.x).normalize();
+        double spinStrength = 0.8 * (1.0 - normalizedDistance) * (0.3 + baseMultiplier * 0.7);
+        Vec3 spinForce = spinDir.scale(spinStrength);
+
+        // 3. FUNNEL FLOW FORCE (toward base - MOST IMPORTANT!)
+        Vec3 toBase = basePosition.subtract(entityPos);
+        double distanceToBase = toBase.length();
+
+        double flowStrength = getFlowStrength(segmentIndex, totalSegments, distanceToBase);
+
+        Vec3 flowForce = toBase.normalize().scale(flowStrength);
+
+        double sinkStrength;
+        if (segmentIndex > totalSegments - 4) {
+            sinkStrength = 0.01 * (1.0 - funnelPosition);
+        } else {
             sinkStrength = 0.01 * baseMultiplier;
-         }
+        }
 
-         Vec3 sinkForce = new Vec3((double)0.0F, -sinkStrength * ((double)1.0F - normalizedDistance), (double)0.0F);
-         Vec3 totalForce;
-         if (segmentIndex == 0) {
-            totalForce = radialPull.scale((double)2.0F).add(flowForce.scale((double)0.5F)).add(spinForce.scale(0.3));
-         } else if (segmentIndex < 4) {
-            totalForce = flowForce.scale((double)1.5F).add(radialPull).add(spinForce.scale(0.7)).add(sinkForce.scale((double)0.5F));
-         } else {
-            totalForce = flowForce.add(radialPull.scale(0.8)).add(spinForce).add(sinkForce.scale(0.8));
-         }
+        Vec3 sinkForce = new Vec3(0, -sinkStrength * (1.0 - normalizedDistance), 0);
+        Vec3 totalForce;
+        if (segmentIndex == 0) {
+            // At base: Strong radial pull dominates
+            totalForce = radialPull.scale(2.0)
+                    .add(flowForce.scale(0.5))
+                    .add(spinForce.scale(0.3));
+        } else if (segmentIndex < 4) {
+            totalForce = flowForce.scale(1.5)
+                    .add(radialPull)
+                    .add(spinForce.scale(0.7))
+                    .add(sinkForce.scale(0.5));
+        } else {
+            totalForce = flowForce
+                    .add(radialPull.scale(0.8))
+                    .add(spinForce)
+                    .add(sinkForce.scale(0.8));
+        }
 
-         Vec3 motion = entity.getDeltaMovement().add(totalForce);
-         double maxSpeed;
-         if (segmentIndex == 0) {
+        Vec3 motion = entity.getDeltaMovement().add(totalForce);
+
+        double maxSpeed;
+        if (segmentIndex == 0) {
             maxSpeed = entity instanceof Boat ? 0.2 : 0.4;
-         } else if (segmentIndex < 4) {
+        } else if (segmentIndex < 4) {
             maxSpeed = entity instanceof Boat ? 0.3 : 0.6;
-         } else {
-            maxSpeed = entity instanceof Boat ? (double)0.5F : (double)1.0F;
-         }
+        } else {
+            maxSpeed = entity instanceof Boat ? 0.5 : 1.0;
+        }
 
-         if (motion.length() > maxSpeed) {
+        if (motion.length() > maxSpeed) {
             motion = motion.normalize().scale(maxSpeed);
-         }
+        }
 
-         if (segmentIndex <= 5 && this.shouldConsumeEntity(entity, center)) {
-            this.consumeEntity(entity);
-         } else {
-            entity.setDeltaMovement(motion);
-            entity.hurtMarked = true;
-         }
-      }
-   }
+        if (segmentIndex <= 5 && shouldConsumeEntity(entity, center)) {
+            consumeEntity(entity);
+            return;
+        }
 
-   private static double getFlowStrength(int segmentIndex, int totalSegments, double distanceToBase) {
-      double flowStrength;
-      if (segmentIndex == 0) {
-         flowStrength = 0.02;
-      } else if (segmentIndex < 3) {
-         flowStrength = 0.3 * ((double)1.0F - distanceToBase / (double)10.0F);
-      } else if (segmentIndex < totalSegments / 2) {
-         flowStrength = 0.15;
-      } else {
-         flowStrength = 0.08;
-      }
+        entity.setDeltaMovement(motion);
+        entity.hurtMarked = true;
+    }
 
-      return flowStrength;
-   }
+    private static double getFlowStrength(int segmentIndex, int totalSegments, double distanceToBase) {
+        double flowStrength;
+        if (segmentIndex == 0) {
+            // At base: minimal flow (they're already there)
+            flowStrength = 0.02;
+        } else if (segmentIndex < 3) {
+            // Very close to base: strong pull into base
+            flowStrength = 0.3 * (1.0 - (distanceToBase / 10.0));
+        } else if (segmentIndex < totalSegments / 2) {
+            // Middle segments: moderate flow
+            flowStrength = 0.15;
+        } else {
+            // Entrance segments: gentle guidance toward funnel
+            flowStrength = 0.08;
+        }
+        return flowStrength;
+    }
 
-   private boolean shouldConsumeEntity(Entity entity, Vec3 baseCenter) {
-      if (!entity.isAlive()) {
-         return false;
-      } else if (entity.isPassenger()) {
-         return false;
-      } else {
-         double distSq = entity.position().distanceToSqr(baseCenter);
-         return distSq < 10.240000000000002 && (entity instanceof LivingEntity || entity instanceof Boat);
-      }
-   }
+    private boolean shouldConsumeEntity(Entity entity, Vec3 baseCenter) {
+        if (!entity.isAlive()) return false;
+        if (entity.isPassenger()) return false;
+        double distSq = entity.position().distanceToSqr(baseCenter);
+        return distSq < 3.2 * 3.2 && (entity instanceof LivingEntity || entity instanceof Boat);
+    }
 
-   private void consumeEntity(Entity entity) {
-      entity.setDeltaMovement(Vec3.ZERO);
-      entity.fallDistance = 0.0F;
-      entity.stopRiding();
-      Vec3 basePos = this.getVortexFunnel().getEntities()[0];
-      entity.setPos(basePos.x, basePos.y, basePos.z);
-      if (entity instanceof Boat boat) {
-         this.entityData.set(WOOD, (Integer)this.entityData.get(WOOD) + 5);
-         boat.discard();
-      } else {
-         entity.startRiding(this);
-      }
+    private void consumeEntity(Entity entity) {
+        entity.setDeltaMovement(Vec3.ZERO);
+        entity.fallDistance = 0;
+        entity.stopRiding();
 
-   }
+        Vec3 basePos = getVortexFunnel().getEntities()[0];
+        entity.setPos(basePos.x, basePos.y, basePos.z);
+        if (entity instanceof Boat boat){
+            entityData.set(WOOD,entityData.get(WOOD)+5);
+            boat.discard();
+        }else {
+            entity.startRiding(this);
+        }
+    }
 
-   static {
-      HEIGHT = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.FLOAT);
-      WATER_TICKS = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
-      RIGHT_ARM_TIP = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.VECTOR3);
-      LEFT_ARM_TIP = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.VECTOR3);
-      RIGHT_ARM_ENTITY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
-      LEFT_ARM_ENTITY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
-      RIGHT_ARM_DELAY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
-      LEFT_ARM_DELAY = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
-      VORTEX_VECTOR = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.BLOCK_POS);
-      VORTEX_TIMEOUT = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
-      WOOD = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.INT);
-      HOOK = SynchedEntityData.defineId(Grakensenker.class, EntityDataSerializers.BOOLEAN);
-      V0 = new Vector3f();
-   }
-
-   static enum GrakenLegsModifiers {
-      BACK_LEFT_TENTACLE(new Vec3((double)-3.0F, (double)3.5F, (double)0.75F), new Vec3((double)-6.0F, (double)-1.0F, (double)6.0F), new Vec3((double)1.0F, (double)-3.0F, (double)4.0F)),
-      BACK_RIGHT_TENTACLE(new Vec3((double)-3.0F, (double)3.5F, (double)-0.75F), new Vec3((double)-6.0F, (double)-1.0F, (double)-6.0F), new Vec3((double)1.0F, (double)-3.0F, (double)-4.0F)),
-      MIDDLE_LEFT_TENTACLE(new Vec3((double)-1.0F, (double)2.0F, (double)0.75F), new Vec3((double)0.0F, (double)-1.0F, (double)6.0F), new Vec3((double)0.0F, (double)1.0F, (double)7.0F)),
-      MIDDLE_RIGHT_TENTACLE(new Vec3((double)-1.0F, (double)2.0F, (double)-0.75F), new Vec3((double)0.0F, (double)-1.0F, (double)-6.0F), new Vec3((double)0.0F, (double)1.0F, (double)-7.0F)),
-      FRONT_LEFT_TENTACLE(new Vec3((double)-2.0F, (double)3.0F, (double)0.75F), new Vec3((double)9.0F, (double)-1.0F, (double)6.0F), new Vec3((double)8.0F, (double)1.0F, (double)4.0F)),
-      FRONT_RIGHT_TENTACLE(new Vec3((double)-2.0F, (double)3.0F, (double)-0.75F), new Vec3((double)9.0F, (double)-1.0F, (double)-6.0F), new Vec3((double)8.0F, (double)1.0F, (double)-4.0F)),
-      LEFT_ARM(new Vec3((double)0.0F, (double)3.0F, (double)1.0F), new Vec3((double)8.0F, (double)2.5F, (double)6.0F), new Vec3((double)16.0F, (double)4.5F, (double)8.0F)),
-      RIGHT_ARM(new Vec3((double)0.0F, (double)3.0F, (double)-1.0F), new Vec3((double)8.0F, (double)2.5F, (double)-6.0F), new Vec3((double)16.0F, (double)4.5F, (double)-8.0F));
-
-      private final Vec3 bodySet;
-      private final Vec3 offset;
-      private final Vec3 underwaterOffset;
-
-      private GrakenLegsModifiers(Vec3 bodySet, Vec3 offset, Vec3 underwaterOffset) {
-         this.bodySet = bodySet;
-         this.offset = offset;
-         this.underwaterOffset = underwaterOffset;
-      }
-
-      // $FF: synthetic method
-      private static GrakenLegsModifiers[] $values() {
-         return new GrakenLegsModifiers[]{BACK_LEFT_TENTACLE, BACK_RIGHT_TENTACLE, MIDDLE_LEFT_TENTACLE, MIDDLE_RIGHT_TENTACLE, FRONT_LEFT_TENTACLE, FRONT_RIGHT_TENTACLE, LEFT_ARM, RIGHT_ARM};
-      }
-   }
 }

@@ -17,71 +17,61 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public abstract class ComplexHandModelItem {
-   public final InteractionHand slot;
-   public final Item item;
-   public final EntityModel model;
-   public final ModelPart part;
-   public final float x;
-   public final float y;
-   public final float z;
-   public final float expand;
-   public final float Xspin;
-   public final float Yspin;
-   public final float Zspin;
+    public final InteractionHand slot;
+    public final Item item;
+    public final EntityModel<LivingEntity> model;
+    public final ModelPart part;
+    public final float x;
+    public final float y;
+    public final float z;
+    public final float expand;
+    public final float Xspin;
+    public final float Yspin;
+    public final float Zspin;
+    protected ComplexHandModelItem(InteractionHand slot, Item item, EntityModel<LivingEntity> model, ModelPart part, float x, float y, float z, float expand, float xspin, float yspin, float zspin) {
+        this.slot = slot;
+        this.item = item;
+        this.model = model;
+        this.part = part;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.expand = expand;
+        this.Xspin = xspin;
+        this.Yspin = yspin;
+        this.Zspin = zspin;
+    }
 
-   protected ComplexHandModelItem(InteractionHand slot, Item item, EntityModel model, ModelPart part, float x, float y, float z, float expand, float xspin, float yspin, float zspin) {
-      this.slot = slot;
-      this.item = item;
-      this.model = model;
-      this.part = part;
-      this.x = x;
-      this.y = y;
-      this.z = z;
-      this.expand = expand;
-      this.Xspin = xspin;
-      this.Yspin = yspin;
-      this.Zspin = zspin;
-   }
+    public abstract RenderType type(ResourceLocation location);
 
-   public abstract RenderType type(ResourceLocation var1);
+    public void renderCustomHand(LivingEntity livingEntity, ItemStack stack, float partialTicks, int light, MultiBufferSource bufferSource, PoseStack poseStack, ResourceLocation location) {
+        RenderType type = this.type(location);
+        int ticks = (int) (livingEntity.tickCount+partialTicks);
+        if (type == null){return;}
+        VertexConsumer consumer = bufferSource.getBuffer(type);
+        float yaw = Mth.lerp(partialTicks, livingEntity.yRotO, livingEntity.getYRot());
+        float pitch = Mth.lerp(partialTicks, livingEntity.xRotO, livingEntity.getXRot());
+        int color = stack.getItem() instanceof SporeWeaponData data ? data.getVariant(stack).getColor() : -1;
+        this.model.setupAnim(livingEntity, 0, 0, ticks, yaw, pitch);
+        renderModel(poseStack,consumer,light,bufferSource ,stack,color);
+    }
+    protected void renderModel(PoseStack poseStack,VertexConsumer consumer,int light,MultiBufferSource source,ItemStack stack,int color){
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+        applyTransformEx(poseStack,this.x,this.y,this.z,this.expand,this.Xspin,this.Yspin,this.Zspin,() ->{
+            this.part.render(poseStack,consumer,light, OverlayTexture.NO_OVERLAY,r,g,b,1);
+        });
+    }
 
-   public void renderCustomHand(LivingEntity livingEntity, ItemStack stack, float partialTicks, int light, MultiBufferSource bufferSource, PoseStack poseStack, ResourceLocation location) {
-      RenderType type = this.type(location);
-      int ticks = (int)((float)livingEntity.tickCount + partialTicks);
-      if (type != null) {
-         VertexConsumer consumer = bufferSource.getBuffer(type);
-         float yaw = Mth.lerp(partialTicks, livingEntity.yRotO, livingEntity.getYRot());
-         float pitch = Mth.lerp(partialTicks, livingEntity.xRotO, livingEntity.getXRot());
-         Item var15 = stack.getItem();
-         int var10000;
-         if (var15 instanceof SporeWeaponData) {
-            SporeWeaponData data = (SporeWeaponData)var15;
-            var10000 = data.getVariant(stack).getColor();
-         } else {
-            var10000 = -1;
-         }
-
-         int color = var10000;
-         this.model.setupAnim(livingEntity, 0.0F, 0.0F, (float)ticks, yaw, pitch);
-         this.renderModel(poseStack, consumer, light, bufferSource, stack, color);
-      }
-   }
-
-   protected void renderModel(PoseStack poseStack, VertexConsumer consumer, int light, MultiBufferSource source, ItemStack stack, int color) {
-      float r = (float)(color >> 16 & 255) / 255.0F;
-      float g = (float)(color >> 8 & 255) / 255.0F;
-      float b = (float)(color & 255) / 255.0F;
-      applyTransformEx(poseStack, this.x, this.y, this.z, this.expand, this.Xspin, this.Yspin, this.Zspin, () -> this.part.render(poseStack, consumer, light, OverlayTexture.NO_OVERLAY, r, g, b, 1.0F));
-   }
-
-   protected static void applyTransformEx(PoseStack poseStack, float x, float y, float z, float scale, float xSpin, float ySpin, float ZSpin, Runnable render) {
-      poseStack.pushPose();
-      poseStack.translate(x, y, z);
-      poseStack.scale(scale, scale, scale);
-      poseStack.mulPose(Axis.XP.rotationDegrees(xSpin));
-      poseStack.mulPose(Axis.YP.rotationDegrees(ySpin));
-      poseStack.mulPose(Axis.ZP.rotationDegrees(ZSpin));
-      render.run();
-      poseStack.popPose();
-   }
+    protected static void applyTransformEx(PoseStack poseStack, float x, float y, float z, float scale, float xSpin, float ySpin, float ZSpin, Runnable render) {
+        poseStack.pushPose();
+        poseStack.translate(x, y, z);
+        poseStack.scale(scale, scale, scale);
+        poseStack.mulPose(Axis.XP.rotationDegrees(xSpin));
+        poseStack.mulPose(Axis.YP.rotationDegrees(ySpin));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(ZSpin));
+        render.run();
+        poseStack.popPose();
+    }
 }

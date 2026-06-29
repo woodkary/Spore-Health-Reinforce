@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Client.Layers.SporeRenderTypes;
 import com.Harbinger.Spore.Client.Models.StahlmorderModel;
 import com.Harbinger.Spore.Client.Special.CalamityRenderer;
 import com.Harbinger.Spore.Sentities.Calamities.Stahlmorder;
+import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,36 +18,43 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class StalhRenderer extends CalamityRenderer<Stahlmorder> {
-   private static final ResourceLocation TEXTURE = new ResourceLocation("spore", "textures/entity/stalh.png");
-   private static final ResourceLocation EYE_TEXTURE = new ResourceLocation("spore", "textures/entity/eyes/stalh.png");
+public class StalhRenderer<Type extends Stahlmorder> extends CalamityRenderer<Type , StahlmorderModel<Type>> {
+    private static final ResourceLocation TEXTURE =new ResourceLocation(Spore.MODID,
+            "textures/entity/stalh.png");
+    private static final ResourceLocation EYE_TEXTURE =new ResourceLocation(Spore.MODID,
+            "textures/entity/eyes/stalh.png");
 
-   public StalhRenderer(EntityRendererProvider.Context context) {
-      super(context, new StahlmorderModel(), 4.0F);
-      this.addLayer(new StalhSwordLight(this));
-   }
 
-   public ResourceLocation getTextureLocation(Stahlmorder entity) {
-      return TEXTURE;
-   }
+    public StalhRenderer(EntityRendererProvider.Context context) {
+        super(context, new StahlmorderModel<>(), 4f);
+        this.addLayer(new StalhSwordLight<>(this));
+    }
 
-   public ResourceLocation eyeLayerTexture() {
-      return EYE_TEXTURE;
-   }
+    @Override
+    public ResourceLocation getTextureLocation(Type entity) {
+        return TEXTURE;
+    }
 
-   public static class StalhSwordLight extends com.Harbinger.Spore.Client.Layers.EntityRenderLayer<Stahlmorder> {
-      private static final ResourceLocation BLADE = new ResourceLocation("spore", "textures/entity/eyes/stalh_blade.png");
+    @Override
+    public ResourceLocation eyeLayerTexture() {
+        return EYE_TEXTURE;
+    }
 
-      public StalhSwordLight(RenderLayerParent renderer) {
-         super(renderer);
-      }
+    public static class StalhSwordLight<T extends Stahlmorder,M extends StahlmorderModel<T>>  extends RenderLayer<T, M>{
+        private static final ResourceLocation BLADE =new  ResourceLocation(Spore.MODID,
+                "textures/entity/eyes/stalh_blade.png");
+        public StalhSwordLight(RenderLayerParent<T, M> renderer) {
+            super(renderer);
+        }
 
-      public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, Stahlmorder t, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-         if (!t.isInvisible()) {
+        @Override
+        public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, T t, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+            if (t.isInvisible()){
+                return;
+            }
             float alpha = 0.5F + 0.5F * Mth.sin(ageInTicks * 0.01F);
             VertexConsumer vertexConsumer = multiBufferSource.getBuffer(SporeRenderTypes.glowingTranslucent(BLADE));
-            ((StahlmorderModel)this.getParentModel()).renderToBuffer(poseStack, vertexConsumer, i, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha);
-         }
-      }
-   }
+            getParentModel().renderToBuffer(poseStack, vertexConsumer, i, OverlayTexture.NO_OVERLAY, 1f,1f,1f,alpha);
+        }
+    }
 }

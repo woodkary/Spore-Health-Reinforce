@@ -1,5 +1,5 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
 public interface DamagePiercingModifier {
-   float getMinimalDamage(float var1);
+    float getMinimalDamage(float damage);
 }

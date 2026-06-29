@@ -6,36 +6,48 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 public record EntityContainer(Entity entity) implements Container {
-   public int getContainerSize() {
-      return 0;
-   }
+    @Override
+    public int getContainerSize() {
+        return 0;
+    }
 
-   public boolean isEmpty() {
-      return true;
-   }
+    @Override
+    public boolean isEmpty() {
+        return true;
+    }
 
-   public ItemStack getItem(int i) {
-      return ItemStack.EMPTY;
-   }
+    @Override
+    public ItemStack getItem(int i) {
+        return ItemStack.EMPTY;
+    }
 
-   public ItemStack removeItem(int i, int i1) {
-      return ItemStack.EMPTY;
-   }
+    @Override
+    public ItemStack removeItem(int i, int i1) {
+        return ItemStack.EMPTY;
+    }
 
-   public ItemStack removeItemNoUpdate(int i) {
-      return ItemStack.EMPTY;
-   }
+    @Override
+    public ItemStack removeItemNoUpdate(int i) {
+        return ItemStack.EMPTY;
+    }
 
-   public void setItem(int i, ItemStack itemStack) {
-   }
+    @Override
+    public void setItem(int i, ItemStack itemStack) {
 
-   public void setChanged() {
-   }
+    }
 
-   public boolean stillValid(Player player) {
-      return true;
-   }
+    @Override
+    public void setChanged() {
 
-   public void clearContent() {
-   }
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return true;
+    }
+
+    @Override
+    public void clearContent() {
+
+    }
 }

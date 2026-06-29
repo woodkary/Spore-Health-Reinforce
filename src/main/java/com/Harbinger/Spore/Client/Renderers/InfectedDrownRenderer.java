@@ -1,27 +1,30 @@
 package com.Harbinger.Spore.Client.Renderers;
-
 import com.Harbinger.Spore.Client.Models.InfectedDrownModel;
 import com.Harbinger.Spore.Client.Special.BaseInfectedRenderer;
 import com.Harbinger.Spore.Sentities.BasicInfected.InfectedDrowned;
+import com.Harbinger.Spore.Spore;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class InfectedDrownRenderer extends BaseInfectedRenderer<InfectedDrowned> {
-   private static final ResourceLocation TEXTURE = new ResourceLocation("spore", "textures/entity/inf_drowned.png");
-   private static final ResourceLocation EYES_TEXTURE = new ResourceLocation("spore", "textures/entity/eyes/infected.png");
+public class InfectedDrownRenderer<Type extends InfectedDrowned> extends BaseInfectedRenderer<Type , InfectedDrownModel<Type>> {
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Spore.MODID,
+            "textures/entity/inf_drowned.png");
+    private static final ResourceLocation EYES_TEXTURE = new ResourceLocation(Spore.MODID,
+            "textures/entity/eyes/inf_drowned.png");
+    public InfectedDrownRenderer(EntityRendererProvider.Context context) {
+        super(context, new InfectedDrownModel<>(context.bakeLayer(InfectedDrownModel.LAYER_LOCATION)), 0.5f);
+    }
 
-   public InfectedDrownRenderer(EntityRendererProvider.Context context) {
-      super(context, new InfectedDrownModel(context.bakeLayer(InfectedDrownModel.LAYER_LOCATION)), 0.5F);
-   }
+    @Override
+    public ResourceLocation getTextureLocation(Type entity) {
+        return TEXTURE;
+    }
 
-   public ResourceLocation getTextureLocation(InfectedDrowned entity) {
-      return TEXTURE;
-   }
-
-   public ResourceLocation eyeLayerTexture() {
-      return EYES_TEXTURE;
-   }
+    @Override
+    public ResourceLocation eyeLayerTexture() {
+        return EYES_TEXTURE;
+    }
 }

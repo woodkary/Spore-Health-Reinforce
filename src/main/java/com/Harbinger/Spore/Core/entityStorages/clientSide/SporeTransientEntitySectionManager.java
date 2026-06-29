@@ -33,6 +33,3 @@ public final class SporeTransientEntitySectionManager<T extends EntityAccess> ex
         super.addEntity(p_157654_);
     }
 }
-
-
-

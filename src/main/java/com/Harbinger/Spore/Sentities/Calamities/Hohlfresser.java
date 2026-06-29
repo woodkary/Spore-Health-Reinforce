@@ -4,32 +4,18 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
-import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
-import com.Harbinger.Spore.Sentities.HitboxesForParts;
-import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SummonScentInCombat;
+import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.*;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.CalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.HohlMultipart;
+import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.MovementControls.UndergroundMovementControl;
 import com.Harbinger.Spore.Sentities.MovementControls.UndergroundPathNavigation;
 import com.Harbinger.Spore.Sentities.Projectile.ThrownTumor;
 import com.Harbinger.Spore.Sentities.Projectile.VomitHohlBall;
+import com.Harbinger.Spore.Sentities.TrueCalamity;
 import com.Harbinger.Spore.Sentities.Utility.CorpseEntity;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -47,14 +33,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -64,938 +43,916 @@ import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ClipContext.Block;
-import net.minecraft.world.level.ClipContext.Fluid;
-import net.minecraft.world.level.Level.ExplosionInteraction;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.HitResult.Type;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidType;
 
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+
 public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackMob {
-   private static final EntityDataAccessor CHILD_UUID;
-   private static final EntityDataAccessor CHILD_ID;
-   public static final EntityDataAccessor VULNERABLE;
-   public static final EntityDataAccessor ADAPTED;
-   public static final EntityDataAccessor UNDERGROUND;
-   private static final EntityDataAccessor ORES;
-   private float spin = 0.0F;
-   private HohlMultipart[] parts = null;
-   public final float[] ringBuffer = new float[64];
-   public int ringBufferIndex = -1;
-   private int ticksUnder;
-   private static final Map<BlockState, Integer> cache;
-   private int[] segments = new int[10];
-   public static final TagKey ORE_TAG;
-   public static final int FLAG_MINEABLE = 1;
-   public static final int FLAG_HARD = 2;
-   public static final int FLAG_WRONG = 4;
-   private final List<HitboxesForParts> innatePartList;
-   private final List<HitboxesForParts> tailHitboxes;
+    private static final EntityDataAccessor<Optional<UUID>> CHILD_UUID = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Integer> CHILD_ID = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> VULNERABLE = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> ADAPTED = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> UNDERGROUND = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> ORES = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.FLOAT);
+    private float spin = 0;
+    private HohlMultipart[] parts = null;
+    public final float[] ringBuffer = new float[64];
+    public int ringBufferIndex = -1;
+    private int ticksUnder;
+    private static final Map<BlockState, Integer> cache = new WeakHashMap<>();
+    public Hohlfresser(EntityType<? extends PathfinderMob> type, Level level) {
+        super(type, level);
+        this.setMaxUpStep(2F);
+        this.moveControl = new UndergroundMovementControl(this);
+        this.navigation = new UndergroundPathNavigation(this,level);
+    }
 
-   public Hohlfresser(EntityType type, Level level) {
-      super(type, level);
-      this.innatePartList = List.of(HitboxesForParts.HOHL_JAW, HitboxesForParts.HOHL_HEAD);
-      this.tailHitboxes = List.of(HitboxesForParts.HOHL_SEG1, HitboxesForParts.HOHL_SEG2, HitboxesForParts.HOHL_SEG3, HitboxesForParts.HOHL_TAIL);
-      this.setMaxUpStep(2.0F);
-      this.moveControl = new UndergroundMovementControl(this);
-      this.navigation = new UndergroundPathNavigation(this, level);
-   }
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(ADAPTED, false);
+        this.entityData.define(UNDERGROUND, false);
+        this.entityData.define(VULNERABLE, 0);
+        this.entityData.define(CHILD_UUID, Optional.empty());
+        this.entityData.define(CHILD_ID, -1);
+        this.entityData.define(ORES, 0f);
+    }
+    public float getSpin(){
+        float speed = (float) Math.sqrt(this.getDeltaMovement().x * this.getDeltaMovement().x +
+                this.getDeltaMovement().z * this.getDeltaMovement().z);
+        spin = spin + speed * 0.00025F * tickCount;
+        return spin;
+    }
 
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(ADAPTED, false);
-      this.entityData.define(UNDERGROUND, false);
-      this.entityData.define(VULNERABLE, 0);
-      this.entityData.define(CHILD_UUID, Optional.empty());
-      this.entityData.define(CHILD_ID, -1);
-      this.entityData.define(ORES, 0.0F);
-   }
-
-   public float getSpin() {
-      float speed = (float)Math.sqrt(this.getDeltaMovement().x * this.getDeltaMovement().x + this.getDeltaMovement().z * this.getDeltaMovement().z);
-      this.spin += speed * 2.5E-4F * (float)this.tickCount;
-      return this.spin;
-   }
-
-   public List<String> getDropList() {
-      return (List)SConfig.DATAGEN.hohl_loot.get();
-   }
-
-   public String getMutation() {
-      return this.getAdaptation() ? "spore.entity.variant.engorged" : super.getMutation();
-   }
-
-   public boolean isPushable() {
-      return false;
-   }
-
-   public void onSyncedDataUpdated(EntityDataAccessor key) {
-      super.onSyncedDataUpdated(key);
-      if (ORES.equals(key) && !this.getAdaptation() && this.getOres() > 50.0F && this.getKills() > 50) {
-         this.setAdapted(true);
-         this.refreshDimensions();
-      }
-
-   }
-
-   public void setAdapted(boolean val) {
-      if (val && !this.getAdaptation()) {
-         AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
-         AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
-         AttributeInstance damage = this.getAttribute(Attributes.ATTACK_DAMAGE);
-         float maxHealth = health != null ? (float)(health.getValue() * (double)2.0F) : SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(this) * 2.0F;
-         if (health != null) {
-            health.setBaseValue(maxHealth);
-         }
-
-         SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, maxHealth);
-         if (armor != null) {
-            armor.setBaseValue(armor.getValue() * (double)1.5F);
-         }
-
-         if (damage != null) {
-            damage.setBaseValue(damage.getValue() * (double)1.25F);
-         }
-      }
-
-      this.entityData.set(ADAPTED, val);
-   }
-
-   public boolean canBeCollidedWith() {
-      return false;
-   }
-
-   public boolean canGoUnderground() {
-      return !(Boolean)this.entityData.get(UNDERGROUND) && (Integer)this.entityData.get(VULNERABLE) <= 0;
-   }
-
-   public double getDamageCap() {
-      return (Double)SConfig.SERVER.hohl_dpsr.get();
-   }
-
-   public void addAdditionalSaveData(CompoundTag tag) {
-      super.addAdditionalSaveData(tag);
-      tag.putBoolean("adaptation", (Boolean)this.entityData.get(ADAPTED));
-      tag.putBoolean("underground", (Boolean)this.entityData.get(UNDERGROUND));
-      tag.putInt("vulnerable", (Integer)this.entityData.get(VULNERABLE));
-      tag.putFloat("ores", (Float)this.entityData.get(ORES));
-      if (this.getChildId() != null) {
-         tag.putUUID("ChildUUID", this.getChildId());
-      }
-
-      tag.putIntArray("segmentIds", this.segments);
-   }
-
-   public boolean isInWall(LivingEntity mob) {
-      float f = mob.getBbWidth() * 0.8F;
-      AABB aabb = AABB.ofSize(mob.getEyePosition().add((double)0.0F, -0.05, (double)0.0F), (double)f, 1.0E-6, (double)f);
-      return BlockPos.betweenClosedStream(aabb).anyMatch((p_201942_) -> {
-         BlockState blockstate = mob.level().getBlockState(p_201942_);
-         return !blockstate.isAir() && blockstate.isSuffocating(mob.level(), p_201942_) && Shapes.joinIsNotEmpty(blockstate.getCollisionShape(mob.level(), p_201942_).move((double)p_201942_.getX(), (double)p_201942_.getY(), (double)p_201942_.getZ()), Shapes.create(aabb), BooleanOp.AND);
-      });
-   }
-
-   public void readAdditionalSaveData(CompoundTag tag) {
-      super.readAdditionalSaveData(tag);
-      this.entityData.set(ADAPTED, tag.getBoolean("adaptation"));
-      this.entityData.set(UNDERGROUND, tag.getBoolean("underground"));
-      this.entityData.set(VULNERABLE, tag.getInt("vulnerable"));
-      this.entityData.set(ORES, tag.getFloat("ores"));
-      if (tag.hasUUID("ChildUUID")) {
-         this.setChildId(tag.getUUID("ChildUUID"));
-      }
-
-      this.segments = tag.getIntArray("segmentIds");
-   }
-
-   public void ActivateAdaptation() {
-      this.setAdapted(true);
-   }
-
-   public boolean getAdaptation() {
-      return (Boolean)this.entityData.get(ADAPTED);
-   }
-
-   public EntityDimensions getDimensions(Pose p_21047_) {
-      float adapted = this.getAdaptation() ? 2.0F : 1.0F;
-      return super.getDimensions(p_21047_).scale(adapted);
-   }
-
-   public void remove(RemovalReason reason) {
-      if (!this.level().isClientSide && this.parts != null) {
-         for(HohlMultipart hohlMultipart : this.parts) {
-            hohlMultipart.discard();
-         }
-      }
-
-      super.remove(reason);
-   }
-
-   protected void grief(AABB aabb) {
-      if (!this.isUnderground() && this.tickCount % 20 == 0) {
-         DamageSource source = this.getLastDamageSource();
-         AABB box = source == null ? aabb : aabb.move(new Vec3((double)0.0F, (double)1.0F, (double)0.0F));
-         if (Math.random() < (double)0.2F) {
-            this.handleDigIn();
-         }
-
-         super.grief(box);
-      }
-
-   }
-
-   public boolean isUnderground() {
-      return (Boolean)this.entityData.get(UNDERGROUND);
-   }
-
-   public void setUnderground(boolean val) {
-      if (val) {
-         this.playSound((SoundEvent)Ssounds.WORM_DIGGING.get());
-         this.ticksUnder = 40;
-      } else {
-         this.entityData.set(VULNERABLE, 200);
-      }
-
-      this.entityData.set(UNDERGROUND, val);
-      this.noPhysics = val;
-   }
-
-   public boolean hurt(DamageSource source, float amount) {
-      if (this.getAdaptation() && (source.is(DamageTypes.LAVA) || source.is(DamageTypes.IN_FIRE) || source.is(DamageTypes.ON_FIRE))) {
-         amount /= 2.0F;
-      }
-
-      return super.hurt(source, amount);
-   }
-
-   public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-      return this.hurt(source, value);
-   }
-
-   public int chemicalRange() {
-      return 16;
-   }
-
-   public List buffs() {
-      return (List)SConfig.SERVER.hohl_buffs.get();
-   }
-
-   public List debuffs() {
-      return (List)SConfig.SERVER.hohl_debuffs.get();
-   }
-
-   public static AttributeSupplier.Builder createAttributes() {
-      return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, (Double)SConfig.SERVER.hohl_hp.get() * (Double)SConfig.SERVER.global_health.get()).add(Attributes.MOVEMENT_SPEED, 0.23).add(Attributes.ATTACK_DAMAGE, (Double)SConfig.SERVER.hohl_damage.get() * (Double)SConfig.SERVER.global_damage.get()).add(Attributes.ARMOR, (Double)SConfig.SERVER.hohl_armor.get() * (Double)SConfig.SERVER.global_armor.get()).add(Attributes.FOLLOW_RANGE, (double)64.0F).add(Attributes.KNOCKBACK_RESISTANCE, (double)1.0F).add(Attributes.ATTACK_KNOCKBACK, (double)2.0F).add((Attribute)SAttributes.TOXICITY.get(), (double)0.0F).add((Attribute)SAttributes.REJUVENATION.get(), (double)0.0F).add((Attribute)SAttributes.LOCALIZATION.get(), (double)0.0F).add((Attribute)SAttributes.LACERATION.get(), (double)0.0F).add((Attribute)SAttributes.CORROSIVES.get(), (double)0.0F).add((Attribute)SAttributes.BALLISTIC.get(), (double)0.0F).add((Attribute)SAttributes.GRINDING.get(), (double)0.0F);
-   }
-
-   public HohlMultipart[] getHolfParts() {
-      return this.parts;
-   }
-
-   @Nullable
-   public UUID getChildId() {
-      return (UUID)((Optional)this.entityData.get(CHILD_UUID)).orElse((Object)null);
-   }
-
-   public void setChildId(@Nullable UUID uniqueId) {
-      this.entityData.set(CHILD_UUID, Optional.ofNullable(uniqueId));
-   }
-
-   public Entity getChild() {
-      UUID id = this.getChildId();
-      return id != null && !this.level().isClientSide ? ((ServerLevel)this.level()).getEntity(id) : null;
-   }
-
-   private int getSegments() {
-      return this.getAdaptation() ? 10 : 5;
-   }
-
-   public void tick() {
-      super.tick();
-      if ((Integer)this.entityData.get(VULNERABLE) > 0) {
-         this.entityData.set(VULNERABLE, (Integer)this.entityData.get(VULNERABLE) - 1);
-      }
-
-      if (!this.level().isClientSide) {
-         if (this.shouldReplaceParts()) {
-            this.rebuildPartsArray();
-         }
-
-         if (this.tickCount % 20 == 0 && this.parts != null && this.getAdaptation()) {
-            float size = 1.2F;
-            AttributeInstance hostInstance = this.getAttribute(Attributes.MAX_HEALTH);
-            float hostMaxHealth = hostInstance != null ? (float)hostInstance.getBaseValue() : SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(this);
-
-            for(int i = 0; i < this.parts.length; ++i) {
-               size -= 0.05F;
-               HohlMultipart hohlMultipart = this.parts[i];
-               boolean isTail = i == this.parts.length - 1;
-               hohlMultipart.setAdapted(this.getAdaptation());
-               hohlMultipart.setSize(size * 1.4F);
-               hohlMultipart.setIsTail(isTail);
-               AttributeInstance instance = hohlMultipart.getAttribute(Attributes.MAX_HEALTH);
-               if (instance != null && instance.getValue() != hostMaxHealth) {
-                  instance.setBaseValue(hostMaxHealth);
-               }
-
-               SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(hohlMultipart, hostMaxHealth);
+    @Override
+    public List<? extends String> getDropList() {
+        return SConfig.DATAGEN.hohl_loot.get();
+    }
+    @Override
+    public String getMutation() {
+        if (getAdaptation()){
+            return "spore.entity.variant.engorged";
+        }
+        return super.getMutation();
+    }
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
+        if (ORES.equals(key) && !getAdaptation()){
+            if (getOres() > 50 && getKills() > 50){
+                setAdapted(true);
+                refreshDimensions();
             }
-         }
+        }
+    }
 
-         Entity child = this.getChild();
-         if (child == null) {
-            this.createSegments();
-         }
-
-         this.updateSegmentPositions();
-      }
-
-      if (this.isUnderground()) {
-         this.handleUnearthing();
-      }
-
-      if (this.tickCount % 20 == 0) {
-         this.handleDigIn();
-         this.refreshDimensions();
-         if (this.parts != null) {
-            for(HohlMultipart multipart : this.parts) {
-               multipart.setHealth(this.getHealth());
+    public void setAdapted(boolean val){
+        if (val && !getAdaptation()){
+            AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
+            AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
+            AttributeInstance damage = this.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (health != null){
+                health.setBaseValue(health.getValue()*2);
             }
-         }
-      }
+            if (armor != null){
+                armor.setBaseValue(armor.getValue()*1.5);
+            }
+            if (damage != null){
+                damage.setBaseValue(damage.getValue()*1.25);
+            }
+        }
+        entityData.set(ADAPTED,val);
+    }
+    @Override
+    public boolean canBeCollidedWith() {
+        return false;
+    }
 
-      if (this.ticksUnder > 0) {
-         --this.ticksUnder;
-      }
+    public boolean canGoUnderground() {
+        return !entityData.get(UNDERGROUND) && entityData.get(VULNERABLE) <= 0;
+    }
+    @Override
+    public double getDamageCap() {
+        return SConfig.SERVER.hohl_dpsr.get();
+    }
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putBoolean("adaptation", entityData.get(ADAPTED));
+        tag.putBoolean("underground", entityData.get(UNDERGROUND));
+        tag.putInt("vulnerable", entityData.get(VULNERABLE));
+        tag.putFloat("ores", entityData.get(ORES));
+        if (getChildId() != null) {
+            tag.putUUID("ChildUUID", getChildId());
+        }
+    }
+    public boolean isInWall(LivingEntity mob){
+        float f = mob.getBbWidth() * 0.8F;
+        AABB aabb = AABB.ofSize(mob.getEyePosition().add(0,-0.05,0), (double)f, 1.0E-6, (double)f);
+        return BlockPos.betweenClosedStream(aabb).anyMatch((p_201942_) -> {
+            BlockState blockstate = mob.level().getBlockState(p_201942_);
+            return !blockstate.isAir() && blockstate.isSuffocating(mob.level(), p_201942_) && Shapes.joinIsNotEmpty(blockstate.getCollisionShape(mob.level(), p_201942_).move((double)p_201942_.getX(), (double)p_201942_.getY(), (double)p_201942_.getZ()), Shapes.create(aabb), BooleanOp.AND);
+        });
+    }
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        entityData.set(ADAPTED, tag.getBoolean("adaptation"));
+        entityData.set(UNDERGROUND, tag.getBoolean("underground"));
+        entityData.set(VULNERABLE, tag.getInt("vulnerable"));
+        entityData.set(ORES, tag.getFloat("ores"));
+        if (tag.hasUUID("ChildUUID")) {
+            setChildId(tag.getUUID("ChildUUID"));
+        }
+    }
 
-      if (this.tickCount % 20 == 0 && this.isMoving() && this.isUnderground() && this.getTarget() != null) {
-         this.tryAndCrumbleBlocks();
-      }
+    @Override
+    public void ActivateAdaptation() {
+        setAdapted(true);
+    }
 
-      if (this.tickCount % 80 == 0 && this.isUnderground() && this.isInWall(this)) {
-         this.playSound((SoundEvent)Ssounds.WORM_DIGGING.get());
-      }
+    @Override
+    public boolean getAdaptation() {
+        return entityData.get(ADAPTED);
+    }
 
-      if (this.tickCount % 10 == 0) {
-         this.handleShooting();
-      }
+    @Override
+    public EntityDimensions getDimensions(Pose p_21047_) {
+        float adapted = getAdaptation() ? 2 : 1;
+        return super.getDimensions(p_21047_).scale(adapted);
+    }
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        if (!this.level().isClientSide) {
+            if (parts != null){
+                for (HohlMultipart hohlMultipart : parts){
+                    hohlMultipart.discard();
+                }
+            }
+        }
+        super.remove(reason);
+    }
+    @Override
+    protected void grief(AABB aabb) {
+        if (!isUnderground() && tickCount % 20 == 0){
+            DamageSource source = this.getLastDamageSource();
+            AABB box = source == null ? aabb : aabb.move(new Vec3(0,1,0));
+            if (Math.random() < 0.2f){
+                handleDigIn();
+            }
+            super.grief(box);
+        }
+    }
+    public boolean isUnderground(){
+        return entityData.get(UNDERGROUND);
+    }
+    public void setUnderground(boolean val) {
+        if (val) {
+            this.playSound(Ssounds.WORM_DIGGING.get());
+            ticksUnder = 40;
+        } else {
+            entityData.set(VULNERABLE, 200);
+        }
+        entityData.set(UNDERGROUND, val);
+        this.noPhysics = val;
+    }
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (getAdaptation()){
+            if (source.is(DamageTypes.LAVA) || source.is(DamageTypes.IN_FIRE) || source.is(DamageTypes.ON_FIRE)){
+                amount = amount/2;
+            }
+        }
+        return super.hurt(source, amount);
+    }
+    @Override
+    public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
+        return this.hurt(source, value);
+    }
 
-   }
+    @Override
+    public int chemicalRange() {
+        return 16;
+    }
 
-   private void rebuildPartsArray() {
-      this.parts = new HohlMultipart[this.getSegments()];
-      Entity var2 = this.getChild();
-      if (var2 instanceof HohlMultipart firstChild) {
-         this.parts[0] = firstChild;
-         this.entityData.set(CHILD_ID, this.parts[0].getId());
-         int i = 1;
+    @Override
+    public List<? extends String> buffs() {
+        return SConfig.SERVER.hohl_buffs.get();
+    }
 
-         HohlMultipart current;
-         for(current = firstChild; i < this.parts.length; ++i) {
-            Entity var5 = current.getChild();
-            if (!(var5 instanceof HohlMultipart)) {
-               break;
+    @Override
+    public List<? extends String> debuffs() {
+        return SConfig.SERVER.hohl_debuffs.get();
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes()
+                .add(Attributes.MAX_HEALTH, SConfig.SERVER.hohl_hp.get() * SConfig.SERVER.global_health.get())
+                .add(Attributes.MOVEMENT_SPEED, 0.23)
+                .add(Attributes.ATTACK_DAMAGE, SConfig.SERVER.hohl_damage.get() * SConfig.SERVER.global_damage.get())
+                .add(Attributes.ARMOR, SConfig.SERVER.hohl_armor.get() * SConfig.SERVER.global_armor.get())
+                .add(Attributes.FOLLOW_RANGE, 64)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1)
+                .add(Attributes.ATTACK_KNOCKBACK, 2)
+                .add(SAttributes.TOXICITY.get(), 0.0D)
+                .add(SAttributes.REJUVENATION.get(), 0.0D)
+                .add(SAttributes.LOCALIZATION.get(), 0.0D)
+                .add(SAttributes.LACERATION.get(), 0.0D)
+                .add(SAttributes.CORROSIVES.get(), 0.0D)
+                .add(SAttributes.BALLISTIC.get(), 0.0D)
+                .add(SAttributes.GRINDING.get(), 0.0D);
+    }
+
+
+    public HohlMultipart[] getHolfParts() {
+        return parts;
+    }
+
+    @Nullable
+    public UUID getChildId() {
+        return this.entityData.get(CHILD_UUID).orElse(null);
+    }
+
+    public void setChildId(@Nullable UUID uniqueId) {
+        this.entityData.set(CHILD_UUID, Optional.ofNullable(uniqueId));
+    }
+    public Entity getChild() {
+        UUID id = getChildId();
+        if (id != null && !level().isClientSide) {
+            return ((ServerLevel) level()).getEntity(id);
+        }
+        return null;
+    }
+    private int getSegments(){return getAdaptation() ? 10 : 5;}
+
+    public void tick() {
+        super.tick();
+
+        // Handle vulnerability cooldown
+        if (entityData.get(VULNERABLE) > 0) {
+            entityData.set(VULNERABLE, entityData.get(VULNERABLE) - 1);
+        }
+
+        // Server-side logic only
+        if (!this.level().isClientSide) {
+            // First, ensure our parts array is properly initialized from existing children
+            if (shouldReplaceParts()) {
+                rebuildPartsArray();
+            }
+            if (tickCount % 20 == 0 && parts != null && getAdaptation()){
+                float size = 1.2f;
+                AttributeInstance hostInstance = this.getAttribute(Attributes.MAX_HEALTH);
+                for(int i = 0;i<parts.length;i++){
+                    size = size - 0.05f;
+                    HohlMultipart hohlMultipart = parts[i];
+                    boolean isTail = i == parts.length-1;
+                    hohlMultipart.setAdapted(this.getAdaptation());
+                    hohlMultipart.setSize(size * 1.4f);
+                    hohlMultipart.setIsTail(isTail);
+                    AttributeInstance instance = hohlMultipart.getAttribute(Attributes.MAX_HEALTH);
+                    if (instance != null && hostInstance != null && instance.getValue() != hostInstance.getValue()){
+                        instance.setBaseValue(hostInstance.getBaseValue());
+                    }
+                }
             }
 
-            HohlMultipart nextChild = (HohlMultipart)var5;
-            this.parts[i] = nextChild;
-            current = nextChild;
-         }
+            // Only create ALL segments if we have no child at all
+            final Entity child = getChild();
+            if (child == null) {
+                createSegments();
+            }
 
-         if (i < this.parts.length) {
-            this.createMissingSegments(i, current);
-         }
-      }
+            // Update segment positions
+            updateSegmentPositions();
+        }
 
-   }
+        // Handle underground behavior
+        if (isUnderground()) {
+            handleUnearthing();
+        }
 
-   private void createSegments() {
-      float size = 1.0F;
-      LivingEntity partParent = this;
-      this.parts = new HohlMultipart[this.getSegments()];
+        // Periodic dig-in check
+        if (tickCount % 20 == 0) {
+            handleDigIn();
+            refreshDimensions();
+            if (parts != null){
+                for (HohlMultipart multipart : parts){
+                    multipart.setHealth(this.getHealth());
+                }
+            }
+        }
 
-      for(int i = 0; i < this.getSegments(); ++i) {
-         int var = this.segments != null && this.segments.length >= this.getSegments() ? this.segments[i] : this.random.nextInt(3);
-         size -= 0.1F;
-         HohlMultipart part = new HohlMultipart((EntityType)Sentities.HOHLFRESSER_SEG.get(), this.level());
-         part.setPos(this.getX(), this.getY(), this.getZ());
-         part.setParent(partParent);
-         part.setSize(size);
-         part.setColor(this.getMutationColor());
-         part.setVariant(var);
-         part.setIsTail(i == this.getSegments() - 1);
-         if (partParent == this) {
-            this.setChildId(part.getUUID());
-            this.entityData.set(CHILD_ID, part.getId());
-         }
+        // Update underground timer
+        if (ticksUnder > 0) {
+            ticksUnder--;
+        }
 
-         if (partParent instanceof HohlMultipart partIndex) {
-            partIndex.setChildId(part.getUUID());
-         }
+        // Periodically crumble blocks when moving underground with a target
+        if (tickCount % 20 == 0 && isMoving() && isUnderground() && this.getTarget() != null) {
+            tryAndCrumbleBlocks();
+        }
 
-         partParent = part;
-         this.level().addFreshEntity(part);
-         this.parts[i] = part;
-      }
+        // Play digging sound periodically when underground and in wall
+        if (tickCount % 80 == 0 && isUnderground() && isInWall(this)) {
+            this.playSound(Ssounds.WORM_DIGGING.get());
+        }
 
-   }
+        // Handle shooting
+        if (tickCount % 10 == 0) {
+            handleShooting();
+        }
+    }
 
-   private void createMissingSegments(int startIndex, LivingEntity lastParent) {
-      float var10000;
-      if (lastParent instanceof HohlMultipart hm) {
-         var10000 = hm.getSize() - 0.1F;
-      } else {
-         var10000 = 0.9F;
-      }
+    // Helper methods used in tick()
+    private void rebuildPartsArray() {
+        parts = new HohlMultipart[getSegments()];
 
-      float size = var10000;
+        // Rebuild from the first child if it exists
+        if (this.getChild() instanceof HohlMultipart firstChild) {
+            parts[0] = firstChild;
+            this.entityData.set(CHILD_ID, parts[0].getId());
 
-      for(int i = startIndex; i < this.parts.length; ++i) {
-         int var = this.segments != null && this.segments.length >= this.getSegments() ? this.segments[i] : this.random.nextInt(3);
-         size -= this.getAdaptation() ? 0.05F : 0.1F;
-         HohlMultipart part = new HohlMultipart((EntityType)Sentities.HOHLFRESSER_SEG.get(), this.level());
-         part.setPos(lastParent.getX(), lastParent.getY(), lastParent.getZ());
-         part.setParent(lastParent);
-         part.setSize(size);
-         part.setColor(this.getMutationColor());
-         part.setVariant(var);
-         part.setIsTail(i == this.parts.length - 1);
-         if (lastParent instanceof HohlMultipart partIndex) {
-            partIndex.setChildId(part.getUUID());
-         }
+            int i = 1;
+            HohlMultipart current = firstChild;
+            while (i < parts.length && current.getChild() instanceof HohlMultipart nextChild) {
+                parts[i] = nextChild;
+                current = nextChild;
+                i++;
+            }
 
-         lastParent = part;
-         this.level().addFreshEntity(part);
-         this.parts[i] = part;
-      }
+            // If we didn't get enough segments, create the missing ones
+            if (i < parts.length) {
+                createMissingSegments(i, current);
+            }
+        }
+    }
 
-   }
+    private void createSegments() {
+        float size = 1;
+        LivingEntity partParent = this;
+        parts = new HohlMultipart[getSegments()];
+        for (int i = 0; i < getSegments(); i++) {
+            size = size - 0.1f;
+            HohlMultipart part = new HohlMultipart(Sentities.HOHLFRESSER_SEG.get(), this.level());
+            part.setPos(this.getX(), this.getY(), this.getZ());
+            part.setParent(partParent);
+            part.setSize(size);
+            part.setColor(this.getMutationColor());
+            part.setVariant(random.nextInt(3));
+            part.setIsTail(i == getSegments() - 1);
 
-   private void updateSegmentPositions() {
-      Vec3 prev = this.position();
-      float xRot = this.getXRot();
+            if (partParent == this) {
+                this.setChildId(part.getUUID());
+                this.entityData.set(CHILD_ID, part.getId());
+            }
+            if (partParent instanceof HohlMultipart partIndex) {
+                partIndex.setChildId(part.getUUID());
+            }
 
-      for(int i = 0; i < this.getSegments(); ++i) {
-         if (this.parts[i] != null) {
-            float yaw = this.getYawForPart(i);
-            prev = this.parts[i].tickMultipartPosition(this.getId(), prev, xRot, this.getYRot(), yaw, true);
-            xRot = this.parts[i].getXRot();
-         }
-      }
+            partParent = part;
+            level().addFreshEntity(part);
+            parts[i] = part;
+        }
+    }
 
-   }
+    private void createMissingSegments(int startIndex, LivingEntity lastParent) {
+        float size = lastParent instanceof HohlMultipart hm ? hm.getSize() - 0.1f : 0.9f;
 
-   private boolean shouldReplaceParts() {
-      if (this.parts != null && this.parts.length == this.getSegments()) {
-         for(HohlMultipart part : this.parts) {
+        for (int i = startIndex; i < parts.length; i++) {
+            size = size - (getAdaptation() ? 0.05f : 0.1f);
+            HohlMultipart part = new HohlMultipart(Sentities.HOHLFRESSER_SEG.get(), this.level());
+            part.setPos(lastParent.getX(), lastParent.getY(), lastParent.getZ());
+            part.setParent(lastParent);
+            part.setSize(size);
+            part.setColor(this.getMutationColor());
+            part.setVariant(random.nextInt(3));
+            part.setIsTail(i == parts.length - 1);
+
+            if (lastParent instanceof HohlMultipart partIndex) {
+                partIndex.setChildId(part.getUUID());
+            }
+
+            lastParent = part;
+            level().addFreshEntity(part);
+            parts[i] = part;
+        }
+    }
+
+    private void updateSegmentPositions() {
+        Vec3 prev = this.position();
+        float xRot = this.getXRot();
+
+        for (int i = 0; i < getSegments(); i++) {
+            if (this.parts[i] != null) {
+                final float yaw = getYawForPart(i);
+                prev = parts[i].tickMultipartPosition(
+                        this.getId(), prev, xRot, this.getYRot(), yaw, true
+                );
+                xRot = parts[i].getXRot();
+            }
+        }
+    }
+
+    private boolean shouldReplaceParts() {
+        // If parts array is null or wrong size
+        if (parts == null || parts.length != getSegments()) {
+            return true;
+        }
+
+        // Check if any segment is null or dead
+        for (HohlMultipart part : parts) {
             if (part == null || !part.isAlive()) {
-               return true;
+                return true;
             }
-         }
+        }
 
-         return false;
-      } else {
-         return true;
-      }
-   }
-
-   void handleShooting() {
-      LivingEntity living = this.getTarget();
-      if (living != null && living.distanceToSqr(this) > (double)100.0F && this.hasSight(living)) {
-         this.performRangedAttack(living, 0.0F);
-      }
-
-   }
-
-   public boolean hasSight(Entity entity) {
-      if (entity.level() != this.level()) {
-         return false;
-      } else {
-         Vec3 vec3 = new Vec3(this.getX(), this.getEyeY(), this.getZ());
-         Vec3 vec31 = new Vec3(entity.getX(), entity.getEyeY(), entity.getZ());
-         if (vec31.distanceTo(vec3) > (double)128.0F) {
+        return false;
+    }
+    void handleShooting(){
+        LivingEntity living = this.getTarget();
+        if (living != null && living.distanceToSqr(this)> 100 && hasSight(living)){
+            performRangedAttack(living,0);
+        }
+    }
+    public boolean hasSight(Entity entity) {
+        if (entity.level() != this.level()) {
             return false;
-         } else {
-            return this.level().clip(new ClipContext(vec3, vec31, Block.COLLIDER, Fluid.NONE, this)).getType() == Type.MISS;
-         }
-      }
-   }
-
-   public float getOres() {
-      return (Float)this.entityData.get(ORES);
-   }
-
-   public void tryAndCrumbleBlocks() {
-      if (!this.level().isClientSide) {
-         Level var2 = this.level();
-         if (var2 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var2;
-            if (!this.checkForNearbyPlayers(serverLevel)) {
-               return;
+        } else {
+            Vec3 vec3 = new Vec3(this.getX(), this.getEyeY(), this.getZ());
+            Vec3 vec31 = new Vec3(entity.getX(), entity.getEyeY(), entity.getZ());
+            if (vec31.distanceTo(vec3) > 128.0) {
+                return false;
+            } else {
+                return this.level().clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
             }
-         }
+        }
+    }
+    public static final TagKey<Block> ORE_TAG = TagKey.create(Registries.BLOCK,new ResourceLocation("forge:ores"));
+    public float getOres(){return entityData.get(ORES);}
+    public void tryAndCrumbleBlocks(){
+        if (level().isClientSide){return;}
+        if (level() instanceof ServerLevel serverLevel && !checkForNearbyPlayers(serverLevel)){
+            return;
+        }
+        boolean canGrief = net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this);
+        if (!canGrief){
+            return;
+        }
+        AABB aabb = this.getBoundingBox().inflate(8);
+        for(BlockPos blockpos : BlockPos.betweenClosed(
+                Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ),
+                Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
+            BlockState state = this.level().getBlockState(blockpos);
+            BlockState stateBelow = this.level().getBlockState(blockpos.below());
+            boolean canFall = stateBelow.isAir() || stateBelow.liquid();
+            if (canFall && Math.random() <0.01f){
+                double speed = state.getDestroySpeed(this.level(),blockpos);
+                if (speed > 0 && speed <= SConfig.SERVER.calamity_bd.get()){
+                    this.level().removeBlock(blockpos,false);
+                    FallingBlockEntity.fall(this.level(),blockpos,state);
+                }
+            }
+            if ((state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT)) && Math.random() < 0.2){
+                level().setBlock(blockpos,Math.random() < 0.5f ? Blocks.DIRT.defaultBlockState() : Blocks.COARSE_DIRT.defaultBlockState(),3);
+            }
+            if (state.is(ORE_TAG) && Math.random() < 0.005f){
+                this.entityData.set(ORES,entityData.get(ORES)+1);
+                level().setBlock(blockpos,blockpos.getY() < 0 ? Blocks.COBBLED_DEEPSLATE.defaultBlockState() : Blocks.COBBLESTONE.defaultBlockState(),3);
+            }
+        }
+    }
 
-         boolean canGrief = ForgeEventFactory.getMobGriefingEvent(this.level(), this);
-         if (canGrief) {
-            AABB aabb = this.getBoundingBox().inflate((double)8.0F);
+    private boolean checkForNearbyPlayers(ServerLevel serverLevel){
+        List<ServerPlayer> playerList = serverLevel.getPlayers(p -> true);
+        if (playerList.isEmpty()){
+            return false;
+        }
+        for (ServerPlayer player : playerList){
+            if (player.distanceTo(this) < 400){
+                return true;
+            }
+        }
+        return false;
+    }
+    public static final int FLAG_MINEABLE = 1; // 0b001
+    public static final int FLAG_HARD = 2;     // 0b010
+    public static final int FLAG_WRONG = 4;    // 0b100
 
-            for(BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-               BlockState state = this.level().getBlockState(blockpos);
-               BlockState stateBelow = this.level().getBlockState(blockpos.below());
-               boolean canFall = stateBelow.isAir() || stateBelow.liquid();
-               if (canFall && Math.random() < (double)0.01F) {
-                  double speed = (double)state.getDestroySpeed(this.level(), blockpos);
-                  if (speed > (double)0.0F && speed <= (double)(Integer)SConfig.SERVER.calamity_bd.get()) {
-                     this.level().removeBlock(blockpos, false);
-                     FallingBlockEntity.fall(this.level(), blockpos, state);
-                  }
-               }
-
-               if ((state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT)) && Math.random() < 0.2) {
-                  this.level().setBlock(blockpos, Math.random() < (double)0.5F ? Blocks.DIRT.defaultBlockState() : Blocks.COARSE_DIRT.defaultBlockState(), 3);
-               }
-
-               if (state.is(ORE_TAG) && Math.random() < (double)0.005F) {
-                  this.entityData.set(ORES, (Float)this.entityData.get(ORES) + 1.0F);
-                  this.level().setBlock(blockpos, blockpos.getY() < 0 ? Blocks.COBBLED_DEEPSLATE.defaultBlockState() : Blocks.COBBLESTONE.defaultBlockState(), 3);
-               }
+    public int analyzeBlock(BlockState state, BlockPos pos, Map<BlockState, Integer> cache) {
+        return cache.computeIfAbsent(state, s -> {
+            double hardness = s.getDestroySpeed(level(), pos);
+            if (hardness == -1) {
+                return FLAG_HARD | FLAG_WRONG; // Not mineable, hard, and wrong
             }
 
-         }
-      }
-   }
+            boolean isMineable = (
+                    s.isAir() ||
+                            s.canBeReplaced() ||
+                            s.is(BlockTags.MINEABLE_WITH_SHOVEL) ||
+                            s.is(BlockTags.MINEABLE_WITH_PICKAXE) ||
+                            !s.isSolidRender(level(),pos) ||
+                            hardness == 0
+            );
 
-   private boolean checkForNearbyPlayers(ServerLevel serverLevel) {
-      List<ServerPlayer> playerList = serverLevel.getPlayers((p) -> true);
-      if (playerList.isEmpty()) {
-         return false;
-      } else {
-         for(ServerPlayer player : playerList) {
-            if (player.distanceTo(this) < 400.0F) {
-               return true;
-            }
-         }
-
-         return false;
-      }
-   }
-
-   public int analyzeBlock(BlockState state, BlockPos pos, Map<BlockState, Integer> cache) {
-      return (Integer)cache.computeIfAbsent(state, (s) -> {
-         double hardness = (double)s.getDestroySpeed(this.level(), pos);
-         if (hardness == (double)-1.0F) {
-            return 6;
-         } else {
-            boolean isMineable = s.isAir() || s.canBeReplaced() || s.is(BlockTags.MINEABLE_WITH_SHOVEL) || s.is(BlockTags.MINEABLE_WITH_PICKAXE) || !s.isSolidRender(this.level(), pos) || hardness == (double)0.0F;
-            boolean isHard = hardness > (double)3.0F;
+            boolean isHard = hardness > 3;
             boolean isWrong = !isMineable;
+
             int result = 0;
-            if (isMineable) {
-               result |= 1;
-            }
-
-            if (isHard) {
-               result |= 2;
-            }
-
-            if (isWrong) {
-               result |= 4;
-            }
+            if (isMineable) result |= FLAG_MINEABLE;
+            if (isHard) result |= FLAG_HARD;
+            if (isWrong) result |= FLAG_WRONG;
 
             return result;
-         }
-      });
-   }
+        });
+    }
 
-   private boolean checkBlocksUnder() {
-      AABB aabb = this.getBoundingBox().move((double)0.0F, -0.6, (double)0.0F);
+    private boolean checkBlocksUnder() {
+        AABB aabb = this.getBoundingBox().move(0, -0.6, 0);
 
-      for(BlockPos pos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-         BlockState state = this.level().getBlockState(pos);
-         int result = this.analyzeBlock(state, pos, cache);
-         if ((result & 2) == 0 && (result & 1) != 0) {
-            BlockState aboveState = this.level().getBlockState(pos.above());
-            int aboveResult = this.analyzeBlock(aboveState, pos.above(), cache);
-            if ((aboveResult & 1) != 0 && (aboveResult & 2) == 0) {
-               continue;
+        for (BlockPos pos : BlockPos.betweenClosed(
+                Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ),
+                Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
+
+            BlockState state = level().getBlockState(pos);
+            int result = analyzeBlock(state, pos, cache);
+
+            if ((result & FLAG_HARD) != 0 || (result & FLAG_MINEABLE) == 0) return false;
+
+            BlockState aboveState = level().getBlockState(pos.above());
+            int aboveResult = analyzeBlock(aboveState, pos.above(), cache);
+
+            if ((aboveResult & FLAG_MINEABLE) == 0 || (aboveResult & FLAG_HARD) != 0) return false;
+        }
+
+        return true;
+    }
+    public void handleDigIn(){
+        if (!isUnderground() && entityData.get(VULNERABLE) <= 0){
+            boolean tooDeep =  level().getMinBuildHeight() < this.getY() - 5;
+            boolean below = moveControl.getWantedY() < this.getY();
+            boolean above = moveControl.getWantedY() > this.getY()+1;
+            if (below || above){
+                if (checkBlocksUnder() && tooDeep){
+                    setUnderground(true);
+                }
             }
+        }
+    }
 
-            return false;
-         }
+    public void handleUnearthing(){
+        AABB aabb = this.getBoundingBox().inflate(1, 1.4, 1);
+        int airAmount = 0;
+        boolean meetsHardBlock = false;
+        boolean meetsWrongBlock = false;
 
-         return false;
-      }
+        for (BlockPos pos : BlockPos.betweenClosed(
+                Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ),
+                Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
 
-      return true;
-   }
+            BlockState state = level().getBlockState(pos);
+            int result = analyzeBlock(state, pos, cache);
 
-   public void handleDigIn() {
-      if (!this.isUnderground() && (Integer)this.entityData.get(VULNERABLE) <= 0) {
-         boolean tooDeep = (double)this.level().getMinBuildHeight() < this.getY() - (double)5.0F;
-         boolean below = this.moveControl.getWantedY() < this.getY();
-         boolean above = this.moveControl.getWantedY() > this.getY() + (double)1.0F;
-         if ((below || above) && this.checkBlocksUnder() && tooDeep) {
-            this.setUnderground(true);
-         }
-      }
-
-   }
-
-   public void handleUnearthing() {
-      AABB aabb = this.getBoundingBox().inflate((double)1.0F, 1.4, (double)1.0F);
-      int airAmount = 0;
-      boolean meetsHardBlock = false;
-      boolean meetsWrongBlock = false;
-
-      for(BlockPos pos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-         BlockState state = this.level().getBlockState(pos);
-         int result = this.analyzeBlock(state, pos, cache);
-         if (this.level().canSeeSky(pos) && this.ticksUnder <= 0) {
-            ++airAmount;
-         }
-
-         if ((result & 4) != 0) {
-            meetsWrongBlock = true;
-            break;
-         }
-
-         if ((result & 2) != 0) {
-            meetsHardBlock = true;
-            break;
-         }
-      }
-
-      if (airAmount >= 4 || meetsHardBlock || meetsWrongBlock) {
-         this.setUnderground(false);
-      }
-
-   }
-
-   private float getYawForPart(int i) {
-      return this.getRingBuffer(4 + i * 2, 1.0F);
-   }
-
-   public float getRingBuffer(int bufferOffset, float partialTicks) {
-      if (this.isDeadOrDying()) {
-         partialTicks = 0.0F;
-      }
-
-      partialTicks = 1.0F - partialTicks;
-      int i = this.ringBufferIndex - bufferOffset & 63;
-      int j = this.ringBufferIndex - bufferOffset - 1 & 63;
-      float d0 = this.ringBuffer[i];
-      float d1 = this.ringBuffer[j] - d0;
-      return Mth.wrapDegrees(d0 + d1 * partialTicks);
-   }
-
-   public boolean isMoving() {
-      return Math.sqrt(this.getDeltaMovement().x * this.getDeltaMovement().x + this.getDeltaMovement().z * this.getDeltaMovement().z) > (double)0.0F;
-   }
-
-   public boolean isInvulnerableTo(DamageSource source) {
-      return source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.FALL);
-   }
-
-   public void registerGoals() {
-      this.goalSelector.addGoal(4, new HohlChargeGoal(this, (double)0.5F, 300, 100.0F));
-      this.goalSelector.addGoal(5, new HohlfresserMeleeAttack(this, (livingEntity) -> this.TARGET_SELECTOR.test(livingEntity)));
-      this.goalSelector.addGoal(6, new CalamityInfectedCommand(this));
-      this.goalSelector.addGoal(7, new SummonScentInCombat(this));
-      this.goalSelector.addGoal(8, new SporeBurstSupport(this));
-      super.registerGoals();
-   }
-
-   public boolean canDrownInFluidType(FluidType type) {
-      return false;
-   }
-
-   private boolean checkVectorForSeeing(Entity target) {
-      Vec3 startVec = this.position();
-      Vec3 endVec = target.position();
-      Vec3 direction = endVec.subtract(startVec).normalize();
-      double distance = startVec.distanceTo(endVec);
-
-      for(double i = (double)0.0F; i <= distance; i += (double)0.5F) {
-         Vec3 current = startVec.add(direction.scale(i));
-         BlockPos pos = BlockPos.containing(current);
-         BlockState state = this.level().getBlockState(pos);
-         int result = this.analyzeBlock(state, pos, cache);
-         if ((result & 2) != 0 || (result & 1) == 0) {
-            return false;
-         }
-      }
-
-      return true;
-   }
-
-   public boolean hasLineOfSight(Entity entity) {
-      if (this.getSearchArea() == BlockPos.ZERO) {
-         if (this.isInWater()) {
-            return true;
-         } else {
-            return this.checkVectorForSeeing(entity) || super.hasLineOfSight(entity);
-         }
-      } else {
-         return super.hasLineOfSight(entity);
-      }
-   }
-
-   public int getShootingAmount() {
-      AttributeInstance instance = this.getAttribute((Attribute)SAttributes.BALLISTIC.get());
-      if (instance != null && instance.getValue() > (double)0.0F) {
-         int value = (int)(instance.getValue() * (double)3.0F);
-         return this.random.nextInt(value + 1);
-      } else {
-         return 1;
-      }
-   }
-
-   public void performRangedAttack(LivingEntity livingEntity, float v) {
-      if (Math.random() < (double)0.1F) {
-         for(int i = 0; i < this.getShootingAmount(); ++i) {
-            this.shootTumor(livingEntity);
-         }
-      } else {
-         float extraDamage = (float)((Double)SConfig.SERVER.hohl_r_damage.get() + (double)(this.getOres() * 0.2F));
-         double maxDamage = (Double)SConfig.SERVER.hohl_damage.get() / (double)2.0F;
-         double damage = maxDamage <= (double)extraDamage ? maxDamage : (double)extraDamage;
-         VomitHohlBall.shoot(this, livingEntity, (float)damage, this.getOres() > 0.0F, this.getKills() > 0);
-      }
-
-   }
-
-   void shootTumor(LivingEntity livingEntity) {
-      if (!this.level().isClientSide) {
-         ThrownTumor tumor = new ThrownTumor(this.level(), this);
-         double dx = livingEntity.getX() - this.getX();
-         double dy = livingEntity.getY() + (double)livingEntity.getEyeHeight();
-         double dz = livingEntity.getZ() - this.getZ();
-         tumor.setExplode(ExplosionInteraction.MOB);
-         tumor.shoot(dx, dy - tumor.getY() + Math.hypot(dx, dz) * (double)0.05F, dz, 1.0F, 12.0F);
-         this.level().addFreshEntity(tumor);
-      }
-   }
-
-   public boolean doHurtTarget(Entity entity) {
-      this.playSound((SoundEvent)Ssounds.SIEGER_BITE.get());
-      return super.doHurtTarget(entity);
-   }
-
-   protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
-      super.onEffectAdded(instance, source);
-      HohlMultipart[] parts = this.getHolfParts();
-      if (parts != null) {
-         for(HohlMultipart part : parts) {
-            if (part == null) {
-               return;
+            if (level().canSeeSky(pos) && ticksUnder <= 0) {
+                airAmount++;
             }
-
-            MobEffectInstance existing = part.getEffect(instance.getEffect());
-            if (existing == null || existing.getDuration() < instance.getDuration() - 5) {
-               part.addEffect(new MobEffectInstance(instance));
+            if ((result & FLAG_WRONG) != 0) {
+                meetsWrongBlock = true;
+                break;
             }
-         }
-
-      }
-   }
-
-   protected void onEffectRemoved(MobEffectInstance instance) {
-      super.onEffectRemoved(instance);
-      if (this.getHolfParts() != null) {
-         for(HohlMultipart hohlMultipart : this.getHolfParts()) {
-            if (hohlMultipart == null) {
-               return;
+            if ((result & FLAG_HARD) != 0) {
+                meetsHardBlock = true;
+                break;
             }
+        }
+        if (airAmount >= 4 || meetsHardBlock || meetsWrongBlock){
+            setUnderground(false);
+        }
+    }
+    private float getYawForPart(int i) {
+        return this.getRingBuffer(4 + i * 2, 1.0F);
+    }
 
-            hohlMultipart.removeEffect(instance.getEffect());
-         }
+    public float getRingBuffer(int bufferOffset, float partialTicks) {
+        if (this.isDeadOrDying()) {
+            partialTicks = 0.0F;
+        }
 
-      }
-   }
+        partialTicks = 1.0F - partialTicks;
+        final int i = this.ringBufferIndex - bufferOffset & 63;
+        final int j = this.ringBufferIndex - bufferOffset - 1 & 63;
+        final float d0 = this.ringBuffer[i];
+        final float d1 = this.ringBuffer[j] - d0;
+        return Mth.wrapDegrees(d0 + d1 * partialTicks);
+    }
+    public boolean isMoving(){
+        return Math.sqrt(this.getDeltaMovement().x * this.getDeltaMovement().x +
+                this.getDeltaMovement().z * this.getDeltaMovement().z) > 0;
+    }
+    @Override
+    public boolean isInvulnerableTo(DamageSource source) {
+        return source.is(DamageTypes.IN_WALL)  || source.is(DamageTypes.FALL);
+    }
+    @Override
+    public void registerGoals() {
+        this.goalSelector.addGoal(4,new HohlChargeGoal(this,0.5D,300,100));
+        this.goalSelector.addGoal(5, new HohlfresserMeleeAttack(this, livingEntity -> {return TARGET_SELECTOR.test(livingEntity);}));
+        this.goalSelector.addGoal(6, new CalamityInfectedCommand(this));
+        this.goalSelector.addGoal(7, new SummonScentInCombat(this));
+        this.goalSelector.addGoal(8, new SporeBurstSupport(this));
+        super.registerGoals();
+    }
 
-   protected SoundEvent getAmbientSound() {
-      return (SoundEvent)Ssounds.HOHL_AMBIENT.get();
-   }
+    @Override
+    public boolean canDrownInFluidType(FluidType type) {
+        return false;
+    }
+    private boolean checkVectorForSeeing(Entity target) {
+        Vec3 startVec = this.position();
+        Vec3 endVec = target.position();
+        Vec3 direction = endVec.subtract(startVec).normalize();
+        double distance = startVec.distanceTo(endVec);
 
-   protected SoundEvent getStepSound() {
-      return SoundEvents.RAVAGER_STEP;
-   }
-
-   protected void playStepSound(BlockPos p_34316_, BlockState p_34317_) {
-      this.playSound(this.getStepSound(), 0.15F, 1.0F);
-   }
-
-   public List<HitboxesForParts> parts() {
-      List<HitboxesForParts> values = new ArrayList<>(this.innatePartList);
-      if (this.getHolfParts() != null) {
-         for(HohlMultipart multipart : this.getHolfParts()) {
-            values.add(this.CalculateParts(multipart));
-         }
-      }
-
-      return values;
-   }
-
-   public void summonCorpsePart(int partCount, List distributedLoot, List partList) {
-      AtomicInteger index = new AtomicInteger();
-
-      for(int i = 0; i < partCount; ++i) {
-         CorpseEntity partEntity = new CorpseEntity((EntityType)Sentities.CORPSE_PIECE.get(), this.level());
-
-         for(ItemStack stack : (List<ItemStack>)distributedLoot.get(i)) {
-            partEntity.addToInventory(stack);
-         }
-
-         partEntity.setColor(this.getMutationColor());
-         partEntity.moveTo(this.calculateSegmentsPosition(i - 2));
-         partEntity.setDeltaMovement(new Vec3((this.random.nextDouble() - this.random.nextDouble()) * 0.9, this.random.nextDouble() * 0.6 + 0.3, (this.random.nextDouble() - this.random.nextDouble()) * 0.9));
-         partEntity.setOwnerAda(this.getAdaptation());
-         partEntity.setCorpseType(((HitboxesForParts)partList.get(i)).getID());
-         int var10002 = index.get();
-         int var10003 = ((HitboxesForParts)partList.get(i)).getID();
-         Objects.requireNonNull(index);
-         partEntity.setInflation(this.tryToFindInflation(var10002, var10003, index::getAndIncrement));
-         this.level().addFreshEntity(partEntity);
-      }
-
-   }
-
-   private Vec3 calculateSegmentsPosition(int value) {
-      return value >= 0 && this.getHolfParts() != null && this.getHolfParts().length >= value ? this.getHolfParts()[value].position() : this.position();
-   }
-
-   public float tryToFindInflation(int startPoint, int ID, Runnable runnable) {
-      if (this.getHolfParts() == null) {
-         return 1.0F;
-      } else {
-         int length = this.getHolfParts().length;
-         if (length < startPoint) {
-            return 1.0F;
-         } else if (this.tailHitboxes.contains(HitboxesForParts.byId(ID))) {
-            HohlMultipart multipart = this.getHolfParts()[startPoint];
-            return multipart == null ? 1.0F : multipart.getSize();
-         } else {
-            runnable.run();
-            return 1.0F;
-         }
-      }
-   }
-
-   private HitboxesForParts CalculateParts(HohlMultipart hohlMultipart) {
-      boolean adapted = this.getAdaptation();
-      if (hohlMultipart.isTail()) {
-         return adapted ? HitboxesForParts.HOHL_ADA_TAIL : HitboxesForParts.HOHL_TAIL;
-      } else if (hohlMultipart.getSegmentVariant() == HohlMultipart.SegmentVariants.MELEE) {
-         return adapted ? HitboxesForParts.HOHL_ADA_SEG2 : HitboxesForParts.HOHL_SEG2;
-      } else if (hohlMultipart.getSegmentVariant() == HohlMultipart.SegmentVariants.ORGAN) {
-         return adapted ? HitboxesForParts.HOHL_ADA_SEG3 : HitboxesForParts.HOHL_SEG3;
-      } else {
-         return adapted ? HitboxesForParts.HOHL_ADA_SEG1 : HitboxesForParts.HOHL_SEG1;
-      }
-   }
-
-   static {
-      CHILD_UUID = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.OPTIONAL_UUID);
-      CHILD_ID = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.INT);
-      VULNERABLE = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.INT);
-      ADAPTED = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.BOOLEAN);
-      UNDERGROUND = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.BOOLEAN);
-      ORES = SynchedEntityData.defineId(Hohlfresser.class, EntityDataSerializers.FLOAT);
-      cache = new WeakHashMap();
-      ORE_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("forge:ores"));
-   }
-
-   static class HohlfresserMeleeAttack extends AOEMeleeAttackGoal {
-      public HohlfresserMeleeAttack(Hohlfresser mob, Predicate<LivingEntity> targets) {
-         super(mob, (double)1.5F, false, (double)2.5F, 6.0F, targets);
-      }
-
-      protected double getAttackReachSqr(LivingEntity entity) {
-         float f = this.mob.getBbWidth();
-         return (double)(f * 1.5F * f + entity.getBbWidth());
-      }
-   }
-
-   static class HohlChargeGoal extends Goal {
-      private final Hohlfresser mob;
-      private final double speed;
-      private final int chargeDelay;
-      private int chargeTimer = 0;
-      private final float distance;
-
-      HohlChargeGoal(Hohlfresser mob, double speed, int chargeDelay, float distance) {
-         this.mob = mob;
-         this.speed = speed;
-         this.chargeDelay = chargeDelay;
-         this.distance = distance;
-      }
-
-      public boolean canUse() {
-         LivingEntity target = this.mob.getTarget();
-         if (target != null && target.isAlive()) {
-            if (this.chargeTimer < this.chargeDelay) {
-               ++this.chargeTimer;
-               return false;
-            } else if (this.checkVectorForCharging(target)) {
-               return true;
-            } else {
-               this.chargeTimer = 0;
-               return false;
-            }
-         } else {
-            this.chargeTimer = 0;
-            return false;
-         }
-      }
-
-      boolean jump(LivingEntity us, LivingEntity target) {
-         return target.level().canSeeSky(target.getOnPos()) && us.level().canSeeSky(us.getOnPos());
-      }
-
-      public void start() {
-         LivingEntity target = this.mob.getTarget();
-         if (target != null && target.distanceTo(this.mob) < this.distance) {
-            this.mob.setUnderground(true);
-            Vec3 direction = target.position().subtract(this.mob.position());
-            if (direction.lengthSqr() > 1.0E-7) {
-               direction.normalize();
-            }
-
-            direction.scale(this.speed);
-            this.mob.setDeltaMovement(direction.x, 0.3, direction.z);
-         }
-
-         this.chargeTimer = 0;
-      }
-
-      public boolean canContinueToUse() {
-         return false;
-      }
-
-      private boolean checkVectorForCharging(Entity target) {
-         Map<BlockState, Integer> cache = new HashMap();
-         Vec3 startVec = this.mob.position();
-         Vec3 endVec = target.position();
-         Vec3 direction = endVec.subtract(startVec).normalize();
-         double distance = startVec.distanceTo(endVec);
-
-         for(double i = (double)0.0F; i <= distance; i += (double)0.5F) {
+        for (double i = 0; i <= distance; i += 0.5) {
             Vec3 current = startVec.add(direction.scale(i));
             BlockPos pos = BlockPos.containing(current);
-            BlockState state = this.mob.level().getBlockState(pos);
-            int result = this.mob.analyzeBlock(state, pos, cache);
-            if ((result & 2) != 0 || (result & 1) == 0) {
-               return false;
-            }
-         }
+            BlockState state = this.level().getBlockState(pos);
+            int result = this.analyzeBlock(state, pos, cache);
 
-         return true;
-      }
-   }
+            if ((result & FLAG_HARD) != 0 || (result & FLAG_MINEABLE) == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean hasLineOfSight(Entity entity) {
+        if (this.getSearchArea() == BlockPos.ZERO){
+            if (isInWater()){
+                return true;
+            }
+            return checkVectorForSeeing(entity) || super.hasLineOfSight(entity);
+        }else {
+            return super.hasLineOfSight(entity);
+        }
+
+    }
+    public int getShootingAmount(){
+        AttributeInstance instance = this.getAttribute(SAttributes.BALLISTIC.get());
+        if (instance != null && instance.getValue() > 0){
+            int value = (int) (instance.getValue()*3);
+            return random.nextInt(value+1);
+        }
+        return 1;
+    }
+
+    @Override
+    public void performRangedAttack(LivingEntity livingEntity, float v) {
+        if (Math.random() < 0.1f){
+            for (int i = 0;i<getShootingAmount();i++){
+                shootTumor(livingEntity);
+            }
+        }else {
+            float extraDamage = (float) (SConfig.SERVER.hohl_r_damage.get() + getOres() * 0.2f);
+            double maxDamage = SConfig.SERVER.hohl_damage.get()/2;
+            double damage = maxDamage <= extraDamage ? maxDamage : extraDamage;
+            VomitHohlBall.shoot(this,livingEntity,(float) damage,getOres() > 0,getKills() > 0);
+        }
+    }
+    void shootTumor(LivingEntity livingEntity){
+        if (level().isClientSide){
+            return;
+        }
+        ThrownTumor tumor = new ThrownTumor(level(),this);
+        double dx = livingEntity.getX() - this.getX();
+        double dy = livingEntity.getY() + livingEntity.getEyeHeight();
+        double dz = livingEntity.getZ() - this.getZ();
+        tumor.setExplode(Level.ExplosionInteraction.MOB);
+        tumor.shoot(dx, dy - tumor.getY() + Math.hypot(dx, dz) * 0.05F, dz, 1f, 12.0F);
+        level().addFreshEntity(tumor);
+    }
+
+    static class HohlfresserMeleeAttack extends AOEMeleeAttackGoal{
+        public HohlfresserMeleeAttack(Hohlfresser mob, Predicate<LivingEntity> targets) {
+            super(mob, 1.5, false, 2.5, 6 ,targets);
+        }
+        protected double getAttackReachSqr(LivingEntity entity) {
+            float f = mob.getBbWidth();
+            return f * 1.5F * f + entity.getBbWidth();
+        }
+    }
+
+    @Override
+    public boolean doHurtTarget(Entity entity) {
+        this.playSound(Ssounds.SIEGER_BITE.get());
+        return super.doHurtTarget(entity);
+    }
+
+    @Override
+    protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
+        super.onEffectAdded(instance, source);
+        HohlMultipart[] parts = getHolfParts();
+        if (parts == null) return;
+        for (HohlMultipart part : parts) {
+            if (part == null){
+                return;
+            }
+            MobEffectInstance existing = part.getEffect(instance.getEffect());
+            if (existing == null || existing.getDuration() < instance.getDuration() - 5) {
+                part.addEffect(new MobEffectInstance(instance)); // copy to avoid shared timer
+            }
+        }
+    }
+
+    @Override
+    protected void onEffectRemoved(MobEffectInstance instance) {
+        super.onEffectRemoved(instance);
+        if (getHolfParts() == null){
+            return;
+        }else {
+            for (HohlMultipart hohlMultipart : getHolfParts()){
+                if (hohlMultipart == null){
+                    return;
+                }
+                hohlMultipart.removeEffect(instance.getEffect());
+            }
+        }
+    }
+
+    static class HohlChargeGoal extends Goal {
+        private final Hohlfresser mob;
+        private final double speed;
+        private final int chargeDelay;
+        private int chargeTimer = 0;
+        private final float distance;
+
+        HohlChargeGoal(Hohlfresser mob, double speed, int chargeDelay, float distance) {
+            this.mob = mob;
+            this.speed = speed;
+            this.chargeDelay = chargeDelay;
+            this.distance = distance;
+        }
+
+        @Override
+        public boolean canUse() {
+            LivingEntity target = mob.getTarget();
+            if (target == null || !target.isAlive()) {
+                chargeTimer = 0;
+                return false;
+            }
+
+            if (chargeTimer < chargeDelay) {
+                chargeTimer++;
+                return false;
+            }else {
+                if (checkVectorForCharging(target)) {
+                    return true;
+                }
+            }
+            chargeTimer = 0;
+            return false;
+        }
+
+        boolean jump(LivingEntity us , LivingEntity target){
+            return target.level().canSeeSky(target.getOnPos()) && us.level().canSeeSky(us.getOnPos());
+        }
+        @Override
+        public void start() {
+            LivingEntity target = mob.getTarget();
+            if (target != null && target.distanceTo(mob) < distance) {
+                mob.setUnderground(true);
+                Vec3 direction = target.position().subtract(mob.position());
+                if (direction.lengthSqr() > 1.0E-7D) {
+                    direction.normalize();
+                }
+                direction.scale(speed);
+                mob.setDeltaMovement(direction.x,0.3,direction.z);
+            }
+            chargeTimer = 0;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return false;
+        }
+
+        private boolean checkVectorForCharging(Entity target) {
+            Map<BlockState, Integer> cache = new HashMap<>();
+            Vec3 startVec = mob.position();
+            Vec3 endVec = target.position();
+            Vec3 direction = endVec.subtract(startVec).normalize();
+            double distance = startVec.distanceTo(endVec);
+
+            for (double i = 0; i <= distance; i += 0.5) {
+                Vec3 current = startVec.add(direction.scale(i));
+                BlockPos pos = BlockPos.containing(current);
+                BlockState state = mob.level().getBlockState(pos);
+                int result = mob.analyzeBlock(state, pos, cache);
+
+                if ((result & FLAG_HARD) != 0 || (result & FLAG_MINEABLE) == 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+    }
+
+    protected SoundEvent getAmbientSound() {
+        return Ssounds.HOHL_AMBIENT.get();
+    }
+
+    protected SoundEvent getStepSound() {
+        return SoundEvents.RAVAGER_STEP;
+    }
+
+    protected void playStepSound(BlockPos p_34316_, BlockState p_34317_) {
+        this.playSound(this.getStepSound(), 0.15F, 1.0F);
+    }
+
+    private final List<HitboxesForParts> innatePartList = List.of(HitboxesForParts.HOHL_JAW, HitboxesForParts.HOHL_HEAD);
+    private final List<HitboxesForParts> tailHitboxes = List.of(HitboxesForParts.HOHL_SEG1, HitboxesForParts.HOHL_SEG2, HitboxesForParts.HOHL_SEG3, HitboxesForParts.HOHL_TAIL);
+    @Override
+    public List<HitboxesForParts> parts() {
+        List<HitboxesForParts> values = new ArrayList<>(innatePartList);
+        if (getHolfParts() != null){
+            for (HohlMultipart multipart : getHolfParts()){
+                values.add(CalculateParts(multipart));
+            }
+        }
+        return values;
+    }
+
+    @Override
+    public void summonCorpsePart(int partCount, List<List<ItemStack>> distributedLoot, List<HitboxesForParts> partList) {
+        AtomicInteger index = new AtomicInteger();
+        for (int i = 0; i < partCount; i++) {
+            CorpseEntity partEntity = new CorpseEntity(Sentities.CORPSE_PIECE.get(), level());
+            for (ItemStack stack : distributedLoot.get(i)) {
+                partEntity.addToInventory(stack);
+            }
+            partEntity.setColor(this.getMutationColor());
+            partEntity.moveTo(calculateSegmentsPosition(i-2));
+            partEntity.setDeltaMovement(new Vec3(
+                    (random.nextDouble() - random.nextDouble()) * 0.9,
+                    random.nextDouble() * 0.6 + 0.3,
+                    (random.nextDouble() - random.nextDouble()) * 0.9
+            ));
+            partEntity.setOwnerAda(getAdaptation());
+            partEntity.setCorpseType(partList.get(i).getID());
+            partEntity.setInflation(tryToFindInflation(index.get(),partList.get(i).getID(), index::getAndIncrement));
+            level().addFreshEntity(partEntity);
+        }
+    }
+    private Vec3 calculateSegmentsPosition(int value){
+        if (value < 0 || this.getHolfParts() == null || this.getHolfParts().length < value){
+            return this.position();
+        }else {
+            return this.getHolfParts()[value].position();
+        }
+    }
+    public float tryToFindInflation(int startPoint,int ID,Runnable runnable){
+        if (getHolfParts() == null){
+            return 1f;
+        }
+        int length = getHolfParts().length;
+        if (length < startPoint){
+            return 1f;
+        }
+        if (tailHitboxes.contains(HitboxesForParts.byId(ID))) {
+            HohlMultipart multipart = getHolfParts()[startPoint];
+            return multipart == null ? 1f : multipart.getSize();
+        }
+        runnable.run();
+        return 1f;
+    }
+
+    private HitboxesForParts CalculateParts(HohlMultipart hohlMultipart){
+        boolean adapted = getAdaptation();
+        if (hohlMultipart.isTail()){
+            return adapted ? HitboxesForParts.HOHL_ADA_TAIL : HitboxesForParts.HOHL_TAIL;
+        }
+        if (hohlMultipart.getSegmentVariant() == HohlMultipart.SegmentVariants.MELEE){
+            return adapted ? HitboxesForParts.HOHL_ADA_SEG2 : HitboxesForParts.HOHL_SEG2;
+        }
+        if (hohlMultipart.getSegmentVariant() == HohlMultipart.SegmentVariants.ORGAN){
+            return adapted ? HitboxesForParts.HOHL_ADA_SEG3 : HitboxesForParts.HOHL_SEG3;
+        }
+        return adapted ? HitboxesForParts.HOHL_ADA_SEG1 : HitboxesForParts.HOHL_SEG1;
+    }
 }

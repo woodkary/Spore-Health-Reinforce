@@ -9,47 +9,43 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 
 public class FrozenBiomass extends FallingBlock {
-   public static final BooleanProperty ENABLED;
+    public static final BooleanProperty ENABLED = BlockStateProperties.ENABLED;
+    public FrozenBiomass() {
+        super(BlockBehaviour.Properties.of().strength(2f,2f).sound(SoundType.SLIME_BLOCK).randomTicks());
+        this.registerDefaultState(this.stateDefinition.any().setValue(ENABLED, Boolean.TRUE));
+    }
 
-   public FrozenBiomass() {
-      super(Properties.of().strength(2.0F, 2.0F).sound(SoundType.SLIME_BLOCK).randomTicks());
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(ENABLED, Boolean.TRUE));
-   }
 
-   public boolean isRandomlyTicking(BlockState state) {
-      return (Boolean)state.getValue(ENABLED);
-   }
+    @Override
+    public boolean isRandomlyTicking(BlockState state) {
+        return state.getValue(ENABLED);
+    }
 
-   public void randomTick(BlockState state, ServerLevel serverLevel, BlockPos pos, RandomSource randomSource) {
-      super.randomTick(state, serverLevel, pos, randomSource);
-      if (Math.random() < (double)0.1F) {
-         serverLevel.removeBlock(pos, false);
-      }
+    @Override
+    public void randomTick(BlockState state, ServerLevel serverLevel, BlockPos pos, RandomSource randomSource) {
+        super.randomTick(state, serverLevel, pos, randomSource);
+        if (Math.random() < 0.1f){
+            serverLevel.removeBlock(pos,false);
+        }
+    }
 
-   }
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(ENABLED);
+    }
 
-   protected void createBlockStateDefinition(StateDefinition.Builder builder) {
-      builder.add(new Property[]{ENABLED});
-   }
-
-   public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
-      super.setPlacedBy(level, pos, state, entity, stack);
-      if (entity != null) {
-         state.setValue(ENABLED, false);
-      }
-
-   }
-
-   static {
-      ENABLED = BlockStateProperties.ENABLED;
-   }
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, entity, stack);
+        if (entity != null){
+            state.setValue(ENABLED,false);
+        }
+    }
 }

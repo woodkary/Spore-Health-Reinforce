@@ -1,7 +1,5 @@
 package com.Harbinger.Spore.ExtremelySusThings;
 
-import java.util.Objects;
-import java.util.UUID;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -13,191 +11,187 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import java.util.Objects;
+import java.util.UUID;
+
 public class ChunkLoadRequest {
-   private ChunkPos[] chunkPositionsToLoad;
-   private int priority;
-   private final String requestID;
-   private final long tickAmount;
-   private long ticksUntilExpiration;
-   private final UUID ownerUUID;
-   private final ResourceKey dimension;
 
-   public ChunkLoadRequest(ResourceKey dimension, ChunkPos[] chunkPositionsToLoad, int priority, String requestID, long ticksUntilExpiration, UUID ownerUUID) {
-      this.chunkPositionsToLoad = chunkPositionsToLoad;
-      this.priority = priority;
-      this.requestID = requestID;
-      this.tickAmount = ticksUntilExpiration;
-      this.ticksUntilExpiration = ticksUntilExpiration;
-      this.ownerUUID = ownerUUID;
-      this.dimension = dimension;
-   }
+    private ChunkPos[] chunkPositionsToLoad;
+    private int priority;
+    private final String requestID;
+    private final long tickAmount;
+    private long ticksUntilExpiration;
+    private final UUID ownerUUID;
+    private final net.minecraft.resources.ResourceKey<Level> dimension;
 
-   public ChunkPos[] getChunkPositionsToLoad() {
-      return this.chunkPositionsToLoad;
-   }
+    public ChunkLoadRequest(
+            net.minecraft.resources.ResourceKey<Level> dimension,
+            ChunkPos[] chunkPositionsToLoad,
+            int priority,
+            String requestID,
+            long ticksUntilExpiration,
+            UUID ownerUUID)
+    {
+        this.chunkPositionsToLoad = chunkPositionsToLoad;
+        this.priority = priority;
+        this.requestID = requestID;
+        this.tickAmount = ticksUntilExpiration;
+        this.ticksUntilExpiration = ticksUntilExpiration;
+        this.ownerUUID = ownerUUID;
+        this.dimension = dimension;
+    }
 
-   public int getPriority() {
-      return this.priority;
-   }
+    public ChunkPos[] getChunkPositionsToLoad() {
+        return chunkPositionsToLoad;
+    }
 
-   public long getTickAmount() {
-      return this.tickAmount;
-   }
+    public int getPriority() {
+        return priority;
+    }
+    public long getTickAmount(){
+        return this.tickAmount;
+    }
 
-   public ServerLevel getDimension() {
-      return ServerLifecycleHooks.getCurrentServer().getLevel(this.dimension);
-   }
+    public ServerLevel getDimension() {
+        return ServerLifecycleHooks.getCurrentServer().getLevel(dimension);
+    }
 
-   public String getRequestID() {
-      return this.requestID;
-   }
+    public String getRequestID() {
+        return requestID;
+    }
 
-   public boolean isRequestID(String requestID) {
-      return Objects.equals(this.requestID, requestID);
-   }
+    public boolean isRequestID(String requestID) {
+        return Objects.equals(this.requestID, requestID);
+    }
 
-   public UUID getOwnerUUID() {
-      return this.ownerUUID;
-   }
+    public UUID getOwnerUUID() {
+        return ownerUUID;
+    }
 
-   public boolean isExpired() {
-      return this.ticksUntilExpiration <= 0L;
-   }
+    public boolean isExpired() {
+        return ticksUntilExpiration <= 0;
+    }
 
-   public void decrementTicksUntilExpiration(int amountToDecrement) {
-      this.ticksUntilExpiration -= (long)amountToDecrement;
-   }
+    public void decrementTicksUntilExpiration(int amountToDecrement) {
+        ticksUntilExpiration -= amountToDecrement;
+    }
 
-   public long getTicksUntilExpiration() {
-      return this.ticksUntilExpiration;
-   }
+    public long getTicksUntilExpiration() {
+        return ticksUntilExpiration;
+    }
+    private void setTicksUntilExpiration(long value){
+        ticksUntilExpiration = value;
+    }
 
-   private void setTicksUntilExpiration(long value) {
-      this.ticksUntilExpiration = value;
-   }
+    public boolean isHigherPriorityThan(ChunkLoadRequest other) {
+        return priority < other.priority;
+    }
 
-   public boolean isHigherPriorityThan(ChunkLoadRequest other) {
-      return this.priority < other.priority;
-   }
+    public boolean doesContainChunk(ChunkPos chunkPos) {
+        for (ChunkPos pos : chunkPositionsToLoad) {
+            if (pos.equals(chunkPos)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean isOwnerStillPresentInChunk() {
+        if (ownerUUID == null) return false;
+        ServerLevel level = getDimension();
+        if (level == null) return false;
 
-   public boolean doesContainChunk(ChunkPos chunkPos) {
-      for(ChunkPos pos : this.chunkPositionsToLoad) {
-         if (pos.equals(chunkPos)) {
-            return true;
-         }
-      }
-
-      return false;
-   }
-
-   public boolean isOwnerStillPresentInChunk() {
-      if (this.ownerUUID == null) {
-         return false;
-      } else {
-         ServerLevel level = this.getDimension();
-         if (level == null) {
+        Entity entity = level.getEntity(ownerUUID);
+        if (entity == null || !entity.isAlive()) {
             return false;
-         } else {
-            Entity entity = level.getEntity(this.ownerUUID);
-            if (entity != null && entity.isAlive()) {
-               ChunkPos entityPos = new ChunkPos(entity.blockPosition());
+        }
 
-               for(ChunkPos pos : this.chunkPositionsToLoad) {
-                  if (pos.equals(entityPos)) {
-                     return true;
-                  }
-               }
-
-               return false;
-            } else {
-               return false;
+        ChunkPos entityPos = new ChunkPos(entity.blockPosition());
+        for (ChunkPos pos : chunkPositionsToLoad) {
+            if (pos.equals(entityPos)) {
+                return true;
             }
-         }
-      }
-   }
+        }
+        return false;
+    }
 
-   public boolean refreshIfOwnerStillPresent(long newDurationTicks) {
-      if (this.isOwnerStillPresentInChunk()) {
-         this.ticksUntilExpiration = newDurationTicks;
-         return true;
-      } else {
-         return false;
-      }
-   }
+    public boolean refreshIfOwnerStillPresent(long newDurationTicks) {
+        if (isOwnerStillPresentInChunk()) {
+            this.ticksUntilExpiration = newDurationTicks;
+            return true;
+        }
+        return false;
+    }
 
-   public void removeChunk(ChunkPos chunkPos) {
-      if (this.doesContainChunk(chunkPos)) {
-         ChunkPos[] newChunkPositionsToLoad = new ChunkPos[this.chunkPositionsToLoad.length - 1];
-         int index = 0;
+    public void removeChunk(ChunkPos chunkPos) {
+        if (!doesContainChunk(chunkPos)) return;
 
-         for(ChunkPos pos : this.chunkPositionsToLoad) {
+        ChunkPos[] newChunkPositionsToLoad = new ChunkPos[chunkPositionsToLoad.length - 1];
+        int index = 0;
+        for (ChunkPos pos : chunkPositionsToLoad) {
             if (!pos.equals(chunkPos)) {
-               newChunkPositionsToLoad[index++] = pos;
+                newChunkPositionsToLoad[index++] = pos;
             }
-         }
+        }
+        chunkPositionsToLoad = newChunkPositionsToLoad;
+    }
 
-         this.chunkPositionsToLoad = newChunkPositionsToLoad;
-      }
-   }
+    public void addChunk(ChunkPos chunkPos) {
+        if (doesContainChunk(chunkPos)) return;
 
-   public void addChunk(ChunkPos chunkPos) {
-      if (!this.doesContainChunk(chunkPos)) {
-         ChunkPos[] newChunkPositionsToLoad = new ChunkPos[this.chunkPositionsToLoad.length + 1];
-         System.arraycopy(this.chunkPositionsToLoad, 0, newChunkPositionsToLoad, 0, this.chunkPositionsToLoad.length);
-         newChunkPositionsToLoad[this.chunkPositionsToLoad.length] = chunkPos;
-         this.chunkPositionsToLoad = newChunkPositionsToLoad;
-      }
-   }
+        ChunkPos[] newChunkPositionsToLoad = new ChunkPos[chunkPositionsToLoad.length + 1];
+        System.arraycopy(chunkPositionsToLoad, 0, newChunkPositionsToLoad, 0, chunkPositionsToLoad.length);
+        newChunkPositionsToLoad[chunkPositionsToLoad.length] = chunkPos;
+        chunkPositionsToLoad = newChunkPositionsToLoad;
+    }
 
-   public void setChunkPositionsToLoad(ChunkPos[] chunkPositionsToLoad) {
-      this.chunkPositionsToLoad = chunkPositionsToLoad;
-   }
+    public void setChunkPositionsToLoad(ChunkPos[] chunkPositionsToLoad) {
+        this.chunkPositionsToLoad = chunkPositionsToLoad;
+    }
 
-   public void setPriority(int priority) {
-      this.priority = priority;
-   }
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
 
-   public CompoundTag serializeNBT() {
-      CompoundTag tag = new CompoundTag();
-      tag.putString("RequestID", this.requestID);
-      tag.putInt("Priority", this.priority);
-      tag.putLong("TicksUntilExpiration", this.ticksUntilExpiration);
-      tag.putLong("StartTickValue", this.tickAmount);
-      if (this.ownerUUID != null) {
-         tag.putUUID("OwnerUUID", this.ownerUUID);
-      }
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = new CompoundTag();
+        tag.putString("RequestID", requestID);
+        tag.putInt("Priority", priority);
+        tag.putLong("TicksUntilExpiration", ticksUntilExpiration);
+        tag.putLong("StartTickValue", tickAmount);
+        if (ownerUUID != null) tag.putUUID("OwnerUUID", ownerUUID);
+        tag.putString("Dimension", dimension.location().toString());
 
-      tag.putString("Dimension", this.dimension.location().toString());
-      ListTag chunks = new ListTag();
+        ListTag chunks = new ListTag();
+        for (ChunkPos pos : chunkPositionsToLoad) {
+            CompoundTag c = new CompoundTag();
+            c.putInt("X", pos.x);
+            c.putInt("Z", pos.z);
+            chunks.add(c);
+        }
+        tag.put("Chunks", chunks);
+        return tag;
+    }
 
-      for(ChunkPos pos : this.chunkPositionsToLoad) {
-         CompoundTag c = new CompoundTag();
-         c.putInt("X", pos.x);
-         c.putInt("Z", pos.z);
-         chunks.add(c);
-      }
+    public static ChunkLoadRequest deserializeNBT(CompoundTag tag) {
+        String requestID = tag.getString("RequestID");
+        int priority = tag.getInt("Priority");
+        long ticksUntilExpiration = tag.getLong("TicksUntilExpiration");
+        long startTicks = tag.getLong("StartTickValue");
+        UUID ownerUUID = tag.hasUUID("OwnerUUID") ? tag.getUUID("OwnerUUID") : null;
 
-      tag.put("Chunks", chunks);
-      return tag;
-   }
+        ResourceKey<Level> dimKey = ResourceKey.create(
+                Registries.DIMENSION,
+                new ResourceLocation(tag.getString("Dimension"))
+        );
 
-   public static ChunkLoadRequest deserializeNBT(CompoundTag tag) {
-      String requestID = tag.getString("RequestID");
-      int priority = tag.getInt("Priority");
-      long ticksUntilExpiration = tag.getLong("TicksUntilExpiration");
-      long startTicks = tag.getLong("StartTickValue");
-      UUID ownerUUID = tag.hasUUID("OwnerUUID") ? tag.getUUID("OwnerUUID") : null;
-      ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(tag.getString("Dimension")));
-      ListTag chunksList = tag.getList("Chunks", 10);
-      ChunkPos[] positions = new ChunkPos[chunksList.size()];
-
-      for(int i = 0; i < chunksList.size(); ++i) {
-         CompoundTag c = chunksList.getCompound(i);
-         positions[i] = new ChunkPos(c.getInt("X"), c.getInt("Z"));
-      }
-
-      ChunkLoadRequest request = new ChunkLoadRequest(dimKey, positions, priority, requestID, startTicks, ownerUUID);
-      request.setTicksUntilExpiration(ticksUntilExpiration);
-      return request;
-   }
+        ListTag chunksList = tag.getList("Chunks", 10);
+        ChunkPos[] positions = new ChunkPos[chunksList.size()];
+        for (int i = 0; i < chunksList.size(); i++) {
+            CompoundTag c = chunksList.getCompound(i);
+            positions[i] = new ChunkPos(c.getInt("X"), c.getInt("Z"));
+        }
+        ChunkLoadRequest request = new ChunkLoadRequest(dimKey, positions, priority, requestID, startTicks, ownerUUID);
+        request.setTicksUntilExpiration(ticksUntilExpiration);
+        return request;
+    }
 }

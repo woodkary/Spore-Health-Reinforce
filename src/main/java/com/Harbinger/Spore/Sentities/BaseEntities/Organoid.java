@@ -1,23 +1,13 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
-import com.Harbinger.Spore.Compat.l2Hostility.ASMHurtKillerAuraTrait;
-import com.Harbinger.Spore.Compat.l2Hostility.L2HostilityMobTraits;
 import com.Harbinger.Spore.Core.Ssounds;
-import com.Harbinger.Spore.Core.entityStorages.EntityCallbackFactory;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntityInLevelCallback;
-import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
-import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
 import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
 import com.Harbinger.Spore.Sentities.Projectile.Vomit;
-import java.util.List;
-import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -31,6 +21,7 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.item.ItemStack;
@@ -38,288 +29,209 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fml.ModList;
-import org.jetbrains.annotations.NotNull;
 
-public class Organoid extends UtilityEntity implements Enemy, ColdWeakness,ICustomLifeCycleEntity,IEventTickable {
-   public static final EntityDataAccessor BORROW;
-   public static final EntityDataAccessor EMERGE;
-   private LivingEntity sporeTarget;
-   protected Organoid(EntityType type, Level level) {
-      super(type, level);
-      this.xpReward = 25;
-      initCustom();
-   }
-   public void setLevelCallback(EntityInLevelCallback callback) {
-      this.levelCallback = EntityCallbackFactory.INSTANCE.newInstance(this,callback);
-   }
-   @Override
-   public void actuallyHurt(DamageSource source, float amount) {
-      actualHurt(source, amount);
-   }
-   @Override
-   public LivingEntity getTarget() {
-      return this.sporeTarget;
-   }
-   public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-      LazyOptional<T> opt=super.getCapability(cap, side);
-      if(opt.resolve().isEmpty()||
-              !ModList.get().isLoaded("l2hostility")){
-         return opt;
-      }
-      T traitCap = opt.resolve().get();
-      if(L2HostilityMobTraits.INSTANCE.isMobTraitCapClass(traitCap)) {
-         L2HostilityMobTraits.INSTANCE.getTraits(traitCap).keySet().forEach(trait -> {
-            if(trait.getClass().getName().equals("dev.xkmc.l2hostility.content.traits.legendary.KillerAuraTrait")){
-               KlassPointerUtil.INSTANCE.replaceClass(trait, ASMHurtKillerAuraTrait.killerAuraTraitClass,"",0,0.0f);
+import javax.annotation.Nullable;
+import java.util.List;
+
+public class Organoid extends UtilityEntity implements Enemy, ColdWeakness {
+    public static final EntityDataAccessor<Integer> BORROW = SynchedEntityData.defineId(Organoid.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> EMERGE = SynchedEntityData.defineId(Organoid.class, EntityDataSerializers.INT);
+    protected Organoid(EntityType<? extends PathfinderMob> type, Level level) {
+        super(type, level);
+        this.xpReward = 25;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.onGround()){
+            this.makeStuckInBlock(Blocks.AIR.defaultBlockState(), new Vec3(0, 1, 0));
+        }
+        if (!level().isClientSide){
+            if (this.isEmerging()){
+                despawnIfHardFloor();
+                this.tickEmerging();
+            } else if (this.isBurrowing()){
+                this.tickBurrowing();
             }
-         });
-      }
-      return opt;
-   }
-   @Override
-   public void setTarget(@Nullable LivingEntity p_21544_) {
-      if (SporeJudge.isSporeEntity(p_21544_)) {
-         return;
-      }
-      this.sporeTarget = p_21544_;
-   }
-   public void tick() {
-      super.tick();
-      tickCustomLifeCycle();
-      tickEventBus();
-      if (this.onGround()) {
-         this.makeStuckInBlock(Blocks.AIR.defaultBlockState(), new Vec3((double)0.0F, (double)1.0F, (double)0.0F));
-      }
+        }
+        if (tickCount % 200 == 0 && !(this instanceof Proto || this instanceof Mound)){
+            regulateSpawns();
+        }
+        spawnEmergingParticles();
+    }
+    public void despawnIfHardFloor(){
+        BlockPos pos = this.getOnPos();
+        BlockState state = level().getBlockState(pos);
+        if (!state.isSolidRender(level(),pos) || state.liquid()){
+            return;
+        }
+        if (state.getDestroySpeed(level(),pos) > 4 || state.getDestroySpeed(level(),pos) < 0){
+            discard();
+        }
+    }
+    public SoundEvent getHurtSound(DamageSource p_34327_) {
+        return Ssounds.ORGANOID_DAMAGE.get();
+    }
 
-      if (!this.level().isClientSide) {
-         if (this.isEmerging()) {
-            this.despawnIfHardFloor();
-            this.tickEmerging();
-         } else if (this.isBurrowing()) {
-            this.tickBurrowing();
-         }
-      }
+    @Override
+    public boolean canDrownInFluidType(FluidType type) {
+        return false;
+    }
 
-      if (this.tickCount % 200 == 0 && !(this instanceof Proto) && !(this instanceof Mound)) {
-         this.regulateSpawns();
-      }
+    @Override
+    public boolean dampensVibrations() {
+        return true;
+    }
 
-      this.spawnEmergingParticles();
-   }
+    @Override
+    public boolean hurt(DamageSource source, float p_21017_) {
+        if (source.getDirectEntity() instanceof AcidBall || source.getDirectEntity() instanceof Vomit){
+            return  false;
+        }
+        return super.hurt(source, p_21017_);
+    }
 
-   public void despawnIfHardFloor() {
-      BlockPos pos = this.getOnPos();
-      BlockState state = this.level().getBlockState(pos);
-      if (state.getDestroySpeed(this.level(), pos) > 4.0F || state.getDestroySpeed(this.level(), pos) < 0.0F) {
-         this.discard();
-      }
+    public int getEmerge_tick(){
+        return 20;
+    }
+    public  int getBorrow_tick(){return 20;}
 
-   }
+    public boolean isEmerging(){
+        return this.entityData.get(EMERGE) > 0;
+    }
+    public void tickEmerging(){
+        int emerging = this.entityData.get(EMERGE);
+        if (emerging > this.getEmerge_tick())
+            emerging = -1;
+        this.entityData.set(EMERGE, emerging + 1);
+    }
+    public boolean isBurrowing(){
+        return this.entityData.get(BORROW) > 0;
+    }
+    public void tickBurrowing(){
+        int burrowing = this.entityData.get(BORROW);
+        if (burrowing > this.getBorrow_tick()) {
+            burrowing = -1;
+        }
+        this.entityData.set(BORROW, burrowing + 1);
+    }
 
-   public SoundEvent getHurtSound(DamageSource p_34327_) {
-      return (SoundEvent)Ssounds.ORGANOID_DAMAGE.get();
-   }
+    public int getEmerge(){
+        return entityData.get(EMERGE);
+    }
+    public int getBorrow(){return entityData.get(BORROW);}
 
-   public boolean canDrownInFluidType(FluidType type) {
-      return false;
-   }
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(BORROW, 0);
+        this.entityData.define(EMERGE, 0);
+    }
+    @Nullable
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_33282_, DifficultyInstance p_33283_, MobSpawnType p_33284_, @Nullable SpawnGroupData p_33285_, @Nullable CompoundTag p_33286_) {
+        this.tickEmerging();
+        return super.finalizeSpawn(p_33282_, p_33283_, p_33284_, p_33285_, p_33286_);
+    }
 
-   public boolean dampensVibrations() {
-      return true;
-   }
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        if (this.tickCount % 20 == 0 && this.getHealth() < this.getMaxHealth() && this.getTicksFrozen() <=0){
+            setHealth(getHealth()+1);
+        }
+    }
 
-   public boolean hurt(DamageSource source, float p_21017_) {
-      return !(source.getDirectEntity() instanceof AcidBall) && !(source.getDirectEntity() instanceof Vomit) ? super.hurt(source, p_21017_) : false;
-   }
-   @Override
-   public void onRemovedFromWorld() {
-      onRemoved();
-   }
-   public void addAdditionalSaveData(CompoundTag tag) {
-      super.addAdditionalSaveData(tag);
-      addSaveData(tag);
-   }
-   public void heal(float amount) {
-      healSelf(amount);
-   }
-   public void readAdditionalSaveData(CompoundTag tag) {
-      super.readAdditionalSaveData(tag);
-      readSaveData(tag);
-   }
-   public int getEmerge_tick() {
-      return 20;
-   }
+    public void awardHivemind(){
+        CompoundTag data = this.getPersistentData();
+        if (data.contains("hivemind")) {
+            int summonerUUID = data.getInt("hivemind");
+            Level level = this.level();
+            Entity summoner = level.getEntity(summonerUUID);
 
-   public int getBorrow_tick() {
-      return 20;
-   }
-   public void tickDeath(){
-      if(this.getHealth()>0.0f){
-         return;
-      }
-      super.tickDeath();
-   }
-   public void die(DamageSource source) {
-      if (this.getHealth()>0.0f) {
-         return;
-      }
-      super.die(source);
-   }
-
-
-   public boolean isEmerging() {
-      return (Integer)this.entityData.get(EMERGE) > 0;
-   }
-
-   public void tickEmerging() {
-      int emerging = (Integer)this.entityData.get(EMERGE);
-      if (emerging > this.getEmerge_tick()) {
-         emerging = -1;
-      }
-
-      this.entityData.set(EMERGE, emerging + 1);
-   }
-
-   public boolean isBurrowing() {
-      return (Integer)this.entityData.get(BORROW) > 0;
-   }
-
-   public void tickBurrowing() {
-      int burrowing = (Integer)this.entityData.get(BORROW);
-      if (burrowing > this.getBorrow_tick()) {
-         burrowing = -1;
-      }
-
-      this.entityData.set(BORROW, burrowing + 1);
-   }
-
-   public int getEmerge() {
-      return (Integer)this.entityData.get(EMERGE);
-   }
-
-   public int getBorrow() {
-      return (Integer)this.entityData.get(BORROW);
-   }
-
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(BORROW, 0);
-      this.entityData.define(EMERGE, 0);
-   }
-
-   @Nullable
-   public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_33282_, DifficultyInstance p_33283_, MobSpawnType p_33284_, @Nullable SpawnGroupData p_33285_, @Nullable CompoundTag p_33286_) {
-      this.tickEmerging();
-      return super.finalizeSpawn(p_33282_, p_33283_, p_33284_, p_33285_, p_33286_);
-   }
-
-   protected void customServerAiStep() {
-      super.customServerAiStep();
-      if (this.tickCount % 20 == 0 && this.getHealth() < this.getMaxHealth() && this.getTicksFrozen() <= 0) {
-         this.setHealth(this.getHealth() + 1.0F);
-      }
-
-   }
-
-   public void awardHivemind() {
-      CompoundTag data = this.getPersistentData();
-      if (data.contains("hivemind")) {
-         int summonerUUID = data.getInt("hivemind");
-         Level level = this.level();
-         Entity summoner = level.getEntity(summonerUUID);
-         if (summoner instanceof Proto) {
-            Proto smartMob = (Proto)summoner;
-            int decision = data.getInt("decision");
-            int member = data.getInt("member");
-            smartMob.praisedForDecision(decision, member);
-         }
-      }
-
-   }
-
-   public void punishHivemind() {
-      CompoundTag data = this.getPersistentData();
-      if (data.contains("hivemind")) {
-         int summonerUUID = data.getInt("hivemind");
-         Level level = this.level();
-         Entity summoner = level.getEntity(summonerUUID);
-         if (summoner instanceof Proto) {
-            Proto smartMob = (Proto)summoner;
-            int decision = data.getInt("decision");
-            int member = data.getInt("member");
-            smartMob.punishForDecision(decision, member);
-         }
-      }
-
-   }
-
-   private void spawnEmergingParticles() {
-      if (this.isEmerging() || this.isBurrowing()) {
-         Level var2 = this.level();
-         if (var2 instanceof ServerLevel) {
-            ServerLevel serverLevel = (ServerLevel)var2;
-            double var17 = this.getX();
-            double y = this.getY();
-            double z = this.getZ();
-            RandomSource randomsource = this.getRandom();
-            BlockPos belowPos = BlockPos.containing(var17, y - (double)1.0F, z);
-            BlockState state = serverLevel.getBlockState(belowPos);
-            if (!state.isAir()) {
-               ItemStack stack = new ItemStack(state.getBlock());
-               if (!stack.isEmpty()) {
-                  for(int l = 0; l < this.getNumberOfParticles(); ++l) {
-                     if (serverLevel.isLoaded(belowPos)) {
-                        double xi = randomsource.nextDouble() - (double)0.5F;
-                        double zi = randomsource.nextDouble() - (double)0.5F;
-                        serverLevel.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, stack), var17 + xi, y - 0.1, z + zi, 1, (randomsource.nextDouble() - (double)0.5F) * 0.1, (randomsource.nextDouble() - (double)0.5F) * 0.1, (randomsource.nextDouble() - (double)0.5F) * 0.1, (double)0.15F);
-                     }
-                  }
-
-               }
+            if (summoner instanceof Proto smartMob) {
+                int decision = data.getInt("decision");
+                int member = data.getInt("member");
+                smartMob.praisedForDecision(decision,member);
             }
-         }
-      }
-   }
+        }
+    }
+    public void punishHivemind(){
+        CompoundTag data = this.getPersistentData();
+        if (data.contains("hivemind")) {
+            int summonerUUID = data.getInt("hivemind");
+            Level level = this.level();
+            Entity summoner = level.getEntity(summonerUUID);
 
-   public int getNumberOfParticles() {
-      return 2;
-   }
+            if (summoner instanceof Proto smartMob) {
+                int decision = data.getInt("decision");
+                int member = data.getInt("member");
+                smartMob.punishForDecision(decision,member);
+            }
+        }
+    }
 
-   public boolean isCloseCombatant() {
-      return false;
-   }
+    private void spawnEmergingParticles() {
+        if (!(this.isEmerging() || this.isBurrowing())) return;
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
-   public boolean addEffect(MobEffectInstance instance, @Nullable Entity entity) {
-      return instance.getEffect().getCategory() == MobEffectCategory.HARMFUL && instance.getAmplifier() < 1 ? false : super.addEffect(instance, entity);
-   }
+        double x = this.getX();
+        double y = this.getY();
+        double z = this.getZ();
+        RandomSource randomsource = this.getRandom();
 
-   public void regulateSpawns() {
-      AABB aabb = this.getBoundingBox().inflate((double)6.0F);
-      List<Entity> entityList = this.level().getEntities(this, aabb, (entity) -> entity instanceof Organoid && !(entity instanceof Proto) && !(entity instanceof Mound));
-      if (entityList.size() > 4) {
-         this.tickBurrowing();
-      }
+        BlockPos belowPos = BlockPos.containing(x, y - 1, z);
+        BlockState state = serverLevel.getBlockState(belowPos);
+        if (state.isAir()){
+            return;
+        }
+        ItemStack stack = new ItemStack(state.getBlock());
+        if (stack.isEmpty()){
+            return;
+        }
+        for (int l = 0; l < this.getNumberOfParticles(); l++) {
+            // Safely get block state
+            if (!serverLevel.isLoaded(belowPos)) continue;
 
-   }
+            double xi = randomsource.nextDouble() - 0.5;
+            double zi = randomsource.nextDouble() - 0.5;
+            serverLevel.sendParticles(
+                    new ItemParticleOption(ParticleTypes.ITEM,stack),
+                    x + xi, y - 0.1D, z + zi,
+                    1,  // Reduced particle count
+                    (randomsource.nextDouble() - 0.5D) * 0.1D,
+                    (randomsource.nextDouble() - 0.5D) * 0.1D,
+                    (randomsource.nextDouble() - 0.5D) * 0.1D,
+                    0.15F
+            );
+        }
+    }
 
-   public ColdEndurance getEndurance() {
-      return ColdEndurance.EVOLVED;
-   }
+    public int getNumberOfParticles(){
+        return 2;
+    }
 
-   static {
-      BORROW = SynchedEntityData.defineId(Organoid.class, EntityDataSerializers.INT);
-      EMERGE = SynchedEntityData.defineId(Organoid.class, EntityDataSerializers.INT);
-   }
+    public boolean isCloseCombatant(){return false;}
+    @Override
+    public boolean addEffect(MobEffectInstance instance, @org.jetbrains.annotations.Nullable Entity entity) {
+        if (instance.getEffect().getCategory() == MobEffectCategory.HARMFUL && instance.getAmplifier() < 1){
+            return false;
+        }
+        return super.addEffect(instance, entity);
+    }
+    public void regulateSpawns(){
+        AABB aabb = this.getBoundingBox().inflate(6);
+        List<Entity> entityList = level().getEntities(this,aabb, entity -> {return entity instanceof Organoid && !(entity instanceof Proto || entity instanceof Mound);});
+        if (entityList.size() > 4){
+            tickBurrowing();
+        }
+    }
 
-   @Override
-   public LivingEntity entity() {
-      return this;
-   }
+    @Override
+    public ColdEndurance getEndurance() {
+        return ColdEndurance.EVOLVED;
+    }
 }

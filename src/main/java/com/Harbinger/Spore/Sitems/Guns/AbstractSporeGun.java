@@ -2,21 +2,17 @@ package com.Harbinger.Spore.Sitems.Guns;
 
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
-import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SporeGunFireSyncPacket;
+import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.Sitems.BaseItem;
-import com.Harbinger.Spore.Sitems.GunHeldItem;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
-import java.util.List;
-import java.util.function.Consumer;
+import com.Harbinger.Spore.Sitems.GunHeldItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.HumanoidModel.ArmPose;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -36,209 +32,214 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public abstract class AbstractSporeGun extends BaseItem implements GunHeldItem, SporeWeaponData {
-   public static final String SHOOT_DELAY = "ShootDelay";
-   public static final String RELOAD_DELAY = "ReloadDelay";
-   public static final String CLIP_AMMO = "ClipAmmo";
-   public static final String STOMACH = "Stomach";
+    public static final String SHOOT_DELAY = "ShootDelay";
+    public static final String RELOAD_DELAY = "ReloadDelay";
+    public static final String CLIP_AMMO = "ClipAmmo";
+    public static final String STOMACH = "Stomach";
+    public AbstractSporeGun(int durability) {
+        super(new Properties().stacksTo(1).durability(durability));
+        Sitems.TINTABLE_ITEMS.add(this);
+    }
+    public abstract boolean needsToReload();
+    public abstract int getDefaultTimeBeforeReload();
+    public abstract int getTimeBeforeChangingClip(ItemStack stack);
+    public abstract int timeBeforeStomachContentsConvertIntoAmmo();
+    public abstract int getClipSize();
+    public abstract Item getAmmoItem();
+    public int getAmmoUsage(){return 1;}
+    public int getBaseAmmoShotRequirement(){return 1;}
 
-   public AbstractSporeGun(int durability) {
-      super((new Properties()).stacksTo(1).durability(durability));
-      Sitems.TINTABLE_ITEMS.add(this);
-   }
 
-   public abstract boolean needsToReload();
+    @Override
+    public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
+        return true;
+    }
 
-   public abstract int getDefaultTimeBeforeReload();
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return getLuck(stack);
+    }
 
-   public abstract int getTimeBeforeChangingClip(ItemStack var1);
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack gun = player.getItemInHand(hand);
 
-   public abstract int timeBeforeStomachContentsConvertIntoAmmo();
+        int ammo = getInt(gun, "ClipAmmo");
 
-   public abstract int getClipSize();
+        if (needsToReload() && ammo < getClipSize()) {
+            for (ItemStack invStack : player.getInventory().items) {
+                if (getAmmoItem().equals(invStack.getItem())) {
 
-   public abstract Item getAmmoItem();
+                    if (level.isClientSide) {
+                        triggerReloadAnimation(player);
+                        player.playNotifySound(Ssounds.BIOGUN_RELOAD.get(), SoundSource.MASTER, 1, 1);
+                    } else {
+                        player.getCooldowns().addCooldown(this, getDefaultTimeBeforeReload());
 
-   public int getAmmoUsage() {
-      return 1;
-   }
+                        invStack.shrink(1);
 
-   public int getBaseAmmoShotRequirement() {
-      return 1;
-   }
-
-   public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
-      return true;
-   }
-
-   public int getEnchantmentValue(ItemStack stack) {
-      return this.getLuck(stack);
-   }
-
-   public InteractionResultHolder use(Level level, Player player, InteractionHand hand) {
-      ItemStack gun = player.getItemInHand(hand);
-      int ammo = getInt(gun, "ClipAmmo");
-      if (this.needsToReload() && ammo < this.getClipSize()) {
-         for(ItemStack invStack : player.getInventory().items) {
-            if (this.getAmmoItem().equals(invStack.getItem())) {
-               if (level.isClientSide) {
-                  this.triggerReloadAnimation(player);
-                  player.playNotifySound((SoundEvent)Ssounds.BIOGUN_RELOAD.get(), SoundSource.MASTER, 1.0F, 1.0F);
-               } else {
-                  player.getCooldowns().addCooldown(this, this.getDefaultTimeBeforeReload());
-                  invStack.shrink(1);
-                  setInt(gun, "ClipAmmo", this.getClipSize());
-                  setInt(gun, "ReloadDelay", this.getDefaultTimeBeforeReload());
-               }
-               break;
+                        setInt(gun, "ClipAmmo", getClipSize());
+                        setInt(gun, "ReloadDelay", getDefaultTimeBeforeReload());
+                    }
+                    break;
+                }
             }
-         }
-      }
+        }
 
-      return super.use(level, player, hand);
-   }
+        return super.use(level, player, hand);
+    }
 
-   public void triggerReloadAnimation(Player player) {
-   }
+    public void triggerReloadAnimation(Player player){
 
-   protected static int getInt(ItemStack stack, String key) {
-      return stack.getTag() != null && stack.getTag().contains(key) ? stack.getTag().getInt(key) : 0;
-   }
+    }
+    protected static int getInt(ItemStack stack, String key) {
+        return  stack.getTag() != null && stack.getTag().contains(key) ? stack.getTag().getInt(key) : 0;
+    }
 
-   protected static void setInt(ItemStack stack, String key, int value) {
-      stack.getOrCreateTag().putInt(key, value);
-   }
+    protected static void setInt(ItemStack stack, String key, int value) {
+        stack.getOrCreateTag().putInt(key, value);
+    }
 
-   public void playEmptyFireSounds(ServerPlayer player) {
-      player.level().playSound((Player)null, player.getX(), player.getY(), player.getZ(), (SoundEvent)Ssounds.BIOGUN_NO_AMMO.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
-   }
+    public void playEmptyFireSounds(ServerPlayer player){
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                Ssounds.BIOGUN_NO_AMMO.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
+    }
 
-   public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
-      if (!level.isClientSide) {
-         int shootDelay = getInt(stack, "ShootDelay");
-         if (shootDelay > 0) {
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+        if (level.isClientSide) return;
+
+        int shootDelay = getInt(stack, "ShootDelay");
+        if (shootDelay > 0) {
             setInt(stack, "ShootDelay", shootDelay - 1);
-         }
+        }
 
-         int reloadDelay = getInt(stack, "ReloadDelay");
-         if (reloadDelay > 0) {
+        int reloadDelay = getInt(stack, "ReloadDelay");
+        if (reloadDelay > 0) {
             setInt(stack, "ReloadDelay", reloadDelay - 1);
-         }
+        }
 
-         if (this.needsToReload() && getInt(stack, "ClipAmmo") < this.getClipSize()) {
-            int tick = (int)(level.getGameTime() % (long)this.timeBeforeStomachContentsConvertIntoAmmo());
+        if (needsToReload() && getInt(stack, "ClipAmmo") < getClipSize()) {
+
+            int tick = (int)(level.getGameTime() % timeBeforeStomachContentsConvertIntoAmmo());
+
             if (tick == 0) {
-               int stomach = getInt(stack, "Stomach");
-               int ammo = getInt(stack, "ClipAmmo");
-               if (stomach > 0) {
-                  int consumed = Math.min(stomach, 5);
-                  setInt(stack, "Stomach", stomach - consumed);
-                  setInt(stack, "ClipAmmo", ammo + 1);
-               }
+                int stomach = getInt(stack, "Stomach");
+                int ammo = getInt(stack, "ClipAmmo");
+
+                if (stomach > 0) {
+                    int consumed = Math.min(stomach, 5);
+
+                    setInt(stack, "Stomach", stomach - consumed);
+                    setInt(stack, "ClipAmmo", ammo + 1);
+                }
             }
-         }
+        }
+    }
 
-      }
-   }
+    @Override
+    public boolean overrideOtherStackedOnMe(ItemStack stack, ItemStack itemStack, Slot slot, ClickAction clickAction, Player player, SlotAccess slotAccess) {
+        boolean shouldOverride = clickAction == ClickAction.SECONDARY
+                && itemStack.getItem() == Sitems.SYRINGE.get()
+                && getVariant(stack) != SporeToolsMutations.DEFAULT;
 
-   public boolean overrideOtherStackedOnMe(ItemStack stack, ItemStack itemStack, Slot slot, ClickAction clickAction, Player player, SlotAccess slotAccess) {
-      boolean shouldOverride = clickAction == ClickAction.SECONDARY && itemStack.getItem() == Sitems.SYRINGE.get() && this.getVariant(stack) != SporeToolsMutations.DEFAULT;
-      if (shouldOverride) {
-         this.setVariant(SporeToolsMutations.DEFAULT, stack);
-         itemStack.shrink(1);
-         player.playNotifySound((SoundEvent)Ssounds.SYRINGE_SUCK.get(), SoundSource.AMBIENT, 1.0F, 1.0F);
-      }
+        if (shouldOverride) {
+            this.setVariant(SporeToolsMutations.DEFAULT, stack);
+            itemStack.shrink(1);
+            player.playNotifySound(Ssounds.SYRINGE_SUCK.get(), SoundSource.AMBIENT, 1f, 1f);
+        }
+        if (clickAction == ClickAction.SECONDARY) {
+            int current = getInt(stack, "Stomach");
 
-      if (clickAction == ClickAction.SECONDARY) {
-         int current = getInt(stack, "Stomach");
-         if (!this.needsToReload() && current >= this.getClipSize()) {
-            return false;
-         } else if (itemStack.getFoodProperties(player) == null) {
-            return false;
-         } else {
+            if (!needsToReload() && current >= getClipSize()) {
+                return false;
+            }
+
+            if (itemStack.getFoodProperties(player) == null) {
+                return false;
+            }
+
             FoodProperties food = itemStack.getFoodProperties(player);
-            if (food == null) {
-               return false;
-            } else {
-               int value = (int)((float)food.getNutrition() + 10.0F * food.getSaturationModifier());
-               int newValue = this.needsToReload() ? current + value : Math.min(current + value, this.getClipSize());
-               setInt(stack, "Stomach", newValue);
-               itemStack.shrink(1);
-               player.playNotifySound(SoundEvents.GENERIC_EAT, SoundSource.AMBIENT, 1.0F, 1.0F);
-               return true;
+            if (food == null){
+                return false;
             }
-         }
-      } else {
-         return false;
-      }
-   }
 
-   public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-      tooltip.add(Component.literal(""));
-      int stomach = getInt(stack, "Stomach");
-      int clip = getInt(stack, "ClipAmmo");
-      if (this.needsToReload()) {
-         tooltip.add(Component.literal(Component.translatable("spore.item.clip").getString() + clip + "/" + this.getClipSize()).withStyle(ChatFormatting.GOLD));
-      } else {
-         tooltip.add(Component.literal(Component.translatable("spore.item.biomass").getString() + stomach + "/" + this.getClipSize()).withStyle(ChatFormatting.LIGHT_PURPLE));
-      }
+            int value = (int)(food.getNutrition() + (10 * food.getSaturationModifier()));
 
-      if (Screen.hasShiftDown()) {
-         if (this.needsToReload()) {
-            String var10001 = Component.translatable("spore.item.stomach").getString();
-            tooltip.add(Component.literal(var10001 + stomach).withStyle(ChatFormatting.DARK_GREEN));
-         }
+            int newValue = needsToReload()
+                    ? current + value
+                    : Math.min(current + value, getClipSize());
 
-         if (this.getVariant(stack) != SporeToolsMutations.DEFAULT) {
-            String var8 = Component.translatable("spore.item.mutation").getString();
-            tooltip.add(Component.literal(var8 + Component.translatable(this.getVariant(stack).getName()).getString()));
-         }
+            setInt(stack, "Stomach", newValue);
 
-         if (this.getAdditionalDamage(stack) > (double)0.0F) {
-            String var9 = Component.translatable("spore.item.damage_increase").getString();
-            tooltip.add(Component.literal(var9 + this.getAdditionalDamage(stack) + "%"));
-         }
+            itemStack.shrink(1);
 
-         if (this.getMaxAdditionalDurability(stack) > 0) {
-            String var10 = Component.translatable("spore.item.durability_increase").getString();
-            tooltip.add(Component.literal(var10 + this.getMaxAdditionalDurability(stack) + "%"));
-         }
+            player.playNotifySound(SoundEvents.GENERIC_EAT, SoundSource.AMBIENT, 1f, 1f);
+            return true;
+        }
+        return false;
+    }
 
-         if (this.getAdditionalDurability(stack) > 0) {
-            String var11 = Component.translatable("spore.item.additional_durability").getString();
-            tooltip.add(Component.literal(var11 + this.getAdditionalDurability(stack)));
-         }
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.literal(""));
+        int stomach = getInt(stack, "Stomach");
+        int clip = getInt(stack, "ClipAmmo");
+        if (needsToReload()) {
+            tooltip.add(Component.literal(Component.translatable("spore.item.clip").getString() + clip + "/" + getClipSize()).withStyle(ChatFormatting.GOLD));
+        } else {
+            tooltip.add(Component.literal(Component.translatable("spore.item.biomass").getString() + stomach + "/" + getClipSize())
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
+        if (Screen.hasShiftDown()){
+            if (needsToReload()){
+                tooltip.add(Component.literal(Component.translatable("spore.item.stomach").getString() + stomach).withStyle(ChatFormatting.DARK_GREEN));
+            }if (getVariant(stack) != SporeToolsMutations.DEFAULT) {
+                tooltip.add(Component.literal(Component.translatable("spore.item.mutation").getString() + Component.translatable(getVariant(stack).getName()).getString()));
+            }
+            if (getAdditionalDamage(stack) > 0){
+                tooltip.add(Component.literal(Component.translatable("spore.item.damage_increase").getString() + getAdditionalDamage(stack) + "%"));
+            }if (getMaxAdditionalDurability(stack) > 0){
+                tooltip.add(Component.literal(Component.translatable("spore.item.durability_increase").getString()+ getMaxAdditionalDurability(stack) + "%"));
+            }if (getAdditionalDurability(stack) > 0){
+                tooltip.add(Component.literal(Component.translatable("spore.item.additional_durability").getString()+ getAdditionalDurability(stack)));
+            }
+            Component component = extraTips();
+            if (component != null){
+                tooltip.add(component);
+            }
+        }else {
+            tooltip.add(Component.translatable("item.armor.normal").withStyle(ChatFormatting.GOLD));
+        }
+        super.appendHoverText(stack, level, tooltip, flag);
+    }
 
-         Component component = this.extraTips();
-         if (component != null) {
-            tooltip.add(component);
-         }
-      } else {
-         tooltip.add(Component.translatable("item.armor.normal").withStyle(ChatFormatting.GOLD));
-      }
+    public void serverShoot(ItemStack stack, ServerPlayer player, InteractionHand hand, Vec3 vec3) {
+        SporePacketHandler.sendToClient(new SporeGunFireSyncPacket(player.getId(), hand == InteractionHand.MAIN_HAND ? 0 : 1), player);
+        int value = calculateDurabilityLostForMutations(1,stack);
+        hurtTool(stack,player,value);
+    }
+    public Component extraTips(){
+        return null;
+    }
+    public void clientShoot(Player player, InteractionHand interactionHand) {
 
-      super.appendHoverText(stack, level, tooltip, flag);
-   }
+    }
 
-   public void serverShoot(ItemStack stack, ServerPlayer player, InteractionHand hand, Vec3 vec3) {
-      SporePacketHandler.sendToClient(new SporeGunFireSyncPacket(player.getId(), hand == InteractionHand.MAIN_HAND ? 0 : 1), player);
-      int value = this.calculateDurabilityLostForMutations(1, stack);
-      this.hurtTool(stack, player, value);
-   }
-
-   public Component extraTips() {
-      return null;
-   }
-
-   public void clientShoot(Player player, InteractionHand interactionHand) {
-   }
-
-   public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-      consumer.accept(new IClientItemExtensions() {
-         public @Nullable ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
-            ItemStack stack = entityLiving.getItemInHand(hand);
-            return stack.getItem() instanceof GunHeldItem ? ArmPose.CROSSBOW_HOLD : null;
-         }
-      });
-   }
+    @Override
+    public void initializeClient(java.util.function.Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            @Override
+            public HumanoidModel.@org.jetbrains.annotations.Nullable ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
+                ItemStack stack = entityLiving.getItemInHand(hand);
+                if (stack.getItem() instanceof GunHeldItem){
+                    return HumanoidModel.ArmPose.CROSSBOW_HOLD;
+                }
+                return IClientItemExtensions.super.getArmPose(entityLiving, hand, itemStack);
+            }
+        });
+    }
 }

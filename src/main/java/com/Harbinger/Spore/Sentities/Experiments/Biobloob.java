@@ -6,7 +6,6 @@ import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.BaseEntities.Experiment;
 import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
 import com.Harbinger.Spore.Sentities.Projectile.BileProjectile;
-import java.util.List;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -14,12 +13,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -32,174 +26,157 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public class Biobloob extends Experiment implements RangedAttackMob {
-   public static final EntityDataAccessor SCALE;
-   private final float maxScale = 2.0F;
-   private final float minScale = 0.5F;
-   private static double health;
-   private static double damage;
-   private static double armor;
+    public static final EntityDataAccessor<Float> SCALE = SynchedEntityData.defineId(Biobloob.class, EntityDataSerializers.FLOAT);
+    private final float maxScale = 2.0f;
+    private final float minScale = 0.5f;
+    private static double health = SConfig.SERVER.biobloob_hp.get() * SConfig.SERVER.global_health.get();
+    private static double damage = SConfig.SERVER.biobloob_damage.get() * SConfig.SERVER.global_damage.get();
+    private static double armor = SConfig.SERVER.biobloob_armor.get() * SConfig.SERVER.global_armor.get();
+    public Biobloob(EntityType<? extends Monster> type, Level level) {
+        super(type, level);
 
-   public Biobloob(EntityType type, Level level) {
-      super(type, level);
-   }
+    }
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putFloat("scale",entityData.get(SCALE));
+    }
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        entityData.set(SCALE, tag.getFloat("scale"));
+    }
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(SCALE,1f);
+    }
+    public float getScale(){return entityData.get(SCALE);}
+    public void setScale(float value){this.entityData.set(SCALE,value);}
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean result = super.hurt(source, amount);
+        if (result) {
+            shrink(amount);
+        }
+        return result;
+    }
 
-   public void addAdditionalSaveData(CompoundTag tag) {
-      super.addAdditionalSaveData(tag);
-      tag.putFloat("scale", (Float)this.entityData.get(SCALE));
-   }
+    @Override
+    public void awardKillScore(Entity entity, int i, DamageSource damageSource) {
+        super.awardKillScore(entity, i, damageSource);
+        grow();
+    }
+    private void grow() {
+        if (getScale() < maxScale) {
+            setScale(getScale()+0.1f);
+            applyScaleEffects();
+        }
+    }
 
-   public void readAdditionalSaveData(CompoundTag tag) {
-      super.readAdditionalSaveData(tag);
-      this.entityData.set(SCALE, tag.getFloat("scale"));
-   }
+    private void shrink(float damageTaken) {
+        setScale(getScale()-damageTaken * 0.01f);
+        if (getScale() < minScale) {
+            setScale(minScale);
+        }
+        applyScaleEffects();
+    }
+    private void applyScaleEffects() {
+        Vec3 position = this.position();
+        this.setPos(position);
+        computeAttribute(Attributes.MAX_HEALTH,health * getScale());
+        computeAttribute(Attributes.ATTACK_DAMAGE,damage * getScale());
+        computeAttribute(Attributes.ARMOR,armor * getScale());
+        computeAttribute(Attributes.MOVEMENT_SPEED,0.3 * (1.0f / getScale()));
+        if (this.getHealth() > this.getMaxHealth()) {
+            this.setHealth(this.getMaxHealth());
+        }
+    }
+    @Override
+    public @NotNull EntityDimensions getDimensions(Pose pose) {
+        return super.getDimensions(pose).scale(getScale() == 1 ? 1 : getScale() * 0.8f);
+    }
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (SCALE.equals(accessor)){this.refreshDimensions();}
+    }
 
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(SCALE, 1.0F);
-   }
+    private void computeAttribute(Attribute attributes, double value){
+        AttributeInstance instance = this.getAttribute(attributes);
+        if (instance != null){instance.setBaseValue(value);}
+    }
 
-   public float getScale() {
-      return (Float)this.entityData.get(SCALE);
-   }
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes()
+                .add(Attributes.MAX_HEALTH, health)
+                .add(Attributes.MOVEMENT_SPEED, 0.3)
+                .add(Attributes.FLYING_SPEED, 0.3)
+                .add(Attributes.ATTACK_DAMAGE, damage)
+                .add(Attributes.ARMOR, armor)
+                .add(Attributes.FOLLOW_RANGE, 30)
+                .add(Attributes.ATTACK_KNOCKBACK, 1);
+    }
 
-   public void setScale(float value) {
-      this.entityData.set(SCALE, value);
-   }
+    @Override
+    public List<? extends String> getDropList() {
+        return SConfig.DATAGEN.bioblob_loot.get();
+    }
+    protected SoundEvent getAmbientSound() {
+        return Ssounds.BIOBLOB.get();
+    }
 
-   public boolean hurt(DamageSource source, float amount) {
-      boolean result = super.hurt(source, amount);
-      if (result) {
-         this.shrink(amount);
-      }
+    public SoundEvent getHurtSound(DamageSource p_34327_) {
+        return Ssounds.INF_DAMAGE.get();
+    }
 
-      return result;
-   }
+    public SoundEvent getDeathSound() {
+        return Ssounds.INF_DAMAGE.get();
+    }
 
-   public void awardKillScore(Entity entity, int i, DamageSource damageSource) {
-      super.awardKillScore(entity, i, damageSource);
-      this.grow();
-   }
+    protected SoundEvent getStepSound() {
+        return SoundEvents.ZOMBIE_STEP;
+    }
+    @Override
+    protected void addRegularGoals() {
+        super.addRegularGoals();
+        this.goalSelector.addGoal(3, new CustomMeleeAttackGoal(this, 1.2, false) {
+            @Override
+            protected double getAttackReachSqr(LivingEntity livingEntity) {
+                return livingEntity.getBbWidth() + 13 * getScale();
+            }
+        });
+        this.goalSelector.addGoal(4, new RandomStrollGoal(this, 0.8));
+        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
+    }
+    @Override
+    public void performRangedAttack(LivingEntity livingEntity, float v) {
+        if (!level().isClientSide){
+            if (Math.random() <= 0.5){
+                BileProjectile bileProjectile = new BileProjectile(level(),this,TARGET_SELECTOR);
+                double dx = livingEntity.getX() - this.getX();
+                double dy = livingEntity.getY() + livingEntity.getEyeHeight() - 1;
+                double dz = livingEntity.getZ() - this.getZ();
+                bileProjectile.setDamage((float) (SConfig.SERVER.biobloob__ranged_damage.get() * SConfig.SERVER.global_damage.get()));
+                bileProjectile.moveTo(this.getX(),this.getY()+1.5,this.getZ());
+                bileProjectile.shoot(dx, dy - bileProjectile.getY() + Math.hypot(dx, dz) * 0.05F, dz, 1f * 2, 12.0F);
+                level().addFreshEntity(bileProjectile);
+            }else {
+                AcidBall.shoot(this, livingEntity,(float) (SConfig.SERVER.biobloob__ranged_damage.get() * SConfig.SERVER.global_damage.get()));
+            }
+        }
+    }
 
-   private void grow() {
-      if (this.getScale() < 2.0F) {
-         this.setScale(this.getScale() + 0.1F);
-         this.applyScaleEffects();
-      }
-
-   }
-
-   private void shrink(float damageTaken) {
-      this.setScale(this.getScale() - damageTaken * 0.01F);
-      if (this.getScale() < 0.5F) {
-         this.setScale(0.5F);
-      }
-
-      this.applyScaleEffects();
-   }
-
-   private void applyScaleEffects() {
-      Vec3 position = this.position();
-      this.setPos(position);
-      this.computeAttribute(Attributes.MAX_HEALTH, health * (double)this.getScale());
-      this.computeAttribute(Attributes.ATTACK_DAMAGE, damage * (double)this.getScale());
-      this.computeAttribute(Attributes.ARMOR, armor * (double)this.getScale());
-      this.computeAttribute(Attributes.MOVEMENT_SPEED, 0.3 * (double)(1.0F / this.getScale()));
-      if (this.getHealth() > this.getMaxHealth()) {
-         this.setHealth(this.getMaxHealth());
-      }
-
-   }
-
-   public @NotNull EntityDimensions getDimensions(Pose pose) {
-      return super.getDimensions(pose).scale(this.getScale() == 1.0F ? 1.0F : this.getScale() * 0.8F);
-   }
-
-   public void onSyncedDataUpdated(EntityDataAccessor accessor) {
-      super.onSyncedDataUpdated(accessor);
-      if (SCALE.equals(accessor)) {
-         this.refreshDimensions();
-      }
-
-   }
-
-   private void computeAttribute(Attribute attributes, double value) {
-      AttributeInstance instance = this.getAttribute(attributes);
-      if (instance != null) {
-         instance.setBaseValue(value);
-      }
-
-   }
-
-   public static AttributeSupplier.Builder createAttributes() {
-      return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, health).add(Attributes.MOVEMENT_SPEED, 0.3).add(Attributes.FLYING_SPEED, 0.3).add(Attributes.ATTACK_DAMAGE, damage).add(Attributes.ARMOR, armor).add(Attributes.FOLLOW_RANGE, (double)30.0F).add(Attributes.ATTACK_KNOCKBACK, (double)1.0F);
-   }
-
-   public List<String> getDropList() {
-      return (List)SConfig.DATAGEN.bioblob_loot.get();
-   }
-
-   protected SoundEvent getAmbientSound() {
-      return (SoundEvent)Ssounds.BIOBLOB.get();
-   }
-
-   public SoundEvent getHurtSound(DamageSource p_34327_) {
-      return (SoundEvent)Ssounds.INF_DAMAGE.get();
-   }
-
-   public SoundEvent getDeathSound() {
-      return (SoundEvent)Ssounds.INF_DAMAGE.get();
-   }
-
-   protected SoundEvent getStepSound() {
-      return SoundEvents.ZOMBIE_STEP;
-   }
-
-   protected void addRegularGoals() {
-      super.addRegularGoals();
-      this.goalSelector.addGoal(3, new CustomMeleeAttackGoal(this, 1.2, false) {
-         protected double getAttackReachSqr(LivingEntity livingEntity) {
-            return (double)(livingEntity.getBbWidth() + 13.0F * Biobloob.this.getScale());
-         }
-      });
-      this.goalSelector.addGoal(4, new RandomStrollGoal(this, 0.8));
-      this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
-   }
-
-   public void performRangedAttack(LivingEntity livingEntity, float v) {
-      if (!this.level().isClientSide) {
-         if (Math.random() <= (double)0.5F) {
-            BileProjectile bileProjectile = new BileProjectile(this.level(), this, this.TARGET_SELECTOR);
-            double dx = livingEntity.getX() - this.getX();
-            double dy = livingEntity.getY() + (double)livingEntity.getEyeHeight() - (double)1.0F;
-            double dz = livingEntity.getZ() - this.getZ();
-            bileProjectile.setDamage((float)((Double)SConfig.SERVER.biobloob__ranged_damage.get() * (Double)SConfig.SERVER.global_damage.get()));
-            bileProjectile.moveTo(this.getX(), this.getY() + (double)1.5F, this.getZ());
-            bileProjectile.shoot(dx, dy - bileProjectile.getY() + Math.hypot(dx, dz) * (double)0.05F, dz, 2.0F, 12.0F);
-            this.level().addFreshEntity(bileProjectile);
-         } else {
-            AcidBall.shoot(this, livingEntity, (float)((Double)SConfig.SERVER.biobloob__ranged_damage.get() * (Double)SConfig.SERVER.global_damage.get()));
-            this.playSound(SoundEvents.SLIME_JUMP, 1.0F, 0.5F);
-         }
-      }
-
-   }
-
-   public void tick() {
-      super.tick();
-      if (this.tickCount % 60 == 0) {
-         LivingEntity living = this.getTarget();
-         if (living != null) {
-            this.performRangedAttack(living, 0.0F);
-         }
-      }
-
-   }
-
-   static {
-      SCALE = SynchedEntityData.defineId(Biobloob.class, EntityDataSerializers.FLOAT);
-      health = (Double)SConfig.SERVER.biobloob_hp.get() * (Double)SConfig.SERVER.global_health.get();
-      damage = (Double)SConfig.SERVER.biobloob_damage.get() * (Double)SConfig.SERVER.global_damage.get();
-      armor = (Double)SConfig.SERVER.biobloob_armor.get() * (Double)SConfig.SERVER.global_armor.get();
-   }
+    @Override
+    public void tick() {
+        super.tick();
+        if (tickCount % 60 == 0){
+            LivingEntity living = getTarget();
+            if (living != null){
+                performRangedAttack(living,0);
+            }
+        }
+    }
 }

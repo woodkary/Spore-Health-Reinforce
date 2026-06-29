@@ -18,34 +18,34 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 
 public class ThrownBlockRenderer extends EntityRenderer<ThrownBlockProjectile> {
-   public ThrownBlockRenderer(EntityRendererProvider.Context context) {
-      super(context);
-   }
+    public ThrownBlockRenderer(EntityRendererProvider.Context context) {
+        super(context);
+    }
 
-   public ResourceLocation getTextureLocation(ThrownBlockProjectile thrownBlockProjectile) {
-      return new ResourceLocation("");
-   }
+    @Override
+    public ResourceLocation getTextureLocation(ThrownBlockProjectile thrownBlockProjectile) {
+        return new ResourceLocation("");
+    }
 
-   public void render(ThrownBlockProjectile thrownBlockProjectile, float value, float p_114487_, PoseStack stack, MultiBufferSource source, int p_114490_) {
-      ItemStack itemStack = new ItemStack(thrownBlockProjectile.state().getBlock().asItem());
-      if (!itemStack.equals(ItemStack.EMPTY)) {
-         this.renderItem(stack, itemStack, source, value, thrownBlockProjectile.level(), thrownBlockProjectile.blockPosition());
-      }
+    @Override
+    public void render(ThrownBlockProjectile thrownBlockProjectile, float value, float p_114487_, PoseStack stack, MultiBufferSource source, int p_114490_) {
+        ItemStack itemStack = new ItemStack(thrownBlockProjectile.state().getBlock().asItem());
+        if (!itemStack.equals(ItemStack.EMPTY)) {
+            renderItem(stack,itemStack,source,value,thrownBlockProjectile.level(),thrownBlockProjectile.blockPosition());
+        }
+    }
+    public void renderItem(PoseStack stack, ItemStack itemStack, MultiBufferSource source, float value, Level level, BlockPos pos){
+        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+        stack.pushPose();
+        stack.scale(1.5f,1.5f,1.5f);
+        stack.mulPose(Axis.YP.rotationDegrees(value));
+        itemRenderer.renderStatic(itemStack, ItemDisplayContext.FIXED,getLight(level,pos), OverlayTexture.NO_OVERLAY,stack,source,level,1);
+        stack.popPose();
+    }
 
-   }
-
-   public void renderItem(PoseStack stack, ItemStack itemStack, MultiBufferSource source, float value, Level level, BlockPos pos) {
-      ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
-      stack.pushPose();
-      stack.scale(1.5F, 1.5F, 1.5F);
-      stack.mulPose(Axis.YP.rotationDegrees(value));
-      itemRenderer.renderStatic(itemStack, ItemDisplayContext.FIXED, this.getLight(level, pos), OverlayTexture.NO_OVERLAY, stack, source, level, 1);
-      stack.popPose();
-   }
-
-   private int getLight(Level level, BlockPos pos) {
-      int a = level.getBrightness(LightLayer.BLOCK, pos);
-      int b = level.getBrightness(LightLayer.SKY, pos);
-      return LightTexture.pack(a, b);
-   }
+    private int getLight(Level level, BlockPos pos){
+        int a = level.getBrightness(LightLayer.BLOCK,pos);
+        int b = level.getBrightness(LightLayer.SKY,pos);
+        return LightTexture.pack(a,b);
+    }
 }

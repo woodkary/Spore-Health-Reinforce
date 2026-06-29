@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Client.Renderers;
 
 import com.Harbinger.Spore.Client.Models.EDBiomassModel;
 import com.Harbinger.Spore.Sentities.Projectile.DrownedFleshBomb;
+import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -16,26 +17,30 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class DrownedFleshBombRenderer extends EntityRenderer<DrownedFleshBomb> {
-   public static final ResourceLocation BASIC_ROUND = new ResourceLocation("spore", "textures/entity/db_texture.png");
-   private final EDBiomassModel model = new EDBiomassModel();
+public class DrownedFleshBombRenderer<T extends DrownedFleshBomb>extends EntityRenderer<T> {
+    public static final ResourceLocation BASIC_ROUND = new ResourceLocation(Spore.MODID,"textures/entity/db_texture.png");
+     private final EDBiomassModel<T> model;
 
-   public DrownedFleshBombRenderer(EntityRendererProvider.Context context) {
-      super(context);
-   }
+    public DrownedFleshBombRenderer(EntityRendererProvider.Context context) {
+        super(context);
+        this.model = new EDBiomassModel<>();
+    }
 
-   public void render(DrownedFleshBomb entity, float value2, float value, PoseStack stack, MultiBufferSource source, int p_116116_) {
-      stack.pushPose();
-      stack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(value, entity.yRotO, entity.getYRot()) - 90.0F));
-      stack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(value, entity.xRotO, entity.getXRot()) + 90.0F));
-      VertexConsumer vertexconsumer = ItemRenderer.getFoilBufferDirect(source, this.model.renderType(this.getTextureLocation(entity)), false, false);
-      this.model.setupAnim(entity, 0.0F, 0.0F, (float)entity.tickCount, 0.0F, 0.0F);
-      this.model.renderToBuffer(stack, vertexconsumer, p_116116_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-      stack.popPose();
-      super.render(entity, value2, value, stack, source, p_116116_);
-   }
+    public void render(T entity, float value2, float value, PoseStack stack, MultiBufferSource source, int p_116116_) {
+        stack.pushPose();
+        stack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(value, entity.yRotO, entity.getYRot()) - 90.0F));
+        stack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(value, entity.xRotO, entity.getXRot()) + 90.0F));
+        VertexConsumer vertexconsumer = ItemRenderer.getFoilBufferDirect(source, this.model.renderType(this.getTextureLocation(entity)), false, false);
+        model.setupAnim(entity,0,0,entity.tickCount,0,0);
+        model.renderToBuffer(stack, vertexconsumer, p_116116_, OverlayTexture.NO_OVERLAY, 1,1,1,1);
+        stack.popPose();
+        super.render(entity, value2, value, stack, source, p_116116_);
+    }
 
-   public ResourceLocation getTextureLocation(DrownedFleshBomb t) {
-      return BASIC_ROUND;
-   }
+    @Override
+    public ResourceLocation getTextureLocation(T t) {
+        return BASIC_ROUND;
+    }
+
+
 }
