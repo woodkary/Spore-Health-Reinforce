@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.SConfig;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
 import com.Harbinger.Spore.Sentities.AI.LocHiv.BufferAI;
 import com.Harbinger.Spore.Sentities.AI.LocHiv.LocalTargettingGoal;
@@ -73,6 +74,9 @@ public class Experiment extends Infected{
 
     @Override
     public void setTarget(@Nullable LivingEntity entity) {
+        if (SporeJudge.isSporeEntity(entity)) {
+            return;
+        }
         super.setTarget(entity);
         if (entity != null && isDormant()){
             setDormant(false);

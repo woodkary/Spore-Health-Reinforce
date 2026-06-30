@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.HybridPathNavigation;
@@ -261,6 +262,9 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
 
     @Override
     public void setTarget(@Nullable LivingEntity entity) {
+        if (SporeJudge.isSporeEntity(entity)) {
+            return;
+        }
         super.setTarget(entity);
         this.setInvisible(entity != null && entity.distanceToSqr(this) > 50D);
     }

@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.Hyper;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
 import com.Harbinger.Spore.Sentities.MovementControls.InfectedWallMovementControl;
@@ -130,6 +131,9 @@ public class Wendigo extends Hyper {
 
     @Override
     public void setTarget(@Nullable LivingEntity livingEntity) {
+        if (SporeJudge.isSporeEntity(livingEntity)) {
+            return;
+        }
         super.setTarget(livingEntity);
         AttributeInstance attributeinstance = this.getAttribute(Attributes.MOVEMENT_SPEED);
         if (attributeinstance != null){

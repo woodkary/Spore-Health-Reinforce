@@ -143,6 +143,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public void setTarget(@Nullable LivingEntity p_21544_) {
+        if (SporeJudge.isSporeEntity(p_21544_)) {
+            return;
+        }
         super.setTarget(p_21544_);
         if (isRooted()){this.setRooted(false);}
     }

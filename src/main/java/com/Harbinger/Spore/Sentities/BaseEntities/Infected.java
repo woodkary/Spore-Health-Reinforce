@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -75,6 +76,7 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
     public static final EntityDataAccessor<String> ORIGIN = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.STRING);
     @Nullable private BlockPos searchPos;
     @Nullable private LivingEntity partner;
+    @Nullable private LivingEntity sporeTarget;
     public Infected(EntityType<? extends Monster> type, Level level) {
         super(type, level);
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
@@ -87,6 +89,21 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
     public List<? extends String> getDropList(){
         return null;
     }
+
+    @Override
+    @Nullable
+    public LivingEntity getTarget() {
+        return this.sporeTarget;
+    }
+
+    @Override
+    public void setTarget(@Nullable LivingEntity target) {
+        if (SporeJudge.isSporeEntity(target)) {
+            return;
+        }
+        this.sporeTarget = target;
+    }
+
     @Nullable
     public BlockPos getSearchPos() {return searchPos;}
 

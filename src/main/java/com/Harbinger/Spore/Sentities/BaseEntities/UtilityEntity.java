@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.SConfig;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.HurtTargetGoal;
 import net.minecraft.core.BlockPos;
@@ -25,11 +26,15 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
 public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEntity, IEventTickable {
+    @Nullable
+    private LivingEntity sporeTarget;
+
     protected UtilityEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         initCustom();
@@ -39,6 +44,20 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
     }
     public List<? extends String> getDropList(){
         return null;
+    }
+
+    @Override
+    @Nullable
+    public LivingEntity getTarget() {
+        return this.sporeTarget;
+    }
+
+    @Override
+    public void setTarget(@Nullable LivingEntity target) {
+        if (SporeJudge.isSporeEntity(target)) {
+            return;
+        }
+        this.sporeTarget = target;
     }
 
     @Override
