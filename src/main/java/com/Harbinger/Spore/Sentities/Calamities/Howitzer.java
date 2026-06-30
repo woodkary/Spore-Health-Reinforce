@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
@@ -359,12 +360,15 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
         if (calamityMultipart == this.mouth){
             this.hurt(source,value*2f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.8f);
         }else if (calamityMultipart == this.rightArm){
             this.hurt(source,value *1.5f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.4f);
             float lostHealth = getRightArmHp()-this.getDamageAfterArmorAbsorb(source,value);
             this.setRightArmHp(lostHealth > 0 ? lostHealth : getRightArmHp() != 0 ? summonDetashedPart(true) : 0f);
         }else if (calamityMultipart == this.leftArm){
             this.hurt(source,value*1.5f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.4f);
             float lostHealth = getLeftArmHp()-this.getDamageAfterArmorAbsorb(source,value);
             this.setLeftArmHp(lostHealth > 0 ? lostHealth : getLeftArmHp() != 0 ? summonDetashedPart(false) : 0f);
         } else{

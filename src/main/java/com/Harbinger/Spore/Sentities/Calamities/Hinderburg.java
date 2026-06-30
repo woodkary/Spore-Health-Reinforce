@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Calamities;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.AerialRangedGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
@@ -178,8 +179,10 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
         if (calamityMultipart == this.mouth){
             this.hurt(source,value * 2f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
         }else if(calamityMultipart == this.rightcannon || calamityMultipart == this.leftcannon){
             this.hurt(source,value * 3f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 2.0f);
         }else {
             this.hurt(source,value);
         }

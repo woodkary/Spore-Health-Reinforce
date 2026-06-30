@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.*;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
@@ -285,6 +286,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
                 this.playSound(Ssounds.LIMB_SLASH.get());
             }
             this.hurt(source,value * 1.5f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.8f);
             this.setTongueHp(value > this.getTongueHp() ? 0 : this.getTongueHp() - value);
         } else{
             this.hurt(source,value );

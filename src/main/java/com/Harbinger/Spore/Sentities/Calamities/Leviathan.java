@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
@@ -282,6 +283,9 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
     @Override
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
         value = rangeAttackAnimationTick > 0 ? value * 2 : value * 0.5f;
+        if (rangeAttackAnimationTick > 0) {
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
+        }
         hurt(source,value);
         return false;
     }

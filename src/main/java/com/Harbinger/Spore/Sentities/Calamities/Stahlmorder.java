@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
@@ -231,8 +232,10 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
         if (calamityMultipart == this.mouth){
             this.hurt(source,value * 1.25f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
         } else if (calamityMultipart == this.swordArm && getSwordArmHp() > 0){
             this.hurt(source,value * 1.5f);
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 1.1f);
             float lostHealth = getSwordArmHp()-this.getDamageAfterArmorAbsorb(source,value);
             this.setSwordtArmHp(lostHealth > 0 ? lostHealth : getSwordArmHp() != 0 ? summonDetashedPart() : 0f);
         }

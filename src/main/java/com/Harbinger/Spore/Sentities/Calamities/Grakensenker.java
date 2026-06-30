@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.*;
@@ -247,7 +248,11 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
         if (calamityMultipart == LeftHand){
             this.entityData.set(LEFT_ARM_DELAY,100);
         }
+        float originalDamage = value;
         value = calamityMultipart == this.Body ? value * 3 : value;
+        if (calamityMultipart == this.Body) {
+            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, originalDamage * 2.0f);
+        }
         return this.hurt(source,value);
     }
 
