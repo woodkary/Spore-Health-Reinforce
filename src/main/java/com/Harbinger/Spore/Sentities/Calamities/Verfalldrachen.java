@@ -993,7 +993,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
             if (distance > orbitRadius) {
                 mob.getMoveControl().setWantedPosition(
                         target.getX(),
-                        target.getEyeY() + 4.0,
+                        target.getEyeY() + 8.0,
                         target.getZ(),
                         speed
                 );
@@ -1001,10 +1001,10 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
                 mob.setDeltaMovement(mob.getDeltaMovement().multiply(0, 1, 0)
                         .add(target.position().subtract(mob.position()).normalize().multiply(1, 0, 1)
                                 .yRot(90)).scale(mob.getAttributeValue(Attributes.FLYING_SPEED) * 1.5));
-                if ((target.getY() + 4) > mob.getY()){
+                if ((target.getY() + 8) > mob.getY()){
                     mob.getMoveControl().setWantedPosition(
                             mob.getX(),
-                            mob.getEyeY() + 4.0,
+                            mob.getEyeY() + 8.0,
                             mob.getZ(),
                             speed
                     );
