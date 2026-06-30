@@ -222,6 +222,7 @@
 
 必须保留的核心类：
 
+- `Sentities/BaseEntities/Calamity.java`
 - `Sentities/AI/CalamityPathNavigation.java`
 - `Sentities/AI/CalamityPathTypePolicy.java`
 - `Sentities/AI/IPathTypePolicy.java`
@@ -232,6 +233,7 @@
 
 同步验证：
 
+- `Calamity.forceStart(Goal)` 不能退回成只反射调用 `"start"`。必须保留混淆名优先的启动链：先用 `Goal#m_8056_()` 的 `MethodHandle`，再退回 `Goal#start()` 的 `MethodHandle`，再用混淆名/反混淆名反射，最后才直接 `goal.start()`。这是冰冻触发 `SporeBurstSupport` 的关键路径。
 - `CalamityPathNavigation` 必须保留 detour 栈、临时目标、stuck 诊断、终点/水节点恢复、`recomputePath()` 包装和水节点短期黑名单。
 - `CalamityPathTypePolicy` 必须保留陆地/天空灾难避开水、岩浆、粉雪，以及水灾难陆上/水中不同策略。Gazenbrecher 这类火适应实体不能被误判为必须避开岩浆。
 - 水灾难应使用 `AmphibianCalamityNodeEvaluator`：陆上走陆地评估，水中走水中评估，避免水陆交界处一直使用不合适的 evaluator。
@@ -252,7 +254,7 @@
 git status --short --branch
 git log --oneline --decorate --max-count=20
 git diff --name-status origin/master...HEAD
-rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|HEALING_INHIBITION|enable_light|CasingLightAllowed|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal" src/main/java src/main/resources -S
+rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|HEALING_INHIBITION|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal" src/main/java src/main/resources -S
 rg -n "\.hurt\(|setHealth\(|dealDamage\(|setMaxHeeaafastth" src/main/java -S
 .\gradlew --no-daemon --console=plain compileJava
 ```
@@ -264,5 +266,5 @@ rg -n "\.hurt\(|setHealth\(|dealDamage\(|setMaxHeeaafastth" src/main/java -S
 - 血量、最大血量、heal redirect、禁止回血效果、fake data health、multipart owner、IDieWithDiscardEntity 特殊死亡全部有代码证据。
 - 实体 storage 替换覆盖 server/client lookup、id map、uuid map、known UUID set、tracked entity map、section/callback。
 - 额外伤害路径已迁移到 `SporeAttackUtil` 或明确标记为有意保留的原版主击中路径。
-- Calamity/Grakensenker/Howitzer 寻路增强仍在当前上游结构中生效。
+- Calamity `forceStart` 混淆名优先启动链、Grakensenker/Howitzer 寻路增强仍在当前上游结构中生效。
 - native DLL、贴图、语言、mods.toml、Gradle 属性没有被上游模板覆盖。

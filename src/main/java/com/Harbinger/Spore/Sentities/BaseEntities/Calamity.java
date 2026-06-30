@@ -2,6 +2,8 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.ClassUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
@@ -66,6 +68,8 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -325,13 +329,95 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         }
         return super.hurt(source, amount);
     }
+    private static final String GOAL_START_OBFUSCATED_NAME = "m_8056_";
+    private static final String GOAL_START_DEOBFUSCATED_NAME = "start";
+    private static MethodHandle startMethodHandle;
+    private static boolean startMethodHandleLookupAttempted;
+    private static Method startReflectMethod;
+    private static boolean startReflectMethodLookupAttempted;
+
     public static void forceStart(Goal goal) {
+        if (goal == null) {
+            return;
+        }
+        if (invokeStartMethodHandle(goal)) {
+            return;
+        }
+        if (invokeStartReflectively(goal)) {
+            return;
+        }
+        goal.start();
+    }
+
+    private static boolean invokeStartMethodHandle(Goal goal) {
+        MethodHandle handle = getStartMethodHandle();
+        if (handle == null) {
+            return false;
+        }
         try {
-            Method m = Goal.class.getDeclaredMethod("start");
-            m.setAccessible(true);
-            m.invoke(goal);
-        } catch (Exception e) {
-            e.printStackTrace();
+            handle.invoke(goal);
+            return true;
+        } catch (Throwable throwable) {
+            LogUtil.errorf("can't invoke Goal start MethodHandle: %s", throwable.getMessage());
+            return false;
+        }
+    }
+
+    private static MethodHandle getStartMethodHandle() {
+        if (startMethodHandleLookupAttempted) {
+            return startMethodHandle;
+        }
+        startMethodHandleLookupAttempted = true;
+        startMethodHandle = findStartMethodHandle(GOAL_START_OBFUSCATED_NAME);
+        if (startMethodHandle == null) {
+            startMethodHandle = findStartMethodHandle(GOAL_START_DEOBFUSCATED_NAME);
+        }
+        return startMethodHandle;
+    }
+
+    private static MethodHandle findStartMethodHandle(String name) {
+        try {
+            return ClassUtil.getLookup().findVirtual(Goal.class, name, MethodType.methodType(void.class));
+        } catch (Throwable throwable) {
+            LogUtil.logf("can't find Goal start MethodHandle with name %s: %s", name, throwable.getMessage());
+            return null;
+        }
+    }
+
+    private static boolean invokeStartReflectively(Goal goal) {
+        Method method = getStartReflectMethod();
+        if (method == null) {
+            return false;
+        }
+        try {
+            method.invoke(goal);
+            return true;
+        } catch (ReflectiveOperationException throwable) {
+            LogUtil.errorf("can't invoke Goal start reflectively: %s", throwable.getMessage());
+            return false;
+        }
+    }
+
+    private static Method getStartReflectMethod() {
+        if (startReflectMethodLookupAttempted) {
+            return startReflectMethod;
+        }
+        startReflectMethodLookupAttempted = true;
+        startReflectMethod = findStartReflectMethod(GOAL_START_OBFUSCATED_NAME);
+        if (startReflectMethod == null) {
+            startReflectMethod = findStartReflectMethod(GOAL_START_DEOBFUSCATED_NAME);
+        }
+        return startReflectMethod;
+    }
+
+    private static Method findStartReflectMethod(String name) {
+        try {
+            Method method = Goal.class.getDeclaredMethod(name);
+            method.setAccessible(true);
+            return method;
+        } catch (ReflectiveOperationException throwable) {
+            LogUtil.logf("can't find Goal start reflective method with name %s: %s", name, throwable.getMessage());
+            return null;
         }
     }
     public static <T extends Goal> T findGoal(Mob mob, Class<T> goalClass) {
