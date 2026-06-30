@@ -833,7 +833,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
     }
 
     private void hurtHeadAttackTarget(LivingEntity target, DamageSource source, float damage) {
-        if (target instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+        if (target instanceof Player player) {
             target.hurt(source, damage);
             return;
         }
