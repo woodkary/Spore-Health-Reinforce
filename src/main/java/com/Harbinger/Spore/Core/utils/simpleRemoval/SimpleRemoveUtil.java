@@ -464,7 +464,8 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     private void createWrapppper(Object entity){
         Class<?> wrapper = ClassLoaderUtil.INSTANCE.creeateveWrapperHidden(
-                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass())
+                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(
+                        ASMHurtArrowUtil.INSTANCE.getOrginalClass(entity.getClass()))
         );
         if (wrapper != null) {
             wrapperToOriginal.putIfAbsent(wrapper,entity.getClass());
