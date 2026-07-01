@@ -23,7 +23,7 @@ public class Mycelium extends MobEffect {
                     player.causeFoodExhaustion(1.0F);
                 }else {
                     DamageSource source = SdamageTypes.mycelium_overtake(entity);
-                    if (entity instanceof Player) {
+                    if (entity instanceof Player||!entity.isAlive()) {
                         entity.hurt(source, 1.0F);
                     } else {
                         SporeAttackUtil.INSTANCE.dealDamage(entity, entity, source, 1.0f);
