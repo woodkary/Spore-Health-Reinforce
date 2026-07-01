@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sitems;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.utils.ASMHurtArrowUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
@@ -58,23 +59,23 @@ public class InfectedGreatBow extends BowItem implements SporeWeaponData {
     public void releaseUsing(ItemStack stack, Level level, LivingEntity living, int p_40670_) {
         if (living instanceof Player player && tooHurt(stack)) {
             boolean flag = player.getAbilities().instabuild || EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, stack) > 0;
-            ItemStack itemstack = player.getProjectile(stack);
+            ItemStack arrowItem = player.getProjectile(stack);
 
             int i = this.getUseDuration(stack) - p_40670_;
-            i = net.minecraftforge.event.ForgeEventFactory.onArrowLoose(stack, level, player, i, !itemstack.isEmpty() || flag);
+            i = net.minecraftforge.event.ForgeEventFactory.onArrowLoose(stack, level, player, i, !arrowItem.isEmpty() || flag);
             if (i < 0) return;
 
-            if (!itemstack.isEmpty() || flag) {
-                if (itemstack.isEmpty()) {
-                    itemstack = new ItemStack(Items.ARROW);
+            if (!arrowItem.isEmpty() || flag) {
+                if (arrowItem.isEmpty()) {
+                    arrowItem = new ItemStack(Items.ARROW);
                 }
 
                 float f = getPowerForTime(i);
                 if (!((double)f < 0.1D)) {
-                    boolean flag1 = player.getAbilities().instabuild || (itemstack.getItem() instanceof ArrowItem && ((ArrowItem)itemstack.getItem()).isInfinite(itemstack, stack, player));
+                    boolean flag1 = player.getAbilities().instabuild || (arrowItem.getItem() instanceof ArrowItem && ((ArrowItem)arrowItem.getItem()).isInfinite(arrowItem, stack, player));
                     if (!level.isClientSide) {
-                        ArrowItem arrowitem = (ArrowItem)(itemstack.getItem() instanceof ArrowItem ? itemstack.getItem() : Items.ARROW);
-                        AbstractArrow abstractarrow = arrowitem.createArrow(level, itemstack, player);
+                        ArrowItem arrowitem = (ArrowItem)(arrowItem.getItem() instanceof ArrowItem ? arrowItem.getItem() : Items.ARROW);
+                        AbstractArrow abstractarrow = arrowitem.createArrow(level, arrowItem, player);
                         abstractarrow = customArrow(abstractarrow);
                         abstractarrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, f * 4.5F, 1.0F);
 
@@ -96,9 +97,12 @@ public class InfectedGreatBow extends BowItem implements SporeWeaponData {
                         if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FLAMING_ARROWS, stack) > 0) {
                             abstractarrow.setSecondsOnFire(100);
                         }
+                        if(this.getVariant(stack) == SporeToolsMutations.BEZERK) {
+                            ASMHurtArrowUtil.INSTANCE.wrap(abstractarrow);
+                        }
 
                         this.hurtTool(stack,player,1);
-                        if (flag1 || player.getAbilities().instabuild && (itemstack.is(Items.SPECTRAL_ARROW) || itemstack.is(Items.TIPPED_ARROW))) {
+                        if (flag1 || player.getAbilities().instabuild && (arrowItem.is(Items.SPECTRAL_ARROW) || arrowItem.is(Items.TIPPED_ARROW))) {
                             abstractarrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
                         }
                         if (abstractarrow instanceof Arrow arrow){
@@ -108,9 +112,9 @@ public class InfectedGreatBow extends BowItem implements SporeWeaponData {
                     }
                     level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + f * 0.5F);
                     if (!flag1 && !player.getAbilities().instabuild) {
-                        itemstack.shrink(1);
-                        if (itemstack.isEmpty()) {
-                            player.getInventory().removeItem(itemstack);
+                        arrowItem.shrink(1);
+                        if (arrowItem.isEmpty()) {
+                            player.getInventory().removeItem(arrowItem);
                         }
                     }
                     player.awardStat(Stats.ITEM_USED.get(this));

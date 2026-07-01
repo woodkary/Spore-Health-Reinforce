@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sitems;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.utils.ASMHurtArrowUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
@@ -80,7 +81,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
             return InteractionResultHolder.fail(itemstack);
         }
         if (isCharged(itemstack)) {
-            performShooting(level, player, hand, itemstack, getShootingPower(itemstack), 1.0F);
+            performCrossBowShooting(level, player, hand, itemstack, getShootingPower(itemstack), 1.0F);
             if (!player.getAbilities().instabuild){
                 hurtTool(itemstack,player,1);
             }
@@ -211,27 +212,27 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
     }
 
     public static boolean containsChargedProjectile(ItemStack stack, Item item) {
-        return getChargedProjectiles(stack).stream().anyMatch((p_40870_) -> {
-            return p_40870_.is(item);
-        });
+        return getChargedProjectiles(stack).stream().anyMatch((p_40870_) -> p_40870_.is(item));
     }
 
-    private static void shootProjectile(Level level, LivingEntity entity, InteractionHand hand, ItemStack stack, ItemStack p_40899_, float p_40900_, boolean p_40901_, float p_40902_, float p_40903_, float p_40904_) {
+    private void shootProjectile(Level level, LivingEntity entity, InteractionHand hand, ItemStack bowItem, ItemStack arrowItem, float p_40900_, boolean p_40901_, float p_40902_, float p_40903_, float p_40904_) {
         if (!level.isClientSide) {
-            boolean flag = p_40899_.is(Items.FIREWORK_ROCKET);
+            boolean flag = arrowItem.is(Items.FIREWORK_ROCKET);
             Projectile projectile;
             if (flag) {
-                projectile = new FireworkRocketEntity(level, p_40899_, entity, entity.getX(), entity.getEyeY() - (double)0.15F, entity.getZ(), true);
+                projectile = new FireworkRocketEntity(level, arrowItem, entity, entity.getX(), entity.getEyeY() - (double)0.15F, entity.getZ(), true);
             } else {
-                projectile = getArrow(level, entity, stack, p_40899_);
+                projectile = getArrow(level, entity, bowItem, arrowItem);
                 if (p_40901_ || p_40904_ != 0.0F) {
                     ((AbstractArrow)projectile).pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
                 }
             }
+            if(this.getVariant(bowItem) == SporeToolsMutations.BEZERK) {
+                ASMHurtArrowUtil.INSTANCE.wrap(projectile);
+            }
 
-            if (entity instanceof CrossbowAttackMob) {
-                CrossbowAttackMob crossbowattackmob = (CrossbowAttackMob)entity;
-                crossbowattackmob.shootCrossbowProjectile(crossbowattackmob.getTarget(), stack, projectile, p_40904_);
+            if (entity instanceof CrossbowAttackMob crossbowattackmob) {
+                crossbowattackmob.shootCrossbowProjectile(Objects.requireNonNull(crossbowattackmob.getTarget()), bowItem, projectile, p_40904_);
             } else {
                 Vec3 vec31 = entity.getUpVector(1.0F);
                 Quaternionf quaternionf = (new Quaternionf()).setAngleAxis((double)(p_40904_ * ((float)Math.PI / 180F)), vec31.x, vec31.y, vec31.z);
@@ -240,7 +241,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
                 projectile.shoot((double)vector3f.x(), (double)vector3f.y(), (double)vector3f.z(), p_40902_, p_40903_);
             }
             if (projectile instanceof Arrow arrow){
-                abstractEffects(stack,arrow);
+                abstractEffects(bowItem,arrow);
                 arrow.setBaseDamage(getAdditionalDamageCrossbow(entity.getItemInHand(hand),arrow.getBaseDamage()));
             }
             level.addFreshEntity(projectile);
@@ -248,16 +249,16 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         }
     }
 
-    private static AbstractArrow getArrow(Level level, LivingEntity entity, ItemStack stack, ItemStack itemStack) {
-        ArrowItem arrowitem = (ArrowItem)(itemStack.getItem() instanceof ArrowItem ? itemStack.getItem() : Items.ARROW);
-        AbstractArrow abstractarrow = arrowitem.createArrow(level, itemStack, entity);
+    private static AbstractArrow getArrow(Level level, LivingEntity entity, ItemStack bowItem, ItemStack arrowItem) {
+        ArrowItem arrowitem = (ArrowItem)(arrowItem.getItem() instanceof ArrowItem ? arrowItem.getItem() : Items.ARROW);
+        AbstractArrow abstractarrow = arrowitem.createArrow(level, arrowItem, entity);
         if (entity instanceof Player) {
             abstractarrow.setCritArrow(true);
         }
 
         abstractarrow.setSoundEvent(SoundEvents.CROSSBOW_HIT);
         abstractarrow.setShotFromCrossbow(true);
-        int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PIERCING, stack);
+        int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PIERCING, bowItem);
         if (i > 0) {
             abstractarrow.setPierceLevel((byte)i);
         }
@@ -266,7 +267,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         return abstractarrow;
     }
 
-    public static void performShooting(Level p_40888_, LivingEntity p_40889_, InteractionHand p_40890_, ItemStack p_40891_, float p_40892_, float p_40893_) {
+    public void performCrossBowShooting(Level p_40888_, LivingEntity p_40889_, InteractionHand p_40890_, ItemStack p_40891_, float p_40892_, float p_40893_) {
         if (p_40889_ instanceof Player player && net.minecraftforge.event.ForgeEventFactory.onArrowLoose(p_40891_, p_40889_.level(), player, 1, true) < 0) return;
         List<ItemStack> list = getChargedProjectiles(p_40891_);
         float[] afloat = getShotPitches(p_40889_.getRandom());
