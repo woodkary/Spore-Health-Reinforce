@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.phys.EntityHitResult;
 import org.objectweb.asm.MethodVisitor;
@@ -100,7 +101,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
             return;
         }
         Entity target = ParentUtil.INSTANCE.getUltimateParent(result.getEntity());
-        if(!(target instanceof LivingEntity liv)){
+        if(!(target instanceof LivingEntity liv)||(target instanceof Player)){
             return;
         }
         Entity owner = arrow.getOwner();
@@ -109,6 +110,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
         }
         DamageSource source=arrow.level().damageSources().mobProjectile(arrow, own);
         SporeAttackUtil.INSTANCE.dealDamage(liv,own,source, (float) (arrow.getBaseDamage()*0.5));
+        liv.invulnerableTime=0;
     }
 
     private String buildWrapperInternalName(Class<?> original) {
