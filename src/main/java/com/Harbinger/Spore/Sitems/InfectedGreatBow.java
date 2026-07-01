@@ -199,7 +199,7 @@ public class InfectedGreatBow extends BowItem implements SporeWeaponData {
         if (!tooHurt(stack) && entity instanceof Player player){
             player.getCooldowns().addCooldown(this,60);
         }
-        return false;
+        return doASMRangeHurtOnSwing(stack, entity);
     }
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity living, LivingEntity entity) {
