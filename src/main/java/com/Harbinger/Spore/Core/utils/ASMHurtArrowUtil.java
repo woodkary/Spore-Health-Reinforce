@@ -54,7 +54,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
         }
         Class<?> wrapper=WRAPPER_CACHE.computeIfAbsent(original, this);
         if(wrapper!=null){
-            WRAPPER_TO_ORIGINAL_CACHE.put(wrapper,original);
+            WRAPPER_TO_ORIGINAL_CACHE.putIfAbsent(wrapper,original);
         }
         return wrapper;
     }
