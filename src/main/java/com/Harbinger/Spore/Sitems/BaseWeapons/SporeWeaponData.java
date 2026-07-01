@@ -14,6 +14,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.Npc;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -41,15 +42,28 @@ public interface SporeWeaponData {
         }
     }
     default boolean doASMRangeHurtOnSwing(ItemStack stack, LivingEntity attacker) {
-        if (!(attacker instanceof Player player) || this.getVariant(stack) != SporeToolsMutations.BEZERK) {
+        if (!(attacker instanceof Player player)) {
+            return false;
+        }
+        int flag=0;
+        //最低位代表SporeToolsMutations.BEZERK，第二位代表Senchantments.CRYOGENIC_ASPECT
+        if(this.getVariant(stack) == SporeToolsMutations.BEZERK){
+            flag|=1;
+        }
+        if(stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0){
+            flag|=2;
+        }
+        if(flag==0){
             return false;
         }
         Entity target = SporeAttackUtil.INSTANCE.getTargetedEntity(player, player.getEntityReach());
-        if (target == null || target instanceof AbstractVillager) {
+        if (target == null || target instanceof Npc) {
             return false;
         }
-        SporeAttackUtil.INSTANCE.attack(player, target, stack);
-        if (stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0 && target instanceof LivingEntity living) {
+        if((flag&1)!=0) {
+            SporeAttackUtil.INSTANCE.attack(player, target, stack);
+        }
+        if ((flag&2)!=0 && target instanceof LivingEntity living) {
             DamageSource freeze = new DamageSource(target.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), player, player);
             SporeAttackUtil.INSTANCE.dealDamage(living, player, freeze, 2.0f);
         }
