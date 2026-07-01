@@ -46,6 +46,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
         return WRAPPER_TO_ORIGINAL_CACHE.getOrDefault(wrapperValue,wrapperValue);
     }
     private Class<?> getWrapper(Class<?> original) {
+        original=getOrginalClass(original);
         if(original==null||!AbstractArrow.class.isAssignableFrom(original)||Modifier.isFinal(original.getModifiers())) {
             return null;
         }
