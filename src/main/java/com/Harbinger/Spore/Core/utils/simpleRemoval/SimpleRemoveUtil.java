@@ -511,7 +511,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }
         return null;
     }
-    private <T extends EntityAccess> long getCurrentSectionKey(Entity entity){
+    private long getCurrentSectionKey(Entity entity){
         EntityInLevelCallback levelCallback = entity.levelCallback;
         for(Class<?> current=levelCallback.getClass();current!=null&&current!=EntityInLevelCallback.class;current=current.getSuperclass()){
             for (Field field : current.getDeclaredFields()) {
