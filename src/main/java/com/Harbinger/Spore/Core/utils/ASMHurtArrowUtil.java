@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.EntityHitResult;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -47,7 +48,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
     }
     private Class<?> getWrapper(Class<?> original) {
         original=getOrginalClass(original);
-        if(original==null||!AbstractArrow.class.isAssignableFrom(original)||Modifier.isFinal(original.getModifiers())) {
+        if(original==null||!Projectile.class.isAssignableFrom(original)||Modifier.isFinal(original.getModifiers())) {
             return null;
         }
         if(original.getName().contains(WRAPPER_SUFFIX)) {
