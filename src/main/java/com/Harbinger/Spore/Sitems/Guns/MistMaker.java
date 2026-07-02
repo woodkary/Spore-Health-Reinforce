@@ -7,6 +7,7 @@ import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.Projectile.GunProjectiles.GoreBullet;
+import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.CustomModelArmorData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -133,7 +134,7 @@ public class MistMaker extends AbstractSporeGun implements CustomModelArmorData 
                         if (entity instanceof LivingEntity living) {
                             DamageSource source = level.damageSources().playerAttack(player);
                             float damage = (float) calculateTrueDamage(stack, SConfig.SERVER.mistmaker_melee_damage.get());
-                            if(living instanceof Player){
+                            if(living instanceof Player||this.getVariant(stack)!=SporeToolsMutations.BEZERK||!living.isAlive()){
                                 living.hurt(source, damage);
                             }else{
                                 SporeAttackUtil.INSTANCE.dealDamage(living,player,source,damage);
