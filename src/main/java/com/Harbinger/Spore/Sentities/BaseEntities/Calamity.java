@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
@@ -321,6 +322,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     @Override
     public boolean hurt(DamageSource source, float amount) {
         setRooted(false);
+        if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){
+            return false;
+        }
         if (this.getRandom().nextInt(20) == 0){
             this.grief(this.getBoundingBox().inflate(this.setInflation(),0.0,this.setInflation()));
         }

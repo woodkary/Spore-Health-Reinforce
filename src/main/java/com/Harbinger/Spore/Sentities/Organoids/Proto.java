@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -532,6 +533,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
+        if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){
+            return false;
+        }
         if(amount < 10000 && amount > SConfig.SERVER.proto_dpsr.get() && SConfig.SERVER.proto_dpsr.get() > 0){
             return super.hurt(source, (float) (SConfig.SERVER.proto_dpsr.get() * 1F));
         }
