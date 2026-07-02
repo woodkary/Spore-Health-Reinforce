@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Client.AnimationTrackers.MistMakerShootAnimationTrack
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.Projectile.GunProjectiles.GoreBullet;
 import com.Harbinger.Spore.Sitems.CustomModelArmorData;
 import net.minecraft.ChatFormatting;
@@ -14,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -128,10 +130,18 @@ public class MistMaker extends AbstractSporeGun implements CustomModelArmorData 
                 if (dot > 0.5) {
                     double distance = startPos.distanceTo(entity.position());
                     if (distance <= range) {
-                        if (entity instanceof LivingEntity living && living.hurtTime == 0) {
-                            living.hurt(level.damageSources().playerAttack(player), (float) calculateTrueDamage(stack,SConfig.SERVER.mistmaker_melee_damage.get()));
-                            doEntityHurtAfterEffects(stack,living,player);
-                            hitCount++;
+                        if (entity instanceof LivingEntity living) {
+                            DamageSource source = level.damageSources().playerAttack(player);
+                            float damage = (float) calculateTrueDamage(stack, SConfig.SERVER.mistmaker_melee_damage.get());
+                            if(living instanceof Player){
+                                living.hurt(source, damage);
+                            }else{
+                                SporeAttackUtil.INSTANCE.dealDamage(living,player,source,damage);
+                            }
+                            if(living.hurtTime == 0) {
+                                doEntityHurtAfterEffects(stack, living, player);
+                                hitCount++;
+                            }
                         }
                     }
                 }
