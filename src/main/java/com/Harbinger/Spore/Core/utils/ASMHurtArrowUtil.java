@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.utils;
 
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -110,8 +111,17 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
             return;
         }
         DamageSource source=projectile.level().damageSources().mobProjectile(projectile, own);
-        SporeAttackUtil.INSTANCE.dealDamage(liv,own,source, projectile instanceof AbstractArrow arrow?(float)arrow.getBaseDamage():1.0f);
+        SporeAttackUtil.INSTANCE.dealDamage(liv,own,source, projectile instanceof AbstractArrow arrow?arrowDamage(arrow):1.0f);
         liv.invulnerableTime=0;
+    }
+    private float arrowDamage(AbstractArrow arrow){
+        float f = (float)arrow.getDeltaMovement().length();
+        int i = Mth.ceil(Mth.clamp(f * arrow.getBaseDamage(), 0.0, Integer.MAX_VALUE));
+        if (arrow.isCritArrow()) {
+            long j = arrow.random.nextInt(i / 2 + 2);
+            i = (int)Math.min(j + (long)i, 2147483647L);
+        }
+        return (float)i;
     }
 
     private String buildWrapperInternalName(Class<?> original) {
