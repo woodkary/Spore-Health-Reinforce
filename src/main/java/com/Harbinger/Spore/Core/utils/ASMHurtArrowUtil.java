@@ -27,11 +27,10 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
     private static final String WRAPPER_SUFFIX="SporeEnhancedArrowWrapper";
     private static final String ON_HIT_ENTITY_NAME = "m_5790_";
     private static final String ENTITY_HIT_RESULT_DESC = "(Lnet/minecraft/world/phys/EntityHitResult;)V";
-    private static final String ABSTRACT_ARROW_INTERNAL = "net/minecraft/world/entity/projectile/AbstractArrow";
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/utils/ASMHurtArrowUtil";
     private static final String HOOK_INTERFACE_INTERNAL = "com/Harbinger/Spore/Core/utils/IASMHurtArrow";
     private static final String HOOK_METHOD_NAME = "onHitEntityHook";
-    private static final String HOOK_METHOD_DESC = "(Lnet/minecraft/world/entity/projectile/AbstractArrow;Lnet/minecraft/world/phys/EntityHitResult;)V";
+    private static final String HOOK_METHOD_DESC = "(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/EntityHitResult;)V";
     private static final String HIDDEN_NAME_SEGMENT = "/0x";
     private final Map<Class<?>,Class<?>> WRAPPER_CACHE=new ConcurrentHashMap<>();
     private final Map<Class<?>,Class<?>> WRAPPER_TO_ORIGINAL_CACHE=new ConcurrentHashMap<>();
