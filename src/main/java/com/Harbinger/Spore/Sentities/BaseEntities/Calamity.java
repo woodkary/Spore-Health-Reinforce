@@ -328,11 +328,11 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){
             return false;
         }
-        if(amount < 10000 && amount > getDamageCap() && getDamageCap() > 0){
-            return super.hurt(source, (float) getDamageCap());
-        }
         if (source.is(DamageTypes.FREEZE) && Math.random() < 0.2f){
             Calamity.forceStart(findGoal(this, SporeBurstSupport.class));
+        }
+        if(amount < 10000 && amount > getDamageCap() && getDamageCap() > 0){
+            return super.hurt(source, (float) getDamageCap());
         }
         return super.hurt(source, amount);
     }

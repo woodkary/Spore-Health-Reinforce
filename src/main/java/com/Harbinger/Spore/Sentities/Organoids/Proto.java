@@ -536,9 +536,6 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){
             return false;
         }
-        if(amount < 10000 && amount > SConfig.SERVER.proto_dpsr.get() && SConfig.SERVER.proto_dpsr.get() > 0){
-            return super.hurt(source, (float) (SConfig.SERVER.proto_dpsr.get() * 1F));
-        }
         if (source.getEntity() != null && Math.random() < 0.2f && summonDefense <= 0){
             for (int i = 0;i<random.nextInt(1,4);i++)
                 SummonHelpers();
@@ -546,6 +543,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         }
         if (source.is(DamageTypes.FREEZE) && Math.random() < 0.2f){
             SpreadInfection(level(),SConfig.SERVER.mound_range_age4.get() * 2,this.entityData.get(NODE));
+        }
+        if(amount < 10000 && amount > SConfig.SERVER.proto_dpsr.get() && SConfig.SERVER.proto_dpsr.get() > 0){
+            return super.hurt(source, (float) (SConfig.SERVER.proto_dpsr.get() * 1F));
         }
         return super.hurt(source, amount);
     }
