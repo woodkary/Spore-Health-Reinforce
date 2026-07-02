@@ -98,20 +98,20 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
         return buildWrapperClass(original);
     }
     @Override
-    public void onHitEntityHook(AbstractArrow arrow, EntityHitResult result) {
-        if (arrow.level().isClientSide) {
+    public void onHitEntityHook(Projectile projectile, EntityHitResult result) {
+        if (projectile.level().isClientSide) {
             return;
         }
         Entity target = ParentUtil.INSTANCE.getUltimateParent(result.getEntity());
         if(!(target instanceof LivingEntity liv)||(target instanceof Player)){
             return;
         }
-        Entity owner = arrow.getOwner();
+        Entity owner = projectile.getOwner();
         if(!(owner instanceof LivingEntity own)){
             return;
         }
-        DamageSource source=arrow.level().damageSources().mobProjectile(arrow, own);
-        SporeAttackUtil.INSTANCE.dealDamage(liv,own,source, (float)arrow.getBaseDamage());
+        DamageSource source=projectile.level().damageSources().mobProjectile(projectile, own);
+        SporeAttackUtil.INSTANCE.dealDamage(liv,own,source, projectile instanceof AbstractArrow arrow?(float)arrow.getBaseDamage():1.0f);
         liv.invulnerableTime=0;
     }
 
