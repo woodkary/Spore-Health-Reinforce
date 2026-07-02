@@ -322,11 +322,11 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     @Override
     public boolean hurt(DamageSource source, float amount) {
         setRooted(false);
-        if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){
-            return false;
-        }
         if (this.getRandom().nextInt(20) == 0){
             this.grief(this.getBoundingBox().inflate(this.setInflation(),0.0,this.setInflation()));
+        }
+        if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){
+            return false;
         }
         if(amount < 10000 && amount > getDamageCap() && getDamageCap() > 0){
             return super.hurt(source, (float) getDamageCap());
