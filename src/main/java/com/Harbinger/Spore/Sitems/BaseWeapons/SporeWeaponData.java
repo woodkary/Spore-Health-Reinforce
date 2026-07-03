@@ -45,7 +45,7 @@ public interface SporeWeaponData {
         if (!(attacker instanceof Player player)) {
             return false;
         }
-        int flag=0;
+        byte flag=0;
         //最低位代表SporeToolsMutations.BEZERK，第二位代表Senchantments.CRYOGENIC_ASPECT
         if(this.getVariant(stack) == SporeToolsMutations.BEZERK){
             flag|=1;
