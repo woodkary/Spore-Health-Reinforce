@@ -108,6 +108,9 @@ public class Biobloob extends Experiment implements RangedAttackMob {
     private void computeAttribute(Attribute attributes, double value){
         AttributeInstance instance = this.getAttribute(attributes);
         if (instance != null){instance.setBaseValue(value);}
+        if (attributes == Attributes.MAX_HEALTH){
+            SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, (float) value);
+        }
     }
 
     public static AttributeSupplier.Builder createAttributes() {

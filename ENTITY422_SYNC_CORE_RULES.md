@@ -89,7 +89,7 @@
 - `FloatEntry` 要保留隐藏实例、特殊值单例和拆分 int bits 的实现；构造时 upper/lower 带偏移，读回时加回偏移再恢复 float。
 - `SporeEntityHeeaafastthManager.getHealthOwner(...)` 必须识别 `ICalamityMultipart` 并通过 `getCalamityHead()` 归属到头部灾难实体。
 - `getMaxHeeaafastth(...)`、`setMaxHeeaafastth(...)`、`getHeeaafastth(...)`、`setHeeaafastth(...)` 都要先解析 health owner。
-- 所有修改 `Attributes.MAX_HEALTH` 的逻辑，如果原版属性更新后仍要影响 Spore 实际最大生命，必须额外同步到 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)`。同步代码最好放在 `if (health != null)` 块外。
+- 所有设置最大生命值的逻辑必须和 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)` 同步进行。重点审计 `getAttribute(Attributes.MAX_HEALTH)` + `setBaseValue(...)`、`computeAttribute(Attributes.MAX_HEALTH, ...)`、按字符串/注册表遍历到 `Attributes.MAX_HEALTH` 后修改属性等路径；同步代码最好放在 `if (health != null)` 块外，保证原版 `MAX_HEALTH` 属性不存在时也能写入 Spore 实际最大生命值。
 - `IFakeDataHealthEntity` 的陷阱血量必须保留：正常伤害路径不增加额外血量，外部直接写 `DATA_HEALTH_ID`/默认 0 delta 后会进入异常状态；正常 `hurrt` 后要调用 `hurtDellta(...)`，移除时要 `clearHllealthDelta()`。
 
 ## 4. 攻击、武器、弹射物与直接 hurt 审计
@@ -268,6 +268,7 @@ git log --oneline --decorate --max-count=20
 git diff --name-status origin/master...HEAD
 rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal" src/main/java src/main/resources -S
 rg -n "\.hurt\(|hurrt\(|setHealth\(|dealDamage\(|ASMHurtArrowUtil\.INSTANCE\.wrap|setMaxHeeaafastth|getTarget\(|setTarget\(" src/main/java -S
+rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_HEALTH|Attributes\.MAX_HEALTH|setBaseValue\(" src/main/java -S
 .\gradlew --no-daemon --console=plain compileJava
 ```
 
@@ -279,6 +280,7 @@ rg -n "\.hurt\(|hurrt\(|setHealth\(|dealDamage\(|ASMHurtArrowUtil\.INSTANCE\.wra
 - 旧灾难的 `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 部位弱点额外直接扣血逻辑有代码证据：Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 均保留 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 调用；Verfalldrachen 不属于这条必保规则。
 - `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.dealDamage(...)`。
 - 血量、最大血量、heal redirect、禁止回血效果、fake data health、multipart owner、IDieWithDiscardEntity 特殊死亡全部有代码证据。
+- 运行期最大生命值变更有配对证据：每个 `Attributes.MAX_HEALTH` 的 `setBaseValue(...)` 或等价 helper 都有同路径 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)`，且同步不依赖原版属性非空。
 - 实体 storage 替换覆盖 server/client lookup、id map、uuid map、known UUID set、tracked entity map、section/callback。
 - 额外伤害路径已迁移到 `SporeAttackUtil` 或明确标记为有意保留的原版主击中路径。
 - Calamity `forceStart` 混淆名优先启动链、Grakensenker/Howitzer 寻路增强仍在当前上游结构中生效。
