@@ -59,8 +59,14 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     private static final String EMPTY_INVENTORY_FACTORY_DESC = "(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/entity/player/Inventory;";
     private static final String HIDDEN_NAME_SEGMENT = "/0x";
     public static final ILivingEntityLifeCycle INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ILivingEntityLifeCycle.class, LivingEntityHealthLifecycleWrapperUtil.class);
-    private final Function<Class<?>, Class<?>> BUILD_WARPPER_FUNC=new BuildWrapperClassFunction();
-    private final Function<Class<?>, Class<?>> BUILD_DEATH_WARPPER_FUNC=new BuildDeathWrapperClassFunction();
+    private final Function<Class<?>, Class<?>> BUILD_WARPPER_FUNC=BytecodeUtil.createHiddenSingletonInstance(
+            Function.class,
+            BuildWrapperClassFunction.class
+    );
+    private final Function<Class<?>, Class<?>> BUILD_DEATH_WARPPER_FUNC=BytecodeUtil.createHiddenSingletonInstance(
+            Function.class,
+            BuildDeathWrapperClassFunction.class
+    );
     private final ConcurrentMap<Class<?>, Class<?>> CACHE = new ConcurrentHashMap<>();
     private final ConcurrentMap<Class<?>, Class<?>> DEATH_CACHE = new ConcurrentHashMap<>();
 
