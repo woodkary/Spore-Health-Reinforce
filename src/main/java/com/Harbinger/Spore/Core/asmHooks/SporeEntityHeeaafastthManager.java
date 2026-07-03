@@ -24,16 +24,19 @@ import net.minecraft.world.entity.player.Player;
 
 import java.lang.invoke.MethodHandle;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 
 /**
  * @author karywoodOyo
  */
-public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
+public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, Function<ICalamityMultipart,LivingEntity> {
     public static final ISporeEntityHealth INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ISporeEntityHealth.class, SporeEntityHeeaafastthManager.class);
     private final Map<LivingEntity, IFloatEntry> entityMaxHeeaafastth = ProtectedConcurrentHashMap.newInstance();
     private final Map<LivingEntity, IFloatEntry> etiHeuahMape = ProtectedConcurrentHashMap.newInstance();
+    private final Map<ICalamityMultipart,LivingEntity> partToHead=new ConcurrentHashMap<>();
     private final BiFunction<LivingEntity, IFloatEntry, IFloatEntry> entityHealthJudge;
     public SporeEntityHeeaafastthManager() {
         entityHealthJudge= SporeEntityHealthJudge.newInstance(this.entityMaxHeeaafastth);
@@ -127,9 +130,12 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     @Override
     public void removeSporeEntity(LivingEntity entity) {
-        entity = getHealthOwner(entity);
-        etiHeuahMape.remove(entity);
-        entityMaxHeeaafastth.remove(entity);
+        if(entity instanceof ICalamityMultipart part){
+            partToHead.remove(part);
+        }
+        LivingEntity owner = getHealthOwner(entity);
+        etiHeuahMape.remove(owner);
+        entityMaxHeeaafastth.remove(owner);
     }
 
     @Override
@@ -205,12 +211,16 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
 
     private LivingEntity getHealthOwner(LivingEntity entity) {
         if (entity instanceof ICalamityMultipart calamityMultipart) {
-            Calamity head = calamityMultipart.getCalamityHead();
-            if (head != null) {
-                return head;
+            LivingEntity res=partToHead.computeIfAbsent(calamityMultipart,this);
+            if(res!=null){
+                return res;
             }
         }
         return entity;
+    }
+    @Override
+    public LivingEntity apply(ICalamityMultipart part) {
+        return part.getCalamityHead();
     }
 
     private float getAttributeMaxHealth(LivingEntity entity) {
@@ -269,6 +279,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth {
                 if (health <= 0.0f&&entity.isRemoved()) {
                     iterator.remove();
                     entityMaxHeeaafastth.remove(entity);
+                    if(entity instanceof ICalamityMultipart part){
+                        partToHead.remove(part);
+                    }
                 }
             }
             tickCount = 100;
