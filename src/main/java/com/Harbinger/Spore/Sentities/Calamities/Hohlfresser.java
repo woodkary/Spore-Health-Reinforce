@@ -320,8 +320,8 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
             }
             if (tickCount % 20 == 0 && parts != null && getAdaptation()){
                 float size = 1.2f;
-                AttributeInstance hostInstance = this.getAttribute(Attributes.MAX_HEALTH);
-                float hostMaxHealth = hostInstance != null ? (float) hostInstance.getBaseValue() : SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(this);
+                //AttributeInstance hostInstance = this.getAttribute(Attributes.MAX_HEALTH);
+                //float hostMaxHealth = hostInstance != null ? (float) hostInstance.getBaseValue() : SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(this);
                 for(int i = 0;i<parts.length;i++){
                     size = size - 0.05f;
                     HohlMultipart hohlMultipart = parts[i];
@@ -329,11 +329,11 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
                     hohlMultipart.setAdapted(this.getAdaptation());
                     hohlMultipart.setSize(size * 1.4f);
                     hohlMultipart.setIsTail(isTail);
-                    AttributeInstance instance = hohlMultipart.getAttribute(Attributes.MAX_HEALTH);
-                    if (instance != null && instance.getValue() != hostMaxHealth){
-                        instance.setBaseValue(hostMaxHealth);
-                    }
-                    SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(hohlMultipart, hostMaxHealth);
+//                    AttributeInstance instance = hohlMultipart.getAttribute(Attributes.MAX_HEALTH);
+//                    if (instance != null && instance.getValue() != hostMaxHealth){
+//                        instance.setBaseValue(hostMaxHealth);
+//                    }
+//                    SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(hohlMultipart, hostMaxHealth);
                 }
             }
 
