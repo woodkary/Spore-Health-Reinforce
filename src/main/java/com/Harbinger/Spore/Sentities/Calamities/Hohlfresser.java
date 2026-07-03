@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.*;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
@@ -127,7 +128,9 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
             AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
             AttributeInstance damage = this.getAttribute(Attributes.ATTACK_DAMAGE);
             if (health != null){
-                health.setBaseValue(health.getValue()*2);
+                double newMaxHealth = health.getValue() * 2;
+                health.setBaseValue(newMaxHealth);
+                SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(this, (float) newMaxHealth);
             }
             if (armor != null){
                 armor.setBaseValue(armor.getValue()*1.5);
