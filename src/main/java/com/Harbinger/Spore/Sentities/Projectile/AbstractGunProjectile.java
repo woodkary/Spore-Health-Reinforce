@@ -12,6 +12,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -85,9 +86,15 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
             if (calculations > damage){
                 damage = calculations;
             }
-            SporeAttackUtil.INSTANCE.dealDamage(living, owner, level().damageSources().mobProjectile(this, owner), damage);
+            DamageSource source = level().damageSources().mobProjectile(this, owner);
+            if(this.getMutationVariant()==SporeToolsMutations.BEZERK){
+                SporeAttackUtil.INSTANCE.dealDamage(living, owner, source, damage);
+            }else{
+                living.hurt(source,damage);
+            }
+
             if (severedPart != null) {
-                severedPart.hurt(level().damageSources().mobProjectile(this,owner),damage);
+                severedPart.hurt(source,damage);
             }
             doHitAfterEffects(living,owner);
             if (living instanceof Player && owner instanceof Player player){
