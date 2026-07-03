@@ -92,27 +92,38 @@ public class BytecodeUtil {
         return clazz;
     }
 
-    private static <T> T instantiateWithLookupFallback(Class<? extends T> clazz,
+    private static <T> T instantiateWithLookupFallback(Class<T> clazz,
                                                        Class<?>[] ctorParamTypes,
                                                        Object[] ctorArgs) {
+        Constructor<T> ctor=null;
+        try {
+            ctor = clazz.getDeclaredConstructor(ctorParamTypes);
+            T t = ClassUtil._new(clazz, ctor, ctorArgs);
+            if(t!=null){
+                return t;
+            }
+        }catch (NoSuchMethodException e) {
+            LogUtil.error("failed to instantiate via ReflectionFactory, fallback to lookup.");
+        }
         try {
             MethodHandles.Lookup lookup = ClassUtil.getLookup();
             if (lookup != null) {
                 try {
                     MethodType ctorType = MethodType.methodType(void.class, ctorParamTypes);
-                    MethodHandle ctor = lookup.findConstructor(clazz, ctorType);
+                    MethodHandle handleCtor = lookup.findConstructor(clazz, ctorType);
                     @SuppressWarnings("unchecked")
-                    T instance = (T) ctor.invokeWithArguments(ctorArgs);
+                    T instance = (T) handleCtor.invokeWithArguments(ctorArgs);
                     return instance;
                 } catch (Throwable t) {
-                    LogUtil.error("failed to instantiate class by lookup, fallback.");
+                    LogUtil.error("failed to instantiate class by lookup, fallback to reflection.");
                 }
             }
         } catch (Throwable ignored) {
         }
-
+        if(ctor==null){
+            throw new RuntimeException("Failed to instantiate " + clazz.getName());
+        }
         try {
-            Constructor<? extends T> ctor = clazz.getDeclaredConstructor(ctorParamTypes);
             ctor.setAccessible(true);
             return ctor.newInstance(ctorArgs);
         } catch (Throwable t) {
