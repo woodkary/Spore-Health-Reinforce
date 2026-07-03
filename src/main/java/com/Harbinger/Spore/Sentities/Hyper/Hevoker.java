@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Hyper;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.PullGoal;
 import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
@@ -148,7 +149,7 @@ public class Hevoker extends Hyper {
     }
     public void reviveBody(){
         float hp = (float) ((SConfig.SERVER.hevoker_hp.get() * SConfig.SERVER.global_health.get())/4f);
-        this.setHealth(hp);
+        SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(this,hp);
         ItemStack stack = new ItemStack(Items.TOTEM_OF_UNDYING);
         DamageSource source = getLastDamageSource();
         if (source != null){
@@ -301,7 +302,7 @@ public class Hevoker extends Hyper {
         }
         if (!isFakeDead() && amount > this.getHealth() && !this.isInPowderSnow){
             setFakeDead(true);
-            this.setHealth(1f);
+            SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(this,1f);
             reviveTimer = 200;
             return true;
         }

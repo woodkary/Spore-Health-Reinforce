@@ -3,6 +3,7 @@ package com.Harbinger.Spore.sEvents;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.CustomJsonReader.SporeMobConversionData;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
@@ -24,7 +25,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.animal.IronGolem;
@@ -170,8 +170,8 @@ public class Infection {
                 if (entity instanceof IronGolem golem && Math.random() < SConfig.SERVER.machine_infestation.get() / 100f) {
                     InfestedConstruct construct = new InfestedConstruct(Sentities.INF_CONSTRUCT.get(), serverLevel);
                     construct.setPos(golem.position());
-                    construct.setHealth(10);
-                    construct.setMachineHealth(0);
+                    SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(construct,10);
+                    construct.setMachine(0);
                     construct.setActive(false);
                     construct.setCustomName(golem.getCustomName());
                     serverLevel.addFreshEntity(construct);

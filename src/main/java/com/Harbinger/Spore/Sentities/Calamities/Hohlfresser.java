@@ -350,11 +350,11 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
         if (tickCount % 20 == 0) {
             handleDigIn();
             refreshDimensions();
-            if (parts != null){
-                for (HohlMultipart multipart : parts){
-                    multipart.setHealth(this.getHealth());
-                }
-            }
+//            if (parts != null){
+//                for (HohlMultipart multipart : parts){
+//                    multipart.setHealth(this.getHealth());
+//                }
+//            }
         }
 
         // Update underground timer

@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.Experiments;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.BaseEntities.Experiment;
 import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
@@ -91,7 +92,7 @@ public class Biobloob extends Experiment implements RangedAttackMob {
         computeAttribute(Attributes.ARMOR,armor * getScale());
         computeAttribute(Attributes.MOVEMENT_SPEED,0.3 * (1.0f / getScale()));
         if (this.getHealth() > this.getMaxHealth()) {
-            this.setHealth(this.getMaxHealth());
+            SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(this,this.getMaxHealth());
         }
     }
     @Override
