@@ -99,9 +99,6 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
     }
     @Override
     public void onHitEntityHook(Projectile projectile, EntityHitResult result) {
-        if (projectile.level().isClientSide) {
-            return;
-        }
         Entity target = ParentUtil.INSTANCE.getUltimateParent(result.getEntity());
         if(!(target instanceof LivingEntity liv)||(target instanceof Player)){
             return;
