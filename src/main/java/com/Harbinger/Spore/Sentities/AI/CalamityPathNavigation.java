@@ -44,8 +44,7 @@ public final class CalamityPathNavigation extends GroundPathNavigation {
    private static final int WATER_STUCK_NODE_AVOID_VERTICAL_RADIUS = 1;
    private static final double MIN_NODE_PROGRESS_SQR = 0.0025D;
    private static final double LOW_HORIZONTAL_SPEED_SQR = 1.0E-4D;
-   protected final Calamity calamity;
-   @Nullable
+    @Nullable
    private BlockPos pathToPosition;
    private final Deque<BlockPos> detourTargetStack = new ArrayDeque<>();
    private final Set<Long> triedDetourTargets = new HashSet<>();
@@ -68,8 +67,7 @@ public final class CalamityPathNavigation extends GroundPathNavigation {
 
    public CalamityPathNavigation(Calamity calamity, Level level) {
       super(calamity, level);
-      this.calamity = calamity;
-      this.wasUsingWaterPathing = this.isUsingWaterPathing();
+       this.wasUsingWaterPathing = this.isUsingWaterPathing();
       if (calamity instanceof WaterInfected) {
          calamity.setPathfindingMalus(BlockPathTypes.WATER, CalamityPathTypePolicy.WATER_CALAMITY_WATER_MALUS);
          calamity.setPathfindingMalus(BlockPathTypes.WATER_BORDER, CalamityPathTypePolicy.WATER_CALAMITY_WATER_MALUS);

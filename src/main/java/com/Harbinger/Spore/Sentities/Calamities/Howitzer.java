@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.Calamities;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.SporeObjectUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
@@ -174,7 +175,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         private double pathedTargetZ;
         private int ticksUntilNextPathRecalculation;
         private boolean holdingPosition;
-        private Path pathBackup;
+        private PathNavigation navigationBackup;
 
         public HowitzerRangedAttackGoal(RangedAttackMob mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
@@ -213,7 +214,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             PathNavigation mobNavigation = this.mob.getNavigation();
             if (d0 <= (double)this.attackRadiusSqr && this.seeTime >= 5) {
                 if (!this.holdingPosition) {
-                    this.pathBackup= mobNavigation.getPath();
+                    this.navigationBackup=SporeObjectUtil.INSTANCE.clone(mobNavigation);
                     mobNavigation.stop();
                     this.holdingPosition = true;
                 }
@@ -240,17 +241,28 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
                 this.attackTime = Mth.floor(Mth.lerp(Math.sqrt(d0) / (double)this.attackRadius, (double)this.attackInterval, (double)this.attackInterval));
             }
         }
+        private void setNavigation(PathNavigation navigation) {
+            setNavigation(this.mob, navigation);
+        }
+        private void setNavigation(Mob mob, PathNavigation navigation) {
+            if (mob.getControlledVehicle() instanceof Mob vehicleMob) {
+                setNavigation(vehicleMob, navigation);
+                return;
+            }
+            mob.navigation=navigation;
+        }
 
         private void recomputeTargetPath(double distanceToTargetSqr) {
             this.holdingPosition = false;
             PathNavigation mobNavigation = this.mob.getNavigation();
             if(distanceToTargetSqr<=2*(double)this.attackRadiusSqr){
-                mobNavigation.path=pathBackup;
+                setNavigation(this.navigationBackup);
                 return;
             }
             this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
             if (this.ticksUntilNextPathRecalculation > 0
                     && this.target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) < 1.0D) {
+                setNavigation(this.navigationBackup);
                 return;
             }
 

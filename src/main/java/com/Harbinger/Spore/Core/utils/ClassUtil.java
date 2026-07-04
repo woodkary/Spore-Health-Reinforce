@@ -92,7 +92,7 @@ public class ClassUtil {
         lookup=MethodHandles.lookup();
         return lookup;
     }
-    private static synchronized Unsafe getUnsafe() {
+    public static synchronized Unsafe getUnsafe() {
         if(uns!=null) {
             return uns;
         }
