@@ -46,12 +46,14 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -172,6 +174,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         private double pathedTargetZ;
         private int ticksUntilNextPathRecalculation;
         private boolean holdingPosition;
+        private Path pathBackup;
 
         public HowitzerRangedAttackGoal(RangedAttackMob mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
@@ -207,10 +210,11 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             } else {
                 --this.seeTime;
             }
-
+            PathNavigation mobNavigation = this.mob.getNavigation();
             if (d0 <= (double)this.attackRadiusSqr && this.seeTime >= 5) {
                 if (!this.holdingPosition) {
-                    this.mob.getNavigation().stop();
+                    this.pathBackup= mobNavigation.getPath();
+                    mobNavigation.stop();
                     this.holdingPosition = true;
                 }
                 this.ticksUntilNextPathRecalculation = 0;
@@ -239,6 +243,11 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
         private void recomputeTargetPath(double distanceToTargetSqr) {
             this.holdingPosition = false;
+            PathNavigation mobNavigation = this.mob.getNavigation();
+            if(distanceToTargetSqr<=2*(double)this.attackRadiusSqr){
+                mobNavigation.path=pathBackup;
+                return;
+            }
             this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
             if (this.ticksUntilNextPathRecalculation > 0
                     && this.target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) < 1.0D) {
@@ -249,8 +258,8 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             this.pathedTargetY = this.target.getY();
             this.pathedTargetZ = this.target.getZ();
             this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
-            if (this.mob.getNavigation().getPath() != null) {
-                Node finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
+            if (mobNavigation.getPath() != null) {
+                Node finalPathPoint = mobNavigation.getPath().getEndNode();
                 if (finalPathPoint != null && this.target.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1.0D) {
                     this.ticksUntilNextPathRecalculation = 0;
                 }
@@ -262,7 +271,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
                 this.ticksUntilNextPathRecalculation += 30;
             }
 
-            if (!this.mob.getNavigation().moveTo(this.target, this.speedModifier)) {
+            if (!mobNavigation.moveTo(this.target, this.speedModifier)) {
                 this.ticksUntilNextPathRecalculation += 60;
             }
             this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
