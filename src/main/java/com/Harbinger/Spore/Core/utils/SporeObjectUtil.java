@@ -61,6 +61,9 @@ public final class SporeObjectUtil implements IObjects {
                 return obj;
             }
         }
+        if (allocateInstance == null) {
+            return obj;
+        }
         try{
             T res=(T) allocateInstance.invoke(objClass);
             if(res!=null){
