@@ -177,7 +177,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         private double pathedTargetZ;
         private int ticksUntilNextPathRecalculation;
         private boolean holdingPosition;
-        private Howitzer howitzer;
+        private final Howitzer howitzer;
 
         public HowitzerRangedAttackGoal(Howitzer mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
@@ -208,12 +208,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         @Override
         public void tick() {
             double d0 = this.mob.distanceToSqr(this.target.getX(), this.target.getY(), this.target.getZ());
-            boolean flag = this.mob.getSensing().hasLineOfSight(this.target);
-            if (flag) {
-                ++this.seeTime;
-            } else {
-                this.seeTime = 0;
-            }
+            ++this.seeTime;
 
             if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 5) {
                 if (!this.holdingPosition) {
@@ -227,9 +222,6 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
             this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
             if (--this.attackTime == 0) {
-                if (!flag) {
-                    return;
-                }
                 RandomSource randomSource = RandomSource.create();
                 int shot = randomSource.nextInt(this.minShots,this.maxShots + getExtraShots());
 
@@ -693,9 +685,11 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
         @Override
         public void tick() {
-            if(paused){
+            LivingEntity mobTarget = this.mob.getTarget();
+            if(mobTarget !=null&&paused){
                 return;
             }
+            paused=false;
             super.tick();
         }
         public void pause(){
