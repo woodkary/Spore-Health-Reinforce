@@ -205,10 +205,10 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             if (flag) {
                 ++this.seeTime;
             } else {
-                this.seeTime = 0;
+                --this.seeTime;
             }
 
-            if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 5) {
+            if (d0 <= (double)this.attackRadiusSqr && this.seeTime >= 5) {
                 if (!this.holdingPosition) {
                     this.mob.getNavigation().stop();
                     this.holdingPosition = true;
@@ -257,13 +257,13 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             }
 
             if (distanceToTargetSqr > 1024.0D) {
-                this.ticksUntilNextPathRecalculation += 10;
+                this.ticksUntilNextPathRecalculation += 40;
             } else if (distanceToTargetSqr > 256.0D) {
-                this.ticksUntilNextPathRecalculation += 5;
+                this.ticksUntilNextPathRecalculation += 30;
             }
 
             if (!this.mob.getNavigation().moveTo(this.target, this.speedModifier)) {
-                this.ticksUntilNextPathRecalculation += 15;
+                this.ticksUntilNextPathRecalculation += 60;
             }
             this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
         }
