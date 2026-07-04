@@ -32,7 +32,7 @@ import net.minecraft.world.level.pathfinder.SwimNodeEvaluator;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 
-public final class CalamityPathNavigation extends GroundPathNavigation {
+public class CalamityPathNavigation extends GroundPathNavigation {
    static final float EPSILON = 1.0E-8F;
    private static final int STUCK_ON_NODE_TICKS = 16;
    private static final int TERMINAL_RECOMPUTES_BEFORE_DETOUR = 2;

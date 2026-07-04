@@ -8,6 +8,7 @@ import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.ScatterShotRangedGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SummonScentInCombat;
+import com.Harbinger.Spore.Sentities.AI.CalamityPathNavigation;
 import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
 import com.Harbinger.Spore.Sentities.AI.LeapGoal;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
@@ -76,6 +77,8 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     public final CalamityMultipart leftArm;
     public final CalamityMultipart mouth;
     public int getLeapTime = 0;
+    private final PausableCalamityPathNavigation howitzerNav;
+
     @Nullable
     private BlockPos Targetpos;
     public Howitzer(EntityType<? extends PathfinderMob> type, Level level) {
@@ -84,6 +87,8 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         this.leftArm = new CalamityMultipart(this, "leftarm", 2F, 4F);
         this.mouth = new CalamityMultipart(this, "mouth", 4F, 3F);
         this.subEntities = new CalamityMultipart[]{ this.rightArm, this.leftArm,this.mouth};
+        this.howitzerNav=new PausableCalamityPathNavigation(this,level);
+        this.navigation=this.howitzerNav;
         this.setMaxUpStep(1.5F);
         this.setId(ENTITY_COUNTER.getAndAdd(this.subEntities.length + 1) + 1);
     }
@@ -166,15 +171,17 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         this.goalSelector.addGoal(8,new SporeBurstSupport(this));
         this.goalSelector.addGoal(9,new RandomStrollGoal(this , 1));
     }
-    public static class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
+    private static class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
         private double pathedTargetX;
         private double pathedTargetY;
         private double pathedTargetZ;
         private int ticksUntilNextPathRecalculation;
         private boolean holdingPosition;
+        private Howitzer howitzer;
 
-        public HowitzerRangedAttackGoal(RangedAttackMob mob, double speed, int interval, float range, int min, int max) {
+        public HowitzerRangedAttackGoal(Howitzer mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
+            this.howitzer = mob;
             this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         }
         private int getBurnable(LivingEntity target){
@@ -210,12 +217,12 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
             if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 5) {
                 if (!this.holdingPosition) {
-                    this.mob.getNavigation().stop();
+                    this.howitzer.howitzerNav.pause();
                     this.holdingPosition = true;
                 }
                 this.ticksUntilNextPathRecalculation = 0;
             } else {
-                this.recomputeTargetPath(d0);
+                this.howitzer.howitzerNav.resume();
             }
 
             this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
@@ -621,8 +628,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             }
         }
     }
-
-    public static class SearchAroundGoal extends Goal {
+    private static class SearchAroundGoal extends Goal {
         private final Howitzer howitzer;
         public int tryTicks;
 
@@ -677,6 +683,26 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
                 howitzer.setTargetPos((BlockPos) null);
                 howitzer.searchBlocks();
             }
+        }
+    }
+    private static final class PausableCalamityPathNavigation extends CalamityPathNavigation {
+        private boolean paused=false;
+        public PausableCalamityPathNavigation(Calamity calamity, Level level) {
+            super(calamity, level);
+        }
+
+        @Override
+        public void tick() {
+            if(paused){
+                return;
+            }
+            super.tick();
+        }
+        public void pause(){
+            this.paused=true;
+        }
+        public void resume(){
+            this.paused=false;
         }
     }
     public boolean hasLineOfSightBlocks(BlockPos pos) {
