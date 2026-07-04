@@ -2,7 +2,6 @@ package com.Harbinger.Spore.Sentities.Calamities;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
-import com.Harbinger.Spore.Core.utils.SporeObjectUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
@@ -47,14 +46,12 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Node;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -175,7 +172,6 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         private double pathedTargetZ;
         private int ticksUntilNextPathRecalculation;
         private boolean holdingPosition;
-        private PathNavigation navigationBackup;
 
         public HowitzerRangedAttackGoal(RangedAttackMob mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
@@ -209,13 +205,12 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             if (flag) {
                 ++this.seeTime;
             } else {
-                --this.seeTime;
+                this.seeTime = 0;
             }
-            PathNavigation mobNavigation = this.mob.getNavigation();
-            if (d0 <= (double)this.attackRadiusSqr && this.seeTime >= 5) {
+
+            if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 5) {
                 if (!this.holdingPosition) {
-                    this.navigationBackup=SporeObjectUtil.INSTANCE.clone(mobNavigation);
-                    mobNavigation.stop();
+                    this.mob.getNavigation().stop();
                     this.holdingPosition = true;
                 }
                 this.ticksUntilNextPathRecalculation = 0;
@@ -241,28 +236,12 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
                 this.attackTime = Mth.floor(Mth.lerp(Math.sqrt(d0) / (double)this.attackRadius, (double)this.attackInterval, (double)this.attackInterval));
             }
         }
-        private void setNavigation(PathNavigation navigation) {
-            setNavigation(this.mob, navigation);
-        }
-        private void setNavigation(Mob mob, PathNavigation navigation) {
-            if (mob.getControlledVehicle() instanceof Mob vehicleMob) {
-                setNavigation(vehicleMob, navigation);
-                return;
-            }
-            mob.navigation=navigation;
-        }
 
         private void recomputeTargetPath(double distanceToTargetSqr) {
             this.holdingPosition = false;
-            PathNavigation mobNavigation = this.mob.getNavigation();
-            if(distanceToTargetSqr<=2*(double)this.attackRadiusSqr){
-                setNavigation(this.navigationBackup);
-                return;
-            }
             this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
             if (this.ticksUntilNextPathRecalculation > 0
                     && this.target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) < 1.0D) {
-                setNavigation(this.navigationBackup);
                 return;
             }
 
@@ -270,21 +249,21 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             this.pathedTargetY = this.target.getY();
             this.pathedTargetZ = this.target.getZ();
             this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
-            if (mobNavigation.getPath() != null) {
-                Node finalPathPoint = mobNavigation.getPath().getEndNode();
+            if (this.mob.getNavigation().getPath() != null) {
+                Node finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
                 if (finalPathPoint != null && this.target.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1.0D) {
                     this.ticksUntilNextPathRecalculation = 0;
                 }
             }
 
             if (distanceToTargetSqr > 1024.0D) {
-                this.ticksUntilNextPathRecalculation += 40;
+                this.ticksUntilNextPathRecalculation += 10;
             } else if (distanceToTargetSqr > 256.0D) {
-                this.ticksUntilNextPathRecalculation += 30;
+                this.ticksUntilNextPathRecalculation += 5;
             }
 
-            if (!mobNavigation.moveTo(this.target, this.speedModifier)) {
-                this.ticksUntilNextPathRecalculation += 60;
+            if (!this.mob.getNavigation().moveTo(this.target, this.speedModifier)) {
+                this.ticksUntilNextPathRecalculation += 15;
             }
             this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
         }
@@ -544,28 +523,28 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         AABB aabb = this.getBoundingBox().inflate(damageRange);
         List<Entity> entities = level.getEntities(this,aabb,entity -> {return entity instanceof LivingEntity living && TARGET_SELECTOR.test(living);});
         if (level instanceof ServerLevel serverLevel){
-        for(int i = 0; i <= 2*range; ++i) {
-            for(int j = 0; j <= 2*range; ++j) {
-                for(int k = 0; k <= 2*range; ++k) {
-                    double distance = Mth.sqrt((float) ((i-range)*(i-range) + (j-range)*(j-range) + (k-range)*(k-range)));
-                    if (Math.abs(i) != 2 || Math.abs(j) != 2 || Math.abs(k) != 2) {
-                        if (distance<range+(0.5)){
-                            BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
-                            BlockState state = level.getBlockState(blockpos);
-                            boolean airBelow = level.getBlockState(blockpos.below()).isAir();
+            for(int i = 0; i <= 2*range; ++i) {
+                for(int j = 0; j <= 2*range; ++j) {
+                    for(int k = 0; k <= 2*range; ++k) {
+                        double distance = Mth.sqrt((float) ((i-range)*(i-range) + (j-range)*(j-range) + (k-range)*(k-range)));
+                        if (Math.abs(i) != 2 || Math.abs(j) != 2 || Math.abs(k) != 2) {
+                            if (distance<range+(0.5)){
+                                BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
+                                BlockState state = level.getBlockState(blockpos);
+                                boolean airBelow = level.getBlockState(blockpos.below()).isAir();
                                 if (airBelow && state.getDestroySpeed(level,pos) >= 0 && Math.random() < 0.3 && !state.isAir()){
                                     FallingBlockEntity.fall(serverLevel,blockpos,state);
                                     serverLevel.removeBlock(blockpos,false);
                                 }
 
-                        }}}}}}
+                            }}}}}}
         for (Entity entity : entities){
             if (entity instanceof LivingEntity living)
                 for (int i = 0;i<2;i++){
-                this.doHurtTarget(living);
-                living.hurtTime = 0;
-                living.invulnerableTime = 0;
-            }
+                    this.doHurtTarget(living);
+                    living.hurtTime = 0;
+                    living.invulnerableTime = 0;
+                }
         }
         this.playSound(Ssounds.LANDING.get());
     }

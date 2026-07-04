@@ -151,14 +151,14 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
     protected void addTargettingGoals(){
         this.goalSelector.addGoal(2, new HurtTargetGoal(this ,livingEntity -> {return TARGET_SELECTOR.test(livingEntity);}, Infected.class).setAlertOthers(Infected.class));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>
-                (this, LivingEntity.class,  true,livingEntity -> {return livingEntity instanceof Player || SConfig.SERVER.whitelist.get().contains(livingEntity.getEncodeId());}){
+                (this, LivingEntity.class,  true,livingEntity -> livingEntity instanceof Player || SConfig.SERVER.whitelist.get().contains(livingEntity.getEncodeId())){
             @Override
             protected AABB getTargetSearchArea(double value) {
                 return this.mob.getBoundingBox().inflate(value, value, value);
             }
         });
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>
-                (this, LivingEntity.class,  true, livingEntity -> {return SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity);}){
+                (this, LivingEntity.class,  true, livingEntity -> SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity)){
             @Override
             protected AABB getTargetSearchArea(double value) {
                 return this.mob.getBoundingBox().inflate(value, value, value);
