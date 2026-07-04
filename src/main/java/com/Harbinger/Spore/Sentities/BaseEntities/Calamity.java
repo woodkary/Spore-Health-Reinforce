@@ -18,6 +18,7 @@ import com.Harbinger.Spore.Sentities.AI.CalamityPathNavigation;
 import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
 import com.Harbinger.Spore.Sentities.Calamities.Howitzer;
 import com.Harbinger.Spore.Sentities.Calamities.Stahlmorder;
+import com.Harbinger.Spore.Sentities.Calamities.Verfalldrachen;
 import com.Harbinger.Spore.Sentities.MovementControls.CalamityMovementControl;
 import com.Harbinger.Spore.Sentities.MovementControls.SmoothLookControl;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
@@ -524,6 +525,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
                 if (willPlaySound) {
                     SoundEvent soundEvent = this instanceof Stahlmorder ? Ssounds.STAHL_SLASH.get()
                             : this instanceof Howitzer ? Ssounds.LANDING.get()
+                            : this instanceof Verfalldrachen ? Ssounds.VERFALL_ATTACK.get()
                             : Ssounds.SIEGER_BITE.get();
                     SporeAttackUtil.INSTANCE.playSound(this.level(), null, this.getX(), this.getY(), this.getZ(),
                             soundEvent, this.getSoundSource(), 1.0f, 1.0f);
