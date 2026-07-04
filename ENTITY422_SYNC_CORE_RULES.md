@@ -250,7 +250,7 @@
 - `CalamityPathTypePolicy` 必须保留陆地/天空灾难避开水、岩浆、粉雪，以及水灾难陆上/水中不同策略。Gazenbrecher 这类火适应实体不能被误判为必须避开岩浆。
 - 水灾难应使用 `AmphibianCalamityNodeEvaluator`：陆上走陆地评估，水中走水中评估，避免水陆交界处一直使用不合适的 evaluator。
 - `Grakensenker` 必须继续使用 `GrakensenkerPathNavigation`，且 detour 只影响陆行分支，水中追击/触手/跳跃逻辑不能被陆行 detour 覆盖。
-- `Howitzer.HowitzerRangedAttackGoal` 必须保留 moveTo/stop 冷却和目标路径复用，避免每 tick 高频切换导航导致服务器卡顿。
+- `Howitzer` 必须继续使用 `PausableCalamityPathNavigation`。`HowitzerRangedAttackGoal` 在站桩射击时应 `pause()` 寻路、停止或离开射击状态时 `resume()`，并在射击 goal 结束时通过一次直接 `moveTo(target, speed)` 重算路径；不要退回到旧的 moveTo/stop 冷却判定或每 tick 高频切换导航。
 - `setPathfindingMalus(...)` 的上游覆盖要审计，确保本地对可破坏方块、液体、粉雪等成本调整仍然生效。
 
 ## 10. 其它同步风险点
@@ -266,7 +266,7 @@
 git status --short --branch
 git log --oneline --decorate --max-count=20
 git diff --name-status origin/master...HEAD
-rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal" src/main/java src/main/resources -S
+rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal|PausableCalamityPathNavigation" src/main/java src/main/resources -S
 rg -n "\.hurt\(|hurrt\(|setHealth\(|dealDamage\(|ASMHurtArrowUtil\.INSTANCE\.wrap|setMaxHeeaafastth|getTarget\(|setTarget\(" src/main/java -S
 rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_HEALTH|Attributes\.MAX_HEALTH|setBaseValue\(" src/main/java -S
 .\gradlew --no-daemon --console=plain compileJava
@@ -283,5 +283,5 @@ rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_
 - 运行期最大生命值变更有配对证据：每个 `Attributes.MAX_HEALTH` 的 `setBaseValue(...)` 或等价 helper 都有同路径 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)`，且同步不依赖原版属性非空。
 - 实体 storage 替换覆盖 server/client lookup、id map、uuid map、known UUID set、tracked entity map、section/callback。
 - 额外伤害路径已迁移到 `SporeAttackUtil` 或明确标记为有意保留的原版主击中路径。
-- Calamity `forceStart` 混淆名优先启动链、Grakensenker/Howitzer 寻路增强仍在当前上游结构中生效。
+- Calamity `forceStart` 混淆名优先启动链、Grakensenker 陆行 detour、Howitzer `PausableCalamityPathNavigation` 站桩射击暂停/恢复寻路机制仍在当前上游结构中生效。
 - native DLL、贴图、语言、mods.toml、Gradle 属性没有被上游模板覆盖。
