@@ -180,7 +180,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     private static class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
         private boolean holdingPosition;
         private final Howitzer howitzer;
-        private final Deque<LivingEntity> targetStack = new LinkedList<>();
+        private final Deque<LivingEntity> targetStack = new ArrayDeque<>(32);
         public HowitzerRangedAttackGoal(Howitzer mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
             this.howitzer = mob;
