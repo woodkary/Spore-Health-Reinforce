@@ -13,7 +13,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Npc;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -53,6 +52,11 @@ public interface SporeWeaponData {
         if(stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0){
             flag|=2;
         }
+        DamagePiercingModifier trueDamageWeapon=null;
+        if(stack.getItem() instanceof DamagePiercingModifier mod){
+            flag|=4;
+            trueDamageWeapon=mod;
+        }
         if(flag==0){
             return false;
         }
@@ -63,9 +67,12 @@ public interface SporeWeaponData {
         if((flag&1)!=0) {
             SporeAttackUtil.INSTANCE.attack(player, target, stack);
         }
-        if ((flag&2)!=0 && target instanceof LivingEntity living) {
+        if ((flag&2)!=0&&target instanceof LivingEntity living) {
             DamageSource freeze = new DamageSource(target.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), player, player);
             SporeAttackUtil.INSTANCE.attack(living, player, freeze, 2.0f);
+        }
+        if((flag&4)!=0&&target instanceof LivingEntity living) {
+            SporeAttackUtil.INSTANCE.dealDamage(living,player,living.damageSources().playerAttack(player),trueDamageWeapon.getMinimalDamage(2.0f));
         }
         return false;
     }

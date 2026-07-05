@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.Utility.Vanguard;
+import com.Harbinger.Spore.Sitems.BaseWeapons.DamagePiercingModifier;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -200,6 +201,7 @@ public final class SporeAttackUtil implements IAttack {
         damage=target.getDamageAfterMagicAbsorb(damageSource,
                 target.getDamageAfterArmorAbsorb(damageSource,damage)
         );
+        //穿甲实体
         if(attacker instanceof ArmorPersentageBypass bypass){
             float recalculatedDamage=bypass.amountOfDamage(damage);
             if (recalculatedDamage >= 0.0F && damage < recalculatedDamage) {
