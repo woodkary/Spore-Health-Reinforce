@@ -177,7 +177,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         this.goalSelector.addGoal(8,new SporeBurstSupport(this));
         this.goalSelector.addGoal(9,new RandomStrollGoal(this , 1));
     }
-    private static class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
+    private static final class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
         private boolean holdingPosition;
         private final Howitzer howitzer;
         private final Deque<LivingEntity> targetStack = new ArrayDeque<>(32);
