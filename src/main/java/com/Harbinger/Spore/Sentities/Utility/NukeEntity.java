@@ -41,6 +41,7 @@ public class NukeEntity extends Entity {
     private static final EntityDataAccessor<Integer> INIT_DURATION = SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DURATION = SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> DAMAGE = SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> FINAL_ATTACK=SynchedEntityData.defineId(NukeEntity.class, EntityDataSerializers.BOOLEAN);
     public Predicate<LivingEntity> livingEntityPredicate = (entity) -> {return true;};
 
     public NukeEntity(EntityType<?> type, Level level) {
@@ -81,6 +82,13 @@ public class NukeEntity extends Entity {
         entityData.define(INIT_DURATION,0);
         entityData.define(DURATION,600);
         entityData.define(DAMAGE,10f);
+        entityData.define(FINAL_ATTACK,false);
+    }
+    public void setFinal(){
+        entityData.set(FINAL_ATTACK,true);
+    }
+    public boolean isFinal(){
+        return entityData.get(FINAL_ATTACK);
     }
 
     @Override
@@ -112,8 +120,10 @@ public class NukeEntity extends Entity {
             if (getInitDuration() >= getDuration()){
                 discard();
             }
-            if (tickCount % 10 == 0){
+            if(tickCount%10==0||isFinal()){
                 hurtEntities();
+            }
+            if (tickCount%10==0){
                 damageAround(level(),getInitRange()+4,this.getOnPos());
             }
             if (getInitDuration() == 1){

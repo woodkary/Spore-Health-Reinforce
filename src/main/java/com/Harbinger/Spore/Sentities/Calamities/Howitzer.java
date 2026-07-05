@@ -258,20 +258,24 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         }
         super.aiStep();
     }
+    private void releaseDetonationNuke(){
+        NukeEntity nukeEntity = new NukeEntity(Sentities.NUKE.get(), level());
+        nukeEntity.setInitRange(3f);
+        nukeEntity.setRange((float) (SConfig.SERVER.nuke_range.get()*2f));
+        nukeEntity.setInitDuration(0);
+        nukeEntity.setDuration(SConfig.SERVER.nuke_time.get());
+        nukeEntity.setDamage((float) (SConfig.SERVER.nuke_damage.get()*1f));
+        nukeEntity.livingEntityPredicate = this.TARGET_SELECTOR;
+        nukeEntity.setPos(this.getX(),this.getY(),this.getZ());
+        nukeEntity.setFinal();
+        level().addFreshEntity(nukeEntity);
+        if (level() instanceof ServerLevel serverLevel){
+            Utilities.explodeCircle(serverLevel, this,this.getOnPos(), 15.0, (float) (SConfig.SERVER.howit_damage.get() * 1f),8, entity -> {return entity instanceof LivingEntity livingEntity && TARGET_SELECTOR.test(livingEntity);});
+        }
+    }
     public void tickDetonation(){
         if (entityData.get(SELF_DETONATION) >= 30){
-            NukeEntity nukeEntity = new NukeEntity(Sentities.NUKE.get(), level());
-            nukeEntity.setInitRange(3f);
-            nukeEntity.setRange((float) (SConfig.SERVER.nuke_range.get()*2f));
-            nukeEntity.setInitDuration(0);
-            nukeEntity.setDuration(SConfig.SERVER.nuke_time.get());
-            nukeEntity.setDamage((float) (SConfig.SERVER.nuke_damage.get()*1f));
-            nukeEntity.livingEntityPredicate = this.TARGET_SELECTOR;
-            nukeEntity.setPos(this.getX(),this.getY(),this.getZ());
-            level().addFreshEntity(nukeEntity);
-            if (level() instanceof ServerLevel serverLevel){
-                Utilities.explodeCircle(serverLevel, this,this.getOnPos(), 15.0, (float) (SConfig.SERVER.howit_damage.get() * 1f),8, entity -> {return entity instanceof LivingEntity livingEntity && TARGET_SELECTOR.test(livingEntity);});
-            }
+            releaseDetonationNuke();
             discard();
         }else {
             entityData.set(SELF_DETONATION,entityData.get(SELF_DETONATION)+1);
