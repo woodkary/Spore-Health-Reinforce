@@ -3,16 +3,11 @@ package com.Harbinger.Spore.Sentities.Calamities;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
-import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.ScatterShotRangedGoal;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
-import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SummonScentInCombat;
-import com.Harbinger.Spore.Sentities.AI.CalamityPathNavigation;
-import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
-import com.Harbinger.Spore.Sentities.AI.LeapGoal;
+import com.Harbinger.Spore.Sentities.AI.*;
+import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.*;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.CalamityMultipart;
+import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.FallenMultipart.HowitzerArm;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
@@ -46,8 +41,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -128,6 +125,24 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     public boolean doHurtTarget(Entity entity) {
         this.playSound(Ssounds.LANDING.get(),0.5f,0.5f);
         return super.doHurtTarget(entity);
+    }
+    @Override
+    protected void addTargettingGoals(){
+        this.goalSelector.addGoal(2, new HurtTargetGoal(this , livingEntity -> TARGET_SELECTOR.test(livingEntity), Infected.class).setAlertOthers(Infected.class));
+        this.targetSelector.addGoal(1, new NoLOSNearestAttackableTargetGoal<>
+                (this, LivingEntity.class,  true,livingEntity -> livingEntity instanceof Player || SConfig.SERVER.whitelist.get().contains(livingEntity.getEncodeId())){
+            @Override
+            protected AABB getTargetSearchArea(double value) {
+                return this.mob.getBoundingBox().inflate(value, value, value);
+            }
+        });
+        this.targetSelector.addGoal(1, new NoLOSNearestAttackableTargetGoal<>
+                (this, LivingEntity.class,  true, livingEntity -> SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity)){
+            @Override
+            protected AABB getTargetSearchArea(double value) {
+                return this.mob.getBoundingBox().inflate(value, value, value);
+            }
+        });
     }
 
     @Override
