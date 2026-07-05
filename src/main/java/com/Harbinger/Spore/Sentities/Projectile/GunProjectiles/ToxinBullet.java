@@ -68,7 +68,7 @@ public class ToxinBullet extends AbstractGunProjectile {
                 if (mutations == SporeToolsMutations.TOXIC){
                     livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON,100,1));
                 }
-                SporeAttackUtil.INSTANCE.dealDamage(livingEntity, level().damageSources().generic(), getDamage() * 0.5f);
+                SporeAttackUtil.INSTANCE.attack(livingEntity, level().damageSources().generic(), getDamage() * 0.5f);
             }
         }
         if (level().isClientSide){

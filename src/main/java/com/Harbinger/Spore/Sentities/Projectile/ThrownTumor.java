@@ -96,7 +96,7 @@ public class ThrownTumor extends ThrowableItemProjectile {
                 LivingEntity.class,
                 this.getBoundingBox().inflate(explodeRadius),
                 living -> living.isAlive() && !SporeJudge.isSporeEntity(living) && !(living instanceof Player)
-        ).forEach(living -> SporeAttackUtil.INSTANCE.dealDamage(
+        ).forEach(living -> SporeAttackUtil.INSTANCE.attack(
                 living,
                 calamity,
                 living.damageSources().explosion(this, calamity),
@@ -163,7 +163,7 @@ public class ThrownTumor extends ThrowableItemProjectile {
                 int intensity = instance == null ? 0 : instance.getAmplifier()+1;
                 target.addEffect(new MobEffectInstance(Seffects.FROSTBITE.get(),600,intensity));
                 if (SporeJudge.isSporeEntity(target)) {
-                    SporeAttackUtil.INSTANCE.dealDamage(target, this.getOwner() instanceof LivingEntity living ? living : null, target.damageSources().freeze(), 5.0f);
+                    SporeAttackUtil.INSTANCE.attack(target, this.getOwner() instanceof LivingEntity living ? living : null, target.damageSources().freeze(), 5.0f);
                 }
             }
         }
@@ -180,7 +180,7 @@ public class ThrownTumor extends ThrowableItemProjectile {
                     } else {
                         target.hurtTime = 0;
                         target.invulnerableTime = 0;
-                        SporeAttackUtil.INSTANCE.dealDamage(target, owner, source, 10.0F);
+                        SporeAttackUtil.INSTANCE.attack(target, owner, source, 10.0F);
                     }
                 }
             }

@@ -7,7 +7,7 @@
 - 保留本地增强优先级高于上游同名文件的简单覆盖。遇到冲突时，先确认上游真实行为，再把本地增强重新迁移到新结构中。
 - 不要把 `com.Harbinger.Spore.Core`、`com.Harbinger.Spore.mixin`、`com.Harbinger.Spore.network`、`com.Harbinger.Spore.sEvents` 当作普通业务代码处理；这些包里有运行时替换、隐藏类、ASM、保存数据和实体封锁逻辑。
 - 每次同步后至少执行 `git status --short --branch`、`git diff --name-status <base>...HEAD`、`rg` 关键字审计和 `.\gradlew --no-daemon --console=plain compileJava`。
-- 直接 `Entity#hurt`/`LivingEntity#hurt` 不是都要替换。实体自身 `super.hurt(...)`、multipart 转发到父实体、原版主击中路径通常可以保留；额外伤害、弹射物、武器、AOE、效果 tick、绕过原版血量系统的补伤害应优先走 `SporeAttackUtil.INSTANCE.dealDamage(...)` 或对应 manager。
+- 直接 `Entity#hurt`/`LivingEntity#hurt` 不是都要替换。实体自身 `super.hurt(...)`、multipart 转发到父实体、原版主击中路径通常可以保留；额外伤害、弹射物、武器、AOE、效果 tick、绕过原版血量系统的补伤害应优先走 `SporeAttackUtil.INSTANCE.attack(...)` 或对应 manager。
 
 ## 1. 日志、隐藏类、Unsafe、MethodHandle
 
@@ -124,11 +124,11 @@
 - `UtilityEntity` 和 `Infected` 两条实体基类路线必须保留自定义目标字段 `sporeTarget`，并覆盖 `getTarget()`/`setTarget(...)`；不要回退为直接使用原版 `Mob.target` 字段。
 - `setTarget(...)` 必须用 `SporeJudge.isSporeEntity(...)` 拒绝 Spore 实体目标。若子类覆盖 `setTarget(...)` 并带有解除休眠、解除 rooted、潜行、隐身等副作用，也要先做同样过滤，避免被拒绝的 Spore 目标仍触发副作用。
 - `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 的灾难部位弱点逻辑必须保留。旧灾难中 Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 的特定部位命中要额外调用 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 直接扣除灾难实际血量；不要把 Verfalldrachen 纳入这条必保规则。
-- 对 `LivingEntity` 的额外伤害应走 `SporeAttackUtil.INSTANCE.dealDamage(...)`，以同时更新 ASM 血量 manager、战斗记录、死亡状态和同步包。
-- `InfectedCrossbow` 和 `InfectedGreatBow` 的 BEZERK 变种必须在生成箭矢后调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`。这是武器/弹射物额外伤害路径，不只是隐藏类工具：`ASMHurtArrowUtil` 要生成隐藏 wrapper 覆写 `m_5790_(EntityHitResult)`，先调用 `onHitEntityHook(...)`，再调用 `super.m_5790_(...)`，hook 内额外伤害应走 `SporeAttackUtil.INSTANCE.dealDamage(...)`。
+- 对 `LivingEntity` 的额外伤害应走 `SporeAttackUtil.INSTANCE.attack(...)`，以同时更新 ASM 血量 manager、战斗记录、死亡状态和同步包。
+- `InfectedCrossbow` 和 `InfectedGreatBow` 的 BEZERK 变种必须在生成箭矢后调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`。这是武器/弹射物额外伤害路径，不只是隐藏类工具：`ASMHurtArrowUtil` 要生成隐藏 wrapper 覆写 `m_5790_(EntityHitResult)`，先调用 `onHitEntityHook(...)`，再调用 `super.m_5790_(...)`，hook 内额外伤害应走 `SporeAttackUtil.INSTANCE.attack(...)`。
 - 武器命中入口应保留 `SporeAttackUtil.INSTANCE.attack(...)`，并保留 `Healing Inhibition` 效果附加逻辑。
 - `HEALING_INHIBITION` 注册、贴图 `assets/spore/textures/mob_effect` 和多语言条目不能丢。
-- 保留有意的原版 `hurt`：实体自身覆写 `hurt` 内的 `super.hurt`、multipart 把伤害转发给 parent/head、某些非 LivingEntity 或原版方块/环境伤害路径。每轮同步后用 `rg -n "\.hurt\(|setHealth\(|dealDamage\(" src/main/java` 做差异审计。
+- 保留有意的原版 `hurt`：实体自身覆写 `hurt` 内的 `super.hurt`、multipart 把伤害转发给 parent/head、某些非 LivingEntity 或原版方块/环境伤害路径。每轮同步后用 `rg -n "\.hurt\(|setHealth\(|attack\(" src/main/java` 做差异审计。
 
 ## 5. 实体存储替换与简单移除
 
@@ -267,7 +267,7 @@ git status --short --branch
 git log --oneline --decorate --max-count=20
 git diff --name-status origin/master...HEAD
 rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal|PausableCalamityPathNavigation" src/main/java src/main/resources -S
-rg -n "\.hurt\(|hurrt\(|setHealth\(|dealDamage\(|ASMHurtArrowUtil\.INSTANCE\.wrap|setMaxHeeaafastth|getTarget\(|setTarget\(" src/main/java -S
+rg -n "\.hurt\(|hurrt\(|setHealth\(|attack\(|ASMHurtArrowUtil\.INSTANCE\.wrap|setMaxHeeaafastth|getTarget\(|setTarget\(" src/main/java -S
 rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_HEALTH|Attributes\.MAX_HEALTH|setBaseValue\(" src/main/java -S
 .\gradlew --no-daemon --console=plain compileJava
 ```
@@ -278,7 +278,7 @@ rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_
 - 关键入口 `Spore.commonSetup`、`SporeEventBus.tick().addSelfListener()`、`SporePacketHandler.registerPackets()` 全部存在。
 - `UtilityEntity`/`Infected` 自定义 `sporeTarget` 目标字段、`getTarget()`/`setTarget(...)` 覆盖和 Spore 目标过滤全部有代码证据。
 - 旧灾难的 `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 部位弱点额外直接扣血逻辑有代码证据：Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 均保留 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 调用；Verfalldrachen 不属于这条必保规则。
-- `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.dealDamage(...)`。
+- `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.attack(...)`。
 - 血量、最大血量、heal redirect、禁止回血效果、fake data health、multipart owner、IDieWithDiscardEntity 特殊死亡全部有代码证据。
 - 运行期最大生命值变更有配对证据：每个 `Attributes.MAX_HEALTH` 的 `setBaseValue(...)` 或等价 helper 都有同路径 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)`，且同步不依赖原版属性非空。
 - 实体 storage 替换覆盖 server/client lookup、id map、uuid map、known UUID set、tracked entity map、section/callback。

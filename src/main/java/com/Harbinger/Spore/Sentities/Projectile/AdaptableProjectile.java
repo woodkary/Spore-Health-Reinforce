@@ -114,7 +114,7 @@ public class AdaptableProjectile extends Projectile {
                     return;
                 }else{
                     int type = entityData.get(TYPE);
-                    SporeAttackUtil.INSTANCE.dealDamage(livingEntity, (LivingEntity) this.getOwner(), this.level().damageSources().mobProjectile(this,(LivingEntity) this.getOwner()), this.entityData.get(DAMAGE));
+                    SporeAttackUtil.INSTANCE.attack(livingEntity, (LivingEntity) this.getOwner(), this.level().damageSources().mobProjectile(this,(LivingEntity) this.getOwner()), this.entityData.get(DAMAGE));
                     if (type == 0){
                         livingEntity.addEffect(new MobEffectInstance(Seffects.MYCELIUM.get(),400,3));
                     }else if (type == 1){

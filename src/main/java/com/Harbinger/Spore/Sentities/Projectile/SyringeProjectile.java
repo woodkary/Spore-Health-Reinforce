@@ -82,7 +82,7 @@ public class SyringeProjectile extends AbstractArrow {
                 syringe.useSyringe(itemStack,living);
                 this.playSound(Ssounds.SYRINGE_GUN_INJECT.get());
             }
-            SporeAttackUtil.INSTANCE.dealDamage(living, (LivingEntity) getOwner(), level().damageSources().mobProjectile(this,(LivingEntity) getOwner()), (float) getBaseDamage());
+            SporeAttackUtil.INSTANCE.attack(living, (LivingEntity) getOwner(), level().damageSources().mobProjectile(this,(LivingEntity) getOwner()), (float) getBaseDamage());
         }
     }
 

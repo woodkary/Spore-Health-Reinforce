@@ -164,18 +164,8 @@ public final class SporeAttackUtil implements IAttack {
         }
 
     }
+    @Override
     public void attack(LivingEntity target, LivingEntity attacker,float baseDamage){
-        boolean mobAttackFlag = attacker instanceof Mob;
-        // ============ 原来的攻击逻辑 ============
-        if (mobAttackFlag&&target instanceof Player) {
-            return;
-        }
-        float damage = baseDamage;
-        // 力量效果修正
-        MobEffectInstance strength = attacker.getEffect(MobEffects.DAMAGE_BOOST);
-        if (strength != null) {
-            damage += 2*(strength.getAmplifier() + 1);
-        }
         DamageSource damageSource;
         if(attacker instanceof Player player){
             damageSource=attacker.damageSources().playerAttack(player);
@@ -185,6 +175,27 @@ public final class SporeAttackUtil implements IAttack {
             damageSource=util.getCustomDamage(util);
         } else {
             damageSource = attacker.damageSources().mobAttack(attacker);
+        }
+        attack(target,attacker,damageSource,baseDamage);
+    }
+    @Override
+    public void attack(LivingEntity target, DamageSource damageSource, float baseDamage){
+        attack(target,null,damageSource,baseDamage);
+    }
+    @Override
+    public void attack(LivingEntity target, LivingEntity attacker, DamageSource damageSource, float baseDamage){
+        boolean mobAttackFlag = attacker instanceof Mob;
+        // ============ 原来的攻击逻辑 ============
+        if (mobAttackFlag&&target instanceof Player) {
+            return;
+        }
+        float damage = baseDamage;
+        // 力量效果修正
+        if(attacker!=null) {
+            MobEffectInstance strength = attacker.getEffect(MobEffects.DAMAGE_BOOST);
+            if (strength != null) {
+                damage += 2 * (strength.getAmplifier() + 1);
+            }
         }
         damage=damageReduction(target,damage,damageSource);
         if(attacker instanceof ArmorPersentageBypass bypass){

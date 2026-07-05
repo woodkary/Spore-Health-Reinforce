@@ -74,7 +74,7 @@ public class Utilities {
             DamageSource source = level.damageSources().mobAttack(ownerLiving);
             if (!SporeJudge.isSporeEntity(entity) && entity instanceof LivingEntity living && living.isAlive()
                     && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
-                SporeAttackUtil.INSTANCE.dealDamage(living, ownerLiving, source, damage);
+                SporeAttackUtil.INSTANCE.attack(living, ownerLiving, source, damage);
             }
             entity.hurt(source, damage);
         }

@@ -340,7 +340,7 @@ public class Grober extends Hyper implements ArmorPersentageBypass {
                 living.hurt(source, damage);
                 float newHealth = living.getHealth();
                 if (newHealth > expectedHealth) {
-                    SporeAttackUtil.INSTANCE.dealDamage(living, mob, source, newHealth - expectedHealth);
+                    SporeAttackUtil.INSTANCE.attack(living, mob, source, newHealth - expectedHealth);
                 }
                 living.knockback(1.2F,
                         Mth.sin(mob.getYRot() * ((float)Math.PI / 180F)),

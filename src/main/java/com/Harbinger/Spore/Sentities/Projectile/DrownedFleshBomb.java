@@ -74,7 +74,7 @@ public class DrownedFleshBomb extends AbstractArrow {
                     }
                     living.addEffect(new MobEffectInstance(effect, 200, 0));
                     if (!(living instanceof Player)) {
-                        SporeAttackUtil.INSTANCE.dealDamage(living, living, this.level().damageSources().mobProjectile(this, living), random.nextFloat() * 5.0f);
+                        SporeAttackUtil.INSTANCE.attack(living, living, this.level().damageSources().mobProjectile(this, living), random.nextFloat() * 5.0f);
                     }
                 }
             }

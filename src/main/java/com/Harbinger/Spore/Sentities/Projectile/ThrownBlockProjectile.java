@@ -92,7 +92,7 @@ public class ThrownBlockProjectile extends Projectile {
         if (!level().isClientSide && result.getEntity() instanceof LivingEntity livingEntity){
             BlockPos pos = new BlockPos((int) this.getX(), (int) this.getY(), (int) this.getZ());
             LivingEntity owner = this.getOwner() instanceof LivingEntity livingEntity1 ? livingEntity1 : null;
-            SporeAttackUtil.INSTANCE.dealDamage(livingEntity, owner, level().damageSources().mobProjectile(this, owner),
+            SporeAttackUtil.INSTANCE.attack(livingEntity, owner, level().damageSources().mobProjectile(this, owner),
                     entityData.get(DAMAGE)*entityData.get(STATE).getDestroySpeed(level(),pos));
             FallingBlockEntity.fall(level(),pos,entityData.get(STATE));
             this.discard();

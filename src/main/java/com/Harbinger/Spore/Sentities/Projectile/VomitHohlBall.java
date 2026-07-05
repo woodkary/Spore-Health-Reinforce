@@ -127,7 +127,7 @@ public class VomitHohlBall extends AbstractArrow {
             addStuff(living);
             if (!(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
                 Entity owner = this.getOwner();
-                SporeAttackUtil.INSTANCE.dealDamage(living,
+                SporeAttackUtil.INSTANCE.attack(living,
                         owner instanceof LivingEntity livOwner ? livOwner : null,
                         this.damageSources().arrow(this, owner != null ? owner : this),
                         (float)this.getBaseDamage()

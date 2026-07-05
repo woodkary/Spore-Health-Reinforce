@@ -102,7 +102,7 @@ public class HarpoonProjectile extends AbstractArrow {
     protected void onHitEntity(EntityHitResult result) {
         Entity target = result.getEntity();
         if (target instanceof LivingEntity living) {
-            SporeAttackUtil.INSTANCE.dealDamage(living, (LivingEntity) this.getOwner(), level().damageSources().mobProjectile(this,(LivingEntity)this.getOwner()), getDamage());
+            SporeAttackUtil.INSTANCE.attack(living, (LivingEntity) this.getOwner(), level().damageSources().mobProjectile(this,(LivingEntity)this.getOwner()), getDamage());
             living.setArrowCount(living.getArrowCount() - 1);
             entityData.set(VICTIM_ID, living.getId());
             this.setDeltaMovement(Vec3.ZERO);

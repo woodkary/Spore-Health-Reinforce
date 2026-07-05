@@ -135,13 +135,13 @@ public class ThrownBoomerang extends AbstractArrow {
                     EnchantmentHelper.doPostDamageEffects(ownerLiving, living);
                     if (boomerang.getItem() instanceof SporeWeaponData data){
                         if (data.getVariant(boomerang) == SporeToolsMutations.BEZERK) {
-                            SporeAttackUtil.INSTANCE.dealDamage(living, ownerLiving, source, baseDamage);
+                            SporeAttackUtil.INSTANCE.attack(living, ownerLiving, source, baseDamage);
                         }
                         data.abstractMutationBuffs(living,ownerLiving,boomerang,data);
                     }
                     if (boomerang.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0) {
                         DamageSource freeze = new DamageSource(living.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), this, ownerLiving);
-                        SporeAttackUtil.INSTANCE.dealDamage(living, ownerLiving, freeze, 2.0f);
+                        SporeAttackUtil.INSTANCE.attack(living, ownerLiving, freeze, 2.0f);
                     }
                 }
 

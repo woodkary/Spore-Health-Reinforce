@@ -65,7 +65,7 @@ public class BileProjectile extends Projectile implements ItemSupplier {
         if (!this.level().isClientSide()) {
             Entity entity = entityHitResult.getEntity();
             if (entity instanceof LivingEntity livingEntity && target.test(livingEntity)){
-                SporeAttackUtil.INSTANCE.dealDamage(livingEntity, (LivingEntity) this.getOwner(), this.level().damageSources().mobProjectile(this,(LivingEntity) this.getOwner()), this.getDamage());
+                SporeAttackUtil.INSTANCE.attack(livingEntity, (LivingEntity) this.getOwner(), this.level().damageSources().mobProjectile(this,(LivingEntity) this.getOwner()), this.getDamage());
                 for (MobEffectInstance instance : BileLiquid.bileEffects()){
                     livingEntity.addEffect(instance);
                 }

@@ -115,11 +115,11 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
                     float damage = SConfig.SERVER.cleaver_damage.get() / 2f;
                     target.hurt(source, damage);
                     if (this.getVariant(stack) == SporeToolsMutations.BEZERK) {
-                        SporeAttackUtil.INSTANCE.dealDamage(target, player, source, damage);
+                        SporeAttackUtil.INSTANCE.attack(target, player, source, damage);
                     }
                     if (stack.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0) {
                         DamageSource freeze = new DamageSource(entity.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), player, player);
-                        SporeAttackUtil.INSTANCE.dealDamage(target, player, freeze, 2.0f);
+                        SporeAttackUtil.INSTANCE.attack(target, player, freeze, 2.0f);
                     }
                     target.hurtTime = 10;
                     target.invulnerableTime = 10;

@@ -111,7 +111,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
             return;
         }
         DamageSource source=projectile.level().damageSources().mobProjectile(projectile, own);
-        SporeAttackUtil.INSTANCE.dealDamage(liv,own,source, projectile instanceof AbstractArrow arrow?arrowDamage(arrow):1.0f);
+        SporeAttackUtil.INSTANCE.attack(liv,own,source, projectile instanceof AbstractArrow arrow?arrowDamage(arrow):1.0f);
         liv.invulnerableTime=0;
     }
     private float arrowDamage(AbstractArrow arrow){

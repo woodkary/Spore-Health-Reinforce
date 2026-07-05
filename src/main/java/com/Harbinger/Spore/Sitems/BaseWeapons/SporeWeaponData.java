@@ -65,7 +65,7 @@ public interface SporeWeaponData {
         }
         if ((flag&2)!=0 && target instanceof LivingEntity living) {
             DamageSource freeze = new DamageSource(target.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), player, player);
-            SporeAttackUtil.INSTANCE.dealDamage(living, player, freeze, 2.0f);
+            SporeAttackUtil.INSTANCE.attack(living, player, freeze, 2.0f);
         }
         return false;
     }

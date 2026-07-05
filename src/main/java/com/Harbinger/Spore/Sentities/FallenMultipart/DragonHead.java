@@ -363,6 +363,6 @@ public class DragonHead extends FallenMultipartEntity implements VariantKeeper {
             target.hurt(source, damage);
             return;
         }
-        SporeAttackUtil.INSTANCE.dealDamage(target, this, source, damage);
+        SporeAttackUtil.INSTANCE.attack(target, this, source, damage);
     }
 }

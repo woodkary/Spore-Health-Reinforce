@@ -88,7 +88,7 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
             }
             DamageSource source = level().damageSources().mobProjectile(this, owner);
             if(this.getMutationVariant()==SporeToolsMutations.BEZERK){
-                SporeAttackUtil.INSTANCE.dealDamage(living, owner, source, damage);
+                SporeAttackUtil.INSTANCE.attack(living, owner, source, damage);
             }else{
                 living.hurt(source,damage);
             }

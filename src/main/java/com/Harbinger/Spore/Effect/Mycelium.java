@@ -26,7 +26,7 @@ public class Mycelium extends MobEffect {
                     if (entity instanceof Player||!entity.isAlive()) {
                         entity.hurt(source, 1.0F);
                     } else {
-                        SporeAttackUtil.INSTANCE.dealDamage(entity, entity, source, 1.0f);
+                        SporeAttackUtil.INSTANCE.attack(entity, entity, source, 1.0f);
                     }
                 }
             }

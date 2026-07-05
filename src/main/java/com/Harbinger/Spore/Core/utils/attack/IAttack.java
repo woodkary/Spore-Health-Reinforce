@@ -19,6 +19,11 @@ public interface IAttack {
     void attack(Player player, Entity target);
     void attack(Player player, Entity t, ItemStack stack);
     void attack(LivingEntity target, LivingEntity attacker,float baseDamage);
+
+    void attack(LivingEntity target, DamageSource damageSource, float baseDamage);
+
+    void attack(LivingEntity target, LivingEntity attacker, DamageSource damageSource, float baseDamage);
+
     void dealDamage(LivingEntity target, float damage);
     void dealDamage(LivingEntity target, DamageSource source, float damage);
     void dealDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage);

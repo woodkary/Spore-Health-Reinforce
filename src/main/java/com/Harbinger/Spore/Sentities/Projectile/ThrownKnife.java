@@ -144,13 +144,13 @@ public class ThrownKnife extends AbstractArrow {
                     EnchantmentHelper.doPostDamageEffects(ownerLiving, livingEntity);
                     if (spearItem.getItem() instanceof SporeWeaponData data){
                         if (data.getVariant(spearItem) == SporeToolsMutations.BEZERK) {
-                            SporeAttackUtil.INSTANCE.dealDamage(livingEntity, ownerLiving, damagesource, f);
+                            SporeAttackUtil.INSTANCE.attack(livingEntity, ownerLiving, damagesource, f);
                         }
                         data.abstractMutationBuffs(livingEntity,ownerLiving,spearItem,data);
                     }
                     if (spearItem.getEnchantmentLevel(Senchantments.CRYOGENIC_ASPECT.get()) > 0) {
                         DamageSource freeze = new DamageSource(entity.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FREEZE), this, ownerLiving);
-                        SporeAttackUtil.INSTANCE.dealDamage(livingEntity, ownerLiving, freeze, 2.0f);
+                        SporeAttackUtil.INSTANCE.attack(livingEntity, ownerLiving, freeze, 2.0f);
                     }
                 }
                 if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT , this.spearItem) > 0) {

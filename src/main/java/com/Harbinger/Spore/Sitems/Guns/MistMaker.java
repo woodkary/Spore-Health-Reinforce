@@ -137,7 +137,7 @@ public class MistMaker extends AbstractSporeGun implements CustomModelArmorData 
                             if(living instanceof Player||this.getVariant(stack)!=SporeToolsMutations.BEZERK||!living.isAlive()){
                                 living.hurt(source, damage);
                             }else{
-                                SporeAttackUtil.INSTANCE.dealDamage(living,player,source,damage);
+                                SporeAttackUtil.INSTANCE.attack(living,player,source,damage);
                             }
                             if(living.hurtTime == 0) {
                                 doEntityHurtAfterEffects(stack, living, player);

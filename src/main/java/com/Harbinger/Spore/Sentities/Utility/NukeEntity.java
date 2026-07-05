@@ -155,7 +155,7 @@ public class NukeEntity extends Entity {
                 float damage = this.getDamage();
                 if (!SporeJudge.isSporeEntity(living) && living.isAlive()
                         && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
-                    SporeAttackUtil.INSTANCE.dealDamage(living, source, damage);
+                    SporeAttackUtil.INSTANCE.attack(living, source, damage);
                 }
                 living.hurt(source, damage);
                 living.hurtTime = 10;

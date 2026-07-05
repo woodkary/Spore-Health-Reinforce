@@ -837,7 +837,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
             target.hurt(source, damage);
             return;
         }
-        SporeAttackUtil.INSTANCE.dealDamage(target, this, source, damage);
+        SporeAttackUtil.INSTANCE.attack(target, this, source, damage);
     }
 
 // ==================== VALIDATION METHODS ====================
