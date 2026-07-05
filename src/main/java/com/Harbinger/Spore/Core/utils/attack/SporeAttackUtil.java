@@ -207,18 +207,22 @@ public final class SporeAttackUtil implements IAttack {
             }
         }
         damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
-        dealDamage(target, attacker, damageSource, damage);
+        applyRawHealthDamage(target, attacker, damageSource, damage);
     }
 
     public void dealDamage(LivingEntity target,float damage){
-        dealDamage(target,null,
+        applyRawHealthDamage(target,null,
                 target.damageSources().fellOutOfWorld(),
                 damage);
     }
     public void dealDamage(LivingEntity target,DamageSource damageSource,float damage){
-        dealDamage(target,null,damageSource,damage);
+        applyRawHealthDamage(target,null,damageSource,damage);
     }
     public void dealDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage) {
+        applyRawHealthDamage(target, attacker, damageSource, damage);
+    }
+
+    private void applyRawHealthDamage(LivingEntity target, LivingEntity attacker,DamageSource damageSource, float damage) {
         if(attacker!=null){
             target.setLastHurtByMob(attacker);
         }
