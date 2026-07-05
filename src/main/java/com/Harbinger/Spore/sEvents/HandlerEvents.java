@@ -378,12 +378,15 @@ public class HandlerEvents {
                     calamity.setSearchArea(pos);
                 }
             }
-            if (incomingMessage) {
-                for (ServerPlayer player : world.getServer().getPlayerList().getPlayers()) {
+
+            for (ServerPlayer player : world.getServer().getPlayerList().getPlayers()) {
+                if (incomingMessage) {
                     player.playNotifySound(Ssounds.CALAMITY_INCOMING.get(), SoundSource.AMBIENT, 1.0F, 1.0F);
                     player.displayClientMessage(Component.translatable("calamity_coming_message"), false);
                 }
+                player.displayClientMessage(Component.literal("set search position ("+x+","+y+","+z+") via command."),false);
             }
+
             return 1;
         }).requires(s -> s.hasPermission(1)));
         dispatcher.register(Commands.literal(Spore.MODID+":nuke_the_land")
