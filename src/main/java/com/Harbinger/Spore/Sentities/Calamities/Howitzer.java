@@ -234,6 +234,9 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             if(tar==null){
                 return;
             }
+            if(this.mob.getTarget()==null) {
+                this.mob.setTarget(tar);
+            }
             double d0 = this.mob.distanceToSqr(tar.getX(), tar.getY(), tar.getZ());
             ++this.seeTime;
 
