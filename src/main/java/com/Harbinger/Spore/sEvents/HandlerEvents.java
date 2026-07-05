@@ -962,14 +962,13 @@ public class HandlerEvents {
         }
         //////problem
         if (event.getEntity() instanceof Player player) {
-            float totalDamageModification = 0.0F;
-
+            float actualDamage = event.getAmount();
             for (ItemStack stack : player.getArmorSlots()) {
                 if (stack.getItem() instanceof SporeBaseArmor armor) {
-                    totalDamageModification += armor.calculateAdditionalDamage(event.getSource(), stack, event.getAmount());
+                    actualDamage += armor.calculateAdditionalDamage(event.getSource(), stack, actualDamage);
                 }
             }
-            event.setAmount(event.getAmount() + totalDamageModification);
+            event.setAmount(actualDamage);
         }
         if (event.getSource().getEntity() instanceof ServerPlayer serverPlayer){
             int i = 0;
