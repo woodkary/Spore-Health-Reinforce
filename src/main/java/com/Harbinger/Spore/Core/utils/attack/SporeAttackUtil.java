@@ -197,7 +197,9 @@ public final class SporeAttackUtil implements IAttack {
                 damage += 2 * (strength.getAmplifier() + 1);
             }
         }
-        damage=damageReduction(target,damage,damageSource);
+        damage=target.getDamageAfterMagicAbsorb(damageSource,
+                target.getDamageAfterArmorAbsorb(damageSource,damage)
+        );
         if(attacker instanceof ArmorPersentageBypass bypass){
             float recalculatedDamage=bypass.amountOfDamage(damage);
             if (recalculatedDamage >= 0.0F && damage < recalculatedDamage) {
