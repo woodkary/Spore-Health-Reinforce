@@ -227,8 +227,9 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         @Override
         public void tick() {
             LivingEntity tar=this.targetStack.peek();
-            while(!this.targetStack.isEmpty()&&!tar.isAlive()){
-                tar = this.targetStack.pop();
+            while(!this.targetStack.isEmpty()&&(tar==null||!tar.isAlive())){
+                this.targetStack.pop();
+                tar = this.targetStack.peek();
             }
             if(tar==null){
                 return;
@@ -262,8 +263,9 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         }
         private void recomputeTargetPath(){
             LivingEntity tar=this.targetStack.peek();
-            while(!this.targetStack.isEmpty()&&!tar.isAlive()){
-                tar = this.targetStack.pop();
+            while(!this.targetStack.isEmpty()&&(tar==null||!tar.isAlive())){
+                this.targetStack.pop();
+                tar = this.targetStack.peek();
             }
             if(tar==null){
                 tar=this.mob.getTarget();
