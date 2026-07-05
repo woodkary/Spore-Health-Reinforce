@@ -55,9 +55,7 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 import static com.Harbinger.Spore.ExtremelySusThings.Utilities.biomass;
 
@@ -182,15 +180,30 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     private static class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
         private boolean holdingPosition;
         private final Howitzer howitzer;
-
+        private final Deque<LivingEntity> targetStack = new LinkedList<>();
         public HowitzerRangedAttackGoal(Howitzer mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
             this.howitzer = mob;
             this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         }
+        private boolean superCanUse() {
+            LivingEntity mobTarget = this.mob.getTarget();
+            if (mobTarget != null) {
+                if(!mobTarget.equals(targetStack.peek())) {
+                    targetStack.push(mobTarget);
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+        @Override
+        public boolean canContinueToUse() {
+            return this.canUse() || !targetStack.isEmpty() && !this.mob.getNavigation().isDone();
+        }
         @Override
         public boolean canUse() {
-            return !this.howitzer.isInMeleeRange() && super.canUse();
+            return !this.howitzer.isInMeleeRange() && superCanUse();
         }
         private int getBurnable(LivingEntity target){
             AABB aabb = target.getBoundingBox().inflate(4);
@@ -213,7 +226,14 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
         @Override
         public void tick() {
-            double d0 = this.mob.distanceToSqr(this.target.getX(), this.target.getY(), this.target.getZ());
+            LivingEntity tar=this.targetStack.peek();
+            while(!this.targetStack.isEmpty()&&!tar.isAlive()){
+                tar = this.targetStack.pop();
+            }
+            if(tar==null){
+                return;
+            }
+            double d0 = this.mob.distanceToSqr(tar.getX(), tar.getY(), tar.getZ());
             ++this.seeTime;
 
             if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 5) {
@@ -225,15 +245,15 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
                 this.howitzer.howitzerNav.resume();
             }
 
-            this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
+            this.mob.getLookControl().setLookAt(tar, 30.0F, 30.0F);
             if (--this.attackTime == 0) {
                 RandomSource randomSource = RandomSource.create();
                 int shot = randomSource.nextInt(this.minShots,this.maxShots + getExtraShots());
 
                 float f = (float)Math.sqrt(d0) / this.attackRadius;
-                float f1 = getBurnable(target);
+                float f1 = getBurnable(tar);
                 for (int i = 0; i<shot;++i){
-                    this.rangedAttackMob.performRangedAttack(this.target, f1);
+                    this.rangedAttackMob.performRangedAttack(tar, f1);
                 }
                 this.attackTime = Mth.floor(f * (float)(attackInterval) + (float)this.attackInterval);
             } else if (this.attackTime < 0) {
@@ -241,7 +261,16 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             }
         }
         private void recomputeTargetPath(){
-            this.mob.getNavigation().moveTo(this.target, this.speedModifier);
+            LivingEntity tar=this.targetStack.peek();
+            while(!this.targetStack.isEmpty()&&!tar.isAlive()){
+                tar = this.targetStack.pop();
+            }
+            if(tar==null){
+                tar=this.mob.getTarget();
+            }
+            if(tar!=null&&tar.isAlive()){
+                this.mob.getNavigation().moveTo(tar, this.speedModifier);
+            }
         }
     }
     @Override
