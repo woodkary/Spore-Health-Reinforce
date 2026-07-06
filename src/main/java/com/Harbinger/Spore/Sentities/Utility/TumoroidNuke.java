@@ -3,9 +3,11 @@ package com.Harbinger.Spore.Sentities.Utility;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.Calamities.Hinderburg;
+import com.google.common.collect.Sets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -16,17 +18,25 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.enchantment.ProtectionEnchantment;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class TumoroidNuke extends UtilityEntity{
     public static final EntityDataAccessor<Integer> TIMER = SynchedEntityData.defineId(Hinderburg.class, EntityDataSerializers.INT);
@@ -116,12 +126,44 @@ public class TumoroidNuke extends UtilityEntity{
     public boolean hurt(DamageSource p_21016_, float p_21017_) {
         return false;
     }
+    private void explodeEntity(double x,double y,double z,float radius) {
+        float f2 = radius * 2.0F;
+        int k1 = Mth.floor(x - (double)f2 - (double)1.0F);
+        int l1 = Mth.floor(x + (double)f2 + (double)1.0F);
+        int i2 = Mth.floor(y - (double)f2 - (double)1.0F);
+        int i1 = Mth.floor(y + (double)f2 + (double)1.0F);
+        int j2 = Mth.floor(z - (double)f2 - (double)1.0F);
+        int j1 = Mth.floor(z + (double)f2 + (double)1.0F);
+        List<Entity> list = this.level.getEntities(this, new AABB(k1, i2, j2, l1, i1, j1));
+        Vec3 center = new Vec3(x, y, z);
 
-    public void explodeNuke(BlockPos offset,boolean fire,int value){
+        for (Entity entity : list) {
+            if(!(entity instanceof LivingEntity liv)){
+                continue;
+            }
+            double d12 = Math.sqrt(entity.distanceToSqr(center)) / (double) f2;
+            double d5 = entity.getX() - x;
+            double d7 = entity.getEyeY() - y;
+            double d9 = entity.getZ() - z;
+            double d13 = Math.sqrt(d5 * d5 + d7 * d7 + d9 * d9);
+            if (Math.abs(d13)<1.0e-8) {
+                continue;
+            }
+            double d14 = Explosion.getSeenPercent(center, entity);
+            double d10 = ((double) 1.0F - d12) * d14;
+            SporeAttackUtil.INSTANCE.attack(liv,hinderburg,liv.damageSources().explosion(this,hinderburg),(float)((int)((d10 * d10 + d10) / (double)2.0F * (double)7.0F * (double)f2 + (double)1.0F)));
+        }
+
+    }
+    public void explodeNuke(BlockPos offset,boolean fire,int radius){
         if (!this.level().isClientSide){
             Entity entity = this.hinderburg != null ? this.hinderburg : this;
             Level.ExplosionInteraction explosion$blockinteraction = net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this) ? Level.ExplosionInteraction.MOB : Level.ExplosionInteraction.NONE;
-            this.level().explode(entity,this.getX() + offset.getX(),this.getY()+ offset.getY(),this.getZ()+ offset.getZ(),value, explosion$blockinteraction);
+            double x = this.getX() + offset.getX();
+            double y = this.getY() + offset.getY();
+            double z = this.getZ() + offset.getZ();
+            this.level().explode(entity, x,y,z,radius, explosion$blockinteraction);
+            this.explodeEntity(x, y, z, radius);
             if (fire && this.level() instanceof ServerLevel serverLevel){
                 Utilities.convertBlocks(serverLevel,this,this.getOnPos(),14, Blocks.FIRE.defaultBlockState());
             }
