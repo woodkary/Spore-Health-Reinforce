@@ -88,10 +88,7 @@ public class ThrownTumor extends ThrowableItemProjectile {
         if (!(this.getOwner() instanceof Calamity calamity)) {
             return;
         }
-        double ballistic = getCalamityBallisticMutation(calamity);
-        if (ballistic <= 0.0) {
-            return;
-        }
+        double ballistic = getCalamityBallisticMutation(calamity)+5.0;
         this.level().getEntitiesOfClass(
                 LivingEntity.class,
                 this.getBoundingBox().inflate(explodeRadius),
