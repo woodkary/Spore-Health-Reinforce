@@ -9,18 +9,22 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
 public class AerialRangedGoal extends ScatterShotRangedGoal {
+    private static final double MAX_RECOIL_DELTA = 0.8D;
     @Nullable
     protected Path path;
     protected final PathNavigation pathNav;
+    private final Hinderburg hindenburg;
     public AerialRangedGoal(Hinderburg mob, double speed, int interval, float range, int min, int max) {
         super(mob, speed, interval, range, min, max);
         this.pathNav = mob.getNavigation();
         this.setFlags(EnumSet.of(Flag.MOVE));
+        this.hindenburg=mob;
 
     }
     public BlockPos getRandomPosition(){
@@ -56,10 +60,8 @@ public class AerialRangedGoal extends ScatterShotRangedGoal {
 
             this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
             if (--this.attackTime == 0) {
-                if (mob instanceof Hinderburg hinderburg){
-                    if (hinderburg.tryToSummonNUKE(target)){
-                        hinderburg.tickBomb();
-                    }
+                if (hindenburg.tryToSummonNUKE(target)){
+                    hindenburg.tickBomb();
                 }
                 if (!flag) {
                     return;
@@ -69,14 +71,25 @@ public class AerialRangedGoal extends ScatterShotRangedGoal {
 
                 float f = (float)Math.sqrt(d0) / this.attackRadius;
                 float f1 = Mth.clamp(f, 0.1F, 1.0F);
+                Vec3 baseDeltaMovement = this.mob.getDeltaMovement();
+                hindenburg.getReadyForDelta();
                 for (int i = 0; i<shot;++i){
                     this.rangedAttackMob.performRangedAttack(this.target, f1);
                 }
+                this.mob.setDeltaMovement(this.limitCachedDeltaMovement(baseDeltaMovement, hindenburg.getCachedDeltaMovement()));
                 this.attackTime = Mth.floor(f * (float)(attackInterval) + (float)this.attackInterval);
             } else if (this.attackTime < 0) {
                 this.attackTime = Mth.floor(Mth.lerp(Math.sqrt(d0) / (double)this.attackRadius, this.attackInterval, this.attackInterval));
             }
         }
+    }
+
+    private Vec3 limitCachedDeltaMovement(Vec3 baseDeltaMovement, Vec3 cachedDeltaMovement) {
+        Vec3 recoilDelta = cachedDeltaMovement.subtract(baseDeltaMovement);
+        if (recoilDelta.lengthSqr() > MAX_RECOIL_DELTA * MAX_RECOIL_DELTA) {
+            recoilDelta = recoilDelta.normalize().scale(MAX_RECOIL_DELTA);
+        }
+        return baseDeltaMovement.add(recoilDelta);
     }
 
     private void Orbit(LivingEntity target) {

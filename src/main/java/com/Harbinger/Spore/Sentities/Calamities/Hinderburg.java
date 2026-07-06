@@ -56,6 +56,7 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
     public final CalamityMultipart rightcannon;
     public final CalamityMultipart leftcannon;
     public final CalamityMultipart mouth;
+    private Vec3 cachedDeltaMovement=Vec3.ZERO;
     public Hinderburg(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.lowerbody = new CalamityMultipart(this, "lowerbody", 4.0F, 4.0F);
@@ -473,10 +474,15 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
             tumor.moveTo(this.getX() +vec3.x(),this.getY()+vec3.y(),this.getZ() + vec3.z());
             tumor.shoot(dx, dy - tumor.getY() + Math.hypot(dx, dz) * 0.05F, dz, 1f * 2, 12.0F);
             level().addFreshEntity(tumor);
-            //this.setDeltaMovement(this.getDeltaMovement().add(new Vec3(dx, dy, dz).normalize().scale(0.2D)));
+            this.cachedDeltaMovement=this.cachedDeltaMovement.add(new Vec3(-dx, -(dy+1.5-this.getY()), -dz).normalize().scale(0.2D));
         }
     }
-
+    public void getReadyForDelta(){
+        this.cachedDeltaMovement=this.getDeltaMovement();
+    }
+    public Vec3 getCachedDeltaMovement(){
+        return this.cachedDeltaMovement;
+    }
 
     @Override
     public boolean doHurtTarget(Entity entity) {
