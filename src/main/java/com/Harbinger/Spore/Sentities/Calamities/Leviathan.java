@@ -261,7 +261,7 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
     }
 
     @Override
-    protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
+    public void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
         super.onEffectAdded(instance, source);
         if (firstSegment == null) return;
         MobEffectInstance existing = firstSegment.getEffect(instance.getEffect());
@@ -271,7 +271,7 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
     }
 
     @Override
-    protected void onEffectRemoved(MobEffectInstance instance) {
+    public void onEffectRemoved(MobEffectInstance instance) {
         super.onEffectRemoved(instance);
         if (firstSegment == null){
             return;

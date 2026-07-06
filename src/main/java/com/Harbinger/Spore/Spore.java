@@ -2,6 +2,7 @@ package com.Harbinger.Spore;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
+import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.ExtremelySusThings.StructureModification;
@@ -69,6 +70,7 @@ public class Spore
         structureModifiers.register("spore_structure_spawns", StructureModification::makeCodec);
         SporeEventBus.tick().addSelfListener();
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onMobEffectAdded);
+        MinecraftForge.EVENT_BUS.addListener(SporeEffectsUtil.INSTANCE);
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();

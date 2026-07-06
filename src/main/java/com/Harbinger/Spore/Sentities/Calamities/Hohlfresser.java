@@ -770,7 +770,7 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
     }
 
     @Override
-    protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
+    public void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
         super.onEffectAdded(instance, source);
         HohlMultipart[] parts = getHolfParts();
         if (parts == null) return;
@@ -786,7 +786,7 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
     }
 
     @Override
-    protected void onEffectRemoved(MobEffectInstance instance) {
+    public void onEffectRemoved(MobEffectInstance instance) {
         super.onEffectRemoved(instance);
         if (getHolfParts() == null){
             return;

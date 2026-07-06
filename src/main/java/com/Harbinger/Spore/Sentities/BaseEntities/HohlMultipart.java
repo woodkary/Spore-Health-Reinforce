@@ -376,7 +376,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
     }
 
     @Override
-    protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
+    public void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
         super.onEffectAdded(instance, source);
         Entity parent = this.getParentSafe();
         if (!(parent instanceof LivingEntity livingParent)) return;

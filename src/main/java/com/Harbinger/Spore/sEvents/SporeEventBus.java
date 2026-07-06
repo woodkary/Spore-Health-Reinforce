@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.sEvents;
 
+import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntitySectionStorage;
@@ -7,16 +8,19 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
+import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import net.minecraft.world.level.entity.TransientEntitySectionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.BusBuilderImpl;
 import net.minecraftforge.eventbus.EventBus;
@@ -96,6 +100,19 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
             ClassUtil.setFieldValue(shutdownField,this,false);
         }
         if(event instanceof EntityEvent entityEvent&&!(entityEvent instanceof ItemTooltipEvent)&&SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entityEvent.getEntity())){
+            return true;
+        }
+        if(event instanceof MobEffectEvent.Applicable applicable){
+            MobEffectInstance effectInstance = applicable.getEffectInstance();
+            if(effectInstance.getEffect()== Seffects.HEALING_INHIBITION.get()) {
+                //禁止原版的addEffect，执行自己的
+                applicable.setResult(Event.Result.DENY);
+                SporeEffectsUtil.INSTANCE.forceAddEffect(applicable.getEntity(), effectInstance, null);
+                return true;
+            }
+        }
+        if(event instanceof MobEffectEvent.Remove removeEffect&&removeEffect.getEffect()==Seffects.HEALING_INHIBITION.get()) {
+            //禁止移除禁疗效果
             return true;
         }
         return super.post(event, wrapper);

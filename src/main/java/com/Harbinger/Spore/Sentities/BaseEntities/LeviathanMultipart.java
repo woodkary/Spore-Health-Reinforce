@@ -374,7 +374,7 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
     }
 
     @Override
-    protected void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
+    public void onEffectAdded(MobEffectInstance instance, @Nullable Entity source) {
         super.onEffectAdded(instance, source);
         if (!instance.getEffect().isBeneficial() && instance.getAmplifier() < 2){
             return;
