@@ -418,17 +418,17 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
     public void setBomb(int i){
         entityData.set(BOMB,i);
     }
-    private boolean isSelfOrTumorDamage(DamageSource source){
+    private boolean isSelfTumorDamage(DamageSource source){
         return equals(source.getEntity())||
                 source.getDirectEntity() instanceof Projectile tumor&&equals(tumor.getOwner());
     }
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        return !isSelfOrTumorDamage(source)&&super.hurt(source,amount);
+        return !isSelfTumorDamage(source)&&super.hurt(source,amount);
     }
     @Override
     public void actuallyHurt(DamageSource source, float amount) {
-        if(isSelfOrTumorDamage(source)){
+        if(isSelfTumorDamage(source)){
             return;
         }
         super.actuallyHurt(source,amount);
