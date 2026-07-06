@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 import java.util.EnumSet;
 
 public class AerialRangedGoal extends ScatterShotRangedGoal {
-    private static final double MAX_RECOIL_DELTA = 0.8D;
+    private static final double MAX_RECOIL_DELTA = 2.5D;
     @Nullable
     protected Path path;
     protected final PathNavigation pathNav;
