@@ -36,6 +36,7 @@ import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -417,7 +418,21 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
     public void setBomb(int i){
         entityData.set(BOMB,i);
     }
-
+    private boolean isSelfOrTumorDamage(DamageSource source){
+        return equals(source.getEntity())||
+                source.getDirectEntity() instanceof Projectile tumor&&equals(tumor.getOwner());
+    }
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        return !isSelfOrTumorDamage(source)&&super.hurt(source,amount);
+    }
+    @Override
+    public void actuallyHurt(DamageSource source, float amount) {
+        if(isSelfOrTumorDamage(source)){
+            return;
+        }
+        super.actuallyHurt(source,amount);
+    }
 
     public boolean isArmed(){
         return this.getBomb() >= 2400;
@@ -458,7 +473,7 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
             tumor.moveTo(this.getX() +vec3.x(),this.getY()+vec3.y(),this.getZ() + vec3.z());
             tumor.shoot(dx, dy - tumor.getY() + Math.hypot(dx, dz) * 0.05F, dz, 1f * 2, 12.0F);
             level().addFreshEntity(tumor);
-            this.setDeltaMovement(this.getDeltaMovement().add(new Vec3(dx, dy, dz).normalize().scale(0.2D)));
+            //this.setDeltaMovement(this.getDeltaMovement().add(new Vec3(dx, dy, dz).normalize().scale(0.2D)));
         }
     }
 
