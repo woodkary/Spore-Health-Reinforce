@@ -175,7 +175,7 @@ public class ThrownTumor extends ThrowableItemProjectile {
                 boolean isTargetOwner = target.equals(ownerEntity);
                 if (ownerEntity instanceof LivingEntity owner){
                     DamageSource source = this.level().damageSources().mobProjectile(this, owner);
-                    if (isTargetOwner) {
+                    if (isTargetOwner||target instanceof Player) {
                         target.hurt(source, 10.0F);
                     } else {
                         target.hurtTime = 0;
