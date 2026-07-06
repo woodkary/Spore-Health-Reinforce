@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Utility;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
@@ -138,7 +139,7 @@ public class TumoroidNuke extends UtilityEntity{
         Vec3 center = new Vec3(x, y, z);
 
         for (Entity entity : list) {
-            if(!(entity instanceof LivingEntity liv)){
+            if(!(entity instanceof LivingEntity liv)||SporeJudge.isSporeEntity(entity)){
                 continue;
             }
             double d12 = Math.sqrt(entity.distanceToSqr(center)) / (double) f2;
