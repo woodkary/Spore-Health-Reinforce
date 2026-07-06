@@ -127,6 +127,10 @@ public class TumoroidNuke extends UtilityEntity{
     public boolean hurt(DamageSource p_21016_, float p_21017_) {
         return false;
     }
+    @Override
+    public void actuallyHurt(DamageSource source, float amount) {
+
+    }
     private void explodeEntity(LivingEntity source,double x,double y,double z,float radius) {
         float f2 = radius * 2.0F;
         int k1 = Mth.floor(x - (double)f2 - (double)1.0F);

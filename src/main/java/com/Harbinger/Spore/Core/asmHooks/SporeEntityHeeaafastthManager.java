@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.ICalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
+import com.Harbinger.Spore.Sentities.Utility.TumoroidNuke;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -158,6 +159,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
 
     @Override
     public float getHeeaafastth(LivingEntity entity) {
+        if(entity instanceof TumoroidNuke nuke){
+            return Math.max(nuke.getMaxHealth(),10.0f);
+        }
         entity = getHealthOwner(entity);
         float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(entity,entityHealthJudge), 0.0f);
         if(entity instanceof IFakeDataHealthEntity fakeHealth){
