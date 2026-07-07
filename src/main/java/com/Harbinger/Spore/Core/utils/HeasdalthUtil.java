@@ -524,7 +524,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                         || lowerKey.contains("died")
                         || lowerKey.contains("die")
                         || lowerKey.contains("killed")
-                        || lowerKey.contains("kill"));
+                        || lowerKey.contains("kill")&&!lowerKey.contains("skill"));
                 if (deathLike) {
                     if (tag instanceof ByteTag) {
                         compoundTag.putByte(key, (byte) 1);
@@ -612,7 +612,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 || n.contains("death")
                 || n.contains("away")
                 || n.contains("died")
-                || n.contains("kill")
+                || n.contains("kill")&&!n.contains("skill")
                 || n.contains("weak"))
                 && !(n.contains("time") || n.contains("tick"));
     }
