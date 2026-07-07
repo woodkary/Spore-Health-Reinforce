@@ -130,7 +130,7 @@ public final class SporeEffectsUtil implements IEffectManager {
             }
         } catch (ConcurrentModificationException ignored) {
         }
-        if(foundHealInhibit){
+        if(foundHealInhibit&&!(entity.activeEffects instanceof HashMap<MobEffect, MobEffectInstance>)){
             //回退到普通HashMap
             entity.activeEffects= new HashMap<>(entity.activeEffects);
         }
