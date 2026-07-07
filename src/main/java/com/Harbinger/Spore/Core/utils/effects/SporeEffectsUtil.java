@@ -114,6 +114,9 @@ public final class SporeEffectsUtil implements IEffectManager {
     @Override
     public void accept(LivingEvent.LivingTickEvent livingTickEvent) {
         LivingEntity entity = livingTickEvent.getEntity();
+        if(entity.level().isClientSide){
+            return;
+        }
         if(!(entity.activeEffects instanceof ISporeMap<MobEffect, MobEffectInstance> sporeEffectMap)){
             return;
         }
@@ -127,9 +130,6 @@ public final class SporeEffectsUtil implements IEffectManager {
             while(iterator.hasNext()) {
                 MobEffect mobeffect = iterator.next();
                 MobEffectInstance mobeffectinstance = sporeEffectMap.get(mobeffect);
-                if(entity.level().isClientSide){
-                    continue;
-                }
                 if (!mobeffectinstance.hasRemainingDuration()) {
                     //如果补充迭代成功删除了指定的效果，则将activeEffects归还给普通HashMap管理
                     foundCriticalEfffect|=checkEffect(mobeffectinstance);
