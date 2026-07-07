@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import net.minecraft.world.level.entity.TransientEntitySectionManager;
@@ -111,9 +112,17 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
                 return true;
             }
         }
-        if(event instanceof MobEffectEvent.Remove removeEffect&&SporeEffectsUtil.INSTANCE.checkEffect(removeEffect.getEffectInstance())) {
-            //禁止移除禁疗效果
-            return true;
+        if(event instanceof MobEffectEvent.Remove removeEffect) {
+            MobEffectInstance effectInstance = removeEffect.getEffectInstance();
+            if (SporeEffectsUtil.INSTANCE.checkEffect(effectInstance)) {
+                //禁止移除禁疗效果
+                if (removeEffect.getEntity() instanceof Player player &&
+                        EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+                    //允许创造玩家移除效果，checkEffect已经保证了effectInstance不为Null
+                    SporeEffectsUtil.INSTANCE.removeEffect(player,effectInstance.getEffect());
+                }
+                return true;
+            }
         }
         return super.post(event, wrapper);
     }
@@ -132,27 +141,31 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
 
     @Override
     public void accept(TickEvent tickEvent) {
-        if(tickEvent instanceof TickEvent.ClientTickEvent||tickEvent instanceof TickEvent.ServerTickEvent){
-            if(tickEvent instanceof TickEvent.ServerTickEvent serverTickEvent){
-                SimpleRemoveUtil.INSTANCE.tickServer();
-                for (ServerLevel level : serverTickEvent.getServer().getAllLevels()) {
-                    PersistentEntitySectionManager<? extends EntityAccess> manager=level.entityManager;
-                    if(manager.sectionStorage.getClass()!=SporeEntitySectionStorage.entitySectionStorageClass) {
-                        KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass, "", 0, 0.0f);
-                    }
-                }
-            }else{
-                ClientLevel level=Minecraft.getInstance().level;
-                if(level!=null){
-                    TransientEntitySectionManager<? extends EntityAccess> manager=level.entityStorage;
-                    if(manager.sectionStorage.getClass()!=SporeEntitySectionStorage.entitySectionStorageClass) {
-                        KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass,"",0,0.0f);
-                    }
-                }
-                SimpleRemoveUtil.INSTANCE.tickClient();
-            }
-            SporeEntityHeeaafastthManager.INSTANCE.tick();
-            EntityHeealuthManager.INSTANCE.tick();
+        if(!(tickEvent instanceof TickEvent.ClientTickEvent)&&!(tickEvent instanceof TickEvent.ServerTickEvent)){
+            return;
         }
+        SporeEntityHeeaafastthManager.INSTANCE.tick();
+        EntityHeealuthManager.INSTANCE.tick();
+        if(tickEvent instanceof TickEvent.ServerTickEvent serverTickEvent){
+            SimpleRemoveUtil.INSTANCE.tickServer();
+            for (ServerLevel level : serverTickEvent.getServer().getAllLevels()) {
+                PersistentEntitySectionManager<? extends EntityAccess> manager=level.entityManager;
+                if(manager.sectionStorage.getClass()==SporeEntitySectionStorage.entitySectionStorageClass) {
+                    continue;
+                }
+                KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass, "", 0, 0.0f);
+            }
+            return;
+        }
+        SimpleRemoveUtil.INSTANCE.tickClient();
+        ClientLevel level=Minecraft.getInstance().level;
+        if(level==null){
+            return;
+        }
+        TransientEntitySectionManager<? extends EntityAccess> manager = level.entityStorage;
+        if(manager.sectionStorage.getClass()==SporeEntitySectionStorage.entitySectionStorageClass) {
+            return;
+        }
+        KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass,"",0,0.0f);
     }
 }
