@@ -21,6 +21,13 @@
 - `Core/utils/KlassPointerUtil.java`
 - `Core/utils/LogUtil.java`
 - `Core/utils/Log4j2PrintStream.java`
+- `Core/utils/unremovableCollections/ISporeCollection.java`
+- `Core/utils/unremovableCollections/ISporeEntry.java`
+- `Core/utils/unremovableCollections/ISporeIterator.java`
+- `Core/utils/unremovableCollections/ISporeMap.java`
+- `Core/utils/unremovableCollections/ISporeSet.java`
+- `Core/utils/unremovableCollections/SporeMapProxy.java`
+- `Core/utils/unremovableCollections/SporeSetProxy.java`
 - `Core/utils/ProtectedConcurrentHashMap.java`
 - `Core/utils/ProtectedWeakHashMap.java`
 - `Core/utils/wrappedMethod/WrappedMethod.java`
@@ -35,6 +42,7 @@
 - `ClassUtil` 的隐藏类定义、字段读写、类替换辅助必须保留；如果出现 `VerifyError: Bad type on operand stack`，优先检查隐藏子类是否把 owner 写成了非隐藏宿主类。
 - `WrappedMethod`/`MethodHandle` 缓存要按实际签名调用，不能把 `MethodHandle(ServerPlayer,DamageSource)void` 之类的强类型 handle 当成 `(Object[])Object` 直接 invoke。
 - `Protected*Map` 用于封锁写入/读取/遍历，不能被上游集合替换覆盖。
+- `Core/utils/unremovableCollections` 下的代理集合是核心运行时机制，重要性等同日志、隐藏类、Unsafe 和 MethodHandle。同步时必须保留普通写入/移除封锁、view/iterator/entry 封锁，以及内部可信路径的 `actualPut`、`actualRemove`、`actualSetValue`、`actualRemove()` 等入口。
 
 ## 2. 生命周期、ASM 血量、死亡包装
 
@@ -46,6 +54,7 @@
 - `Core/agents/transformers/SporeClassFileTransformer0.java`
 - `Core/agents/transformers/SporeNativeBridge.java`
 - `Core/agents/transformers/SporeLivingEntityHealthTransformer.java`
+- `Core/agents/transformers/SporeLivingEntityEffectApplicationTransformer.java`
 - `Core/agents/transformers/SporeLivingEntityHealthTransformerBootstrap.java`
 - `src/main/resources/sporeTransformerBridge.dll`
 - `Core/utils/LivingEntityHealthLifecycleWrapperUtil.java`
@@ -59,6 +68,7 @@
 同步验证：
 
 - `Spore.commonSetup` 必须注册网络包并调用 `SporeLivingEntityHealthTransformerBootstrap.INSTANCE.installAndRetransform()`。
+- `SporeLivingEntityHealthTransformerBootstrap.installAndRetransform()` 必须同时注册 `SporeLivingEntityHealthTransformer` 和 `SporeLivingEntityEffectApplicationTransformer`。
 - `SporeNativeBridge` 依赖 `/sporeTransformerBridge.dll`，同步或清理资源时不能丢失 DLL。
 - `LivingEntityHealthLifecycleWrapperUtil` 的死亡 tick 包装逻辑应保留 `forceDeathTimeIncreasing` 语义：不是粗暴把 tick 改成只调用 death tick，而是在原 tick 后强制死亡时间继续增长。
 - `LivingEntityMixin` 的 heal redirect 必须保留：常规 `setHealth` 后补调用 `EntityHeealuthManager.INSTANCE.heal(...)`，但存在 `Seffects.HEALING_INHIBITION` 时跳过。
@@ -113,6 +123,9 @@
 - `Sitems/InfectedGreatBow.java`
 - `Effect/HealingInhibition.java`
 - `Core/Seffects.java`
+- `Core/utils/effects/IEffectManager.java`
+- `Core/utils/effects/SporeEffectsUtil.java`
+- `Core/agents/transformers/SporeLivingEntityEffectApplicationTransformer.java`
 
 重点迁移对象：
 
@@ -128,6 +141,8 @@
 - `InfectedCrossbow` 和 `InfectedGreatBow` 的 BEZERK 变种必须在生成箭矢后调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`。这是武器/弹射物额外伤害路径，不只是隐藏类工具：`ASMHurtArrowUtil` 要生成隐藏 wrapper 覆写 `m_5790_(EntityHitResult)`，先调用 `onHitEntityHook(...)`，再调用 `super.m_5790_(...)`，hook 内额外伤害应走 `SporeAttackUtil.INSTANCE.attack(...)`。
 - 武器命中入口应保留 `SporeAttackUtil.INSTANCE.attack(...)`，并保留 `Healing Inhibition` 效果附加逻辑。
 - `HEALING_INHIBITION` 注册、贴图 `assets/spore/textures/mob_effect` 和多语言条目不能丢。
+- 禁疗强制塞入机制必须保留：`Core/utils/effects/IEffectManager.java`、`Core/utils/effects/SporeEffectsUtil.java` 和 `SporeLivingEntityEffectApplicationTransformer` 是核心类；transformer 要覆盖 bad mod `LivingEntity` 子类的 `addEffect`/`forceAddEffect` 阻断路径，并保留 `getActiveEffects`、`getActiveEffectsMap`、`hasEffect`、`getEffect` 返回值 hook。
+- `SporeWeaponData.addHealingInhibitRandom(...)` 必须通过 `SporeEffectsUtil.INSTANCE.forceAddEffect(...)` 强行塞入 `HEALING_INHIBITION`，不能退回普通 `target.addEffect(...)`。
 - 保留有意的原版 `hurt`：实体自身覆写 `hurt` 内的 `super.hurt`、multipart 把伤害转发给 parent/head、某些非 LivingEntity 或原版方块/环境伤害路径。每轮同步后用 `rg -n "\.hurt\(|setHealth\(|attack\(" src/main/java` 做差异审计。
 
 ## 5. 实体存储替换与简单移除
@@ -209,6 +224,8 @@
 
 - `Spore` 构造器必须调用 `SporeEventBus.tick().addSelfListener()`，并把 `HandlerEvents.onMobEffectAdded` 注册到 Forge event bus。
 - `SporeEventBus` 必须继续拦截已移除实体相关事件，并在 tick 中驱动 `SimpleRemoveUtil.tickServer/tickClient`、`SporeEntityHeeaafastthManager.tick()`、`EntityHeealuthManager.tick()`。
+- `SporeEventBus` 必须继续拦截 `MobEffectEvent.Applicable`：遇到 `HEALING_INHIBITION` 时阻止原版路径，并调用 `SporeEffectsUtil.INSTANCE.forceAddEffect(...)`；还必须拦截 `MobEffectEvent.Remove`，禁止手动移除禁疗效果，只允许倒计时自然失效。
+- `Spore` 必须把 `SporeEffectsUtil.INSTANCE` 注册到 Forge `LivingEvent.LivingTickEvent`，以便它遍历 `ISporeMap` 管理的 `activeEffects` 并用 `actualRemove()` 手动清除过期效果。
 - 网络包必须注册：血量同步、delta 同步、wrapper、despawn、reset render、legal position。
 - 命令必须保留：`spore:force_kill`、`spore:force_remove`、`spore:force_remove_all`、`spore:enable_light`，以及本地修改过的 `set_area`。
 - `spore:enable_light <true|false>` 应写入 `SporeSavedData.get(serverLevel).setCasingLightAllowed(value)`，不是临时全局变量。
@@ -266,7 +283,7 @@
 git status --short --branch
 git log --oneline --decorate --max-count=20
 git diff --name-status origin/master...HEAD
-rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal|PausableCalamityPathNavigation" src/main/java src/main/resources -S
+rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|unremovableCollections|SporeMapProxy|ISporeMap|ISporeEntry|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|SporeEffectsUtil|IEffectManager|SporeLivingEntityEffectApplicationTransformer|addHealingInhibitRandom|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal|PausableCalamityPathNavigation" src/main/java src/main/resources -S
 rg -n "\.hurt\(|hurrt\(|setHealth\(|attack\(|ASMHurtArrowUtil\.INSTANCE\.wrap|setMaxHeeaafastth|getTarget\(|setTarget\(" src/main/java -S
 rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_HEALTH|Attributes\.MAX_HEALTH|setBaseValue\(" src/main/java -S
 .\gradlew --no-daemon --console=plain compileJava
@@ -280,6 +297,8 @@ rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_
 - 旧灾难的 `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 部位弱点额外直接扣血逻辑有代码证据：Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 均保留 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 调用；Verfalldrachen 不属于这条必保规则。
 - `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.attack(...)`。
 - 血量、最大血量、heal redirect、禁止回血效果、fake data health、multipart owner、IDieWithDiscardEntity 特殊死亡全部有代码证据。
+- `unremovableCollections` 代理集合、`ISporeEntry.actualSetValue`、`ISporeMap.actualPut/actualRemove`、iterator `actualRemove()` 等封锁/可信写入入口全部有代码证据。
+- 禁疗效果管理链路全部有代码证据：`SporeEffectsUtil`/`IEffectManager`、`SporeLivingEntityEffectApplicationTransformer`、bootstrap transformer 注册、`SporeEventBus` 添加/移除事件处理、`Spore` 注册 tick listener、过期效果 `actualRemove()` 清理、`SporeWeaponData.addHealingInhibitRandom` 强制 `forceAddEffect`。
 - 运行期最大生命值变更有配对证据：每个 `Attributes.MAX_HEALTH` 的 `setBaseValue(...)` 或等价 helper 都有同路径 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)`，且同步不依赖原版属性非空。
 - 实体 storage 替换覆盖 server/client lookup、id map、uuid map、known UUID set、tracked entity map、section/callback。
 - 额外伤害路径已迁移到 `SporeAttackUtil` 或明确标记为有意保留的原版主击中路径。
