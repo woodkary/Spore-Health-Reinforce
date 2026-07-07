@@ -86,6 +86,10 @@ public final class SporeEffectsUtil implements IEffectManager {
         }
         return initial;
     }
+    @Override
+    public boolean canBeAffectedHook(LivingEntity target, MobEffectInstance effect, boolean initial){
+        return effect.getEffect()==Seffects.HEALING_INHIBITION.get()||initial;
+    }
 
     @Override
     public boolean removeEffect(LivingEntity target, MobEffect effect) {

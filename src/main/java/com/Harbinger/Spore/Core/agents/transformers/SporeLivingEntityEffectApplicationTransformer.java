@@ -47,6 +47,7 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
     private static final String GET_ACTIVE_EFFECTS_MAP_DESC = "()L" + MAP_INTERNAL + ";";
     private static final String HAS_EFFECT_DESC = "(L" + MOB_EFFECT_INTERNAL + ";)Z";
     private static final String GET_EFFECT_DESC = "(L" + MOB_EFFECT_INTERNAL + ";)L" + MOB_EFFECT_INSTANCE_INTERNAL + ";";
+    private static final String CAN_BE_AFFECTED_DESC = "(L" + MOB_EFFECT_INSTANCE_INTERNAL + ";)Z";
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
             (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
                     SporeLivingEntityEffectApplicationTransformer.class
@@ -235,6 +236,9 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
         if (GET_EFFECT_DESC.equals(method.desc) && ("m_21124_".equals(method.name) || "getEffect".equals(method.name))) {
             return EffectMethodKind.GET_EFFECT;
         }
+        if (CAN_BE_AFFECTED_DESC.equals(method.desc) && ("m_7301_".equals(method.name) || "canBeAffected".equals(method.name))) {
+            return EffectMethodKind.CAN_BE_AFFECTED;
+        }
         return EffectMethodKind.NONE;
     }
 
@@ -405,6 +409,15 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
                 Opcodes.ARETURN,
                 Opcodes.ASTORE,
                 Opcodes.ALOAD,
+                true
+        ),
+        CAN_BE_AFFECTED(
+                "canBeAffectedHook",
+                "(L" + LIVING_ENTITY_INTERNAL + ";L" + MOB_EFFECT_INSTANCE_INTERNAL + ";Z)Z",
+                Type.BOOLEAN_TYPE,
+                Opcodes.IRETURN,
+                Opcodes.ISTORE,
+                Opcodes.ILOAD,
                 true
         );
 

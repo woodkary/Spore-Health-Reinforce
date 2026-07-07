@@ -26,5 +26,7 @@ public interface IEffectManager extends Consumer<LivingEvent.LivingTickEvent> {
 
     MobEffectInstance getEffectHook(LivingEntity target, MobEffect effect, MobEffectInstance initial);
 
+    boolean canBeAffectedHook(LivingEntity target, MobEffectInstance effect, boolean initial);
+
     boolean removeEffect(LivingEntity target, MobEffect effect);
 }
