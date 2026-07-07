@@ -25,8 +25,10 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             LogUtil.error("Instrumentation is unavailable, skip LivingEntity health transformer.");
             return;
         }
-        ClassFileTransformer transformer = SporeLivingEntityHealthTransformer.newInstance();
-        instrumentation.addTransformer(transformer);
+        ClassFileTransformer healthTransformer = SporeLivingEntityHealthTransformer.newInstance();
+        ClassFileTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newInstance();
+        instrumentation.addTransformer(healthTransformer);
+        instrumentation.addTransformer(effectApplicationTransformer);
         installed = true;
         retransformLoadedLivingEntities(instrumentation);
     }

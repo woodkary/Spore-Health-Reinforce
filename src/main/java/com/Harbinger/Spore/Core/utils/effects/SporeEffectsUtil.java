@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.utils.effects;
 
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeIterator;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
@@ -23,7 +24,7 @@ public final class SporeEffectsUtil implements IEffectManager {
     );
     @Override
     public boolean checkEffect(MobEffectInstance effect){
-        return effect.getEffect()==Seffects.HEALING_INHIBITION.get();
+        return effect != null && effect.getEffect()==Seffects.HEALING_INHIBITION.get();
     }
     @Override
     public boolean checkAndAddEffect(LivingEntity target, MobEffectInstance effect, @Nullable Entity source){
@@ -48,6 +49,9 @@ public final class SporeEffectsUtil implements IEffectManager {
             target.onEffectAdded(effect, source);
         } else {
             target.onEffectUpdated(effect, true, source);
+        }
+        if(effect.getEffect()==Seffects.HEALING_INHIBITION.get()&&!EntityHeealuthManager.INSTANCE.containsDeltaKey(target)){
+            EntityHeealuthManager.INSTANCE.hurt(target,0.0f);
         }
     }
     @Override
