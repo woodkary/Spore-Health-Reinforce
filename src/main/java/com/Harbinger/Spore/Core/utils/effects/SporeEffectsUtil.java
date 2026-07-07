@@ -117,7 +117,8 @@ public final class SporeEffectsUtil implements IEffectManager {
         if(!(temp instanceof ISporeIterator<MobEffect> iterator)){
             return;
         }
-        boolean foundHealInhibit=false;
+        boolean foundCriticalEfffect=false;
+        boolean foundRemainingHealInhibit=false;
         try {
             while(iterator.hasNext()) {
                 MobEffect mobeffect = iterator.next();
@@ -126,20 +127,24 @@ public final class SporeEffectsUtil implements IEffectManager {
                     continue;
                 }
                 if (!mobeffectinstance.hasRemainingDuration()) {
-                    //如果补充迭代成功删除了禁疗效果，则将activeEffects归还给普通HashMap管理
-                    foundHealInhibit|=checkEffect(mobeffectinstance);
+                    //如果补充迭代成功删除了指定的效果，则将activeEffects归还给普通HashMap管理
+                    foundCriticalEfffect|=checkEffect(mobeffectinstance);
                     iterator.actualRemove();
                     continue;
                 }
-                if(mobeffectinstance.getEffect()==Seffects.HEALING_INHIBITION.get()&&!EntityHeealuthManager.INSTANCE.containsDeltaKey(entity)){
-                    EntityHeealuthManager.INSTANCE.hurt(entity,0.0f);
+                if(mobeffectinstance.getEffect()==Seffects.HEALING_INHIBITION.get()){
+                    foundRemainingHealInhibit=true;
                 }
             }
         } catch (ConcurrentModificationException ignored) {
         }
-        if(foundHealInhibit&&!(entity.activeEffects instanceof HashMap<MobEffect, MobEffectInstance>)){
+        if(foundCriticalEfffect&&!(entity.activeEffects instanceof HashMap<MobEffect, MobEffectInstance>)){
             //回退到普通HashMap
             entity.activeEffects= new HashMap<>(entity.activeEffects);
+        }
+        //如果找到了还没有过期的禁疗效果，尝试限制血量
+        if(foundRemainingHealInhibit&&!EntityHeealuthManager.INSTANCE.containsDeltaKey(entity)){
+            EntityHeealuthManager.INSTANCE.hurt(entity,0.0f);
         }
     }
 }
