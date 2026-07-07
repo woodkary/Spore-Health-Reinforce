@@ -124,7 +124,7 @@ public final class SporeEffectsUtil implements IEffectManager {
                 MobEffectInstance mobeffectinstance = sporeEffectMap.get(mobeffect);
                 if (!mobeffectinstance.hasRemainingDuration()&&!entity.level().isClientSide) {
                     //如果补充迭代成功删除了禁疗效果，则将activeEffects归还给普通HashMap管理
-                    foundHealInhibit|=mobeffectinstance.getEffect()== Seffects.HEALING_INHIBITION.get();
+                    foundHealInhibit|=checkEffect(mobeffectinstance);
                     iterator.actualRemove();
                 }
             }
