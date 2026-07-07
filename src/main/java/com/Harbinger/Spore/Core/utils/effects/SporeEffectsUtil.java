@@ -46,8 +46,12 @@ public final class SporeEffectsUtil implements IEffectManager {
         } else {
             target.onEffectUpdated(effect, true, source);
         }
-        if(effect.getEffect()==Seffects.HEALING_INHIBITION.get()&&!EntityHeealuthManager.INSTANCE.containsDeltaKey(target)){
-            EntityHeealuthManager.INSTANCE.hurt(target,0.0f);
+        if(effect.getEffect()==Seffects.HEALING_INHIBITION.get()){
+            float delta = EntityHeealuthManager.INSTANCE.getHeealtthDelta(target);
+            float expectedDelta=target.getHealth()-target.getMaxHealth();
+            if(delta>expectedDelta){
+                EntityHeealuthManager.INSTANCE.setHeealtthDelta(target, expectedDelta);
+            }
         }
     }
     @Override
@@ -143,8 +147,13 @@ public final class SporeEffectsUtil implements IEffectManager {
             entity.activeEffects= new HashMap<>(entity.activeEffects);
         }
         //如果找到了还没有过期的禁疗效果，尝试限制血量
-        if(foundRemainingHealInhibit&&!EntityHeealuthManager.INSTANCE.containsDeltaKey(entity)){
-            EntityHeealuthManager.INSTANCE.hurt(entity,0.0f);
+        if(!foundRemainingHealInhibit){
+            return;
+        }
+        float delta = EntityHeealuthManager.INSTANCE.getHeealtthDelta(entity);
+        float expectedDelta=entity.getHealth()-entity.getMaxHealth();
+        if(delta>expectedDelta){
+            EntityHeealuthManager.INSTANCE.setHeealtthDelta(entity, expectedDelta);
         }
     }
 }

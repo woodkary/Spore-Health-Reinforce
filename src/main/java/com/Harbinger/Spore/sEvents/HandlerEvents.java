@@ -1079,9 +1079,13 @@ public class HandlerEvents {
         }
     }
     public static void onMobEffectAdded(MobEffectEvent.Added addEffectEvent){
-        if(addEffectEvent.getEffectInstance().getEffect()==Seffects.HEALING_INHIBITION.get() &&
-                !EntityHeealuthManager.INSTANCE.containsDeltaKey(addEffectEvent.getEntity())) {
-            EntityHeealuthManager.INSTANCE.hurt(addEffectEvent.getEntity(), 0.0f);
+        if(addEffectEvent.getEffectInstance().getEffect()==Seffects.HEALING_INHIBITION.get()) {
+            LivingEntity target=addEffectEvent.getEntity();
+            float delta = EntityHeealuthManager.INSTANCE.getHeealtthDelta(target);
+            float expectedDelta=target.getHealth()-target.getMaxHealth();
+            if(delta>expectedDelta){
+                EntityHeealuthManager.INSTANCE.setHeealtthDelta(target, expectedDelta);
+            }
         }
     }
 }
