@@ -23,7 +23,7 @@ public final class SporeSetProxy<T> implements ISporeSet<T> {
             Set.class
     );
 
-    public static <T> Set<T> newInstance(Set<T> owner) {
+    public static <T> ISporeSet<T> newInstance(Set<T> owner) {
         constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 setClass,
@@ -32,7 +32,7 @@ public final class SporeSetProxy<T> implements ISporeSet<T> {
         );
         if (constructor != null) {
             try {
-                return (Set<T>) constructor.invoke(owner);
+                return (ISporeSet<T>) constructor.invoke(owner);
             } catch (Throwable e) {
                 LogUtil.errorf("failed to new ProxySet instance, %s", e.getMessage());
             }
@@ -78,7 +78,7 @@ public final class SporeSetProxy<T> implements ISporeSet<T> {
 
     @Override
     public boolean add(T t) {
-        return owner.add(t);
+        return false;
     }
 
     @Override
@@ -93,6 +93,16 @@ public final class SporeSetProxy<T> implements ISporeSet<T> {
 
     @Override
     public boolean addAll(@NotNull Collection<? extends T> c) {
+        return false;
+    }
+
+    @Override
+    public boolean actualAdd(T t) {
+        return owner.add(t);
+    }
+
+    @Override
+    public boolean actualAddAll(@NotNull Collection<? extends T> c) {
         return owner.addAll(c);
     }
 

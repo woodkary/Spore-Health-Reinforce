@@ -4,7 +4,9 @@ import com.Harbinger.Spore.Core.entityStorages.*;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
-import com.Harbinger.Spore.Core.utils.ProtectedConcurrentHashMap;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeIterator;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.ICalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
@@ -35,8 +37,8 @@ import java.util.function.Function;
  */
 public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, Function<ICalamityMultipart,LivingEntity> {
     public static final ISporeEntityHealth INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ISporeEntityHealth.class, SporeEntityHeeaafastthManager.class);
-    private final Map<LivingEntity, IFloatEntry> entityMaxHeeaafastth = ProtectedConcurrentHashMap.newInstance();
-    private final Map<LivingEntity, IFloatEntry> etiHeuahMape = ProtectedConcurrentHashMap.newInstance();
+    private final ISporeMap<LivingEntity, IFloatEntry> entityMaxHeeaafastth = SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<LivingEntity, IFloatEntry> etiHeuahMape = SporeMapProxy.newInstance(new ConcurrentHashMap<>());
     private final Map<ICalamityMultipart,LivingEntity> partToHead=new ConcurrentHashMap<>();
     private final BiFunction<LivingEntity, IFloatEntry, IFloatEntry> entityHealthJudge;
     public SporeEntityHeeaafastthManager() {
@@ -48,8 +50,8 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
             return;
         }
         float maxHealth = getAttributeMaxHealth(entity);
-        entityMaxHeeaafastth.put(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
-        etiHeuahMape.put(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
+        entityMaxHeeaafastth.actualPut(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
+        etiHeuahMape.actualPut(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
         if(entity instanceof IDieWithDiscardEntity) {
             replaceEntityMap(entity);
         }
@@ -110,7 +112,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
     @Override
     public void setMaxHeeaafastth(LivingEntity entity,float maxHealth){
         entity = getHealthOwner(entity);
-        entityMaxHeeaafastth.put(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
+        entityMaxHeeaafastth.actualPut(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
     }
 
     @Override
@@ -135,21 +137,21 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
             partToHead.remove(part);
         }
         LivingEntity owner = getHealthOwner(entity);
-        etiHeuahMape.remove(owner);
-        entityMaxHeeaafastth.remove(owner);
+        etiHeuahMape.actualRemove(owner);
+        entityMaxHeeaafastth.actualRemove(owner);
     }
 
     @Override
     public void setHeeaafastth(LivingEntity entity, float health) {
         entity = getHealthOwner(entity);
-        etiHeuahMape.put(entity,FloatEntry.INSTANCE.newInstance(health));
+        etiHeuahMape.actualPut(entity,FloatEntry.INSTANCE.newInstance(health));
         HealthPacketHandler.sendToClient(new HealthDataPacket(entity.id, health,false));
     }
 
     @Override
     public void setHeeaafastthLocal(LivingEntity entity, float health) {
         entity = getHealthOwner(entity);
-        etiHeuahMape.put(entity, FloatEntry.INSTANCE.newInstance(health));
+        etiHeuahMape.actualPut(entity, FloatEntry.INSTANCE.newInstance(health));
     }
     //假设amount>0
     @Override
@@ -163,7 +165,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
             return Math.max(nuke.getMaxHealth(),10.0f);
         }
         entity = getHealthOwner(entity);
-        float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.compute(entity,entityHealthJudge), 0.0f);
+        float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.actualCompute(entity,entityHealthJudge), 0.0f);
         if(entity instanceof IFakeDataHealthEntity fakeHealth){
             float zeroDelta=fakeHealth.getDefault0HllealthDelta()+entity.entityData.get(LivingEntity.DATA_HEALTH_ID);
             if(zeroDelta>0){
@@ -275,14 +277,14 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
     public void tick() {
         tickCount--;
         if (tickCount <= 0) {
-            Iterator<Map.Entry<LivingEntity, IFloatEntry>> iterator = etiHeuahMape.entrySet().iterator();
+            ISporeIterator<Map.Entry<LivingEntity, IFloatEntry>> iterator = (ISporeIterator<Map.Entry<LivingEntity, IFloatEntry>>) etiHeuahMape.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<LivingEntity, IFloatEntry> entry = iterator.next();
                 LivingEntity entity = entry.getKey();
                 float health = FloatEntry.INSTANCE.getFloatValue(entry.getValue(), 0.0f);
                 if (health <= 0.0f&&entity.isRemoved()) {
-                    iterator.remove();
-                    entityMaxHeeaafastth.remove(entity);
+                    iterator.actualRemove();
+                    entityMaxHeeaafastth.actualRemove(entity);
                     if(entity instanceof ICalamityMultipart part){
                         partToHead.remove(part);
                     }
@@ -295,7 +297,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
     private static final class SporeEntityHealthJudge implements BiFunction<LivingEntity, IFloatEntry, IFloatEntry> {
         private static final Class<? extends BiFunction<LivingEntity, IFloatEntry, IFloatEntry>> entityHealthJudgeClass= (Class<? extends BiFunction<LivingEntity, IFloatEntry, IFloatEntry>>) BytecodeUtil.resolveHiddenClassOrSelf(
                 SporeEntityHealthJudge.class,
-                Map.class
+                ISporeMap.class
         );
         private static MethodHandle constructor;
         static {
@@ -303,15 +305,15 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
                     constructor,
                     entityHealthJudgeClass,
                     SporeEntityHealthJudge.class,
-                    Map.class
+                    ISporeMap.class
             );
         }
-        public static BiFunction<LivingEntity, IFloatEntry, IFloatEntry> newInstance(Map<LivingEntity, IFloatEntry> entityMaxHeeaafastth){
+        public static BiFunction<LivingEntity, IFloatEntry, IFloatEntry> newInstance(ISporeMap<LivingEntity, IFloatEntry> entityMaxHeeaafastth){
             constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                     constructor,
                     entityHealthJudgeClass,
                     SporeEntityHealthJudge.class,
-                    Map.class
+                    ISporeMap.class
             );
             try{
                 if (constructor != null) {
@@ -323,9 +325,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
             }
             return new SporeEntityHealthJudge(entityMaxHeeaafastth);
         }
-        private final Map<LivingEntity, IFloatEntry> entityMaxHeeaafastth;
+        private final ISporeMap<LivingEntity, IFloatEntry> entityMaxHeeaafastth;
 
-        private SporeEntityHealthJudge(Map<LivingEntity, IFloatEntry> entityMaxHeeaafastth) {
+        private SporeEntityHealthJudge(ISporeMap<LivingEntity, IFloatEntry> entityMaxHeeaafastth) {
             this.entityMaxHeeaafastth = entityMaxHeeaafastth;
         }
 
@@ -344,7 +346,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
                     float attributeMax = (float) entity.attributes.getValue(Attributes.MAX_HEALTH);
                     if (!Float.isNaN(attributeMax)&&attributeMax > 0.0f) {
                         IFloatEntry attributeMaxEntry = FloatEntry.INSTANCE.newInstance(attributeMax);
-                        entityMaxHeeaafastth.put(entity, attributeMaxEntry);
+                        entityMaxHeeaafastth.actualPut(entity, attributeMaxEntry);
                         return attributeMaxEntry;
                     }
                 } catch (Throwable ignored) {

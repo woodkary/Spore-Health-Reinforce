@@ -10,6 +10,10 @@ import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeTransientEntitySe
 import com.Harbinger.Spore.Core.entityStorages.serverSide.SporePersistentEntitySectionManager;
 import com.Harbinger.Spore.Core.entityStorages.serverSide.SporeServerLevel;
 import com.Harbinger.Spore.Core.utils.*;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeEntry;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeIterator;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
 import com.Harbinger.Spore.network.DespawnPacket;
 import com.Harbinger.Spore.network.DespawnPacketHandler;
@@ -52,15 +56,15 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             ISimpleRemoval.class,
             SimpleRemoveUtil.class
     );
-    private final Map<Class<?>,Integer> serverNotSpawning=ProtectedConcurrentHashMap.newInstance();
-    private final Map<EntityType<?>,Integer> serverTypeNotSpawning=ProtectedConcurrentHashMap.newInstance();
-    private final Map<Integer,Integer> serverIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
-    private final Map<UUID,Integer> serverUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final ISporeMap<Class<?>,Integer> serverNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<EntityType<?>,Integer> serverTypeNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<Integer,Integer> serverIdNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<UUID,Integer> serverUuidNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
 
-    private final Map<Class<?>,Integer> clientNotSpawning=ProtectedConcurrentHashMap.newInstance();
-    private final Map<EntityType<?>,Integer> clientTypeNotSpawning=ProtectedConcurrentHashMap.newInstance();
-    private final Map<Integer,Integer> clientIdNotSpawning=ProtectedConcurrentHashMap.newInstance();
-    private final Map<UUID,Integer> clientUuidNotSpawning=ProtectedConcurrentHashMap.newInstance();
+    private final ISporeMap<Class<?>,Integer> clientNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<EntityType<?>,Integer> clientTypeNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<Integer,Integer> clientIdNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<UUID,Integer> clientUuidNotSpawning=SporeMapProxy.newInstance(new ConcurrentHashMap<>());
     private final AABB NaNAABB=NaNAABBClass.INSTANCE;
     private final Vec3 NaN=NaNVec3.INSTANCE;
     private final BlockPos INF_BLOCK_POS=InfiniteBlockPos.INSTANCE;
@@ -68,94 +72,94 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private final Map<Class<?>,Class<?>> wrapperToOriginal=new ConcurrentHashMap<>();
     @Override
     public void tickServer() {
-        Iterator<Map.Entry<Class<?>, Integer>> iterator = serverNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<Class<?>, Integer>> iterator = (ISporeIterator<Map.Entry<Class<?>, Integer>>) serverNotSpawning.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Class<?>, Integer> entry = iterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                iterator.remove();
+                iterator.actualRemove();
             }else{
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<Class<?>, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
 
-        Iterator<Map.Entry<EntityType<?>, Integer>> typeIterator = serverTypeNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<EntityType<?>, Integer>> typeIterator = (ISporeIterator<Map.Entry<EntityType<?>, Integer>>) serverTypeNotSpawning.entrySet().iterator();
         while (typeIterator.hasNext()) {
             Map.Entry<EntityType<?>, Integer> entry = typeIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                typeIterator.remove();
+                typeIterator.actualRemove();
             }else {
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<EntityType<?>, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
 
-        Iterator<Map.Entry<Integer, Integer>> idIterator = serverIdNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<Integer, Integer>> idIterator = (ISporeIterator<Map.Entry<Integer, Integer>>) serverIdNotSpawning.entrySet().iterator();
         while (idIterator.hasNext()) {
             Map.Entry<Integer, Integer> entry = idIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                idIterator.remove();
+                idIterator.actualRemove();
             }else{
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<Integer, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
 
-        Iterator<Map.Entry<UUID, Integer>> uuidIterator = serverUuidNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<UUID, Integer>> uuidIterator = (ISporeIterator<Map.Entry<UUID, Integer>>) serverUuidNotSpawning.entrySet().iterator();
         while (uuidIterator.hasNext()) {
             Map.Entry<UUID, Integer> entry = uuidIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                uuidIterator.remove();
+                uuidIterator.actualRemove();
             }else{
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<UUID, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
     }
     @Override
     public void tickClient() {
-        Iterator<Map.Entry<Class<?>, Integer>> iterator = clientNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<Class<?>, Integer>> iterator = (ISporeIterator<Map.Entry<Class<?>, Integer>>) clientNotSpawning.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Class<?>, Integer> entry = iterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                iterator.remove();
+                iterator.actualRemove();
             }else{
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<Class<?>, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
 
-        Iterator<Map.Entry<EntityType<?>, Integer>> typeIterator = clientTypeNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<EntityType<?>, Integer>> typeIterator = (ISporeIterator<Map.Entry<EntityType<?>, Integer>>) clientTypeNotSpawning.entrySet().iterator();
         while (typeIterator.hasNext()) {
             Map.Entry<EntityType<?>, Integer> entry = typeIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                typeIterator.remove();
+                typeIterator.actualRemove();
             }else {
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<EntityType<?>, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
 
         //迭代clientIdNotSpawning和ClientUuidNotSpawning
-        Iterator<Map.Entry<Integer, Integer>> idIterator = clientIdNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<Integer, Integer>> idIterator = (ISporeIterator<Map.Entry<Integer, Integer>>) clientIdNotSpawning.entrySet().iterator();
         while (idIterator.hasNext()) {
             Map.Entry<Integer, Integer> entry = idIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                idIterator.remove();
+                idIterator.actualRemove();
             }else{
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<Integer, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
 
-        Iterator<Map.Entry<UUID, Integer>> uuidIterator = clientUuidNotSpawning.entrySet().iterator();
+        ISporeIterator<Map.Entry<UUID, Integer>> uuidIterator = (ISporeIterator<Map.Entry<UUID, Integer>>) clientUuidNotSpawning.entrySet().iterator();
         while (uuidIterator.hasNext()) {
             Map.Entry<UUID, Integer> entry = uuidIterator.next();
             Integer timeLeft=entry.getValue();
             if(timeLeft==null||timeLeft<=0) {
-                uuidIterator.remove();
+                uuidIterator.actualRemove();
             }else {
-                entry.setValue(timeLeft-1);
+                ((ISporeEntry<UUID, Integer>) entry).actualSetValue(timeLeft-1);
             }
         }
     }
@@ -405,21 +409,21 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }
     }
     private void updateIdNotSpawning(Integer id){
-        (StackTraceUtil.isClientThread()?clientIdNotSpawning:serverIdNotSpawning).put(id,101);
+        (StackTraceUtil.isClientThread()?clientIdNotSpawning:serverIdNotSpawning).actualPut(id,101);
     }
     private void updateUuidNotSpawning(UUID uuid){
-        (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).put(uuid,101);
+        (StackTraceUtil.isClientThread()?clientUuidNotSpawning:serverUuidNotSpawning).actualPut(uuid,101);
     }
     private void updateNotSpawning(ChunkMap.TrackedEntity entity){
         updateNotSpawning(entity.serverEntity.entity);
     }
     private void updateNotSpawning(Entity entity){
-        Map<Class<?>,Integer> map=entity.level.isClientSide?clientNotSpawning:serverNotSpawning;
-        map.put(getOrginalClass(entity.getClass()),101);
-        map.put(entity.getClass(),101);
+        ISporeMap<Class<?>,Integer> map=entity.level.isClientSide?clientNotSpawning:serverNotSpawning;
+        map.actualPut(getOrginalClass(entity.getClass()),101);
+        map.actualPut(entity.getClass(),101);
 
-        Map<EntityType<?>,Integer> typeMap=entity.level.isClientSide?clientTypeNotSpawning:serverTypeNotSpawning;
-        typeMap.put(entity.getType(),101);
+        ISporeMap<EntityType<?>,Integer> typeMap=entity.level.isClientSide?clientTypeNotSpawning:serverTypeNotSpawning;
+        typeMap.actualPut(entity.getType(),101);
     }
     private <T extends EntityAccess> void replaceSectionStorage(PersistentEntitySectionManager<T> manager){
         for (Long2ObjectMap.Entry<EntitySection<T>> entry : manager.sectionStorage.sections.long2ObjectEntrySet()) {
@@ -442,20 +446,20 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private void onRemove(Entity entity, Entity.RemovalReason reason){
         if(entity.level instanceof ServerLevel serverlevel){
             onRemoveServer(entity,reason,serverlevel,serverlevel.entityManager);
-            serverNotSpawning.put(entity.getClass(),101);
-            serverTypeNotSpawning.put(entity.getType(),101);
-            serverIdNotSpawning.put(entity.id,101);
-            serverUuidNotSpawning.put(entity.uuid,101);
+            serverNotSpawning.actualPut(entity.getClass(),101);
+            serverTypeNotSpawning.actualPut(entity.getType(),101);
+            serverIdNotSpawning.actualPut(entity.id,101);
+            serverUuidNotSpawning.actualPut(entity.uuid,101);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel, SporeServerLevel.levelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel.entityManager, SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
             replaceSectionStorage(serverlevel.entityManager);
             GameTickerUtil.INSTANCE.replaceServer();
         }else if(entity.level instanceof ClientLevel clientlevel){
             onRemoveClient(entity,reason,clientlevel,clientlevel.entityStorage);
-            clientNotSpawning.put(entity.getClass(),101);
-            clientTypeNotSpawning.put(entity.getType(),101);
-            clientIdNotSpawning.put(entity.id,101);
-            clientUuidNotSpawning.put(entity.uuid,101);
+            clientNotSpawning.actualPut(entity.getClass(),101);
+            clientTypeNotSpawning.actualPut(entity.getType(),101);
+            clientIdNotSpawning.actualPut(entity.id,101);
+            clientUuidNotSpawning.actualPut(entity.uuid,101);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel, SporeClientLevel.clientLevelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(clientlevel.entityStorage, SporeTransientEntitySectionManager.transientEntitySectionManagerClass,"",0,0.0f);
             replaceSectionStorage(clientlevel.entityStorage);

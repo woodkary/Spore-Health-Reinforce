@@ -1,6 +1,8 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
 import com.Harbinger.Spore.Core.utils.*;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
 import com.Harbinger.Spore.network.HealthDeltaPacket;
 import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -35,7 +37,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
     private static final int REMOVE_ENTITIES_COUNT=10;
     private static final int MAX_QUEUE_SIZE=1000;
     private static final String SPORE_DEAD_FLAG = "SporeDeeaadfd";
-    private final Map<LivingEntity,IFloatEntry> heaalthDeltaMap= ProtectedConcurrentHashMap.newInstance();
+    private final ISporeMap<LivingEntity,IFloatEntry> heaalthDeltaMap= SporeMapProxy.newInstance(new ConcurrentHashMap<>());
     private final Map<Entity,Boolean> serverNoRecurs=new WeakHashMap<>();
     private final Queue<Entity> pendingEntities= new ConcurrentLinkedQueue<>();
     private final Map<Entity,Object> queuingEntities= new ConcurrentHashMap<>();
@@ -90,7 +92,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
                 queuingEntities.remove(toRemove);
                 if(toRemove!=null){
                     if (toRemove instanceof LivingEntity livingEntity) {
-                        heaalthDeltaMap.remove(livingEntity);
+                        heaalthDeltaMap.actualRemove(livingEntity);
                     }
                     removeTrueDeeauthMark(toRemove);
                 }
@@ -102,7 +104,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
                 queuingEntities.remove(toRemove);
                 if(toRemove!=null){
                     if (toRemove instanceof LivingEntity livingEntity) {
-                        heaalthDeltaMap.remove(livingEntity);
+                        heaalthDeltaMap.actualRemove(livingEntity);
                     }
                     removeTrueDeeauthMark(toRemove);
                 }
@@ -205,11 +207,11 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return Math.min(initialDelta,getHeealtthDelta(entity));
     }
     public void setHeealtthDelta(LivingEntity entity,float delta){
-        heaalthDeltaMap.put(entity,FloatEntry.INSTANCE.newInstance(delta));
+        heaalthDeltaMap.actualPut(entity,FloatEntry.INSTANCE.newInstance(delta));
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
     }
     public void setHeealtthDeltaLocal(LivingEntity entity,float delta){
-        heaalthDeltaMap.put(entity,FloatEntry.INSTANCE.newInstance(delta));
+        heaalthDeltaMap.actualPut(entity,FloatEntry.INSTANCE.newInstance(delta));
     }
     public float getMaaxxHeaaltsh(float initialHealth,Entity entity){
         if(entity instanceof LivingEntity liv){
@@ -370,7 +372,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
             float delta = getHeealtthDelta(entity);
             if (delta != delta) {
                 delta = Float.NEGATIVE_INFINITY;
-                heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
+                heaalthDeltaMap.actualPut(entity, FloatEntry.INSTANCE.newInstance(delta));
                 HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id, delta));
                 entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
@@ -417,7 +419,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
             float delta = getHeealtthDelta(entity);
             if (delta != delta) {
                 delta = Float.NEGATIVE_INFINITY;
-                heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
+                heaalthDeltaMap.actualPut(entity, FloatEntry.INSTANCE.newInstance(delta));
                 HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id, delta));
                 entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
             }
@@ -438,7 +440,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
             delta = deltaEntry.getFloatValue();
             delta -= damage;
         }
-        heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
+        heaalthDeltaMap.actualPut(entity, FloatEntry.INSTANCE.newInstance(delta));
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
         return health;
     }
@@ -481,7 +483,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
             delta = deltaEntry.getFloatValue();
             delta =Math.min(delta+heal,0.0f);
         }
-        heaalthDeltaMap.put(entity, FloatEntry.INSTANCE.newInstance(delta));
+        heaalthDeltaMap.actualPut(entity, FloatEntry.INSTANCE.newInstance(delta));
         HealthDeltaPacketHandler.sendToClient(new HealthDeltaPacket(entity.id,delta));
     }
     public void heal(LivingEntity entity,float heal,DamageSource source){

@@ -21,7 +21,12 @@ public final class SporeEffectsUtil implements IEffectManager {
     );
     @Override
     public void forceAddEffect(LivingEntity target, MobEffectInstance effect, @Nullable Entity source) {
-        MobEffectInstance mobeffectinstance = target.activeEffects.put(effect.getEffect(), effect);
+        MobEffectInstance mobeffectinstance;
+        if(target.activeEffects instanceof ISporeMap<MobEffect, MobEffectInstance> sporeMap){
+            mobeffectinstance = sporeMap.actualPut(effect.getEffect(), effect);
+        }else{
+            mobeffectinstance=target.activeEffects.put(effect.getEffect(), effect);
+        }
         if (mobeffectinstance == null) {
             target.onEffectAdded(effect, source);
         } else {
