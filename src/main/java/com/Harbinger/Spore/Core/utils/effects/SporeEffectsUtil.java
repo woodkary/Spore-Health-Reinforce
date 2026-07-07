@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.utils.effects;
 
+import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeIterator;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
@@ -12,6 +13,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 
 import javax.annotation.Nullable;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.Iterator;
 
 public final class SporeEffectsUtil implements IEffectManager {
@@ -62,15 +64,22 @@ public final class SporeEffectsUtil implements IEffectManager {
         if(!(temp instanceof ISporeIterator<MobEffect> iterator)){
             return;
         }
+        boolean foundHealInhibit=false;
         try {
             while(iterator.hasNext()) {
                 MobEffect mobeffect = iterator.next();
                 MobEffectInstance mobeffectinstance = sporeEffectMap.get(mobeffect);
                 if (!mobeffectinstance.hasRemainingDuration()&&!entity.level().isClientSide) {
+                    //如果补充迭代成功删除了禁疗效果，则将activeEffects归还给普通HashMap管理
+                    foundHealInhibit|=mobeffectinstance.getEffect()== Seffects.HEALING_INHIBITION.get();
                     iterator.actualRemove();
                 }
             }
         } catch (ConcurrentModificationException ignored) {
+        }
+        if(foundHealInhibit){
+            //回退到普通HashMap
+            entity.activeEffects= new HashMap<>(entity.activeEffects);
         }
     }
 }
