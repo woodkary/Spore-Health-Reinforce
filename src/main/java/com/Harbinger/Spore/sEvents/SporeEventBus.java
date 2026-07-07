@@ -104,14 +104,14 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         }
         if(event instanceof MobEffectEvent.Applicable applicable){
             MobEffectInstance effectInstance = applicable.getEffectInstance();
-            if(effectInstance.getEffect()== Seffects.HEALING_INHIBITION.get()) {
+            if(SporeEffectsUtil.INSTANCE.checkEffect(applicable.getEffectInstance())) {
                 //禁止原版的addEffect，执行自己的
                 applicable.setResult(Event.Result.DENY);
                 SporeEffectsUtil.INSTANCE.forceAddEffect(applicable.getEntity(), effectInstance, null);
                 return true;
             }
         }
-        if(event instanceof MobEffectEvent.Remove removeEffect&&removeEffect.getEffect()==Seffects.HEALING_INHIBITION.get()) {
+        if(event instanceof MobEffectEvent.Remove removeEffect&&SporeEffectsUtil.INSTANCE.checkEffect(removeEffect.getEffectInstance())) {
             //禁止移除禁疗效果
             return true;
         }

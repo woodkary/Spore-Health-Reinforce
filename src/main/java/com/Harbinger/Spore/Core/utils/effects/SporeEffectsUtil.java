@@ -22,7 +22,22 @@ public final class SporeEffectsUtil implements IEffectManager {
             SporeEffectsUtil.class
     );
     @Override
+    public boolean checkEffect(MobEffectInstance effect){
+        return effect.getEffect()==Seffects.HEALING_INHIBITION.get();
+    }
+    @Override
+    public boolean checkAndAddEffect(LivingEntity target, MobEffectInstance effect, @Nullable Entity source){
+        if(!checkEffect(effect)){
+            return false;
+        }
+        forceAddEffect(target, effect, source);
+        return true;
+    }
+    @Override
     public void forceAddEffect(LivingEntity target, MobEffectInstance effect, @Nullable Entity source) {
+        if(target.activeEffects.getClass()!=SporeMapProxy.mapClass){
+            target.activeEffects=SporeMapProxy.newInstance(target.activeEffects);
+        }
         MobEffectInstance mobeffectinstance;
         if(target.activeEffects instanceof ISporeMap<MobEffect, MobEffectInstance> sporeMap){
             mobeffectinstance = sporeMap.actualPut(effect.getEffect(), effect);
@@ -33,9 +48,6 @@ public final class SporeEffectsUtil implements IEffectManager {
             target.onEffectAdded(effect, source);
         } else {
             target.onEffectUpdated(effect, true, source);
-        }
-        if(target.activeEffects.getClass()!=SporeMapProxy.mapClass){
-            target.activeEffects=SporeMapProxy.newInstance(target.activeEffects);
         }
     }
     @Override
