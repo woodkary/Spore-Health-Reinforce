@@ -116,12 +116,12 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
             MobEffectInstance effectInstance = removeEffect.getEffectInstance();
             if (SporeEffectsUtil.INSTANCE.checkEffect(effectInstance)) {
                 //禁止移除禁疗效果
-                if (removeEffect.getEntity() instanceof Player player &&
-                        EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
-                    //允许创造玩家移除效果，checkEffect已经保证了effectInstance不为Null
-                    SporeEffectsUtil.INSTANCE.removeEffect(player,effectInstance.getEffect());
+                if (!(removeEffect.getEntity() instanceof Player player &&
+                        EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
+                    return true;
                 }
-                return true;
+                //允许创造玩家移除效果，checkEffect已经保证了effectInstance不为Null
+                SporeEffectsUtil.INSTANCE.removeEffect(player,effectInstance.getEffect());
             }
         }
         return super.post(event, wrapper);
