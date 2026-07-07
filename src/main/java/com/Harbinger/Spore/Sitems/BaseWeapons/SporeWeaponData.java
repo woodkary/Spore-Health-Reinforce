@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sitems.BaseWeapons;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
@@ -37,7 +38,7 @@ public interface SporeWeaponData {
     }
     default void addHealingInhibitRandom(LivingEntity target, double chance, int duration) {
         if (target.random.nextDouble() < chance) {
-            target.addEffect(new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), duration, 0));
+            SporeEffectsUtil.INSTANCE.forceAddEffect(target,new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), duration, 0),null);
         }
     }
     default boolean doASMRangeHurtOnSwing(ItemStack stack, LivingEntity attacker) {
