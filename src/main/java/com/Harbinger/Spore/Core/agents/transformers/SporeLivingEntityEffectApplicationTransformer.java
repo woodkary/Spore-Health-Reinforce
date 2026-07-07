@@ -7,6 +7,7 @@ import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.invoke.MethodHandle;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,8 +38,15 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
     private static final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/utils/effects/IEffectManager";
     private static final String CHECK_AND_ADD_EFFECT = "checkAndAddEffect";
     private static final String CHECK_AND_ADD_DESC = "(L" + LIVING_ENTITY_INTERNAL + ";L" + MOB_EFFECT_INSTANCE_INTERNAL + ";L" + ENTITY_INTERNAL + ";)Z";
+    private static final String MOB_EFFECT_INTERNAL = "net/minecraft/world/effect/MobEffect";
+    private static final String COLLECTION_INTERNAL = "java/util/Collection";
+    private static final String MAP_INTERNAL = "java/util/Map";
     private static final String ADD_EFFECT_DESC = "(L" + MOB_EFFECT_INSTANCE_INTERNAL + ";L" + ENTITY_INTERNAL + ";)Z";
     private static final String FORCE_ADD_EFFECT_DESC = "(L" + MOB_EFFECT_INSTANCE_INTERNAL + ";L" + ENTITY_INTERNAL + ";)V";
+    private static final String GET_ACTIVE_EFFECTS_DESC = "()L" + COLLECTION_INTERNAL + ";";
+    private static final String GET_ACTIVE_EFFECTS_MAP_DESC = "()L" + MAP_INTERNAL + ";";
+    private static final String HAS_EFFECT_DESC = "(L" + MOB_EFFECT_INTERNAL + ";)Z";
+    private static final String GET_EFFECT_DESC = "(L" + MOB_EFFECT_INTERNAL + ";)L" + MOB_EFFECT_INSTANCE_INTERNAL + ";";
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
             (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
                     SporeLivingEntityEffectApplicationTransformer.class
@@ -165,10 +174,10 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
         List<MethodNode> methods = classNode.methods;
         for (MethodNode method : methods) {
             EffectMethodKind kind = resolveEffectMethodKind(method);
-            if (kind == EffectMethodKind.NONE || !canPatch(method) || alreadyCallsHook(method)) {
+            if (kind == EffectMethodKind.NONE || !canPatch(method) || alreadyCallsHook(method, kind)) {
                 continue;
             }
-            if (patchMethodStart(method, kind)) {
+            if (patchMethod(classNode, method, kind)) {
                 modified = true;
                 LogUtil.logf("Transformed LivingEntity effect application method %s.%s%s",
                         classNode.name,
@@ -189,14 +198,15 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
         return !"<init>".equals(method.name) && !"<clinit>".equals(method.name);
     }
 
-    private boolean alreadyCallsHook(MethodNode method) {
+    private boolean alreadyCallsHook(MethodNode method, EffectMethodKind kind) {
+        String hookMethodName = kind.hookMethodName;
         for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
             if (insn instanceof FieldInsnNode fieldInsn && HOOK_OWNER.equals(fieldInsn.owner)) {
                 return true;
             }
             if (insn instanceof MethodInsnNode methodInsn
                     && HOOK_INTERFACE.equals(methodInsn.owner)
-                    && CHECK_AND_ADD_EFFECT.equals(methodInsn.name)) {
+                    && hookMethodName.equals(methodInsn.name)) {
                 return true;
             }
         }
@@ -213,10 +223,29 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
         if (FORCE_ADD_EFFECT_DESC.equals(method.desc) && ("m_147215_".equals(method.name) || "forceAddEffect".equals(method.name))) {
             return EffectMethodKind.FORCE_ADD_EFFECT;
         }
+        if (GET_ACTIVE_EFFECTS_DESC.equals(method.desc) && ("m_21220_".equals(method.name) || "getActiveEffects".equals(method.name))) {
+            return EffectMethodKind.GET_ACTIVE_EFFECTS;
+        }
+        if (GET_ACTIVE_EFFECTS_MAP_DESC.equals(method.desc) && ("m_21221_".equals(method.name) || "getActiveEffectsMap".equals(method.name))) {
+            return EffectMethodKind.GET_ACTIVE_EFFECTS_MAP;
+        }
+        if (HAS_EFFECT_DESC.equals(method.desc) && ("m_21023_".equals(method.name) || "hasEffect".equals(method.name))) {
+            return EffectMethodKind.HAS_EFFECT;
+        }
+        if (GET_EFFECT_DESC.equals(method.desc) && ("m_21124_".equals(method.name) || "getEffect".equals(method.name))) {
+            return EffectMethodKind.GET_EFFECT;
+        }
         return EffectMethodKind.NONE;
     }
 
-    private boolean patchMethodStart(MethodNode method, EffectMethodKind kind) {
+    private boolean patchMethod(ClassNode classNode, MethodNode method, EffectMethodKind kind) {
+        if (kind == EffectMethodKind.ADD_EFFECT || kind == EffectMethodKind.FORCE_ADD_EFFECT) {
+            return patchMethodStart(classNode.name, method, kind);
+        }
+        return patchReturnHook(method, kind);
+    }
+
+    private boolean patchMethodStart(String classInternalName, MethodNode method, EffectMethodKind kind) {
         AbstractInsnNode firstRealInsn = findFirstRealInstruction(method);
         if (firstRealInsn == null) {
             return false;
@@ -247,14 +276,84 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
             inject.add(new InsnNode(Opcodes.RETURN));
         }
         inject.add(continueLabel);
-        inject.add(new FrameNode(Opcodes.F_SAME, 0, null, 0, null));
+        List<Object> locals = createInitialFrameLocals(classInternalName, method);
+        inject.add(new FrameNode(Opcodes.F_NEW, locals.size(), locals.toArray(), 0, null));
         method.instructions.insertBefore(firstRealInsn, inject);
         return true;
     }
 
+    private boolean patchReturnHook(MethodNode method, EffectMethodKind kind) {
+        boolean modified = false;
+        int retLocal = allocateTempLocal(method, kind.returnType);
+        for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; ) {
+            AbstractInsnNode next = insn.getNext();
+            if (insn.getOpcode() == kind.returnOpcode) {
+                InsnList inject = new InsnList();
+                inject.add(new VarInsnNode(kind.storeOpcode, retLocal));
+                inject.add(new FieldInsnNode(
+                        Opcodes.GETSTATIC,
+                        HOOK_OWNER,
+                        "INSTANCE",
+                        "L" + HOOK_INTERFACE + ";"
+                ));
+                inject.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                if (kind.loadsEffectArgument) {
+                    inject.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                }
+                inject.add(new VarInsnNode(kind.loadOpcode, retLocal));
+                inject.add(new MethodInsnNode(
+                        Opcodes.INVOKEINTERFACE,
+                        HOOK_INTERFACE,
+                        kind.hookMethodName,
+                        kind.hookDesc,
+                        true
+                ));
+                method.instructions.insertBefore(insn, inject);
+                modified = true;
+            }
+            insn = next;
+        }
+        return modified;
+    }
+
+    private int allocateTempLocal(MethodNode method, Type type) {
+        int index = Math.max(method.maxLocals, minLocalsFromDesc(method));
+        method.maxLocals = index + type.getSize();
+        return index;
+    }
+
+    private int minLocalsFromDesc(MethodNode method) {
+        int locals = (method.access & Opcodes.ACC_STATIC) == 0 ? 1 : 0;
+        Type[] args = Type.getArgumentTypes(method.desc);
+        for (Type arg : args) {
+            locals += arg.getSize();
+        }
+        return locals;
+    }
+
+    private List<Object> createInitialFrameLocals(String classInternalName, MethodNode method) {
+        List<Object> locals = new ArrayList<>();
+        if ((method.access & Opcodes.ACC_STATIC) == 0) {
+            locals.add(classInternalName);
+        }
+        for (Type arg : Type.getArgumentTypes(method.desc)) {
+            switch (arg.getSort()) {
+                case Type.BOOLEAN, Type.BYTE, Type.CHAR, Type.SHORT, Type.INT -> locals.add(Opcodes.INTEGER);
+                case Type.FLOAT -> locals.add(Opcodes.FLOAT);
+                case Type.LONG -> locals.add(Opcodes.LONG);
+                case Type.DOUBLE -> locals.add(Opcodes.DOUBLE);
+                case Type.ARRAY -> locals.add(arg.getDescriptor());
+                case Type.OBJECT -> locals.add(arg.getInternalName());
+                default -> {
+                }
+            }
+        }
+        return locals;
+    }
+
     private AbstractInsnNode findFirstRealInstruction(MethodNode method) {
         for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
-            if (insn instanceof LabelNode || insn instanceof LineNumberNode || insn instanceof FrameNode) {
+            if (insn instanceof LabelNode || insn instanceof LineNumberNode || insn.getType() == AbstractInsnNode.FRAME) {
                 continue;
             }
             return insn;
@@ -269,8 +368,68 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
     }
 
     private enum EffectMethodKind {
-        NONE,
-        ADD_EFFECT,
-        FORCE_ADD_EFFECT
+        NONE(null, null, null, -1, -1, -1, false),
+        ADD_EFFECT(CHECK_AND_ADD_EFFECT, CHECK_AND_ADD_DESC, Type.BOOLEAN_TYPE, Opcodes.IRETURN, Opcodes.ISTORE, Opcodes.ILOAD, false),
+        FORCE_ADD_EFFECT(CHECK_AND_ADD_EFFECT, CHECK_AND_ADD_DESC, Type.VOID_TYPE, Opcodes.RETURN, -1, -1, false),
+        GET_ACTIVE_EFFECTS(
+                "getActiveEffectsHook",
+                "(L" + LIVING_ENTITY_INTERNAL + ";L" + COLLECTION_INTERNAL + ";)L" + COLLECTION_INTERNAL + ";",
+                Type.getObjectType(COLLECTION_INTERNAL),
+                Opcodes.ARETURN,
+                Opcodes.ASTORE,
+                Opcodes.ALOAD,
+                false
+        ),
+        GET_ACTIVE_EFFECTS_MAP(
+                "getActiveEffectsMapHook",
+                "(L" + LIVING_ENTITY_INTERNAL + ";L" + MAP_INTERNAL + ";)L" + MAP_INTERNAL + ";",
+                Type.getObjectType(MAP_INTERNAL),
+                Opcodes.ARETURN,
+                Opcodes.ASTORE,
+                Opcodes.ALOAD,
+                false
+        ),
+        HAS_EFFECT(
+                "hasEffectHook",
+                "(L" + LIVING_ENTITY_INTERNAL + ";L" + MOB_EFFECT_INTERNAL + ";Z)Z",
+                Type.BOOLEAN_TYPE,
+                Opcodes.IRETURN,
+                Opcodes.ISTORE,
+                Opcodes.ILOAD,
+                true
+        ),
+        GET_EFFECT(
+                "getEffectHook",
+                "(L" + LIVING_ENTITY_INTERNAL + ";L" + MOB_EFFECT_INTERNAL + ";L" + MOB_EFFECT_INSTANCE_INTERNAL + ";)L" + MOB_EFFECT_INSTANCE_INTERNAL + ";",
+                Type.getObjectType(MOB_EFFECT_INSTANCE_INTERNAL),
+                Opcodes.ARETURN,
+                Opcodes.ASTORE,
+                Opcodes.ALOAD,
+                true
+        );
+
+        private final String hookMethodName;
+        private final String hookDesc;
+        private final Type returnType;
+        private final int returnOpcode;
+        private final int storeOpcode;
+        private final int loadOpcode;
+        private final boolean loadsEffectArgument;
+
+        EffectMethodKind(String hookMethodName,
+                         String hookDesc,
+                         Type returnType,
+                         int returnOpcode,
+                         int storeOpcode,
+                         int loadOpcode,
+                         boolean loadsEffectArgument) {
+            this.hookMethodName = hookMethodName;
+            this.hookDesc = hookDesc;
+            this.returnType = returnType;
+            this.returnOpcode = returnOpcode;
+            this.storeOpcode = storeOpcode;
+            this.loadOpcode = loadOpcode;
+            this.loadsEffectArgument = loadsEffectArgument;
+        }
     }
 }
