@@ -40,9 +40,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public class TumoroidNuke extends UtilityEntity{
-    public static final EntityDataAccessor<Integer> TIMER = SynchedEntityData.defineId(Hinderburg.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Boolean> OVERCLOCKED = SynchedEntityData.defineId(Hinderburg.class, EntityDataSerializers.BOOLEAN);
-    public static final EntityDataAccessor<Boolean> BUSTER = SynchedEntityData.defineId(Hinderburg.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Integer> TIMER = SynchedEntityData.defineId(TumoroidNuke.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> OVERCLOCKED = SynchedEntityData.defineId(TumoroidNuke.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> BUSTER = SynchedEntityData.defineId(TumoroidNuke.class, EntityDataSerializers.BOOLEAN);
     private Hinderburg hinderburg;
 
     public TumoroidNuke(Level level,Hinderburg hinderburg){
