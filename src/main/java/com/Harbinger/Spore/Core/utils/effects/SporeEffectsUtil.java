@@ -53,9 +53,10 @@ public final class SporeEffectsUtil implements IEffectManager {
     @Override
     public Collection<MobEffectInstance> getActiveEffectsHook(LivingEntity target, Collection<MobEffectInstance> initial) {
         MobEffect healInhibit = Seffects.HEALING_INHIBITION.get();
-        if(target.activeEffects.containsKey(healInhibit)){
+        MobEffectInstance mobEffectInstance = target.activeEffects.get(healInhibit);
+        if(mobEffectInstance!=null&&!initial.contains(mobEffectInstance)){
             Set<MobEffectInstance> set = new HashSet<>(initial);
-            set.add(target.activeEffects.get(healInhibit));
+            set.add(mobEffectInstance);
             return set;
         }
         return initial;
@@ -63,7 +64,7 @@ public final class SporeEffectsUtil implements IEffectManager {
     @Override
     public Map<MobEffect, MobEffectInstance> getActiveEffectsMapHook(LivingEntity target, Map<MobEffect, MobEffectInstance> initial) {
         MobEffect healInhibit = Seffects.HEALING_INHIBITION.get();
-        if(target.activeEffects.containsKey(healInhibit)){
+        if(target.activeEffects.containsKey(healInhibit)&&!initial.containsKey(healInhibit)){
             Map<MobEffect, MobEffectInstance> map=new HashMap<>(initial);
             map.put(healInhibit,target.activeEffects.get(healInhibit));
             return map;
