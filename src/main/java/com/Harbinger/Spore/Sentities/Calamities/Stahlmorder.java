@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Calamities;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityInfectedCommand;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
@@ -208,6 +209,8 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
             case 0 -> {
                      this.playSound(Ssounds.STAHL_SLASH.get());
                      target.addEffect(new MobEffectInstance(Seffects.CORROSION.get(), 600, 1));
+                     //额外附加10秒禁疗
+                     SporeEffectsUtil.INSTANCE.forceAddEffect(target,new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), 200, 1),null);
             }
 
 
