@@ -31,10 +31,10 @@ public interface SporeWeaponData {
         return stack.getDamageValue() < stack.getMaxDamage() - 10;
     }
     default void addHealingInhibitRandom(LivingEntity target) {
-        addHealingInhibitRandom(target, 0.3, 600);
+        addHealingInhibitRandom(target, 0.3, 60);
     }
     default void addHealingInhibitRandom(LivingEntity target, double chance) {
-        addHealingInhibitRandom(target, chance, 600);
+        addHealingInhibitRandom(target, chance, 60);
     }
     default void addHealingInhibitRandom(LivingEntity target, double chance, int duration) {
         if (target.random.nextDouble() < chance) {
