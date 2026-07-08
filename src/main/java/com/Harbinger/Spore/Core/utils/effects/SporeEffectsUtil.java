@@ -47,11 +47,7 @@ public final class SporeEffectsUtil implements IEffectManager {
             target.onEffectUpdated(effect, true, source);
         }
         if(effect.getEffect()==Seffects.HEALING_INHIBITION.get()){
-            float delta = EntityHeealuthManager.INSTANCE.getHeealtthDelta(target);
-            float expectedDelta=target.getHealth()-target.getMaxHealth();
-            if(delta>expectedDelta){
-                EntityHeealuthManager.INSTANCE.setHeealtthDelta(target, expectedDelta);
-            }
+            applyHealInhibit(target,target.getHealth());
         }
     }
     @Override
