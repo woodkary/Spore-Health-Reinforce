@@ -2056,8 +2056,8 @@ public class HowitzerModel<T extends Howitzer> extends EntityModel<T> {
 		this.LeftArmTendril2.xRot = Mth.cos(ageInTicks/8);
 		this.LeftArmTendril3.zRot = Mth.cos(ageInTicks/7);
 		this.LeftArmTendril4.zRot = Mth.cos(ageInTicks/6)/2;
-		RightArm.visible = entity.getRightArmHp()>0;
-		LeftArm.visible = entity.getLeftArmHp()>0;
+		RightArm.visible = entity.getRightArm()>0;
+		LeftArm.visible = entity.getLeftArm()>0;
 		if (!(limbSwingAmount > -0.15F && limbSwingAmount < 0.15F)){
 			float movementValue = Mth.cos(limbSwing * 0.8F) * 0.4F * limbSwingAmount;
 			this.LeftLeg.xRot = movementValue;

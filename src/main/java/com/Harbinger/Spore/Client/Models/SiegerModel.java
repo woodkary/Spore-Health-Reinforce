@@ -13,9 +13,6 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SiegerModel<T extends Sieger> extends EntityModel<T> implements TentacledModel {
 	// This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(Spore.MODID, "siegermodel"), "main");
@@ -1435,7 +1432,7 @@ public class SiegerModel<T extends Sieger> extends EntityModel<T> implements Ten
 		animateTentacleX(BackLeftForLeg2,-BackRightForLeg.xRot);
 		animateTentacleY(smolleg,Mth.sin(limbSwing * 0.5F) * -0.5F * limbSwingAmount);
 		animateTentacleX(jaw,Mth.sin(ageInTicks/8)/10);
-		if (entity.getTailHp() > 0){
+		if (entity.getTail() > 0){
 			this.tail.visible = true;
 			float value = Mth.sin(ageInTicks/8)/10;
 			animateTentacleX(tail,value);

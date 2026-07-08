@@ -91,10 +91,10 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
         super.readAdditionalSaveData(tag);
         entityData.set(SWORD_ARM, tag.getFloat("sword_arm"));
     }
-    public float getSwordArmHp(){
+    public float getSwordArm(){
         return entityData.get(SWORD_ARM);
     }
-    public void setSwordtArmHp(float i){
+    public void setSwordtArm(float i){
         entityData.set(SWORD_ARM,i);
     }
 
@@ -121,8 +121,8 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     public void tick() {
         super.tick();
         if (this.tickCount % 20 == 0 && this.getHealth() == this.getMaxHealth()){
-            if (this.getSwordArmHp() < this.getMaxArmHp()){
-                this.setSwordtArmHp(getSwordArmHp()+1);
+            if (this.getSwordArm() < this.getMaxArmHp()){
+                this.setSwordtArm(getSwordArm()+1);
             }
         }
         if (this.animationOffset > 0) {
@@ -147,7 +147,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
         }
     }
     private int decideAnimation(LivingEntity target) {
-        if (this.getSwordArmHp() > 0 &&
+        if (this.getSwordArm() > 0 &&
                 (this.getRandom().nextFloat() < 0.5F ||
                         (target.getArmorValue() >= 10 && this.getRandom().nextFloat() < 0.75F))) {
             return MELEE_STATES.SLASH.getValue();
@@ -238,11 +238,11 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
         if (calamityMultipart == this.mouth){
             this.hurt(source,value * 1.25f);
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
-        } else if (calamityMultipart == this.swordArm && getSwordArmHp() > 0){
+        } else if (calamityMultipart == this.swordArm && getSwordArm() > 0){
             this.hurt(source,value * 1.5f);
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 1.1f);
-            float lostHealth = getSwordArmHp()-this.getDamageAfterArmorAbsorb(source,value);
-            this.setSwordtArmHp(lostHealth > 0 ? lostHealth : getSwordArmHp() != 0 ? summonDetashedPart() : 0f);
+            float lostHealth = getSwordArm()-this.getDamageAfterArmorAbsorb(source,value);
+            this.setSwordtArm(lostHealth > 0 ? lostHealth : getSwordArm() != 0 ? summonDetashedPart() : 0f);
         }
         return true;
     }
@@ -433,7 +433,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     @Override
     public List<HitboxesForParts> parts() {
         List<HitboxesForParts> values = new ArrayList<>();
-        if (getSwordArmHp() > 0){
+        if (getSwordArm() > 0){
             values.add(HitboxesForParts.STAHL_BLADE_ARM);
         }
         for (HitboxesForParts hitboxes : innatePartList){

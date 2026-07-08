@@ -1888,7 +1888,7 @@ public class StahlmorderModel<T extends Stahlmorder> extends HierarchicalModel<T
 
 	@Override
 	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-		Evilshoulder.visible = entity.getSwordArmHp() > 0;
+		Evilshoulder.visible = entity.getSwordArm() > 0;
         float tendril1Val = Mth.cos(ageInTicks/7)/6;
         float tendril2Val = Mth.sin(ageInTicks/5)/6;
         float tendril3Val = -Mth.cos(ageInTicks/5)/6;

@@ -41,7 +41,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
@@ -285,13 +284,13 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             avec3[j] = new Vec3(this.subEntities[j].getX(), this.subEntities[j].getY(), this.subEntities[j].getZ());
         }
         this.tickPart(this.mouth, Vec3.ZERO,5);
-        if (getRightArmHp()>0){
+        if (getRightArm()>0){
             this.tickPart(this.rightArm, new Vec3(-3.85D,0D,4D));
         }else{
             this.tickPart(this.rightArm, Vec3.ZERO);
             rightArm.getBoundingBox().inflate(1,0.3,1);
         }
-        if (getLeftArmHp() >0){
+        if (getLeftArm() >0){
             this.tickPart(this.leftArm, new Vec3(3.85D,0D,-4D));
         }else{
             this.tickPart(this.leftArm, Vec3.ZERO);
@@ -334,7 +333,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         return entityData.get(SELF_DETONATION);
     }
     public boolean hasBothArms(){
-        return this.getRightArmHp()>0 && this.getLeftArmHp()>0;
+        return this.getRightArm()>0 && this.getLeftArm()>0;
     }
     public boolean isInMeleeRange(){
         LivingEntity living = this.getTarget();
@@ -378,13 +377,13 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         }else if (calamityMultipart == this.rightArm){
             this.hurt(source,value *1.5f);
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.4f);
-            float lostHealth = getRightArmHp()-this.getDamageAfterArmorAbsorb(source,value);
-            this.setRightArmHp(lostHealth > 0 ? lostHealth : getRightArmHp() != 0 ? summonDetashedPart(true) : 0f);
+            float lostHealth = getRightArm()-this.getDamageAfterArmorAbsorb(source,value);
+            this.setRightArm(lostHealth > 0 ? lostHealth : getRightArm() != 0 ? summonDetashedPart(true) : 0f);
         }else if (calamityMultipart == this.leftArm){
             this.hurt(source,value*1.5f);
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.4f);
-            float lostHealth = getLeftArmHp()-this.getDamageAfterArmorAbsorb(source,value);
-            this.setLeftArmHp(lostHealth > 0 ? lostHealth : getLeftArmHp() != 0 ? summonDetashedPart(false) : 0f);
+            float lostHealth = getLeftArm()-this.getDamageAfterArmorAbsorb(source,value);
+            this.setLeftArm(lostHealth > 0 ? lostHealth : getLeftArm() != 0 ? summonDetashedPart(false) : 0f);
         } else{
             this.hurt(source,value );
         }
@@ -419,8 +418,8 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(RIGHT_ARM, this.getMaxArmHp());
-        this.entityData.define(LEFT_ARM, this.getMaxArmHp());
+        this.entityData.define(RIGHT_ARM, this.getMaxArm());
+        this.entityData.define(LEFT_ARM, this.getMaxArm());
         this.entityData.define(ORES, 0);
         this.entityData.define(NUKE, 0);
         this.entityData.define(SELF_DETONATION, 0);
@@ -441,19 +440,19 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         entityData.set(ORES,tag.getInt("ores"));
         entityData.set(NUKE,tag.getInt("nuke"));
     }
-    public float getRightArmHp(){
+    public float getRightArm(){
         return entityData.get(RIGHT_ARM);
     }
-    public void setRightArmHp(float i){
+    public void setRightArm(float i){
         entityData.set(RIGHT_ARM,i);
     }
-    public float getLeftArmHp(){
+    public float getLeftArm(){
         return entityData.get(LEFT_ARM);
     }
-    public void setLeftArmHp(float i){
+    public void setLeftArm(float i){
         entityData.set(LEFT_ARM,i);
     }
-    public float getMaxArmHp(){
+    public float getMaxArm(){
         return (float) (SConfig.SERVER.howit_hp.get()/4.0f);
     }
 
@@ -484,11 +483,11 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             getLeapTime--;
         }
         if (this.tickCount % 20 == 0 && this.getHealth() == this.getMaxHealth()){
-            if (this.getRightArmHp() < this.getMaxArmHp()){
-                this.setRightArmHp(getRightArmHp()+1);
+            if (this.getRightArm() < this.getMaxArm()){
+                this.setRightArm(getRightArm()+1);
             }
-            if (this.getLeftArmHp() < this.getMaxArmHp()){
-                this.setLeftArmHp(getLeftArmHp()+1);
+            if (this.getLeftArm() < this.getMaxArm()){
+                this.setLeftArm(getLeftArm()+1);
             }
         }
         if (this.tickCount % 20 == 0){
@@ -786,10 +785,10 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     @Override
     public List<HitboxesForParts> parts() {
         List<HitboxesForParts> values = new ArrayList<>();
-        if (getRightArmHp() > 0){
+        if (getRightArm() > 0){
             values.add(HitboxesForParts.HOWI_RIGHT_ARM);
         }
-        if (getLeftArmHp() > 0){
+        if (getLeftArm() > 0){
             values.add(HitboxesForParts.HOWI_LEFT_ARM);
         }
         for (HitboxesForParts hitboxes : innatePartList){

@@ -107,9 +107,9 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
                 setSearchArea(pos);
             }
         }
-        if (this.getHealth() >= this.getMaxHealth() && this.getTongueHp() < this.getMaxTongueHp()){
+        if (this.getHealth() >= this.getMaxHealth() && this.getTongue() < this.getMaxTongue()){
             if (this.tickCount % 40 == 0){
-                this.setTongueHp(this.getTongueHp() +1);
+                this.setTongue(this.getTongue() +1);
             }
         }
         if (this.isInFluidType()){
@@ -137,29 +137,29 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(TONGUE, this.getMaxTongueHp());
+        this.entityData.define(TONGUE, this.getMaxTongue());
         this.entityData.define(ADAPTATION, 0);
     }
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        tag.putFloat("tongue_hp", entityData.get(TONGUE));
+        tag.putFloat("tongue_lliife", entityData.get(TONGUE));
         tag.putInt("adaptation",entityData.get(ADAPTATION));
     }
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        entityData.set(TONGUE, tag.getFloat("tongue_hp"));
+        entityData.set(TONGUE, tag.getFloat("tongue_lliife"));
         entityData.set(ADAPTATION,tag.getInt("adaptation"));
     }
-    public float getTongueHp(){
+    public float getTongue(){
         return entityData.get(TONGUE);
     }
-    public void setTongueHp(float i){
+    public void setTongue(float i){
         entityData.set(TONGUE,i);
     }
 
-    public float getMaxTongueHp(){
+    public float getMaxTongue(){
         return (float) (SConfig.SERVER.gazen_hp.get()/4.0f);
     }
 
@@ -256,7 +256,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
         this.goalSelector.addGoal(3, new ScatterShotRangedGoal(this,1.3,60,32,1,3){
             @Override
             public boolean canUse() {
-                if (Gazenbrecher.this.getTongueHp() <= 0){
+                if (Gazenbrecher.this.getTongue() <= 0){
                     return false;
                 }
                 return super.canUse() && (calculateHeight() || calculateDistance());
@@ -278,8 +278,8 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
 
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
         if (calamityMultipart == this.tongue){
-            if (this.getTongueHp() > 0 && value > this.getTongueHp()){
-                if (this.getTongueHp() > 0 && value > this.getTongueHp()){
+            if (this.getTongue() > 0 && value > this.getTongue()){
+                if (this.getTongue() > 0 && value > this.getTongue()){
                     this.playSound(Ssounds.LIMB_SLASH.get());
                     SummonDetashedTongue();
                 }
@@ -287,7 +287,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
             }
             this.hurt(source,value * 1.5f);
             SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.8f);
-            this.setTongueHp(value > this.getTongueHp() ? 0 : this.getTongueHp() - value);
+            this.setTongue(value > this.getTongue() ? 0 : this.getTongue() - value);
         } else{
             this.hurt(source,value );
         }
@@ -393,7 +393,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
     @Override
     public List<HitboxesForParts> parts() {
         List<HitboxesForParts> values = new ArrayList<>();
-        if (getTongueHp() > 0){
+        if (getTongue() > 0){
             values.add(HitboxesForParts.LICKER);
         }
         for (HitboxesForParts hitboxes : innatePartList){

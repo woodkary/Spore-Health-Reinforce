@@ -1274,7 +1274,7 @@ public class GazenbrecherModel<T extends Gazenbrecher> extends HierarchicalModel
 		this.Tumors.zScale = 1f + Mth.sin(ageInTicks/8)/4;
 		this.Tumors.yScale = 1f + Mth.sin(ageInTicks/8)/4;
 
-		if (entity.getTongueHp() <= 0){
+		if (entity.getTongue() <= 0){
 			this.Licker1.visible = false;
 			this.Tumors.visible = false;
 		}else{
