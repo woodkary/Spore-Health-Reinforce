@@ -871,13 +871,13 @@ public class HandlerEvents {
     @SubscribeEvent
     public static void DefenseBypass(LivingDamageEvent event) {
         Entity living = event.getSource().getEntity();
-        if (living instanceof Player player && event.getEntity().getItemBySlot(EquipmentSlot.CHEST).isEmpty()){
+        LivingEntity target = event.getEntity();
+        if (living instanceof Player player && target.getItemBySlot(EquipmentSlot.CHEST).isEmpty()){
             ItemStack weapon = player.getMainHandItem();
             if (weapon.getItem() instanceof PCI pci && pci.getCharge(weapon)>0 && !player.getCooldowns().isOnCooldown(pci)){
                 int damageMod = SConfig.SERVER.pci_damage_multiplier.get();
                 int charge = pci.getCharge(weapon);
-                LivingEntity target = event.getEntity();
-                boolean freeze = event.getEntity().getType().is(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES);
+                boolean freeze = target.getType().is(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES);
                 float targetHealth = freeze ? target.getHealth()/damageMod : target.getHealth();
                 int freezeDamage = charge >= targetHealth ? (int) targetHealth : charge;
                 float newDamage = event.getAmount() + (freeze ? freezeDamage * damageMod : freezeDamage);
@@ -889,8 +889,7 @@ public class HandlerEvents {
                 pci.playSound(player);
             }
         }
-        if (event.getEntity().hasEffect(Seffects.IGNITABLE.get())){
-            LivingEntity victim = event.getEntity();
+        if (target.hasEffect(Seffects.IGNITABLE.get())){
             float chance = 0.01f;
             for (Ignitable.SetAblazeChances chances : Ignitable.SetAblazeChances.values()){
                 if (event.getSource().is(chances.getDamageType())){
@@ -898,18 +897,18 @@ public class HandlerEvents {
                     break;
                 }
             }
-            MobEffectInstance instance = victim.getEffect(Seffects.IGNITABLE.get());
+            MobEffectInstance instance = target.getEffect(Seffects.IGNITABLE.get());
             if (instance != null && Math.random() < chance){
-                victim.setRemainingFireTicks(victim.getRemainingFireTicks()+instance.getDuration());
-                victim.removeEffect(Seffects.IGNITABLE.get());
-                if (victim instanceof Player player){
+                target.setRemainingFireTicks(target.getRemainingFireTicks()+instance.getDuration());
+                target.removeEffect(Seffects.IGNITABLE.get());
+                if (target instanceof Player player){
                     player.playNotifySound(Ssounds.FIRE_EXPLOSION.get(), SoundSource.PLAYERS,1f,1f);
                 }else {
-                    victim.playSound(Ssounds.FIRE_EXPLOSION.get());
+                    target.playSound(Ssounds.FIRE_EXPLOSION.get());
                 }
-                AABB aabb = victim.getBoundingBox().inflate(3);
-                List<Entity> fireList = victim.level().getEntities(victim,aabb);
-                boolean isInfected = victim.getType().is(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES);
+                AABB aabb = target.getBoundingBox().inflate(3);
+                List<Entity> fireList = target.level().getEntities(target,aabb);
+                boolean isInfected = target.getType().is(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES);
                 for(Entity entity : fireList){
                     if (entity instanceof LivingEntity livingEntity){
                         if (isInfected && !(livingEntity instanceof Player)){
@@ -923,7 +922,7 @@ public class HandlerEvents {
                 }
             }
         }
-        if(event.getEntity() instanceof Infected victim && !(victim instanceof Protector)) {
+        if(target instanceof Infected victim && !(victim instanceof Protector)) {
                 LivingEntity attacker = living instanceof LivingEntity e ? e : null;
                 List<Protector> protectorList = SporeSavedData.protectorList();
                 if (!protectorList.isEmpty() && attacker != null){
@@ -951,17 +950,16 @@ public class HandlerEvents {
             }
         }
         if (living instanceof Infected || living instanceof UtilityEntity && !(living instanceof Illusion)){
-            LivingEntity livingEntity = event.getEntity();
-            MobEffectInstance mobEffectInstance = livingEntity.getEffect(Seffects.MADNESS.get());
+            MobEffectInstance mobEffectInstance = target.getEffect(Seffects.MADNESS.get());
             if (mobEffectInstance != null){
                 int level = mobEffectInstance.getAmplifier();
                 int duration = mobEffectInstance.getDuration() +1200;
                 boolean jumpLevel = duration < 12000;
-                livingEntity.addEffect(new MobEffectInstance(Seffects.MADNESS.get(),jumpLevel ? duration: duration-12000,jumpLevel ? level : level+1));
+                target.addEffect(new MobEffectInstance(Seffects.MADNESS.get(),jumpLevel ? duration: duration-12000,jumpLevel ? level : level+1));
             }
         }
         //////problem
-        if (event.getEntity() instanceof Player player) {
+        if (target instanceof Player player) {
             float actualDamage = event.getAmount();
             for (ItemStack stack : player.getArmorSlots()) {
                 if (stack.getItem() instanceof SporeBaseArmor armor) {
@@ -978,7 +976,7 @@ public class HandlerEvents {
                 }
             }
             if (i > 0){
-                event.getEntity().setSecondsOnFire(i);
+                target.setSecondsOnFire(i);
             }
         }
         if (event.getSource().getEntity() instanceof Mob attacker){
@@ -995,7 +993,7 @@ public class HandlerEvents {
                 }
             }
         }
-        if (event.getEntity() instanceof Mob creature){
+        if (target instanceof Mob creature){
             CompoundTag data = creature.getPersistentData();
             if (data.contains("hivemind")) {
                 int summonerUUID = data.getInt("hivemind");
@@ -1007,6 +1005,20 @@ public class HandlerEvents {
                     smartMob.punishForDecision(decision,member);
                 }
             }
+        }
+        tryApplyHealInhibit(target, target.getHealth()-event.getAmount());
+    }
+    private static void tryApplyHealInhibit(LivingEntity entity){
+        tryApplyHealInhibit(entity,entity.getHealth());
+    }
+    private static void tryApplyHealInhibit(LivingEntity entity,float expectedHealth){
+        if(!entity.hasEffect(Seffects.HEALING_INHIBITION.get())){
+            return;
+        }
+        float delta = EntityHeealuthManager.INSTANCE.getHeealtthDelta(entity);
+        float expectedDelta=expectedHealth-entity.getMaxHealth();
+        if(delta>expectedDelta){
+            EntityHeealuthManager.INSTANCE.setHeealtthDelta(entity, expectedDelta);
         }
     }
 
