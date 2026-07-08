@@ -210,7 +210,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
                      this.playSound(Ssounds.STAHL_SLASH.get());
                      target.addEffect(new MobEffectInstance(Seffects.CORROSION.get(), 600, 1));
                      //额外附加10秒禁疗
-                     SporeEffectsUtil.INSTANCE.forceAddEffect(target,new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), 200, 1),null);
+                     SporeEffectsUtil.INSTANCE.forceAddEffect(target,new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), 200, 0),null);
             }
 
 
