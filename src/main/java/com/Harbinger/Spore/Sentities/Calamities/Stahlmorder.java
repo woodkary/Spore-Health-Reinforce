@@ -70,12 +70,12 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(SWORD_ARM, this.getMaxArmHp());
+        this.entityData.define(SWORD_ARM, this.getMaxArm());
         this.entityData.define(MELEE_STATE, 0);
         this.entityData.define(JUMP_OFFSET, 0);
     }
 
-    private Float getMaxArmHp() {
+    private Float getMaxArm() {
         return (float) (SConfig.SERVER.sta_hp.get()/4.0f);
     }
     public int getJumpOffset(){return entityData.get(JUMP_OFFSET);}
@@ -121,7 +121,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     public void tick() {
         super.tick();
         if (this.tickCount % 20 == 0 && this.getHealth() == this.getMaxHealth()){
-            if (this.getSwordArm() < this.getMaxArmHp()){
+            if (this.getSwordArm() < this.getMaxArm()){
                 this.setSwordtArm(getSwordArm()+1);
             }
         }
