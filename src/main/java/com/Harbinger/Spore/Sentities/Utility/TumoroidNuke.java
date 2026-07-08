@@ -43,7 +43,7 @@ public class TumoroidNuke extends UtilityEntity{
     public static final EntityDataAccessor<Integer> TIMER = SynchedEntityData.defineId(TumoroidNuke.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> OVERCLOCKED = SynchedEntityData.defineId(TumoroidNuke.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> BUSTER = SynchedEntityData.defineId(TumoroidNuke.class, EntityDataSerializers.BOOLEAN);
-    private Hinderburg hinderburg;
+    private final Hinderburg hinderburg;
 
     public TumoroidNuke(Level level,Hinderburg hinderburg){
         super(Sentities.TUMOROID_NUKE.get(),level);
@@ -55,6 +55,7 @@ public class TumoroidNuke extends UtilityEntity{
 
     public TumoroidNuke(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
+        hinderburg=null;
     }
 
 
