@@ -29,4 +29,8 @@ public interface IEffectManager extends Consumer<LivingEvent.LivingTickEvent> {
     boolean canBeAffectedHook(LivingEntity target, MobEffectInstance effect, boolean initial);
 
     boolean removeEffect(LivingEntity target, MobEffect effect);
+
+    void tryApplyHealInhibit(LivingEntity entity);
+
+    void tryApplyHealInhibit(LivingEntity entity, float expectedHealth);
 }

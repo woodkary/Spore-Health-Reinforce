@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BossEventUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.Effect.Ignitable;
@@ -1006,20 +1007,7 @@ public class HandlerEvents {
                 }
             }
         }
-        tryApplyHealInhibit(target, target.getHealth()-event.getAmount());
-    }
-    private static void tryApplyHealInhibit(LivingEntity entity){
-        tryApplyHealInhibit(entity,entity.getHealth());
-    }
-    private static void tryApplyHealInhibit(LivingEntity entity,float expectedHealth){
-        if(!entity.hasEffect(Seffects.HEALING_INHIBITION.get())){
-            return;
-        }
-        float delta = EntityHeealuthManager.INSTANCE.getHeealtthDelta(entity);
-        float expectedDelta=expectedHealth-entity.getMaxHealth();
-        if(delta>expectedDelta){
-            EntityHeealuthManager.INSTANCE.setHeealtthDelta(entity, expectedDelta);
-        }
+        SporeEffectsUtil.INSTANCE.tryApplyHealInhibit(target, target.getHealth()-event.getAmount());
     }
 
     @SubscribeEvent
@@ -1091,13 +1079,6 @@ public class HandlerEvents {
         }
     }
     public static void onMobEffectAdded(MobEffectEvent.Added addEffectEvent){
-        if(addEffectEvent.getEffectInstance().getEffect()==Seffects.HEALING_INHIBITION.get()) {
-            LivingEntity target=addEffectEvent.getEntity();
-            float delta = EntityHeealuthManager.INSTANCE.getHeealtthDelta(target);
-            float expectedDelta=target.getHealth()-target.getMaxHealth();
-            if(delta>expectedDelta){
-                EntityHeealuthManager.INSTANCE.setHeealtthDelta(target, expectedDelta);
-            }
-        }
+        SporeEffectsUtil.INSTANCE.tryApplyHealInhibit(addEffectEvent.getEntity());
     }
 }
