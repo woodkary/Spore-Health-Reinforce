@@ -15,8 +15,9 @@ import com.sun.jna.Structure;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
+import com.sun.jna.win32.StdCallLibrary;
 
-import java.lang.invoke.MethodHandle;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +26,22 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class JVMTIPointerUtil implements IJVNTIPointer {
     private static final int JVMTI_ENABLE = 1;
     private static final int JVMTI_EVENT_CLASS_FILE_LOAD_HOOK = 54;
+    private static final int JVMTI_VERSION_1_2 = 0x30010200;
+    private static final int JAVA_VM_GET_ENV_INDEX = 6;
+    private static IJVNTIPointer INSTANCE;
+    public static IJVNTIPointer newInstance(){
+        return newInstance(resolveJvmtiEnvPointer());
+    }
     public static IJVNTIPointer newInstance(Pointer pointer){
-        return new JVMTIPointerUtil(pointer);
+        if(INSTANCE == null){
+            Pointer envPointer = normalizeJvmtiEnvPointer(pointer);
+            if (envPointer == null || Pointer.nativeValue(envPointer) == 0L) {
+                LogUtil.error("JVMTI env pointer is unavailable.");
+                return null;
+            }
+            INSTANCE = new JVMTIPointerUtil(envPointer);
+        }
+        return INSTANCE;
     }
     private final Pointer jvmti;
     private final List<SelfTransformer> transformers = new CopyOnWriteArrayList<>();
@@ -97,6 +112,11 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
     }
 
     @Override
+    public boolean isTransformerHookInstalled() {
+        return eventCallbacksSet && classFileLoadHookEnabled;
+    }
+
+    @Override
     public IJVNTIPointer retransformClasses(Class<?>[] classes) {
         if (classes == null || classes.length == 0) {
             return this;
@@ -110,17 +130,23 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         if (retransformClasses == null) {
             return this;
         }
+        List<Class<?>> failures = new ArrayList<>();
         for (Class<?> clazz : classes) {
             if (clazz == null) {
                 continue;
             }
-            withClassPointer(clazz, classPtr -> {
+            Boolean transformed = withClassPointer(clazz, classPtr -> {
                 Memory classArray = new Memory(Native.POINTER_SIZE);
                 classArray.setPointer(0L, classPtr);
                 int error = retransformClasses.invokeInt(new Object[]{jvmti, 1, classArray});
-                checkError("RetransformClasses " + clazz.getName(), error);
-                return null;
-            }, null);
+                return checkError("RetransformClasses " + clazz.getName(), error);
+            }, false);
+            if (!Boolean.TRUE.equals(transformed)) {
+                failures.add(clazz);
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new IllegalStateException("JVMTI failed to retransform " + failures.size() + " classes");
         }
         return this;
     }
@@ -214,6 +240,9 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         int error = setEventCallbacks.invokeInt(new Object[]{jvmti, eventCallbacks.getPointer(), eventCallbacks.size()});
         if (checkError("SetEventCallbacks", error)) {
             eventCallbacksSet = true;
+        } else {
+            eventCallbacks = null;
+            classFileLoadHookCallback = null;
         }
         return this;
     }
@@ -320,6 +349,84 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
             LogUtil.errorf("failed to resolve JVMTI function %s, %s", method, t.getMessage());
             return null;
         }
+    }
+
+    private static Pointer resolveJvmtiEnvPointer() {
+        try {
+            Pointer javaVM = getJavaVM();
+            if (isNullStatic(javaVM)) {
+                return null;
+            }
+            Pointer functions = javaVM.getPointer(0L);
+            if (isNullStatic(functions)) {
+                return null;
+            }
+            Pointer getEnvPointer = functions.getPointer((long) JAVA_VM_GET_ENV_INDEX * Native.POINTER_SIZE);
+            if (isNullStatic(getEnvPointer)) {
+                return null;
+            }
+            Function getEnv = Function.getFunction(getEnvPointer);
+            PointerByReference jvmtiRef = new PointerByReference();
+            int error = getEnv.invokeInt(new Object[]{javaVM, jvmtiRef, JVMTI_VERSION_1_2});
+            if (error != 0) {
+                LogUtil.errorf("JNI GetEnv(JVMTI) failed, error=%d", error);
+                return null;
+            }
+            return jvmtiRef.getValue();
+        } catch (Throwable t) {
+            LogUtil.errorf("failed to resolve JVMTI env pointer, %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return null;
+        }
+    }
+
+    private static Pointer normalizeJvmtiEnvPointer(Pointer pointer) {
+        if (isNullStatic(pointer)) {
+            return resolveJvmtiEnvPointer();
+        }
+        try {
+            Pointer first = pointer.getPointer(0L);
+            if (isNullStatic(first)) {
+                Pointer resolved = resolveJvmtiEnvPointer();
+                return isNullStatic(resolved) ? pointer : resolved;
+            }
+        } catch (Throwable ignored) {
+        }
+        return pointer;
+    }
+
+    private static Pointer getJavaVM() {
+        Pointer[] vmBuf = new Pointer[1];
+        IntByReference nVms = new IntByReference();
+        int error = JvmDll.INSTANCE.JNI_GetCreatedJavaVMs(vmBuf, 1, nVms);
+        if (error != 0 || nVms.getValue() <= 0 || isNullStatic(vmBuf[0])) {
+            LogUtil.errorf("JNI_GetCreatedJavaVMs failed, error=%d, count=%d", error, nVms.getValue());
+            return null;
+        }
+        return vmBuf[0];
+    }
+
+    private static String resolveJvmLibraryPath() {
+        String javaHome = System.getProperty("java.home");
+        if (javaHome != null && !javaHome.isBlank()) {
+            File serverJvm = new File(javaHome, "bin/server/jvm.dll");
+            if (serverJvm.isFile()) {
+                return serverJvm.getAbsolutePath();
+            }
+            File clientJvm = new File(javaHome, "bin/client/jvm.dll");
+            if (clientJvm.isFile()) {
+                return clientJvm.getAbsolutePath();
+            }
+            File macJvm = new File(javaHome, "lib/server/libjvm.dylib");
+            if (macJvm.isFile()) {
+                return macJvm.getAbsolutePath();
+            }
+            File linuxJvm = new File(javaHome, "lib/server/libjvm.so");
+            if (linuxJvm.isFile()) {
+                return linuxJvm.getAbsolutePath();
+            }
+        }
+        return "jvm";
     }
 
     private String getClassSignature(Pointer classPtr) {
@@ -495,6 +602,10 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
     }
 
     private boolean isNull(Pointer pointer) {
+        return isNullStatic(pointer);
+    }
+
+    private static boolean isNullStatic(Pointer pointer) {
         return pointer == null || Pointer.nativeValue(pointer) == 0L;
     }
 
@@ -530,5 +641,11 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         protected List<String> getFieldOrder() {
             return List.of("VMInit", "VMDeath", "ThreadStart", "ThreadEnd", "ClassFileLoadHook");
         }
+    }
+
+    public interface JvmDll extends StdCallLibrary {
+        JvmDll INSTANCE = Native.load(resolveJvmLibraryPath(), JvmDll.class);
+
+        int JNI_GetCreatedJavaVMs(Pointer[] vmBuf, int bufLen, IntByReference nVms);
     }
 }

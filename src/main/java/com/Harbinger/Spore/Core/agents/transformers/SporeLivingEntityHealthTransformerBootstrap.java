@@ -1,7 +1,9 @@
 package com.Harbinger.Spore.Core.agents.transformers;
 
 import com.Harbinger.Spore.Core.agents.IInstrumentations;
+import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
+import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
@@ -20,32 +22,45 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             SporeLivingEntityHealthTransformerBootstrap.class
     );
     private volatile boolean installed;
+    private volatile boolean jvmtiTransInstalled;
     private volatile boolean loadedLivingEntitiesRetransformed;
 
+    private IJVNTIPointer ensureJVMTIUtil(IJVNTIPointer jvmtiUtil){
+        if(jvmtiUtil == null){
+            return JVMTIPointerUtil.newInstance();
+        }
+        return jvmtiUtil;
+    }
     @Override
     public synchronized void tryRetransformHiddenClasses(Class<?>... classes){
-        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
-        if (instrumentation == null) {
-            LogUtil.error("Instrumentation is unavailable, skip LivingEntity health transformer.");
-            return;
-        }
-        if (!instrumentation.isRetransformClassesSupported()) {
-            LogUtil.error("RetransformClasses is not supported by current Instrumentation.");
-            return;
-        }
-        if (!installTransformers(instrumentation)) {
+        if (classes == null || classes.length == 0) {
             return;
         }
         List<Class<?>> hiddenClasses=new ArrayList<>();
         Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
         try {
+            IInstrumentations instrumentation = InstrumentationUtil.getInstance();
+            boolean instrumentationReady = instrumentation != null
+                    && instrumentation.isRetransformClassesSupported()
+                    && installTransformers(instrumentation);
+            IJVNTIPointer jvmUtil = null;
+            boolean jvmtiReady = false;
+            if (!instrumentationReady) {
+                jvmUtil = ensureJVMTIUtil(null);
+                jvmtiReady = isJvmtiReady(jvmUtil);
+            }
+            if (!instrumentationReady && !jvmtiReady) {
+                LogUtil.error("No usable transformer backend for hidden LivingEntity classes.");
+                return;
+            }
             for (Class<?> clazz : classes) {
                 KlassAndAccessFlags flags = modifyClassesAccessFlags(clazz);
                 if (flags == null) {
                     continue;
                 }
                 hiddenAddresses.put(clazz,flags);
-                if (shouldRetransformHiddenCandidate(instrumentation, clazz)) {
+                if ((instrumentationReady && shouldRetransformHiddenCandidate(instrumentation, clazz))
+                        || (jvmtiReady && shouldRetransformHiddenCandidate(jvmUtil, clazz))) {
                     hiddenClasses.add(clazz);
                 } else {
                     resetToHidden(clazz, flags);
@@ -55,7 +70,24 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             if (hiddenClasses.isEmpty()) {
                 return;
             }
-            retransformBisected(instrumentation, hiddenClasses);
+            if (instrumentationReady) {
+                Collection<Class<?>> visited=new ArrayList<>();
+                int transformed=retransformBisected(instrumentation, hiddenClasses,visited);
+                if(transformed>=hiddenClasses.size()) {
+                    return;
+                }
+                Collection<Class<?>> remaining=new HashSet<>(hiddenClasses);
+                for (Class<?> vis : visited) {
+                    remaining.remove(vis);
+                }
+                List<Class<?>> toRetransform=new ArrayList<>(remaining);
+                jvmUtil = ensureJVMTIUtil(jvmUtil);
+                if (isJvmtiReady(jvmUtil)) {
+                    retransformBisected(jvmUtil,toRetransform);
+                }
+                return;
+            }
+            retransformBisected(jvmUtil, hiddenClasses);
         }finally {
             for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
                 resetToHidden(entry.getKey(), entry.getValue());
@@ -99,17 +131,67 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
 
     @Override
     public synchronized void installAndRetransform() {
-        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
-        if (instrumentation == null) {
-            LogUtil.error("Instrumentation is unavailable, skip LivingEntity health transformer.");
+        if (loadedLivingEntitiesRetransformed) {
             return;
         }
-        if (installTransformers(instrumentation) && !loadedLivingEntitiesRetransformed) {
+        Collection<Class<?>> remaining = null;
+        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
+        if (instrumentation != null&&installTransformers(instrumentation)) {
+            Collection<Class<?>> visited=new ArrayList<>();
+            remaining=retransformLivingEntitiesViaInst(instrumentation,visited);
+        }
+        if(remaining!=null&&remaining.isEmpty()){
+            //全部转换，结束
             loadedLivingEntitiesRetransformed = true;
-            retransformLoadedLivingEntities(instrumentation);
+            return;
+        }
+        LogUtil.log("Instrumentation can't transform all, start JVMTI.");
+        //用jvmti transform剩余的类
+        IJVNTIPointer jvmtiUtil=JVMTIPointerUtil.newInstance();
+        if (isJvmtiReady(jvmtiUtil)) {
+            Collection<Class<?>> jvmtiTargets = remaining == null ? collectJvmtiLivingEntityTargets(jvmtiUtil) : remaining;
+            int transformed = retransformLivingEntitiesViaJVMTI(jvmtiUtil,jvmtiTargets);
+            if (transformed >= jvmtiTargets.size() && (remaining != null || !jvmtiTargets.isEmpty())) {
+                loadedLivingEntitiesRetransformed = true;
+            } else if (jvmtiTargets.isEmpty()) {
+                LogUtil.error("JVMTI fallback found no loaded LivingEntity classes; keep transformer bootstrap retryable.");
+            } else {
+                LogUtil.errorf("JVMTI fallback transformed %d/%d loaded LivingEntity classes.", transformed, jvmtiTargets.size());
+            }
+        } else if (remaining != null && !remaining.isEmpty()) {
+            LogUtil.errorf("JVMTI fallback is unavailable; %d loaded LivingEntity classes remain untransformed.", remaining.size());
         }
     }
 
+    private boolean isJvmtiReady(IJVNTIPointer jvmtiUtil) {
+        if (jvmtiUtil == null) {
+            return false;
+        }
+        try {
+            return jvmtiUtil.isRetransformClassesSupported()
+                    && installTransformers(jvmtiUtil)
+                    && jvmtiUtil.isTransformerHookInstalled();
+        } catch (Throwable t) {
+            LogUtil.errorf("JVMTI transformer backend is unavailable: %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return false;
+        }
+    }
+
+    private boolean installTransformers(IJVNTIPointer jvmtiUtil) {
+        if (jvmtiUtil == null) {
+            return false;
+        }
+        if(jvmtiTransInstalled){
+            return true;
+        }
+        SelfTransformer healthTransformer = SporeLivingEntityHealthTransformer.newSelfTransformer();
+        SelfTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newSelfTransformer();
+        jvmtiUtil.addTransformer(healthTransformer);
+        jvmtiUtil.addTransformer(effectApplicationTransformer);
+        jvmtiTransInstalled=jvmtiUtil.isTransformerHookInstalled();
+        return true;
+    }
     private boolean installTransformers(IInstrumentations instrumentation) {
         if (installed) {
             return true;
@@ -121,12 +203,44 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         installed = true;
         return true;
     }
-
-    private void retransformLoadedLivingEntities(IInstrumentations instrumentation) {
-        if (!instrumentation.isRetransformClassesSupported()) {
-            LogUtil.error("RetransformClasses is not supported by current Instrumentation.");
-            return;
+    private int retransformLivingEntitiesViaJVMTI(IJVNTIPointer jvmtiUtil, Collection<Class<?>> targets){
+        if (jvmtiUtil == null) {
+            return 0;
         }
+        if(targets==null||targets.isEmpty()){
+            targets = collectJvmtiLivingEntityTargets(jvmtiUtil);
+        }
+        if (targets.isEmpty()) {
+            LogUtil.log("No loaded LivingEntity classes need retransform.");
+            return 0;
+        }
+        if (!jvmtiUtil.isRetransformClassesSupported()) {
+            LogUtil.error("RetransformClasses is not supported by current Instrumentation.");
+            return 0;
+        }
+        List<Class<?>> toRetransform = targets instanceof List<Class<?>> l ? l : new ArrayList<>(targets);
+        //用jvmti转换target
+        int transformed = retransformBisected(jvmtiUtil, toRetransform);
+        LogUtil.logf("Retransformed %d loaded LivingEntity classes.", transformed);
+        return transformed;
+    }
+
+    private Collection<Class<?>> collectJvmtiLivingEntityTargets(IJVNTIPointer jvmtiUtil) {
+        List<Class<?>> targets = new ArrayList<>();
+        if (jvmtiUtil == null) {
+            return targets;
+        }
+        Class<?>[] allLoaded = jvmtiUtil.getAllLoadedClasses();
+        for (Class<?> clazz : allLoaded) {
+            if (shouldRetransform(jvmtiUtil, clazz)) {
+                targets.add(clazz);
+            }
+        }
+        return targets;
+    }
+
+    //返回本次transform剩余的类
+    private Collection<Class<?>> retransformLivingEntitiesViaInst(IInstrumentations instrumentation, Collection<Class<?>> visited) {
         Class<?>[] allLoaded = instrumentation.getAllLoadedClasses();
         List<Class<?>> targets = new ArrayList<>();
         for (Class<?> clazz : allLoaded) {
@@ -136,18 +250,29 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         }
         if (targets.isEmpty()) {
             LogUtil.log("No loaded LivingEntity classes need retransform.");
-            return;
+            return Collections.emptyList();
         }
-        int transformed = retransformBisected(instrumentation, targets);
+        if (!instrumentation.isRetransformClassesSupported()) {
+            LogUtil.error("RetransformClasses is not supported by current Instrumentation.");
+            return targets;
+        }
+        int transformed = retransformBisected(instrumentation, targets,visited);
         LogUtil.logf("Retransformed %d loaded LivingEntity classes.", transformed);
+        if(transformed >= targets.size()){
+            return Collections.emptyList();
+        }
+        Collection<Class<?>> remaining = new HashSet<>(targets);
+        for (Class<?> vis : visited) {
+            remaining.remove(vis);
+        }
+        return remaining;
     }
-
-    private int retransformBisected(IInstrumentations instrumentation, List<Class<?>> targets) {
+    private int retransformBisected(IJVNTIPointer jvmtiUtil, List<Class<?>> targets) {
         if (targets.isEmpty()) {
             return 0;
         }
         try {
-            instrumentation.retransformClasses(targets.toArray(new Class<?>[0]));
+            jvmtiUtil.retransformClasses(targets.toArray(new Class<?>[0]));
             return targets.size();
         } catch (Throwable t) {
             if (targets.size() == 1) {
@@ -163,8 +288,34 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                     t.getMessage());
             LogUtil.printStackTrace(t);
             int middle = targets.size() / 2;
-            return retransformBisected(instrumentation, targets.subList(0, middle))
-                    + retransformBisected(instrumentation, targets.subList(middle, targets.size()));
+            return retransformBisected(jvmtiUtil, targets.subList(0, middle))
+                    + retransformBisected(jvmtiUtil, targets.subList(middle, targets.size()));
+        }
+    }
+    private int retransformBisected(IInstrumentations instrumentation, List<Class<?>> targets,Collection<Class<?>> visited) {
+        if (targets.isEmpty()) {
+            return 0;
+        }
+        try {
+            instrumentation.retransformClasses(targets.toArray(new Class<?>[0]));
+            visited.addAll(targets);
+            return targets.size();
+        } catch (Throwable t) {
+            if (targets.size() == 1) {
+                Class<?> target = targets.get(0);
+                LogUtil.errorf("Skipped LivingEntity class %s during retransform: %s",
+                        target.getName(),
+                        t.getMessage());
+                LogUtil.printStackTrace(t);
+                return 0;
+            }
+            LogUtil.errorf("Failed to retransform batch of %d loaded LivingEntity classes, split and retry: %s",
+                    targets.size(),
+                    t.getMessage());
+            LogUtil.printStackTrace(t);
+            int middle = targets.size() / 2;
+            return retransformBisected(instrumentation, targets.subList(0, middle), visited)
+                    + retransformBisected(instrumentation, targets.subList(middle, targets.size()), visited);
         }
     }
 
@@ -181,9 +332,24 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         }
         return instrumentation.isModifiableClass(clazz);
     }
+    private boolean shouldRetransform(IJVNTIPointer jvmtiUtil, Class<?> clazz) {
+        if (clazz == null
+                || jvmtiUtil == null
+                || clazz.isHidden()
+                || clazz.isArray()
+                || clazz.isPrimitive()
+                || clazz.isInterface()) {
+            return false;
+        }
+        if (!LivingEntity.class.isAssignableFrom(clazz)) {
+            return false;
+        }
+        return jvmtiUtil.isModifiableClass(clazz);
+    }
 
     private boolean shouldRetransformHiddenCandidate(IInstrumentations instrumentation, Class<?> clazz) {
         if (clazz == null
+                || instrumentation == null
                 || clazz.isArray()
                 || clazz.isPrimitive()
                 || clazz.isInterface()) {
@@ -194,6 +360,24 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         }
         try {
             return instrumentation.isModifiableClass(clazz);
+        } catch (Throwable t) {
+            LogUtil.errorf("Hidden LivingEntity class %s is not safely modifiable: %s", clazz.getName(), t.getMessage());
+            return false;
+        }
+    }
+    private boolean shouldRetransformHiddenCandidate(IJVNTIPointer jvmtiUtil, Class<?> clazz) {
+        if (clazz == null
+                || jvmtiUtil == null
+                || clazz.isArray()
+                || clazz.isPrimitive()
+                || clazz.isInterface()) {
+            return false;
+        }
+        if (!LivingEntity.class.isAssignableFrom(clazz)) {
+            return false;
+        }
+        try {
+            return jvmtiUtil.isModifiableClass(clazz);
         } catch (Throwable t) {
             LogUtil.errorf("Hidden LivingEntity class %s is not safely modifiable: %s", clazz.getName(), t.getMessage());
             return false;

@@ -7,6 +7,7 @@ public interface IJVNTIPointer {
     Class<?>[] getAllLoadedClasses();
     boolean isModifiableClass(Class<?> clazz);
     boolean isRetransformClassesSupported();
+    boolean isTransformerHookInstalled();
     IJVNTIPointer retransformClasses(Class<?>[] classes);
 
     IJVNTIPointer allocate();
