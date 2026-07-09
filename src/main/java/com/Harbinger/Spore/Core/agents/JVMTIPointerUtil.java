@@ -2,10 +2,8 @@ package com.Harbinger.Spore.Core.agents;
 
 import com.Harbinger.Spore.Core.agents.transformers.SelfTransformer;
 import com.Harbinger.Spore.Core.jvmti.JvmtiMethod;
-import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.JvmtiCapabilities;
 import com.Harbinger.Spore.Core.utils.LogUtil;
-import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.sun.jna.Callback;
 import com.sun.jna.Function;
 import com.sun.jna.Memory;
@@ -29,7 +27,12 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
     private static final int JVMTI_VERSION_1_2 = 0x30010200;
     private static final int JAVA_VM_GET_ENV_INDEX = 6;
     private static IJVNTIPointer INSTANCE;
+    private static volatile boolean nativeBackendUnavailable;
     public static IJVNTIPointer newInstance(){
+        if (INSTANCE == null && isNativeBackendAvailable()) {
+            INSTANCE = new JVMTIPointerUtil(Pointer.NULL, true);
+            return INSTANCE;
+        }
         return newInstance(resolveJvmtiEnvPointer());
     }
     public static IJVNTIPointer newInstance(Pointer pointer){
@@ -39,11 +42,12 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
                 LogUtil.error("JVMTI env pointer is unavailable.");
                 return null;
             }
-            INSTANCE = new JVMTIPointerUtil(envPointer);
+            INSTANCE = new JVMTIPointerUtil(envPointer, false);
         }
         return INSTANCE;
     }
     private final Pointer jvmti;
+    private final boolean nativeBackend;
     private final List<SelfTransformer> transformers = new CopyOnWriteArrayList<>();
     private volatile boolean capabilitiesAdded;
     private volatile boolean eventCallbacksSet;
@@ -52,7 +56,12 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
     private JvmtiEventCallbacks eventCallbacks;
 
     public JVMTIPointerUtil(Pointer pointer) {
+        this(pointer, false);
+    }
+
+    private JVMTIPointerUtil(Pointer pointer, boolean nativeBackend) {
         this.jvmti = pointer;
+        this.nativeBackend = nativeBackend;
     }
 
     @Override
@@ -71,6 +80,12 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
 
     @Override
     public Class<?>[] getAllLoadedClasses() {
+        if (nativeBackend) {
+            Class<?>[] loaded = getAllLoadedClassesNative();
+            if (loaded != null) {
+                return loaded;
+            }
+        }
         return withLoadedClasses((count, classesArray) -> {
             List<Class<?>> result = new ArrayList<>();
             for (int i = 0; i < count; i++) {
@@ -93,6 +108,9 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         if (clazz == null) {
             return false;
         }
+        if (nativeBackend) {
+            return isModifiableClassNative(clazz);
+        }
         return withClassPointer(clazz, classPtr -> {
             Function isModifiableClass = getFunction(JvmtiMethod.IS_MODIFIABLE_CLASS);
             if (isModifiableClass == null) {
@@ -107,6 +125,9 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
     @Override
     public boolean isRetransformClassesSupported() {
         addCapabilities();
+        if (nativeBackend) {
+            return canRetransformClassesNative();
+        }
         JvmtiCapabilities capabilities = getCapabilities();
         return capabilities != null && capabilities.canRetransformClasses();
     }
@@ -125,6 +146,12 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         if (!transformers.isEmpty()) {
             setEventCallbacks();
             setEventNotificationMode();
+        }
+        if (nativeBackend) {
+            if (!retransformClassesNative(classes)) {
+                throw new IllegalStateException("JVMTI failed to retransform " + classes.length + " classes");
+            }
+            return this;
         }
         Function retransformClasses = getFunction(JvmtiMethod.RETRANSFORM_CLASSES);
         if (retransformClasses == null) {
@@ -198,6 +225,10 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         if (capabilitiesAdded) {
             return this;
         }
+        if (nativeBackend) {
+            capabilitiesAdded = addCapabilitiesNative();
+            return this;
+        }
         JvmtiCapabilities capabilities = new JvmtiCapabilities()
                 .setCanRedefineClasses(true)
                 .setCanRedefineAnyClass(true)
@@ -229,6 +260,10 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         if (eventCallbacksSet) {
             return this;
         }
+        if (nativeBackend) {
+            installNativeTransformerHook();
+            return this;
+        }
         classFileLoadHookCallback = this::onClassFileLoadHook;
         eventCallbacks = new JvmtiEventCallbacks();
         eventCallbacks.ClassFileLoadHook = classFileLoadHookCallback;
@@ -250,6 +285,10 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
     @Override
     public IJVNTIPointer setEventNotificationMode(){
         if (classFileLoadHookEnabled) {
+            return this;
+        }
+        if (nativeBackend) {
+            installNativeTransformerHook();
             return this;
         }
         setEventCallbacks();
@@ -314,6 +353,140 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
             LogUtil.printStackTrace(t);
         }
     }
+
+    @SuppressWarnings("unused")
+    private byte[] transformFromNative(ClassLoader loader, String className, byte[] classfileBuffer) {
+        if (transformers.isEmpty() || className == null || className.isBlank()
+                || classfileBuffer == null || classfileBuffer.length == 0) {
+            return null;
+        }
+        try {
+            byte[] current = classfileBuffer;
+            boolean modified = false;
+            for (SelfTransformer transformer : transformers) {
+                byte[] transformed = transformer.transformClassByte(loader, className, current);
+                if (transformed != null && transformed.length > 0) {
+                    current = transformed;
+                    modified = true;
+                }
+            }
+            return modified ? current : null;
+        } catch (Throwable t) {
+            LogUtil.errorf("failed to transform class by native JVMTI ClassFileLoadHook, %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return null;
+        }
+    }
+
+    private void installNativeTransformerHook() {
+        if (!nativeBackend || classFileLoadHookEnabled) {
+            return;
+        }
+        if (installTransformerHookNative(this)) {
+            eventCallbacksSet = true;
+            classFileLoadHookEnabled = true;
+        }
+    }
+
+    private static boolean isNativeBackendAvailable() {
+        if (nativeBackendUnavailable) {
+            return false;
+        }
+        ensureNativeBridgeLoaded();
+        try {
+            return isNativeJvmtiAvailable0();
+        } catch (Throwable t) {
+            nativeBackendUnavailable = true;
+            LogUtil.errorf("Native JVMTI backend is unavailable, fallback to JNA: %s", t.getMessage());
+            return false;
+        }
+    }
+
+    private static void ensureNativeBridgeLoaded() {
+        try {
+            Class.forName(
+                    "com.Harbinger.Spore.Core.agents.transformers.SporeClassFileTransformer0",
+                    true,
+                    JVMTIPointerUtil.class.getClassLoader()
+            );
+        } catch (Throwable t) {
+            LogUtil.errorf("Failed to load transformer native bridge before JVMTI use: %s", t.getMessage());
+        }
+    }
+
+    private boolean addCapabilitiesNative() {
+        try {
+            return addCapabilities0();
+        } catch (Throwable t) {
+            LogUtil.errorf("Native JVMTI AddCapabilities failed: %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return false;
+        }
+    }
+
+    private boolean canRetransformClassesNative() {
+        try {
+            return canRetransformClasses0();
+        } catch (Throwable t) {
+            LogUtil.errorf("Native JVMTI GetCapabilities failed: %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return false;
+        }
+    }
+
+    private Class<?>[] getAllLoadedClassesNative() {
+        try {
+            return getAllLoadedClasses0();
+        } catch (Throwable t) {
+            LogUtil.errorf("Native JVMTI GetLoadedClasses failed: %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return null;
+        }
+    }
+
+    private boolean isModifiableClassNative(Class<?> clazz) {
+        try {
+            return isModifiableClass0(clazz);
+        } catch (Throwable t) {
+            LogUtil.errorf("Native JVMTI IsModifiableClass failed for %s: %s", clazz.getName(), t.getMessage());
+            LogUtil.printStackTrace(t);
+            return false;
+        }
+    }
+
+    private boolean installTransformerHookNative(JVMTIPointerUtil owner) {
+        try {
+            return installTransformerHook0(owner);
+        } catch (Throwable t) {
+            LogUtil.errorf("Native JVMTI SetEventCallbacks failed: %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return false;
+        }
+    }
+
+    private boolean retransformClassesNative(Class<?>[] classes) {
+        try {
+            return retransformClasses0(classes);
+        } catch (Throwable t) {
+            LogUtil.errorf("Native JVMTI RetransformClasses failed: %s", t.getMessage());
+            LogUtil.printStackTrace(t);
+            return false;
+        }
+    }
+
+    private static native boolean isNativeJvmtiAvailable0();
+
+    private static native boolean addCapabilities0();
+
+    private static native boolean canRetransformClasses0();
+
+    private static native Class<?>[] getAllLoadedClasses0();
+
+    private static native boolean isModifiableClass0(Class<?> clazz);
+
+    private static native boolean installTransformerHook0(JVMTIPointerUtil owner);
+
+    private static native boolean retransformClasses0(Class<?>[] classes);
 
     private JvmtiCapabilities getCapabilities() {
         Function getCapabilities = getFunction(JvmtiMethod.GET_CAPABILITIES);
