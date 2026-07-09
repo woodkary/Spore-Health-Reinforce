@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Core.utils;
 
 import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
+import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
@@ -130,10 +131,19 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             return;
         }
         setAllStaticHealthMap(entity, health);
-        if (invokeAll || entity.getHealth() <= health) {
+        if (!invokeAll&&entity.getHealth() <= health) {
             return;
         }
-        LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createWrapppper(entity);
+        if(!invokeAll) {
+            LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createWrapppper(entity);
+        }else{
+            LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
+        }
+        if(!invokeAll&&entity.getHealth() <= health) {
+            return;
+        }
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.tryRetransformHiddenClasses(
+                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass()));
     }
 
     private void setAllHeeaatth(Object entity, float health, int depth) {

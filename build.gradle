@@ -159,6 +159,7 @@ dependencies {
     compileOnly files("libs/[莱特兰-扩充] l2complements-2.6.1.jar")
     compileOnly files("libs/l2library-2.5.3.jar")
     compileOnly files("libs/[超级史蒂夫] super-steve-1.7.1.4.2.1.0.0.1.jar")
+    compileOnly files("libs/[超级史蒂夫] super-steve-6.7.9.jar")
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-common-api:${jei_version}")

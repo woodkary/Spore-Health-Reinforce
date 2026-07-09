@@ -471,7 +471,6 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }
         setHeealtthDelta(entity, Float.NEGATIVE_INFINITY);
         HeasdalthUtil.INSTANCE.die(entity, source != null ? source : entity.damageSources().genericKill());
-        LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
         entity.getPersistentData().putBoolean(SPORE_DEAD_FLAG, true);
     }
     public void heal(LivingEntity entity,float heal){
