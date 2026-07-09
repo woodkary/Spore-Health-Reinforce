@@ -131,6 +131,7 @@ public final class SporeEffectsUtil implements IEffectManager {
                     //如果补充迭代成功删除了指定的效果，则将activeEffects归还给普通HashMap管理
                     foundCriticalEfffect|=checkEffect(mobeffectinstance);
                     iterator.actualRemove();
+                    entity.onEffectRemoved(mobeffectinstance);
                     continue;
                 }
                 if(mobeffectinstance.getEffect()==Seffects.HEALING_INHIBITION.get()){
