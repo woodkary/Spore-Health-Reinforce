@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class SporeLivingEntityEffectApplicationTransformer extends SporeClassFileTransformer0 {
+public final class SporeLivingEntityEffectApplicationTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
     private static final String LIVING_ENTITY_INTERNAL = "net/minecraft/world/entity/LivingEntity";
     private static final String MOB_EFFECT_INSTANCE_INTERNAL = "net/minecraft/world/effect/MobEffectInstance";
     private static final String ENTITY_INTERNAL = "net/minecraft/world/entity/Entity";
@@ -60,6 +60,13 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
                 TRANSFORM_CLASS,
                 SporeLivingEntityEffectApplicationTransformer.class
         );
+    }
+    public static SelfTransformer newSelfTransformer(){
+        ClassFileTransformer res=newInstance();
+        if(res instanceof SelfTransformer selfTransformer){
+            return selfTransformer;
+        }
+        return new SporeLivingEntityEffectApplicationTransformer();
     }
 
     public static ClassFileTransformer newInstance() {
@@ -369,6 +376,11 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(writer);
         return writer.toByteArray();
+    }
+
+    @Override
+    public byte[] transformClassByte(ClassLoader loader, String className, byte[] classfileBuffer) {
+        return transformInternal(loader,className,classfileBuffer);
     }
 
     private enum EffectMethodKind {

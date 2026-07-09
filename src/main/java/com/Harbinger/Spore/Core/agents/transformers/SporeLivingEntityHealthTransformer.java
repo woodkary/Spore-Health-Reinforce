@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public final class SporeLivingEntityHealthTransformer extends SporeClassFileTransformer0 {
+public final class SporeLivingEntityHealthTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
     private static final String LIVING_ENTITY_INTERNAL = "net/minecraft/world/entity/LivingEntity";
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/SporeEntityHeeaafastthManager";
     private static final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/asmHooks/ISporeEntityHealth";
@@ -41,6 +41,13 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
                 TRANSFORM_CLASS,
                 SporeLivingEntityHealthTransformer.class
         );
+    }
+    public static SelfTransformer newSelfTransformer(){
+        ClassFileTransformer res=newInstance();
+        if(res instanceof SelfTransformer selfTransformer){
+            return selfTransformer;
+        }
+        return new SporeLivingEntityHealthTransformer();
     }
 
     public static ClassFileTransformer newInstance() {
@@ -403,6 +410,11 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(writer);
         return writer.toByteArray();
+    }
+
+    @Override
+    public byte[] transformClassByte(ClassLoader loader, String className, byte[] classfileBuffer) {
+        return transformInternal(loader, className, classfileBuffer);
     }
 
     private enum HookKind {
