@@ -374,7 +374,7 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
     }
 
     private byte[] toBytes(ClassNode classNode) {
-        ClassWriter writer = new MixinClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter writer = new MixinClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         classNode.accept(writer);
         return writer.toByteArray();
     }

@@ -409,7 +409,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
     }
 
     private byte[] toBytes(ClassNode classNode) {
-        ClassWriter writer = new MixinClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter writer = new MixinClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         classNode.accept(writer);
         return writer.toByteArray();
     }
