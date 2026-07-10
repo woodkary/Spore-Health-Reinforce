@@ -73,7 +73,7 @@ public class HiddenClassDefiner {
             }
         }
     }
-    private static MethodHandle ensureDefineClass0() throws NoSuchMethodException, IllegalAccessException {
+    public static MethodHandle ensureDefineClass0() throws NoSuchMethodException, IllegalAccessException {
         MethodHandle handle = defineClass0;
         if (handle != null) {
             return handle;
@@ -116,7 +116,7 @@ public class HiddenClassDefiner {
             lookupToHidden.remove(stale.key, stale);
         }
     }
-    private static Class<?> doDefineClass0(MethodHandle handle,
+    public static Class<?> doDefineClass0(MethodHandle handle,
                                            ClassLoader loader,
                                            Class<?> lookupClass,
                                            byte[] bytes,

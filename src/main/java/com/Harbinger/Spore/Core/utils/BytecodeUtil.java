@@ -148,6 +148,9 @@ public class BytecodeUtil {
             return readAllBytes(closeable);
         }
     }
+    public static Class<?> deffineneClazz(ClassLoader loader, String name) throws IOException {
+        return ClassUtil.deffineneClazz(loader, name, loadClassBytes(name));
+    }
     public static byte[] loadClassBytesResourceStreamFirst(Class<?> clazz) throws IOException {
         String className = clazz.getName();
         String resourceName = className.replace('.', '/') + ".class";
