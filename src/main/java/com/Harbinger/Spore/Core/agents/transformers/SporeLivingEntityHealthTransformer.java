@@ -159,7 +159,8 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
     }
 
     private boolean transformLivingEntity(ClassNode classNode) {
-        boolean modified = patchConstructors(classNode);
+        boolean modified = (classNode.name.startsWith("com/Harbinger/Spore/")||classNode.name.equals(LIVING_ENTITY_INTERNAL))
+                &&patchConstructors(classNode);
         List<MethodNode> methods = classNode.methods;
         for (MethodNode method : methods) {
             if (!canPatch(method) || alreadyCallsHook(method)) {
