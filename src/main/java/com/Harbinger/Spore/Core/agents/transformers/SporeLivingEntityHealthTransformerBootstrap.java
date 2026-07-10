@@ -17,6 +17,8 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
     private static final long CLASS_KLASS_OFFSET = 16L;
     private static final long KLASS_ACCESS_FLAGS_OFFSET = 164L;
     private static final int JVM_ACC_IS_HIDDEN_CLASS = 0x04000000;
+    private static final boolean DISABLE_UNSAFE_HIDDEN_RETRANSFORM =
+            Boolean.getBoolean("spore.transformer.disableUnsafeHiddenRetransform");
     public static final ICommonBootStrap INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
             ICommonBootStrap.class,
             SporeLivingEntityHealthTransformerBootstrap.class
@@ -161,6 +163,13 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         List<Class<?>> targets=new ArrayList<>();
         for (Class<?> clazz : classes) {
             if (clazz == null) {
+                continue;
+            }
+            if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
+                LogUtil.logf(
+                        "Skip hidden-like LivingEntity class %s during post-definition retransform; it must be transformed when defined.",
+                        clazz.getName()
+                );
                 continue;
             }
             boolean isHidden=clazz.isHidden();
@@ -464,6 +473,9 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 || clazz.isInterface()) {
             return false;
         }
+        if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
+            return false;
+        }
         if (!LivingEntity.class.isAssignableFrom(clazz)) {
             return false;
         }
@@ -478,6 +490,9 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 || clazz.isInterface()) {
             return false;
         }
+        if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
+            return false;
+        }
         if (!LivingEntity.class.isAssignableFrom(clazz)) {
             return false;
         }
@@ -490,6 +505,9 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 || clazz.isArray()
                 || clazz.isPrimitive()
                 || clazz.isInterface()) {
+            return false;
+        }
+        if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
             return false;
         }
         if (!LivingEntity.class.isAssignableFrom(clazz)) {
@@ -510,6 +528,9 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 || clazz.isInterface()) {
             return false;
         }
+        if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
+            return false;
+        }
         if (!LivingEntity.class.isAssignableFrom(clazz)) {
             return false;
         }
@@ -519,6 +540,14 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             LogUtil.errorf("Hidden LivingEntity class %s is not safely modifiable: %s", clazz.getName(), t.getMessage());
             return false;
         }
+    }
+
+    private boolean isHiddenLikeClass(Class<?> clazz) {
+        if (clazz == null) {
+            return false;
+        }
+        String name = clazz.getName();
+        return name != null && (name.contains("/0x") || name.contains("+0x"));
     }
 
     public record KlassAndAccessFlags(long klass,int accessFlags){

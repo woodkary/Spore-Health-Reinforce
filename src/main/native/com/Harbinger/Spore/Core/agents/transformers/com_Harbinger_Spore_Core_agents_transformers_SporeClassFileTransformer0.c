@@ -157,15 +157,13 @@ static void JNICALL spore_class_file_load_hook(jvmtiEnv *jvmti_env,
     {
         class_name = class_name_from_redefined(jvmti_env, jni_env, class_being_redefined);
     }
-    if (class_name == 0)
-    {
-        return;
-    }
-
     input = (*jni_env)->NewByteArray(jni_env, class_data_len);
     if (input == 0)
     {
-        (*jni_env)->DeleteLocalRef(jni_env, class_name);
+        if (class_name != 0)
+        {
+            (*jni_env)->DeleteLocalRef(jni_env, class_name);
+        }
         return;
     }
     (*jni_env)->SetByteArrayRegion(jni_env, input, 0, class_data_len, (const jbyte *)class_data);
@@ -173,7 +171,10 @@ static void JNICALL spore_class_file_load_hook(jvmtiEnv *jvmti_env,
     {
         (*jni_env)->ExceptionClear(jni_env);
         (*jni_env)->DeleteLocalRef(jni_env, input);
-        (*jni_env)->DeleteLocalRef(jni_env, class_name);
+        if (class_name != 0)
+        {
+            (*jni_env)->DeleteLocalRef(jni_env, class_name);
+        }
         return;
     }
 
@@ -188,7 +189,10 @@ static void JNICALL spore_class_file_load_hook(jvmtiEnv *jvmti_env,
     {
         (*jni_env)->ExceptionClear(jni_env);
         (*jni_env)->DeleteLocalRef(jni_env, input);
-        (*jni_env)->DeleteLocalRef(jni_env, class_name);
+        if (class_name != 0)
+        {
+            (*jni_env)->DeleteLocalRef(jni_env, class_name);
+        }
         return;
     }
 
@@ -215,7 +219,10 @@ static void JNICALL spore_class_file_load_hook(jvmtiEnv *jvmti_env,
     }
 
     (*jni_env)->DeleteLocalRef(jni_env, input);
-    (*jni_env)->DeleteLocalRef(jni_env, class_name);
+    if (class_name != 0)
+    {
+        (*jni_env)->DeleteLocalRef(jni_env, class_name);
+    }
 }
 
 static jbyteArray call_transform_internal(JNIEnv *env,

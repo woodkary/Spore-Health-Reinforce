@@ -72,7 +72,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
 
     @Override
     protected byte[] transformInternal(ClassLoader loader, String className, byte[] classfileBuffer) {
-        if (className == null || classfileBuffer == null || classfileBuffer.length == 0) {
+        if (classfileBuffer == null || classfileBuffer.length == 0) {
             return null;
         }
         try {
@@ -82,15 +82,16 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
             if (classNode.name == null || classNode.superName == null) {
                 return null;
             }
+            String effectiveClassName = className == null ? classNode.name : className;
             superNameCache.putIfAbsent(classNode.name, classNode.superName);
             if (!isLivingEntityOrSubclass(classNode, loader)) {
                 return null;
             }
             if (transformLivingEntity(classNode)) {
-                return toBytes(loader, className, classfileBuffer, classNode);
+                return toBytes(loader, effectiveClassName, classfileBuffer, classNode);
             }
         } catch (Throwable t) {
-            LogUtil.errorf("failed to transform %s, %s", className, t.getMessage());
+            LogUtil.errorf("failed to transform %s, %s", className == null ? "<hidden-or-anonymous>" : className, t.getMessage());
             LogUtil.printStackTrace(t);
         }
         return null;
@@ -408,7 +409,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
     }
 
     private byte[] toBytes(ClassLoader loader, String className, byte[] inputBytes, ClassNode classNode) {
-        ClassWriter writer = new SporeFrameClassWriter(loader, classNode, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+        ClassWriter writer = new SporeFrameClassWriter(loader, classNode, ClassWriter.COMPUTE_MAXS);
         classNode.accept(writer);
         byte[] transformed = writer.toByteArray();
         SporeTransformerDebugDump.rememberTransformed(

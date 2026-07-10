@@ -142,6 +142,7 @@ public final class SporeTransformerDebugDump {
         builder.append("backend=").append(backend).append('\n');
         builder.append("target=").append(target == null ? "null" : target.getName()).append('\n');
         builder.append("targetHidden=").append(target != null && target.isHidden()).append('\n');
+        builder.append("targetHiddenLikeName=").append(isHiddenLikeName(target == null ? null : target.getName())).append('\n');
         builder.append("targetLoader=").append(target == null ? "null" : target.getClassLoader()).append('\n');
         builder.append("transformer=").append(entry.transformerName()).append('\n');
         builder.append("requestedClassName=").append(entry.requestedClassName()).append('\n');
@@ -158,6 +159,10 @@ public final class SporeTransformerDebugDump {
             builder.append(stack);
         }
         return builder.toString();
+    }
+
+    private static boolean isHiddenLikeName(String name) {
+        return name != null && (name.contains("/0x") || name.contains("+0x"));
     }
 
     private record DumpEntry(String transformerName,

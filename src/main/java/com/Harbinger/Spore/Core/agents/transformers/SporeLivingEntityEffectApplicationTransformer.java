@@ -91,7 +91,7 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
 
     @Override
     protected byte[] transformInternal(ClassLoader loader, String className, byte[] classfileBuffer) {
-        if (className == null || classfileBuffer == null || classfileBuffer.length == 0) {
+        if (classfileBuffer == null || classfileBuffer.length == 0) {
             return null;
         }
         try {
@@ -101,15 +101,16 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
             if (classNode.name == null || classNode.superName == null) {
                 return null;
             }
+            String effectiveClassName = className == null ? classNode.name : className;
             superNameCache.putIfAbsent(classNode.name, classNode.superName);
             if (!StackTraceUtil.isBadModName(classNode.name) || !isLivingEntityOrSubclass(classNode, loader)) {
                 return null;
             }
             if (transformEffectApplicationMethods(classNode)) {
-                return toBytes(loader, className, classfileBuffer, classNode);
+                return toBytes(loader, effectiveClassName, classfileBuffer, classNode);
             }
         } catch (Throwable t) {
-            LogUtil.errorf("failed to transform LivingEntity effect application method of %s, %s", className, t.getMessage());
+            LogUtil.errorf("failed to transform LivingEntity effect application method of %s, %s", className == null ? "<hidden-or-anonymous>" : className, t.getMessage());
             LogUtil.printStackTrace(t);
         }
         return null;
@@ -373,7 +374,7 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
     }
 
     private byte[] toBytes(ClassLoader loader, String className, byte[] inputBytes, ClassNode classNode) {
-        ClassWriter writer = new SporeFrameClassWriter(loader, classNode, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+        ClassWriter writer = new SporeFrameClassWriter(loader, classNode, ClassWriter.COMPUTE_MAXS);
         classNode.accept(writer);
         byte[] transformed = writer.toByteArray();
         SporeTransformerDebugDump.rememberTransformed(

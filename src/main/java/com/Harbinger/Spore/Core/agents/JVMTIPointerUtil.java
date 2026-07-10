@@ -327,9 +327,6 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
             if ((className == null || className.isBlank()) && !isNull(classBeingRedefined)) {
                 className = sigToInternalName(getClassSignature(classBeingRedefined));
             }
-            if (className == null || className.isBlank()) {
-                return;
-            }
             byte[] current = classData.getByteArray(0L, classDataLen);
             boolean modified = false;
             for (SelfTransformer transformer : transformers) {
@@ -357,8 +354,7 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
 
     @SuppressWarnings("unused")
     private byte[] transformFromNative(ClassLoader loader, String className, byte[] classfileBuffer) {
-        if (transformers.isEmpty() || className == null || className.isBlank()
-                || classfileBuffer == null || classfileBuffer.length == 0) {
+        if (transformers.isEmpty() || classfileBuffer == null || classfileBuffer.length == 0) {
             return null;
         }
         try {
