@@ -19,6 +19,16 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
     private static final int JVM_ACC_IS_HIDDEN_CLASS = 0x04000000;
     private static final boolean DISABLE_UNSAFE_HIDDEN_RETRANSFORM =
             Boolean.getBoolean("spore.transformer.disableUnsafeHiddenRetransform");
+    private static final String[] RETRANSFORM_HOOK_DEPENDENCIES = {
+            "com.Harbinger.Spore.Core.asmHooks.ISporeEntityHealth",
+            "com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager",
+            "com.Harbinger.Spore.Core.utils.effects.IEffectManager",
+            "com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil",
+            "net.minecraft.world.entity.LivingEntity",
+            "net.minecraft.world.entity.Entity",
+            "net.minecraft.world.effect.MobEffect",
+            "net.minecraft.world.effect.MobEffectInstance"
+    };
     public static final ICommonBootStrap INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
             ICommonBootStrap.class,
             SporeLivingEntityHealthTransformerBootstrap.class
@@ -181,6 +191,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 }
                 hiddenAddresses.put(clazz, flags);
             }
+            prepareRetransformDependencies(clazz);
             boolean shouldRetransform = false;
             if (useInstrumentation) {
                 shouldRetransform = shouldRetransformHiddenCandidate(instrumentation, clazz);
@@ -219,6 +230,28 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         uns.putInt(klass + KLASS_ACCESS_FLAGS_OFFSET, accessFlags & ~JVM_ACC_IS_HIDDEN_CLASS);
         return new KlassAndAccessFlags(klass, accessFlags);
     }
+
+    private void prepareRetransformDependencies(Class<?> clazz) {
+        if (clazz == null) {
+            return;
+        }
+        ClassLoader loader = clazz.getClassLoader();
+        for (String dependency : RETRANSFORM_HOOK_DEPENDENCIES) {
+            resolveDependencyForRetransform(loader, dependency);
+        }
+    }
+
+    private void resolveDependencyForRetransform(ClassLoader loader, String className) {
+        try {
+            Class.forName(className, false, loader);
+        } catch (Throwable ignored) {
+            try {
+                Class.forName(className, false, SporeLivingEntityHealthTransformerBootstrap.class.getClassLoader());
+            } catch (Throwable ignoredAgain) {
+            }
+        }
+    }
+
     private void resetToHidden(Class<?> clazz, KlassAndAccessFlags klassAndAccessFlags){
         if(klassAndAccessFlags==null){
             return;
@@ -416,7 +449,18 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             return 0;
         }
         try {
-            jvmtiUtil.retransformClasses(targets.toArray(new Class<?>[0]));
+            ClassLoader originalContextLoader = Thread.currentThread().getContextClassLoader();
+            ClassLoader targetLoader = commonTargetClassLoader(targets);
+            try {
+                if (targetLoader != null && targetLoader != originalContextLoader) {
+                    Thread.currentThread().setContextClassLoader(targetLoader);
+                }
+                jvmtiUtil.retransformClasses(targets.toArray(new Class<?>[0]));
+            } finally {
+                if (targetLoader != null && targetLoader != originalContextLoader) {
+                    Thread.currentThread().setContextClassLoader(originalContextLoader);
+                }
+            }
             return targets.size();
         } catch (Throwable t) {
             if (targets.size() == 1) {
@@ -442,7 +486,18 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             return 0;
         }
         try {
-            instrumentation.retransformClasses(targets.toArray(new Class<?>[0]));
+            ClassLoader originalContextLoader = Thread.currentThread().getContextClassLoader();
+            ClassLoader targetLoader = commonTargetClassLoader(targets);
+            try {
+                if (targetLoader != null && targetLoader != originalContextLoader) {
+                    Thread.currentThread().setContextClassLoader(targetLoader);
+                }
+                instrumentation.retransformClasses(targets.toArray(new Class<?>[0]));
+            } finally {
+                if (targetLoader != null && targetLoader != originalContextLoader) {
+                    Thread.currentThread().setContextClassLoader(originalContextLoader);
+                }
+            }
             visited.addAll(targets);
             return targets.size();
         } catch (Throwable t) {
@@ -463,6 +518,26 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             return retransformBisected(instrumentation, targets.subList(0, middle), visited)
                     + retransformBisected(instrumentation, targets.subList(middle, targets.size()), visited);
         }
+    }
+
+    private ClassLoader commonTargetClassLoader(List<Class<?>> targets) {
+        ClassLoader result = null;
+        boolean initialized = false;
+        for (Class<?> target : targets) {
+            if (target == null) {
+                continue;
+            }
+            ClassLoader loader = target.getClassLoader();
+            if (!initialized) {
+                result = loader;
+                initialized = true;
+                continue;
+            }
+            if (result != loader) {
+                return null;
+            }
+        }
+        return result;
     }
 
     private boolean shouldRetransform(IInstrumentations instrumentation, Class<?> clazz) {
