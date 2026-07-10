@@ -4,6 +4,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
+import org.spongepowered.asm.transformers.MixinClassWriter;
 
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
@@ -52,7 +53,7 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
                 return cached;
             }
         }
-        ClassWriter cw = new ClassWriter(3);
+        ClassWriter cw = new MixinClassWriter(3);
         node.accept(cw);
         String replace = node.name.replace('/', '.');
         byte[] bytes = cw.toByteArray();
@@ -143,7 +144,7 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
 
     @Override
     public Class<?> deffineneHiddenClazz(ClassNode node, Class<?> initialClass) {
-        ClassWriter cw = new ClassWriter(3);
+        ClassWriter cw = new MixinClassWriter(3);
         node.accept(cw);
         byte[] bytes = cw.toByteArray();
 
