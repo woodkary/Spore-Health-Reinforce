@@ -457,7 +457,7 @@ JNIEXPORT jboolean JNICALL Java_com_Harbinger_Spore_Core_agents_JVMTIPointerUtil
     return JNI_TRUE;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_Harbinger_Spore_Core_agents_JVMTIPointerUtil_retransformClasses0
+JNIEXPORT jint JNICALL Java_com_Harbinger_Spore_Core_agents_JVMTIPointerUtil_retransformClasses0
   (JNIEnv *env, jclass owner, jobjectArray class_array)
 {
     jvmtiEnv *jvmti = get_jvmti(env);
@@ -471,17 +471,17 @@ JNIEXPORT jboolean JNICALL Java_com_Harbinger_Spore_Core_agents_JVMTIPointerUtil
 
     if (jvmti == 0 || class_array == 0)
     {
-        return JNI_FALSE;
+        return jvmti == 0 ? -1 : JVMTI_ERROR_NULL_POINTER;
     }
     length = (*env)->GetArrayLength(env, class_array);
     if (length <= 0)
     {
-        return JNI_TRUE;
+        return JVMTI_ERROR_NONE;
     }
     targets = (jclass *)malloc(sizeof(jclass) * (size_t)length);
     if (targets == 0)
     {
-        return JNI_FALSE;
+        return JVMTI_ERROR_OUT_OF_MEMORY;
     }
     for (i = 0; i < length; ++i)
     {
@@ -494,7 +494,7 @@ JNIEXPORT jboolean JNICALL Java_com_Harbinger_Spore_Core_agents_JVMTIPointerUtil
     if (count <= 0)
     {
         free(targets);
-        return JNI_TRUE;
+        return JVMTI_ERROR_NONE;
     }
     error = (*jvmti)->RetransformClasses(jvmti, count, targets);
     for (i = 0; i < count; ++i)
@@ -502,5 +502,41 @@ JNIEXPORT jboolean JNICALL Java_com_Harbinger_Spore_Core_agents_JVMTIPointerUtil
         (*env)->DeleteLocalRef(env, targets[i]);
     }
     free(targets);
-    return error == JVMTI_ERROR_NONE ? JNI_TRUE : JNI_FALSE;
+    return error;
+}
+
+JNIEXPORT jstring JNICALL Java_com_Harbinger_Spore_Core_agents_JVMTIPointerUtil_getJvmtiErrorName0
+  (JNIEnv *env, jclass owner, jint error_code)
+{
+    jvmtiEnv *jvmti = get_jvmti(env);
+    char *name = 0;
+    jvmtiError error;
+    jstring result;
+
+    (void)owner;
+
+    if (env == 0)
+    {
+        return 0;
+    }
+    if (error_code == -1)
+    {
+        return (*env)->NewStringUTF(env, "SPORE_JVMTI_UNAVAILABLE");
+    }
+    if (jvmti == 0)
+    {
+        return 0;
+    }
+    error = (*jvmti)->GetErrorName(jvmti, (jvmtiError)error_code, &name);
+    if (error != JVMTI_ERROR_NONE || name == 0)
+    {
+        if (name != 0)
+        {
+            (*jvmti)->Deallocate(jvmti, (unsigned char *)name);
+        }
+        return 0;
+    }
+    result = (*env)->NewStringUTF(env, name);
+    (*jvmti)->Deallocate(jvmti, (unsigned char *)name);
+    return result;
 }

@@ -148,8 +148,9 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
             setEventNotificationMode();
         }
         if (nativeBackend) {
-            if (!retransformClassesNative(classes)) {
-                throw new IllegalStateException("JVMTI failed to retransform " + classes.length + " classes");
+            int error = retransformClassesNative(classes);
+            if (error != 0) {
+                throw new IllegalStateException("JVMTI failed to retransform " + classes.length + " classes, error=" + error + getNativeErrorSuffix(error));
             }
             return this;
         }
@@ -464,13 +465,25 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
         }
     }
 
-    private boolean retransformClassesNative(Class<?>[] classes) {
+    private int retransformClassesNative(Class<?>[] classes) {
         try {
             return retransformClasses0(classes);
         } catch (Throwable t) {
             LogUtil.errorf("Native JVMTI RetransformClasses failed: %s", t.getMessage());
             LogUtil.printStackTrace(t);
-            return false;
+            return Integer.MIN_VALUE;
+        }
+    }
+
+    private static String getNativeErrorSuffix(int error) {
+        if (error == Integer.MIN_VALUE) {
+            return " (SPORE_NATIVE_CALL_FAILED)";
+        }
+        try {
+            String name = getJvmtiErrorName0(error);
+            return name == null || name.isBlank() ? "" : " (" + name + ")";
+        } catch (Throwable ignored) {
+            return "";
         }
     }
 
@@ -486,7 +499,9 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
 
     private static native boolean installTransformerHook0(JVMTIPointerUtil owner);
 
-    private static native boolean retransformClasses0(Class<?>[] classes);
+    private static native int retransformClasses0(Class<?>[] classes);
+
+    private static native String getJvmtiErrorName0(int error);
 
     private JvmtiCapabilities getCapabilities() {
         Function getCapabilities = getFunction(JvmtiMethod.GET_CAPABILITIES);

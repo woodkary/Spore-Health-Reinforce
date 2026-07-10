@@ -416,6 +416,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                         target.getName(),
                         t.getMessage());
                 LogUtil.printStackTrace(t);
+                SporeTransformerDebugDump.dumpFailedTransform("jvmti", target, t);
                 return 0;
             }
             LogUtil.errorf("Failed to retransform batch of %d loaded LivingEntity classes, split and retry: %s",
@@ -442,6 +443,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                         target.getName(),
                         t.getMessage());
                 LogUtil.printStackTrace(t);
+                SporeTransformerDebugDump.dumpFailedTransform("instrumentation", target, t);
                 return 0;
             }
             LogUtil.errorf("Failed to retransform batch of %d loaded LivingEntity classes, split and retry: %s",

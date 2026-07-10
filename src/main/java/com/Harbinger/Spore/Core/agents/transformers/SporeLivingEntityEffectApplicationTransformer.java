@@ -20,7 +20,6 @@ import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
-import org.spongepowered.asm.transformers.MixinClassWriter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,7 +106,7 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
                 return null;
             }
             if (transformEffectApplicationMethods(classNode)) {
-                return toBytes(classNode);
+                return toBytes(loader, className, classfileBuffer, classNode);
             }
         } catch (Throwable t) {
             LogUtil.errorf("failed to transform LivingEntity effect application method of %s, %s", className, t.getMessage());
@@ -373,10 +372,18 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
         return null;
     }
 
-    private byte[] toBytes(ClassNode classNode) {
-        ClassWriter writer = new MixinClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+    private byte[] toBytes(ClassLoader loader, String className, byte[] inputBytes, ClassNode classNode) {
+        ClassWriter writer = new SporeFrameClassWriter(loader, classNode, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         classNode.accept(writer);
-        return writer.toByteArray();
+        byte[] transformed = writer.toByteArray();
+        SporeTransformerDebugDump.rememberTransformed(
+                getClass().getName(),
+                className,
+                classNode.name,
+                inputBytes,
+                transformed
+        );
+        return transformed;
     }
 
     @Override
