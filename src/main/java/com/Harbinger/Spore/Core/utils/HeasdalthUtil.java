@@ -142,8 +142,14 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         if(!invokeAll&&entity.getHealth() <= health) {
             return;
         }
+        Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
-                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass()));
+                entityClass);
+        if(entity.getHealth() <= health) {
+            return;
+        }
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass);
+
     }
 
     private void setAllHeeaatth(Object entity, float health, int depth) {

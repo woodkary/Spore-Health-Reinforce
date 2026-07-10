@@ -38,7 +38,6 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         if (classes == null || classes.length == 0) {
             return;
         }
-        List<Class<?>> targets=new ArrayList<>();
         Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
         try {
             IInstrumentations instrumentation = InstrumentationUtil.getInstance();
@@ -55,27 +54,14 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 LogUtil.error("No usable transformer backend for hidden LivingEntity classes.");
                 return;
             }
-            for (Class<?> clazz : classes) {
-                boolean isHidden=clazz !=null&&clazz.isHidden();
-                boolean shouldRecordHidden=false;
-                KlassAndAccessFlags flags=modifyClassesAccessFlags(clazz);
-                if (isHidden&&flags ==null) {
-                    continue;
-                }
-                if(isHidden) {
-                    shouldRecordHidden=true;
-                }
-                if ((instrumentationReady && shouldRetransformHiddenCandidate(instrumentation, clazz))
-                        || (jvmtiReady && shouldRetransformHiddenCandidate(jvmUtil, clazz))) {
-                    targets.add(clazz);
-                } else if(isHidden) {
-                    resetToHidden(clazz, flags);
-                    shouldRecordHidden=false;
-                }
-                if(shouldRecordHidden) {
-                    hiddenAddresses.put(clazz, flags);
-                }
-            }
+            List<Class<?>> targets=collectMaybeHiddenRetransformTargets(
+                    classes,
+                    hiddenAddresses,
+                    instrumentation,
+                    jvmUtil,
+                    instrumentationReady,
+                    jvmtiReady
+            );
             if (targets.isEmpty()) {
                 return;
             }
@@ -103,6 +89,106 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             }
         }
     }
+    @Override
+    public synchronized void retransformMaybeHiddenClassesInstOnly(Class<?>... classes) {
+        if (classes == null || classes.length == 0) {
+            return;
+        }
+        Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
+        try {
+            IInstrumentations instrumentation = InstrumentationUtil.getInstance();
+            boolean instrumentationReady = instrumentation != null
+                    && instrumentation.isRetransformClassesSupported()
+                    && installTransformersForHiddenRetransform(instrumentation);
+            if (!instrumentationReady) {
+                LogUtil.error("Instrumentation backend is unavailable for maybe-hidden LivingEntity classes.");
+                return;
+            }
+            List<Class<?>> targets=collectMaybeHiddenRetransformTargets(
+                    classes,
+                    hiddenAddresses,
+                    instrumentation,
+                    null,
+                    true,
+                    false
+            );
+            if (!targets.isEmpty()) {
+                retransformBisected(instrumentation, targets, new ArrayList<>());
+            }
+        } finally {
+            for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
+                resetToHidden(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    @Override
+    public synchronized void retransformMaybeHiddenClassesJVMTIOnly(Class<?>... classes) {
+        if (classes == null || classes.length == 0) {
+            return;
+        }
+        Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
+        try {
+            IJVNTIPointer jvmUtil = ensureJVMTIUtil(null);
+            if (!isJvmtiReadyForHiddenRetransform(jvmUtil)) {
+                LogUtil.error("JVMTI backend is unavailable for maybe-hidden LivingEntity classes.");
+                return;
+            }
+            List<Class<?>> targets=collectMaybeHiddenRetransformTargets(
+                    classes,
+                    hiddenAddresses,
+                    null,
+                    jvmUtil,
+                    false,
+                    true
+            );
+            if (!targets.isEmpty()) {
+                retransformBisected(jvmUtil, targets);
+            }
+        } finally {
+            for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
+                resetToHidden(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private List<Class<?>> collectMaybeHiddenRetransformTargets(Class<?>[] classes,
+                                                               Map<Class<?>,KlassAndAccessFlags> hiddenAddresses,
+                                                               IInstrumentations instrumentation,
+                                                               IJVNTIPointer jvmtiUtil,
+                                                               boolean useInstrumentation,
+                                                               boolean useJvmti) {
+        List<Class<?>> targets=new ArrayList<>();
+        for (Class<?> clazz : classes) {
+            if (clazz == null) {
+                continue;
+            }
+            boolean isHidden=clazz.isHidden();
+            KlassAndAccessFlags flags=null;
+            if (isHidden) {
+                flags=modifyClassesAccessFlags(clazz);
+                if (flags == null) {
+                    continue;
+                }
+                hiddenAddresses.put(clazz, flags);
+            }
+            boolean shouldRetransform = false;
+            if (useInstrumentation) {
+                shouldRetransform = shouldRetransformHiddenCandidate(instrumentation, clazz);
+            }
+            if (!shouldRetransform && useJvmti) {
+                shouldRetransform = shouldRetransformHiddenCandidate(jvmtiUtil, clazz);
+            }
+            if (shouldRetransform) {
+                targets.add(clazz);
+            } else if (isHidden) {
+                resetToHidden(clazz, flags);
+                hiddenAddresses.remove(clazz);
+            }
+        }
+        return targets;
+    }
+
     private KlassAndAccessFlags modifyClassesAccessFlags(Class<?> clazz){
         if(clazz == null || !clazz.isHidden()){
             return null;
