@@ -139,9 +139,10 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         }else{
             LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
         }
-        if(!invokeAll&&entity.getHealth() <= health) {
+        if(entity.getHealth() <= health) {
             return;
         }
+        //必然失败的路径，一般不用invokeAll确保一定执行
         Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
                 entityClass);

@@ -17,6 +17,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
     private static final long CLASS_KLASS_OFFSET = 16L;
     private static final long KLASS_ACCESS_FLAGS_OFFSET = 164L;
     private static final int JVM_ACC_IS_HIDDEN_CLASS = 0x04000000;
+    private static final int JVM_ACC_IS_BEING_REDEFINED=0x00100000;
     private static final boolean DISABLE_UNSAFE_HIDDEN_RETRANSFORM =
             Boolean.getBoolean("spore.transformer.disableUnsafeHiddenRetransform");
     private static final String[] RETRANSFORM_HOOK_DEPENDENCIES = {
@@ -227,7 +228,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             LogUtil.errorf("Hidden class %s does not expose expected hidden access flag, skip unsafe retransform.", clazz.getName());
             return null;
         }
-        uns.putInt(klass + KLASS_ACCESS_FLAGS_OFFSET, accessFlags & ~JVM_ACC_IS_HIDDEN_CLASS);
+        uns.putInt(klass + KLASS_ACCESS_FLAGS_OFFSET, accessFlags & ~JVM_ACC_IS_HIDDEN_CLASS & ~JVM_ACC_IS_BEING_REDEFINED);
         return new KlassAndAccessFlags(klass, accessFlags);
     }
 
