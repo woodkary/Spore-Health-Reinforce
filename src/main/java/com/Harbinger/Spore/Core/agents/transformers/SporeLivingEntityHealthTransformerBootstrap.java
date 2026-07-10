@@ -34,11 +34,11 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         return jvmtiUtil;
     }
     @Override
-    public synchronized void tryRetransformHiddenClasses(Class<?>... classes){
+    public synchronized void retransformMaybeHiddenClasses(Class<?>... classes){
         if (classes == null || classes.length == 0) {
             return;
         }
-        List<Class<?>> hiddenClasses=new ArrayList<>();
+        List<Class<?>> targets=new ArrayList<>();
         Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
         try {
             IInstrumentations instrumentation = InstrumentationUtil.getInstance();
@@ -56,29 +56,36 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 return;
             }
             for (Class<?> clazz : classes) {
-                KlassAndAccessFlags flags = modifyClassesAccessFlags(clazz);
-                if (flags == null) {
+                boolean isHidden=clazz !=null&&clazz.isHidden();
+                boolean shouldRecordHidden=false;
+                KlassAndAccessFlags flags=modifyClassesAccessFlags(clazz);
+                if (isHidden&&flags ==null) {
                     continue;
                 }
-                hiddenAddresses.put(clazz,flags);
+                if(isHidden) {
+                    shouldRecordHidden=true;
+                }
                 if ((instrumentationReady && shouldRetransformHiddenCandidate(instrumentation, clazz))
                         || (jvmtiReady && shouldRetransformHiddenCandidate(jvmUtil, clazz))) {
-                    hiddenClasses.add(clazz);
-                } else {
+                    targets.add(clazz);
+                } else if(isHidden) {
                     resetToHidden(clazz, flags);
-                    hiddenAddresses.remove(clazz);
+                    shouldRecordHidden=false;
+                }
+                if(shouldRecordHidden) {
+                    hiddenAddresses.put(clazz, flags);
                 }
             }
-            if (hiddenClasses.isEmpty()) {
+            if (targets.isEmpty()) {
                 return;
             }
             if (instrumentationReady) {
                 Collection<Class<?>> visited=new ArrayList<>();
-                int transformed=retransformBisected(instrumentation, hiddenClasses,visited);
-                if(transformed>=hiddenClasses.size()) {
+                int transformed=retransformBisected(instrumentation, targets,visited);
+                if(transformed>=targets.size()) {
                     return;
                 }
-                Collection<Class<?>> remaining=new HashSet<>(hiddenClasses);
+                Collection<Class<?>> remaining=new HashSet<>(targets);
                 for (Class<?> vis : visited) {
                     remaining.remove(vis);
                 }
@@ -89,15 +96,14 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 }
                 return;
             }
-            retransformBisected(jvmUtil, hiddenClasses);
+            retransformBisected(jvmUtil, targets);
         }finally {
             for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
                 resetToHidden(entry.getKey(), entry.getValue());
             }
         }
     }
-    @Override
-    public KlassAndAccessFlags modifyClassesAccessFlags(Class<?> clazz){
+    private KlassAndAccessFlags modifyClassesAccessFlags(Class<?> clazz){
         if(clazz == null || !clazz.isHidden()){
             return null;
         }
@@ -118,8 +124,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         uns.putInt(klass + KLASS_ACCESS_FLAGS_OFFSET, accessFlags & ~JVM_ACC_IS_HIDDEN_CLASS);
         return new KlassAndAccessFlags(klass, accessFlags);
     }
-    @Override
-    public void resetToHidden(Class<?> clazz, KlassAndAccessFlags klassAndAccessFlags){
+    private void resetToHidden(Class<?> clazz, KlassAndAccessFlags klassAndAccessFlags){
         if(klassAndAccessFlags==null){
             return;
         }
