@@ -17,7 +17,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
 
@@ -35,6 +34,7 @@ public final class HiddenDefineHook implements SelfTransformer {
     );
     private static volatile MethodHandle hookDefineClass0;
     private static volatile MethodHandle rawDefineClass0;
+    private static final ThreadLocal<Boolean> TRANSFORMING_CLASS_BYTES = new ThreadLocal<>();
     public static final SelfTransformer INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             SelfTransformer.class,
             HiddenDefineHook.class
@@ -75,50 +75,6 @@ public final class HiddenDefineHook implements SelfTransformer {
             instInstalled = true;
         }
     }
-    // 反射调用lookup.defineHiddenClass或makeHiddenClassDefiner
-    // 在所有method.invoke调用时插入，
-    // 如果是满足条件的method，收集其第一个参数MethodHandles.Lookup和参数列表中的byte[]参数，
-    // 再将byte[]参数替换为lookupDefineHiddenClassHook的结果
-    public static boolean isDefineClassOrMakeHiddenClassDefiner(Method method){
-        if(method == null || method.getDeclaringClass()!=MethodHandles.Lookup.class){
-            return false;
-        }
-        String methodName = method.getName();
-        if(!methodName.equals("defineHiddenClass")&&!methodName.equals("makeHiddenClassDefiner")){
-            return false;
-        }
-        for (Class<?> paraType : method.getParameterTypes()) {
-            if(paraType.equals(byte[].class)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static Object[] reflectiveHiddenClassArgumentsHook(Method method, Object receiver, Object[] arguments) {
-        if (!(receiver instanceof MethodHandles.Lookup hostLookup)
-                || arguments == null
-                || !isDefineClassOrMakeHiddenClassDefiner(method)) {
-            return arguments;
-        }
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        int argumentCount = Math.min(parameterTypes.length, arguments.length);
-        Object[] hookedArguments = arguments;
-        for (int i = 0; i < argumentCount; i++) {
-            if (parameterTypes[i] != byte[].class || !(arguments[i] instanceof byte[] original)) {
-                continue;
-            }
-            byte[] transformed = lookupDefineHiddenClassHook(hostLookup, original);
-            if (transformed != original) {
-                if (hookedArguments == arguments) {
-                    hookedArguments = arguments.clone();
-                }
-                hookedArguments[i] = transformed;
-            }
-        }
-        return hookedArguments;
-    }
-
     //直接调用lookup.defineHiddenClass(...)的改调用钩子，需要调用者lookup，和参数byte[]
     public static byte[] lookupDefineHiddenClassHook(MethodHandles.Lookup hostLookup,byte[] original){
         if (original == null || original.length == 0) {
@@ -127,7 +83,7 @@ public final class HiddenDefineHook implements SelfTransformer {
         Class<?> lookupClass = hostLookup == null ? null : hostLookup.lookupClass();
         String className = resolveClassName(lookupClass, original);
         ClassLoader classLoader = lookupClass == null ? null : lookupClass.getClassLoader();
-        byte[] transformed = INSTANCE.transformClassByte(classLoader, className, original);
+        byte[] transformed = transformClassBytes(classLoader, className, original);
         return transformed == null || transformed.length == 0 ? original : transformed;
     }
     //lookup.findStatic的结果重定向到这里，接收lookup.findStatic的结果
@@ -167,13 +123,25 @@ public final class HiddenDefineHook implements SelfTransformer {
         byte[] transformed = null;
         if (original != null && original.length > 0) {
             String className = resolveClassName(lookup, original);
-            transformed = INSTANCE.transformClassByte(loader, className, original);
+            transformed = transformClassBytes(loader, className, original);
         }
         MethodHandle defineClass0 = ensureRawDefineClass0();
         if (transformed != null && transformed.length > 0) {
             return (Class<?>) defineClass0.invoke(loader,lookup,name,transformed,0,transformed.length,pd,initialize,flags,classData);
         }
         return (Class<?>) defineClass0.invoke(loader,lookup,name,b,off,len,pd,initialize,flags,classData);
+    }
+
+    private static byte[] transformClassBytes(ClassLoader loader, String className, byte[] original) {
+        if (original == null || original.length == 0 || Boolean.TRUE.equals(TRANSFORMING_CLASS_BYTES.get())) {
+            return null;
+        }
+        TRANSFORMING_CLASS_BYTES.set(Boolean.TRUE);
+        try {
+            return INSTANCE.transformClassByte(loader, className, original);
+        } finally {
+            TRANSFORMING_CLASS_BYTES.remove();
+        }
     }
 
     private static MethodHandle ensureHookDefineClass0() throws NoSuchMethodException, IllegalAccessException {

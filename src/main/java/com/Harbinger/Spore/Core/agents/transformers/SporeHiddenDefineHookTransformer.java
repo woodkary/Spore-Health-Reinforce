@@ -11,9 +11,15 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.IincInsnNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -25,8 +31,8 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
     private static final String CLASS_OPTION_ARRAY_DESC = "[Ljava/lang/invoke/MethodHandles$Lookup$ClassOption;";
     private static final String METHOD_HANDLE_DESC = "Ljava/lang/invoke/MethodHandle;";
     private static final String REFLECT_METHOD_OWNER = "java/lang/reflect/Method";
-    private static final String REFLECT_METHOD_DESC = "Ljava/lang/reflect/Method;";
     private static final String OBJECT_ARRAY_DESC = "[Ljava/lang/Object;";
+    private static final String CLASS_ARRAY_DESC = "[Ljava/lang/Class;";
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/HiddenDefineHook";
     private static final String DEFINE_HIDDEN_CLASS_DESC =
             "([BZ" + CLASS_OPTION_ARRAY_DESC + ")Ljava/lang/invoke/MethodHandles$Lookup;";
@@ -38,8 +44,6 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
             "(" + LOOKUP_DESC + "[B)[B";
     private static final String FIND_STATIC_HOOK_DESC =
             "(" + METHOD_HANDLE_DESC + ")" + METHOD_HANDLE_DESC;
-    private static final String REFLECTIVE_ARGUMENTS_HOOK_DESC =
-            "(" + REFLECT_METHOD_DESC + "Ljava/lang/Object;" + OBJECT_ARRAY_DESC + ")" + OBJECT_ARRAY_DESC;
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
             (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
                     SporeHiddenDefineHookTransformer.class
@@ -152,7 +156,7 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
                     patchFindStaticCall(method, methodInsn);
                     modified = true;
                 } else if (isReflectiveMethodInvoke(methodInsn)
-                        && !hasHookBefore(methodInsn, "reflectiveHiddenClassArgumentsHook", 1)) {
+                        && !hasHookBefore(methodInsn, "lookupDefineHiddenClassHook", 8)) {
                     patchReflectiveMethodInvoke(method, methodInsn);
                     modified = true;
                 }
@@ -224,23 +228,137 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
         int argumentsLocal = allocateTempLocal(method, Type.getType(OBJECT_ARRAY_DESC));
         int receiverLocal = allocateTempLocal(method, Type.getType(Object.class));
         int reflectMethodLocal = allocateTempLocal(method, Type.getObjectType(REFLECT_METHOD_OWNER));
+        int methodNameLocal = allocateTempLocal(method, Type.getType(String.class));
+        int parameterTypesLocal = allocateTempLocal(method, Type.getType(CLASS_ARRAY_DESC));
+        int parameterIndexLocal = allocateTempLocal(method, Type.INT_TYPE);
+
+        LabelNode nameMatched = new LabelNode();
+        LabelNode parameterLoop = new LabelNode();
+        LabelNode nextParameter = new LabelNode();
+        LabelNode invokeOriginal = new LabelNode();
 
         InsnList inject = new InsnList();
         inject.add(new VarInsnNode(Opcodes.ASTORE, argumentsLocal));
         inject.add(new VarInsnNode(Opcodes.ASTORE, receiverLocal));
         inject.add(new VarInsnNode(Opcodes.ASTORE, reflectMethodLocal));
+
         inject.add(new VarInsnNode(Opcodes.ALOAD, reflectMethodLocal));
+        inject.add(new JumpInsnNode(Opcodes.IFNULL, invokeOriginal));
         inject.add(new VarInsnNode(Opcodes.ALOAD, receiverLocal));
+        inject.add(new TypeInsnNode(Opcodes.INSTANCEOF, LOOKUP_OWNER));
+        inject.add(new JumpInsnNode(Opcodes.IFEQ, invokeOriginal));
         inject.add(new VarInsnNode(Opcodes.ALOAD, reflectMethodLocal));
-        inject.add(new VarInsnNode(Opcodes.ALOAD, receiverLocal));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKEVIRTUAL,
+                REFLECT_METHOD_OWNER,
+                "getDeclaringClass",
+                "()Ljava/lang/Class;",
+                false
+        ));
+        inject.add(new LdcInsnNode(Type.getObjectType(LOOKUP_OWNER)));
+        inject.add(new JumpInsnNode(Opcodes.IF_ACMPNE, invokeOriginal));
+
+        inject.add(new VarInsnNode(Opcodes.ALOAD, reflectMethodLocal));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKEVIRTUAL,
+                REFLECT_METHOD_OWNER,
+                "getName",
+                "()Ljava/lang/String;",
+                false
+        ));
+        inject.add(new VarInsnNode(Opcodes.ASTORE, methodNameLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, methodNameLocal));
+        inject.add(new LdcInsnNode("defineHiddenClass"));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKEVIRTUAL,
+                "java/lang/String",
+                "equals",
+                "(Ljava/lang/Object;)Z",
+                false
+        ));
+        inject.add(new JumpInsnNode(Opcodes.IFNE, nameMatched));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, methodNameLocal));
+        inject.add(new LdcInsnNode("makeHiddenClassDefiner"));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKEVIRTUAL,
+                "java/lang/String",
+                "equals",
+                "(Ljava/lang/Object;)Z",
+                false
+        ));
+        inject.add(new JumpInsnNode(Opcodes.IFEQ, invokeOriginal));
+
+        inject.add(nameMatched);
         inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
+        inject.add(new JumpInsnNode(Opcodes.IFNULL, invokeOriginal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, reflectMethodLocal));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKEVIRTUAL,
+                REFLECT_METHOD_OWNER,
+                "getParameterTypes",
+                "()" + CLASS_ARRAY_DESC,
+                false
+        ));
+        inject.add(new VarInsnNode(Opcodes.ASTORE, parameterTypesLocal));
+        inject.add(new InsnNode(Opcodes.ICONST_0));
+        inject.add(new VarInsnNode(Opcodes.ISTORE, parameterIndexLocal));
+
+        inject.add(parameterLoop);
+        inject.add(new VarInsnNode(Opcodes.ILOAD, parameterIndexLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, parameterTypesLocal));
+        inject.add(new InsnNode(Opcodes.ARRAYLENGTH));
+        inject.add(new JumpInsnNode(Opcodes.IF_ICMPGE, invokeOriginal));
+        inject.add(new VarInsnNode(Opcodes.ILOAD, parameterIndexLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
+        inject.add(new InsnNode(Opcodes.ARRAYLENGTH));
+        inject.add(new JumpInsnNode(Opcodes.IF_ICMPGE, invokeOriginal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, parameterTypesLocal));
+        inject.add(new VarInsnNode(Opcodes.ILOAD, parameterIndexLocal));
+        inject.add(new InsnNode(Opcodes.AALOAD));
+        inject.add(new LdcInsnNode(Type.getType("[B")));
+        inject.add(new JumpInsnNode(Opcodes.IF_ACMPNE, nextParameter));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
+        inject.add(new VarInsnNode(Opcodes.ILOAD, parameterIndexLocal));
+        inject.add(new InsnNode(Opcodes.AALOAD));
+        inject.add(new TypeInsnNode(Opcodes.INSTANCEOF, "[B"));
+        inject.add(new JumpInsnNode(Opcodes.IFEQ, nextParameter));
+
+        inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKEVIRTUAL,
+                OBJECT_ARRAY_DESC,
+                "clone",
+                "()Ljava/lang/Object;",
+                false
+        ));
+        inject.add(new TypeInsnNode(Opcodes.CHECKCAST, OBJECT_ARRAY_DESC));
+        inject.add(new VarInsnNode(Opcodes.ASTORE, argumentsLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
+        inject.add(new VarInsnNode(Opcodes.ILOAD, parameterIndexLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, receiverLocal));
+        inject.add(new TypeInsnNode(Opcodes.CHECKCAST, LOOKUP_OWNER));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
+        inject.add(new VarInsnNode(Opcodes.ILOAD, parameterIndexLocal));
+        inject.add(new InsnNode(Opcodes.AALOAD));
+        inject.add(new TypeInsnNode(Opcodes.CHECKCAST, "[B"));
         inject.add(new MethodInsnNode(
                 Opcodes.INVOKESTATIC,
                 HOOK_OWNER,
-                "reflectiveHiddenClassArgumentsHook",
-                REFLECTIVE_ARGUMENTS_HOOK_DESC,
+                "lookupDefineHiddenClassHook",
+                DEFINE_HIDDEN_HOOK_DESC,
                 false
         ));
+        inject.add(new InsnNode(Opcodes.AASTORE));
+        inject.add(new JumpInsnNode(Opcodes.GOTO, invokeOriginal));
+
+        inject.add(nextParameter);
+        inject.add(new IincInsnNode(parameterIndexLocal, 1));
+        inject.add(new JumpInsnNode(Opcodes.GOTO, parameterLoop));
+
+        inject.add(invokeOriginal);
+        inject.add(new VarInsnNode(Opcodes.ALOAD, reflectMethodLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, receiverLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
         method.instructions.insertBefore(methodInsn, inject);
     }
 
@@ -284,7 +402,11 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
     }
 
     private byte[] toBytes(ClassLoader loader, String className, byte[] inputBytes, ClassNode classNode) {
-        ClassWriter writer = new SporeFrameClassWriter(loader, classNode, ClassWriter.COMPUTE_MAXS);
+        ClassWriter writer = new SporeFrameClassWriter(
+                loader,
+                classNode,
+                ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS
+        );
         classNode.accept(writer);
         byte[] transformed = writer.toByteArray();
         SporeTransformerDebugDump.rememberTransformed(
