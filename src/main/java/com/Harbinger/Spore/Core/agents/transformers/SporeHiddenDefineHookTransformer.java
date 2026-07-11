@@ -24,15 +24,22 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
     private static final String LOOKUP_DESC = "Ljava/lang/invoke/MethodHandles$Lookup;";
     private static final String CLASS_OPTION_ARRAY_DESC = "[Ljava/lang/invoke/MethodHandles$Lookup$ClassOption;";
     private static final String METHOD_HANDLE_DESC = "Ljava/lang/invoke/MethodHandle;";
+    private static final String REFLECT_METHOD_OWNER = "java/lang/reflect/Method";
+    private static final String REFLECT_METHOD_DESC = "Ljava/lang/reflect/Method;";
+    private static final String OBJECT_ARRAY_DESC = "[Ljava/lang/Object;";
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/HiddenDefineHook";
     private static final String DEFINE_HIDDEN_CLASS_DESC =
             "([BZ" + CLASS_OPTION_ARRAY_DESC + ")Ljava/lang/invoke/MethodHandles$Lookup;";
     private static final String FIND_STATIC_DESC =
             "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/MethodHandle;";
+    private static final String METHOD_INVOKE_DESC =
+            "(Ljava/lang/Object;" + OBJECT_ARRAY_DESC + ")Ljava/lang/Object;";
     private static final String DEFINE_HIDDEN_HOOK_DESC =
             "(" + LOOKUP_DESC + "[B)[B";
     private static final String FIND_STATIC_HOOK_DESC =
             "(" + METHOD_HANDLE_DESC + ")" + METHOD_HANDLE_DESC;
+    private static final String REFLECTIVE_ARGUMENTS_HOOK_DESC =
+            "(" + REFLECT_METHOD_DESC + "Ljava/lang/Object;" + OBJECT_ARRAY_DESC + ")" + OBJECT_ARRAY_DESC;
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
             (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
                     SporeHiddenDefineHookTransformer.class
@@ -91,7 +98,7 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
                 return null;
             }
             String effectiveClassName = className == null ? classNode.name : className;
-            if (transformLookupCalls(classNode)) {
+            if (transformHiddenDefineCalls(classNode)) {
                 return toBytes(loader, effectiveClassName, classfileBuffer, classNode);
             }
         } catch (Throwable t) {
@@ -108,15 +115,15 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
                 || internalName.equals("com/Harbinger/Spore/Core/agents/transformers/SporeHiddenDefineHookTransformer");
     }
 
-    private boolean transformLookupCalls(ClassNode classNode) {
+    private boolean transformHiddenDefineCalls(ClassNode classNode) {
         boolean modified = false;
         for (MethodNode method : classNode.methods) {
-            if (!canPatch(method) || alreadyCallsHook(method)) {
+            if (!canPatch(method)) {
                 continue;
             }
-            if (patchLookupCalls(method)) {
+            if (patchHiddenDefineCalls(method)) {
                 modified = true;
-                LogUtil.logf("Transformed hidden define lookup calls %s.%s%s",
+                LogUtil.logf("Transformed hidden define call sites %s.%s%s",
                         classNode.name,
                         method.name,
                         method.desc);
@@ -131,25 +138,22 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
                 && (method.access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE)) == 0;
     }
 
-    private boolean alreadyCallsHook(MethodNode method) {
-        for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
-            if (insn instanceof MethodInsnNode methodInsn && HOOK_OWNER.equals(methodInsn.owner)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean patchLookupCalls(MethodNode method) {
+    private boolean patchHiddenDefineCalls(MethodNode method) {
         boolean modified = false;
         for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; ) {
             AbstractInsnNode next = insn.getNext();
-            if (insn instanceof MethodInsnNode methodInsn && LOOKUP_OWNER.equals(methodInsn.owner)) {
-                if (isDefineHiddenClassCall(methodInsn)) {
+            if (insn instanceof MethodInsnNode methodInsn) {
+                if (isDefineHiddenClassCall(methodInsn)
+                        && !hasHookBefore(methodInsn, "lookupDefineHiddenClassHook", 8)) {
                     patchDefineHiddenClassCall(method, methodInsn);
                     modified = true;
-                } else if (isFindStaticCall(methodInsn)) {
+                } else if (isFindStaticCall(methodInsn)
+                        && !hasHookAfter(methodInsn, "lookupFindDefineClass0StaticHook", 1)) {
                     patchFindStaticCall(method, methodInsn);
+                    modified = true;
+                } else if (isReflectiveMethodInvoke(methodInsn)
+                        && !hasHookBefore(methodInsn, "reflectiveHiddenClassArgumentsHook", 1)) {
+                    patchReflectiveMethodInvoke(method, methodInsn);
                     modified = true;
                 }
             }
@@ -159,13 +163,21 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
     }
 
     private boolean isDefineHiddenClassCall(MethodInsnNode methodInsn) {
-        return "defineHiddenClass".equals(methodInsn.name)
+        return LOOKUP_OWNER.equals(methodInsn.owner)
+                && "defineHiddenClass".equals(methodInsn.name)
                 && DEFINE_HIDDEN_CLASS_DESC.equals(methodInsn.desc);
     }
 
     private boolean isFindStaticCall(MethodInsnNode methodInsn) {
-        return "findStatic".equals(methodInsn.name)
+        return LOOKUP_OWNER.equals(methodInsn.owner)
+                && "findStatic".equals(methodInsn.name)
                 && FIND_STATIC_DESC.equals(methodInsn.desc);
+    }
+
+    private boolean isReflectiveMethodInvoke(MethodInsnNode methodInsn) {
+        return REFLECT_METHOD_OWNER.equals(methodInsn.owner)
+                && "invoke".equals(methodInsn.name)
+                && METHOD_INVOKE_DESC.equals(methodInsn.desc);
     }
 
     private void patchDefineHiddenClassCall(MethodNode method, MethodInsnNode methodInsn) {
@@ -206,6 +218,54 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
                 false
         ));
         method.instructions.insert(methodInsn, inject);
+    }
+
+    private void patchReflectiveMethodInvoke(MethodNode method, MethodInsnNode methodInsn) {
+        int argumentsLocal = allocateTempLocal(method, Type.getType(OBJECT_ARRAY_DESC));
+        int receiverLocal = allocateTempLocal(method, Type.getType(Object.class));
+        int reflectMethodLocal = allocateTempLocal(method, Type.getObjectType(REFLECT_METHOD_OWNER));
+
+        InsnList inject = new InsnList();
+        inject.add(new VarInsnNode(Opcodes.ASTORE, argumentsLocal));
+        inject.add(new VarInsnNode(Opcodes.ASTORE, receiverLocal));
+        inject.add(new VarInsnNode(Opcodes.ASTORE, reflectMethodLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, reflectMethodLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, receiverLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, reflectMethodLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, receiverLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, argumentsLocal));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKESTATIC,
+                HOOK_OWNER,
+                "reflectiveHiddenClassArgumentsHook",
+                REFLECTIVE_ARGUMENTS_HOOK_DESC,
+                false
+        ));
+        method.instructions.insertBefore(methodInsn, inject);
+    }
+
+    private boolean hasHookBefore(AbstractInsnNode start, String hookName, int maxInstructions) {
+        return hasHook(start.getPrevious(), hookName, maxInstructions, false);
+    }
+
+    private boolean hasHookAfter(AbstractInsnNode start, String hookName, int maxInstructions) {
+        return hasHook(start.getNext(), hookName, maxInstructions, true);
+    }
+
+    private boolean hasHook(AbstractInsnNode insn, String hookName, int maxInstructions, boolean forward) {
+        int inspected = 0;
+        while (insn != null && inspected < maxInstructions) {
+            if (insn.getOpcode() >= 0) {
+                inspected++;
+                if (insn instanceof MethodInsnNode methodInsn
+                        && HOOK_OWNER.equals(methodInsn.owner)
+                        && hookName.equals(methodInsn.name)) {
+                    return true;
+                }
+            }
+            insn = forward ? insn.getNext() : insn.getPrevious();
+        }
+        return false;
     }
 
     private int allocateTempLocal(MethodNode method, Type type) {
