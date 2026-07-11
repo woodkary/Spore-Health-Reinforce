@@ -80,11 +80,14 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
         if (classfileBuffer == null || classfileBuffer.length == 0) {
             return null;
         }
+        if(className!=null&&(shouldSkipClass(className)||!StackTraceUtil.isBadModName(className)||className.equals("SporeAgent"))) {
+            return null;
+        }
         try {
             ClassReader reader = new ClassReader(classfileBuffer);
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, ClassReader.EXPAND_FRAMES);
-            if (classNode.name == null || shouldSkipClass(classNode.name) || !StackTraceUtil.isBadModName(classNode.name)) {
+            if (classNode.name == null || shouldSkipClass(classNode.name) || !StackTraceUtil.isBadModName(classNode.name)||classNode.name.equals("SporeAgent")) {
                 return null;
             }
             String effectiveClassName = className == null ? classNode.name : className;

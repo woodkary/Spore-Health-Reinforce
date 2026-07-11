@@ -195,6 +195,27 @@ public class BytecodeUtil {
         LogUtil.errorf("failed to load class by bytes from ResourceStream and jar: %s class", className);
         throw new IOException("Cannot find resource: " + resourceName);
     }
+    public static byte[] loadClassBytesJarFirst(String className) throws IOException {
+        String resourceName = className.replace('.', '/') + ".class";
+        byte[] jarBytes = loadClassBytesFromJar(BytecodeUtil.class, className);
+        if (jarBytes != null && jarBytes.length > 0) {
+            return jarBytes;
+        }
+        InputStream is = openResourceStream(BytecodeUtil.class.getClassLoader(), resourceName);
+        if (is != null) {
+            try (InputStream closeable = is) {
+                return readAllBytes(closeable);
+            }
+        }
+        InputStream bootstrapIs = tryOpenBootstrapClassStream(resourceName);
+        if (bootstrapIs != null) {
+            try (InputStream closeable = bootstrapIs) {
+                return readAllBytes(closeable);
+            }
+        }
+        LogUtil.errorf("failed to load class by bytes from ResourceStream and jar: %s class", className);
+        throw new IOException("Cannot find resource: " + resourceName);
+    }
 
     private static InputStream tryOpenBootstrapClassStream(String resourceName) {
         if (resourceName == null || resourceName.isBlank()) {

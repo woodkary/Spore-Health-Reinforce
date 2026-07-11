@@ -15,5 +15,6 @@
   },
   "overwrites": {
     "requireAnnotations": true
-  }
+  },
+  "plugin": "com.Harbinger.Spore.Core.SporeMixinPlugin"
 }

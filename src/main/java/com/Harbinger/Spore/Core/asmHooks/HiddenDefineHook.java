@@ -1,12 +1,18 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
+import com.Harbinger.Spore.Core.agents.IInstrumentations;
+import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
+import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
+import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SelfTransformer;
+import com.Harbinger.Spore.Core.agents.transformers.SporeHiddenDefineHookTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityEffectApplicationTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformer;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import org.objectweb.asm.ClassReader;
 
+import java.lang.instrument.ClassFileTransformer;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.MethodHandles;
@@ -48,6 +54,25 @@ public final class HiddenDefineHook implements SelfTransformer {
             }
         }
         return modified ? res : null;
+    }
+    private static boolean jvmtiInstalled=false;
+    private static boolean instInstalled=false;
+    public static void inspectHiddenDefine() {
+        //同时安装Instrumentation和jvmti监听InstrumentationImpl加载，但不重转换
+        IJVNTIPointer jvmtiUtil= JVMTIPointerUtil.newInstance();
+        ClassFileTransformer hiddenTransformer= SporeHiddenDefineHookTransformer.newInstance();
+        SelfTransformer hiddenTransformer2=hiddenTransformer instanceof SelfTransformer selfTransformer? selfTransformer : SporeHiddenDefineHookTransformer.newSelfTransformer();
+        if(jvmtiUtil!=null && !jvmtiInstalled) {
+            jvmtiUtil.addTransformer(hiddenTransformer2);
+            jvmtiInstalled=jvmtiUtil.isTransformerHookInstalled();
+        }
+        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
+        boolean instrumentationReady = instrumentation != null;
+        if(instrumentationReady&&!instInstalled) {
+            //只安装Transformer，不进行retransform
+            instrumentation.addTransformer(hiddenTransformer);
+            instInstalled = true;
+        }
     }
 
     //直接调用lookup.defineHiddenClass(...)的改调用钩子，需要调用者lookup，和参数byte[]
