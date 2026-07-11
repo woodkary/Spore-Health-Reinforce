@@ -1,6 +1,5 @@
 package com.Harbinger.Spore.Core;
 
-import com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil;
 import com.Harbinger.Spore.Core.asmHooks.HiddenDefineHook;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
@@ -8,7 +7,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 

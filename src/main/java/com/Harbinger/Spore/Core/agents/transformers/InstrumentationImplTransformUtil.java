@@ -45,13 +45,13 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
             jvmtiUtil.addTransformer(this);
             jvmtiInstalled=jvmtiUtil.isTransformerHookInstalled();
         }
-//        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
-//        boolean instrumentationReady = instrumentation != null;
-//        if(instrumentationReady&&!instInstalled) {
-//            //只安装Transformer，不进行retransform
-//            instrumentation.addTransformer(this);
-//            instInstalled = true;
-//        }
+        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
+        boolean instrumentationReady = instrumentation != null;
+        if(instrumentationReady&&!instInstalled) {
+            //只安装Transformer，不进行retransform
+            instrumentation.addTransformer(this);
+            instInstalled = true;
+        }
     }
     public static boolean shouldSkipTransform(Instrumentation inst, String className){
         if (className == null || !className.startsWith(SPORE_INTERNAL_PREFIX)) {
