@@ -225,7 +225,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     private Class<?> getOrginalClass(Class<?> wrapperValue){
         //通过value找回第一个key
-        return wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue);
+        return ClassLoaderUtil.INSTANCE.tryAvoidHiddenClass(wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue));
     }
     private boolean containsKey(Map<Class<?>, Integer> map, Class<?> clazz) {
         return map.containsKey(clazz)||map.containsKey(getOrginalClass(clazz));

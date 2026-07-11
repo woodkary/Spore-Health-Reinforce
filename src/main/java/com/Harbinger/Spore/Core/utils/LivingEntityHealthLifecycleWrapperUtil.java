@@ -76,7 +76,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     @Override
     public Class<?> getOrginalClass(Class<?> wrapperValue){
         //通过value找回第一个key
-        return wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue);
+        return ClassLoaderUtil.INSTANCE.tryAvoidHiddenClass(wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue));
     }
     @Override
     public void createWrapppperLocal(Object entity){

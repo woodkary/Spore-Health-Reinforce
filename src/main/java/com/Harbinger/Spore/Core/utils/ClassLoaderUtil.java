@@ -6,6 +6,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.transformers.MixinClassWriter;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,13 +37,24 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
         super(parent);
         this.domain = buildDomain();
     }
-
+    @Override
+    public Class<?> tryAvoidHiddenClass(Class<?> clazz){
+        if(!clazz.isHidden()){
+            return clazz;
+        }
+        for (Field field : clazz.getDeclaredFields()) {
+            if(!Modifier.isStatic(field.getModifiers())){
+                return clazz;
+            }
+        }
+        return clazz.getSuperclass();
+    }
     @Override
     public Class<?> getOriginalClass(Class<?> clazz){
         if(!clazz.getName().contains("SporeAllReturnWrapper")){
             return clazz;
         }
-        return (clazz.isHidden()?hiddenWrapperToOriginal:wrapperToOriginal).getOrDefault(clazz,clazz);
+        return tryAvoidHiddenClass((clazz.isHidden()?hiddenWrapperToOriginal:wrapperToOriginal).getOrDefault(clazz,clazz));
     }
 
     @Override
