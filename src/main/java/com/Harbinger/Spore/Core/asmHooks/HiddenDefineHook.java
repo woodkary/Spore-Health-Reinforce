@@ -75,7 +75,7 @@ public final class HiddenDefineHook implements SelfTransformer {
         }
     }
 
-    //直接调用lookup.defineHiddenClass(...)的改调用钩子，需要调用者lookup，和参数byte[]
+    //直接或反射(Method.invoke)调用lookup.defineHiddenClass(...)的改调用钩子，需要调用者lookup，和参数byte[]
     public static byte[] lookupDefineHiddenClassHook(MethodHandles.Lookup hostLookup,byte[] original){
         if (original == null || original.length == 0) {
             return original;
