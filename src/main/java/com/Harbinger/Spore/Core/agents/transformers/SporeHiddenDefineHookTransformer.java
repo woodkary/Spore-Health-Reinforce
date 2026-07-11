@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.asmHooks.HiddenDefineHook;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -83,7 +84,7 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
             ClassReader reader = new ClassReader(classfileBuffer);
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, ClassReader.EXPAND_FRAMES);
-            if (classNode.name == null || shouldSkipClass(classNode.name)) {
+            if (classNode.name == null || shouldSkipClass(classNode.name) || !StackTraceUtil.isBadModName(classNode.name)) {
                 return null;
             }
             String effectiveClassName = className == null ? classNode.name : className;
