@@ -41,16 +41,17 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
         //同时安装Instrumentation和jvmti监听InstrumentationImpl加载，但不重转换
         IJVNTIPointer jvmtiUtil= JVMTIPointerUtil.newInstance();
         if(jvmtiUtil!=null && !jvmtiInstalled) {
+            //只安装Transformer，不进行retransform
             jvmtiUtil.addTransformer(this);
             jvmtiInstalled=jvmtiUtil.isTransformerHookInstalled();
         }
-        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
-        boolean instrumentationReady = instrumentation != null;
-        if(instrumentationReady&&!instInstalled) {
-            //只安装Transformer，不进行retransform
-            instrumentation.addTransformer(this);
-            instInstalled = true;
-        }
+//        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
+//        boolean instrumentationReady = instrumentation != null;
+//        if(instrumentationReady&&!instInstalled) {
+//            //只安装Transformer，不进行retransform
+//            instrumentation.addTransformer(this);
+//            instInstalled = true;
+//        }
     }
     public static boolean shouldSkipTransform(Instrumentation inst, String className){
         if (className == null || !className.startsWith(SPORE_INTERNAL_PREFIX)) {
@@ -68,6 +69,9 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
     @Override
     protected byte[] transformInternal(ClassLoader loader, String className, byte[] classfileBuffer) {
         if (classfileBuffer == null || classfileBuffer.length == 0) {
+            return null;
+        }
+        if(className!=null&&!className.equals(INSTRUMENTATION_IMPL_INTERNAL)) {
             return null;
         }
         try {
