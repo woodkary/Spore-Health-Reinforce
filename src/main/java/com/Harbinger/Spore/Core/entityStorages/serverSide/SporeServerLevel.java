@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
@@ -65,6 +66,13 @@ public final class SporeServerLevel extends ServerLevel {
         List<T> list = Lists.newArrayList();
         this.getEntities(p_143281_, p_143282_, list);
         return list;
+    }
+    @Override
+    public Entity getEntity(UUID uuid) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(uuid)){
+            return null;
+        }
+        return this.getEntities().get(uuid);
     }
 
     public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> p_262152_, Predicate<? super T> p_261808_, List<? super T> p_261583_) {
