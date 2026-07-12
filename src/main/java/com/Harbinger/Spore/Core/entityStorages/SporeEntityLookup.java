@@ -6,11 +6,14 @@ import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import net.minecraft.util.AbortableIterationConsumer;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.level.entity.EntityLookup;
+import net.minecraft.world.level.entity.EntityTypeTest;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
@@ -123,6 +126,20 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
         this.byUuid.remove(entity.getUUID());
         this.byId.remove(entity.getId());
     }
+
+    @Override
+    public <U extends T> void getEntities(EntityTypeTest<T, U> p_261575_, AbortableIterationConsumer<U> p_261925_) {
+        for (T entity : this.byId.values()) {
+            if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
+                continue;
+            }
+            U casted = p_261575_.tryCast(entity);
+            if (casted != null && p_261925_.accept(casted).shouldAbort()) {
+                return;
+            }
+        }
+    }
+
     @Override
     public Iterable<T> getAllEntities() {
 
