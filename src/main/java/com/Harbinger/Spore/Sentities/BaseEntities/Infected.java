@@ -105,7 +105,9 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
         if(SporeJudge.isSporeEntity(target)){
             return false;
         }
-        return StackTraceUtil.isBadModName(target.getClass().getName()) || target.canBeSeenAsEnemy();
+        return StackTraceUtil.isBadModName(target.getClass().getName())&&
+                !target.isInvulnerable()&&!target.isSpectator()&&target.isAlive()
+                || target.canBeSeenAsEnemy();
     }
     @Override
     public void setTarget(@Nullable LivingEntity target) {

@@ -20,8 +20,7 @@ public class SporeJudge {
         return isSporeClass(entity.getClass());
     }
     public static boolean isSporeClass(Class<?> clazz) {
-        Package pkg = clazz.getPackage();
-        return pkg != null && pkg.getName().contains("Spore");
+        return clazz.getName().contains("Spore");
     }
     public static boolean isSporeItem(ItemStack item) {
         return isSporeItem(item.getItem());
