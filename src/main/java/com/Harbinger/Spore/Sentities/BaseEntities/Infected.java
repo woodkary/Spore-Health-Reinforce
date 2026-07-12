@@ -1,7 +1,9 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -95,7 +97,16 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
     public LivingEntity getTarget() {
         return this.sporeTarget;
     }
-
+    @Override
+    public boolean canAttack(LivingEntity target) {
+        if(target instanceof Player player){
+            return !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&level().getDifficulty() != Difficulty.PEACEFUL;
+        }
+        if(SporeJudge.isSporeEntity(target)){
+            return false;
+        }
+        return StackTraceUtil.isBadModName(target.getClass().getName()) || target.canBeSeenAsEnemy();
+    }
     @Override
     public void setTarget(@Nullable LivingEntity target) {
         if (SporeJudge.isSporeEntity(target)) {

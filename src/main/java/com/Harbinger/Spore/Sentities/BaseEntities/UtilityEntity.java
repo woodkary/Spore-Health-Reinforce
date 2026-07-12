@@ -1,13 +1,16 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.SConfig;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.HurtTargetGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -164,6 +167,16 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
                 return this.mob.getBoundingBox().inflate(value, value, value);
             }
         });
+    }
+    @Override
+    public boolean canAttack(LivingEntity target) {
+        if(target instanceof Player player){
+            return !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&level().getDifficulty() != Difficulty.PEACEFUL;
+        }
+        if(SporeJudge.isSporeEntity(target)){
+            return false;
+        }
+        return StackTraceUtil.isBadModName(target.getClass().getName()) || target.canBeSeenAsEnemy();
     }
     @Override
     public void dropCustomDeathLoot(DamageSource source, int val, boolean bool) {
