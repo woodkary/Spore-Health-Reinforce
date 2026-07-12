@@ -177,7 +177,7 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
             return false;
         }
         return StackTraceUtil.isBadModName(target.getClass().getName())&&
-                !target.isInvulnerable()&&!target.isSpectator()&&target.isAlive()
+                !target.isSpectator()&&target.isAlive()
                 || target.canBeSeenAsEnemy();
     }
     @Override

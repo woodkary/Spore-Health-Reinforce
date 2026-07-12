@@ -106,7 +106,7 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
             return false;
         }
         return StackTraceUtil.isBadModName(target.getClass().getName())&&
-                !target.isInvulnerable()&&!target.isSpectator()&&target.isAlive()
+                !target.isSpectator()&&target.isAlive()
                 || target.canBeSeenAsEnemy();
     }
     @Override
