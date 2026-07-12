@@ -176,8 +176,7 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
         if(SporeJudge.isSporeEntity(target)){
             return false;
         }
-        return StackTraceUtil.isBadModName(target.getClass().getName())&&
-                !target.isSpectator()&&target.isAlive()
+        return StackTraceUtil.isBadModName(target.getClass().getName())&&target.isAlive()
                 || target.canBeSeenAsEnemy();
     }
     @Override
