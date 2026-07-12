@@ -168,7 +168,7 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
             this.mob.swing(InteractionHand.MAIN_HAND);
             this.mob.doHurtTarget(entity);
             AABB hitbox = entity.getBoundingBox().inflate(box);
-            float attackDamage = (float) this.mob.attributes.getValue(Attributes.ATTACK_DAMAGE) * 0.3f;
+            float attackDamage = (float) this.mob.attributes.getValue(Attributes.ATTACK_DAMAGE) * 0.2f;
             attackDamage += getBonus();
             List<LivingEntity> targets = entity.level().getEntitiesOfClass(LivingEntity.class , hitbox,victims);
             for (LivingEntity en : targets) {

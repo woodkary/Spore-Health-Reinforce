@@ -530,7 +530,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
                     SporeAttackUtil.INSTANCE.playSound(this.level(), null, this.getX(), this.getY(), this.getZ(),
                             soundEvent, this.getSoundSource(), 1.0f, 1.0f);
                 }
-                SporeAttackUtil.INSTANCE.attack(living, this, source, 0.5f);
+                SporeAttackUtil.INSTANCE.dealDamage(living, this, source, 0.5f);
             }
         }
         if (this.tickCount % 1200 == 0){
