@@ -35,10 +35,13 @@
 - `Core/utils/StackTraceUtil.java`
 - `Core/utils/ParentUtil.java`
 - `Core/utils/TargetUtil.java`
+- `Core/utils/HeasdalthUtil.java`
+- `Core/utils/IHeasdalthUtil.java`
 
 同步验证：
 
 - `BytecodeUtil.createHiddenSingletonInstance(...)`、`resolveHiddenClassOrSelf(...)`、隐藏构造器路径不能退化为普通 `new`。
+- `HiddenClassDefiner` 的缓存与 `ThreadLocal` in-progress 防递归必须保留；同一线程递归定义相同隐藏类时不能再次进入定义链。
 - `ClassUtil` 的隐藏类定义、字段读写、类替换辅助必须保留；如果出现 `VerifyError: Bad type on operand stack`，优先检查隐藏子类是否把 owner 写成了非隐藏宿主类。
 - `WrappedMethod`/`MethodHandle` 缓存要按实际签名调用，不能把 `MethodHandle(ServerPlayer,DamageSource)void` 之类的强类型 handle 当成 `(Object[])Object` 直接 invoke。
 - `Protected*Map` 用于封锁写入/读取/遍历，不能被上游集合替换覆盖。
@@ -50,12 +53,32 @@
 
 - `Spore.java`
 - `Core/agents/AgentBridge.java`
+- `Core/agents/IAgentBridge.java`
 - `Core/agents/InstrumentationUtil.java`
+- `Core/agents/IInstrumentations.java`
+- `Core/agents/JVMTIPointerUtil.java`
+- `Core/agents/IJVNTIPointer.java`
+- `Core/jvmti/JvmtiMethod.java`
+- `Core/utils/JvmtiCapabilities.java`
+- `Core/SporeMixinPlugin.java`
+- `Core/asmHooks/HiddenDefineHook.java`
+- `Core/agents/transformers/SelfTransformer.java`
+- `Core/agents/transformers/ICommonBootStrap.java`
 - `Core/agents/transformers/SporeClassFileTransformer0.java`
+- `Core/agents/transformers/INativeBridge.java`
 - `Core/agents/transformers/SporeNativeBridge.java`
 - `Core/agents/transformers/SporeLivingEntityHealthTransformer.java`
 - `Core/agents/transformers/SporeLivingEntityEffectApplicationTransformer.java`
 - `Core/agents/transformers/SporeLivingEntityHealthTransformerBootstrap.java`
+- `Core/agents/transformers/SporeHiddenDefineHookTransformer.java`
+- `Core/agents/transformers/SporeFrameClassWriter.java`
+- `Core/agents/transformers/SporeTransformerDebugDump.java`
+- `Core/agents/transformers/InstrumentationImplTransformUtil.java`
+- `Core/agents/transformers/IInstrumentationImplTransformer.java`
+- `src/main/native/com/Harbinger/Spore/Core/agents/transformers/com_Harbinger_Spore_Core_agents_transformers_SporeClassFileTransformer0.c`
+- `src/main/native/include/com_Harbinger_Spore_Core_agents_transformers_SporeClassFileTransformer0.h`
+- `src/main/resources/spore.mixins.json`
+- `src/main/resources/sporeAgent.jar`
 - `src/main/resources/sporeTransformerBridge.dll`
 - `Core/utils/LivingEntityHealthLifecycleWrapperUtil.java`
 - `Core/utils/BuildWrapperClassFunction.java`
@@ -69,7 +92,17 @@
 
 - `Spore.commonSetup` 必须注册网络包并调用 `SporeLivingEntityHealthTransformerBootstrap.INSTANCE.installAndRetransform()`。
 - `SporeLivingEntityHealthTransformerBootstrap.installAndRetransform()` 必须同时注册 `SporeLivingEntityHealthTransformer` 和 `SporeLivingEntityEffectApplicationTransformer`。
-- `SporeNativeBridge` 依赖 `/sporeTransformerBridge.dll`，同步或清理资源时不能丢失 DLL。
+- Instrumentation 和 JVMTI 是同一套转换器的双后端：优先由 Instrumentation 重转换，失败或有剩余目标时回退 JVMTI；两端都必须支持枚举已加载类、可修改性判断、安装 transformer 和重转换。`AgentBridge`/`InstrumentationUtil` 及 `/sporeAgent.jar`（内含 `SporeAgent.class` 和 `sporeAgent.dll`）的自附加链也不能丢失。
+- JVMTI Java/JNA 层必须保留 `JvmtiMethod` 函数表索引、`JvmtiCapabilities` 位布局、`ClassFileLoadHook` 注册、capability 协商、错误码名称、内存 allocate/deallocate 和 native/JNA 回退。不要只保留 `RetransformClasses` 的表面调用。
+- native C 层与 `/sporeTransformerBridge.dll` 必须同步保留：除 JNI `ClassFileTransformer#transform` 转发外，还要保留 JVMTI env 获取、capability、已加载类/可修改类查询、`ClassFileLoadHook`、`RetransformClasses` 和 `GetErrorName`。修改 C 或 JNI 签名后必须重新编译并替换 DLL，不能只提交源码或旧 DLL。
+- `SporeLivingEntityHealthTransformerBootstrap.retransformMaybeHiddenClasses(...)`、`retransformMaybeHiddenClassesInstOnly(...)`、`retransformMaybeHiddenClassesJVMTIOnly(...)` 必须保留，`HeasdalthUtil` 创建/替换生命周期 wrapper 后必须继续调用这些入口。普通路径和 hidden-retransform 路径使用独立安装状态，保证相关 transformer 至少能为隐藏类兜底重装一次。
+- 对已定义隐藏类的重转换是兜底：必须先加载 hook 依赖，暂时清除 Klass 的 hidden/being-redefined access flags，在 `finally` 中恢复原 flags，并以二分重转换隔离单个失败类。`spore.transformer.disableUnsafeHiddenRetransform` 跳过开关不得被误删。
+- 首选路径是在定义前转换。`spore.mixins.json` 必须继续声明 `Core.SporeMixinPlugin`；插件加载 `HiddenDefineHook.inspectHiddenDefine()`，后者通过 Instrumentation/JVMTI 安装 `SporeHiddenDefineHookTransformer`，但不主动重转换已加载调用者。
+- `SporeHiddenDefineHookTransformer` 只扫描 `StackTraceUtil.isBadModName(...)` 目标，并覆盖直接 `Lookup#defineHiddenClass`、反射 `Method.invoke` 到 `defineHiddenClass`/`makeHiddenClassDefiner`，以及 `Lookup#findStatic` 获取 `ClassLoader#defineClass0` 的路径。反射 Method 判定必须以内联 ASM 完成，非目标调用不能先加载 `HiddenDefineHook`；新增分支必须用 `COMPUTE_FRAMES | COMPUTE_MAXS`。
+- `HiddenDefineHook` 必须在原始 bytes 定义前串联 health/effect transformer，并保留 `ThreadLocal` 重入保护、原 bytes 回退和原始 `defineClass0` MethodHandle，避免 `ClassCircularityError` 或递归再次定义。
+- `InstrumentationImplTransformUtil` 目前在 `SporeMixinPlugin` 中未启用，但源码、接口和转换逻辑仍是必要保留项；不要把“必须保留”改写为“同步后必须启用”。其用途是修改 `sun.instrument.InstrumentationImpl#transform(...)`，阻止非本 mod 的 Instrumentation 转换 Spore 类。
+- `SporeFrameClassWriter` 必须保留基于 class resource/缓存的 `getCommonSuperClass`、接口/数组及隐藏类 `/0x`/`+0x` 名称兼容，避免帧计算通过 `Class.forName` 触发加载或对隐藏类解析失败。
+- 所有核心 transformer 必须继续调用 `SporeTransformerDebugDump.rememberTransformed(...)`；bootstrap 的 Instrumentation/JVMTI 失败分支必须调用 `dumpFailedTransform(...)`，保留 input/transformed class 与元数据，以便定位无 message 的 `VerifyError`。
 - `LivingEntityHealthLifecycleWrapperUtil` 的死亡 tick 包装逻辑应保留 `forceDeathTimeIncreasing` 语义：不是粗暴把 tick 改成只调用 death tick，而是在原 tick 后强制死亡时间继续增长。
 - `LivingEntityMixin` 的 heal redirect 必须保留：常规 `setHealth` 后补调用 `EntityHeealuthManager.INSTANCE.heal(...)`，但存在 `Seffects.HEALING_INHIBITION` 时跳过。
 - `LocalPlayerMixin` 必须继续把本地玩家重新标记为 alive，以配合本地死亡包装实体。
@@ -283,7 +316,8 @@
 git status --short --branch
 git log --oneline --decorate --max-count=20
 git diff --name-status origin/master...HEAD
-rg -n "installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|unremovableCollections|SporeMapProxy|ISporeMap|ISporeEntry|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|SporeEffectsUtil|IEffectManager|SporeLivingEntityEffectApplicationTransformer|addHealingInhibitRandom|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal|PausableCalamityPathNavigation" src/main/java src/main/resources -S
+rg -n "JVMTIPointerUtil|JvmtiMethod|JvmtiCapabilities|ClassFileLoadHook|retransformMaybeHiddenClasses|SporeHiddenDefineHookTransformer|HiddenDefineHook|InstrumentationImplTransformUtil|SporeFrameClassWriter|SporeTransformerDebugDump|installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|unremovableCollections|SporeMapProxy|ISporeMap|ISporeEntry|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|SporeEffectsUtil|IEffectManager|SporeLivingEntityEffectApplicationTransformer|addHealingInhibitRandom|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal|PausableCalamityPathNavigation" src/main/java src/main/native src/main/resources -S
+git ls-files src/main/resources/sporeAgent.jar src/main/resources/sporeTransformerBridge.dll src/main/native
 rg -n "\.hurt\(|hurrt\(|setHealth\(|attack\(|ASMHurtArrowUtil\.INSTANCE\.wrap|setMaxHeeaafastth|getTarget\(|setTarget\(" src/main/java -S
 rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_HEALTH|Attributes\.MAX_HEALTH|setBaseValue\(" src/main/java -S
 .\gradlew --no-daemon --console=plain compileJava
@@ -293,6 +327,10 @@ rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_
 
 - `compileJava` 通过。
 - 关键入口 `Spore.commonSetup`、`SporeEventBus.tick().addSelfListener()`、`SporePacketHandler.registerPackets()` 全部存在。
+- JVMTI/Instrumentation 双后端、native `ClassFileLoadHook`、`sporeAgent.jar`、C 源码/JNI header/当前 DLL 均有代码和跟踪证据；若 native 源码或签名变化，DLL 已同步重编译。
+- 已定义隐藏类兜底重转换入口仍由 `HeasdalthUtil` 调用，并保留依赖预加载、flag 临时清除/`finally` 恢复、独立 transformer 安装状态与二分失败隔离。
+- 定义前转换链有完整入口证据：`spore.mixins.json -> SporeMixinPlugin -> HiddenDefineHook.inspectHiddenDefine -> SporeHiddenDefineHookTransformer -> HiddenDefineHook -> health/effect transformers`；反射判定内联且 `HiddenDefineHook` 有 `ThreadLocal` 重入保护。
+- `SporeFrameClassWriter` 和 `SporeTransformerDebugDump` 仍被核心 transformer/bootstrap 实际调用；`InstrumentationImplTransformUtil` 保留但不被误设为当前强制启用入口。
 - `UtilityEntity`/`Infected` 自定义 `sporeTarget` 目标字段、`getTarget()`/`setTarget(...)` 覆盖和 Spore 目标过滤全部有代码证据。
 - 旧灾难的 `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 部位弱点额外直接扣血逻辑有代码证据：Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 均保留 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 调用；Verfalldrachen 不属于这条必保规则。
 - `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.attack(...)`。
