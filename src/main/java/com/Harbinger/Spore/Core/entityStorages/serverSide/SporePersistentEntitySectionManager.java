@@ -1,11 +1,15 @@
 package com.Harbinger.Spore.Core.entityStorages.serverSide;
 
+import com.Harbinger.Spore.Core.entityStorages.ISporeEntityStorage;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
+import com.Harbinger.Spore.Core.entityStorages.SporeKnownUuidsHashSet;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.*;
+
+import java.util.UUID;
 
 public final class SporePersistentEntitySectionManager<T extends EntityAccess> extends PersistentEntitySectionManager<T> {
     public static final Class<? extends PersistentEntitySectionManager<? extends EntityAccess>> managerClass= (Class<? extends PersistentEntitySectionManager<? extends EntityAccess>>) BytecodeUtil.resolveHiddenClassOrSelf(
@@ -27,6 +31,14 @@ public final class SporePersistentEntitySectionManager<T extends EntityAccess> e
         } else {
             return true;
         }
+    }
+
+    @Override
+    public boolean isLoaded(UUID uuid) {
+        if(!(this.knownUuids instanceof ISporeEntityStorage)){
+            this.knownUuids= SporeKnownUuidsHashSet.newInstance(this.knownUuids);
+        }
+        return !SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(uuid)&&super.isLoaded(uuid);
     }
 
     public boolean addNewEntity(T entity) {
