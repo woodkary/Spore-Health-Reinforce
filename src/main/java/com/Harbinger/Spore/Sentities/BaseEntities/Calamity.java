@@ -3,9 +3,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
-import com.Harbinger.Spore.Core.utils.ClassUtil;
-import com.Harbinger.Spore.Core.utils.LogUtil;
-import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
@@ -108,6 +106,15 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     protected int calculateFallDamage(float p_149389_, float p_149390_) {
         return super.calculateFallDamage(p_149389_, p_149390_) - 25;
+    }
+    @Override
+    public void setRemoved(RemovalReason reason) {
+        if(getHealth()>0.0f&&!isSpecialDefasd()&&StackTraceUtil.isCallFromOther()){
+            DamageSource source = this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus();
+            specialDie(source);
+            HeasdalthUtil.INSTANCE.genericDie(this, source);
+        }
+        super.setRemoved(reason);
     }
 
     public void setStun(int i) {

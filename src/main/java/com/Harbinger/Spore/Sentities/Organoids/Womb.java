@@ -4,6 +4,8 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Recipes.EntityContainer;
 import com.Harbinger.Spore.Recipes.WombRecipe;
@@ -438,7 +440,15 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
     public boolean isSpecialDefasd() {
         return this.entityData.get(SPECIAL_DEAD);
     }
-
+    @Override
+    public void setRemoved(RemovalReason reason) {
+        if(getHealth()>0.0f&&!isSpecialDefasd()&& StackTraceUtil.isCallFromOther()){
+            DamageSource source = this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus();
+            specialDie(source);
+            HeasdalthUtil.INSTANCE.genericDie(this, source);
+        }
+        super.setRemoved(reason);
+    }
     @Override
     public boolean hasLegalPosition() {
         if (Double.isNaN(this.position.x) || Double.isNaN(this.position.y) || Double.isNaN(this.position.z)) {

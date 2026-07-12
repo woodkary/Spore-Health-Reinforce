@@ -2,6 +2,8 @@ package com.Harbinger.Spore.Sentities.Organoids;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
+import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -604,7 +606,15 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     public void setLegalPosition(Vec3 position) {
         this.lastLegalPosition = position;
     }
-
+    @Override
+    public void setRemoved(RemovalReason reason) {
+        if(getHealth()>0.0f&&!isSpecialDefasd()&& StackTraceUtil.isCallFromOther()){
+            DamageSource source = this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus();
+            specialDie(source);
+            HeasdalthUtil.INSTANCE.genericDie(this, source);
+        }
+        super.setRemoved(reason);
+    }
     @Override
     public void specialDie(DamageSource source) {
         isSpecialDead = true;
