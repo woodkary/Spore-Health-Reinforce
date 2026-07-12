@@ -129,6 +129,9 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
 
     @Override
     public <U extends T> void getEntities(EntityTypeTest<T, U> p_261575_, AbortableIterationConsumer<U> p_261925_) {
+        if (!(this.byId instanceof SporeEntityByIdMap)) {
+            this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        }
         for (T entity : this.byId.values()) {
             if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
                 continue;
