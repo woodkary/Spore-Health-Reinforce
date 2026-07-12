@@ -24,6 +24,7 @@ import com.Harbinger.Spore.Sentities.EvolvedInfected.Scamper;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.Organoids.*;
 import com.Harbinger.Spore.Sentities.Projectile.*;
+import com.Harbinger.Spore.Sentities.Signal;
 import com.Harbinger.Spore.Sentities.Utility.*;
 import com.Harbinger.Spore.Sitems.BaseWeapons.*;
 import com.Harbinger.Spore.Sitems.Guns.AbstractSporeGun;
@@ -377,6 +378,12 @@ public class HandlerEvents {
                 } else if (entity1 instanceof Calamity calamity) {
                     incomingMessage = true;
                     calamity.setSearchArea(pos);
+                }else if(entity1 instanceof Proto proto){
+                    Signal signal = proto.getSignal();
+                    if(signal!=null&&signal.active()){
+                        continue;
+                    }
+                    proto.setSignal(new Signal(true,pos));
                 }
             }
 
