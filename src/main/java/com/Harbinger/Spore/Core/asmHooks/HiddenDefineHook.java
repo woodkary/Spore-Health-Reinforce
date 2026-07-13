@@ -43,6 +43,7 @@ public final class HiddenDefineHook implements SelfTransformer {
     private static volatile MethodHandle findLoadedClass;
     private static volatile MethodHandle findBootstrapClassOrNull;
     private static final ThreadLocal<Boolean> TRANSFORMING_CLASS_BYTES = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> LOADING_ORIGINAL_CLASS = new ThreadLocal<>();
     public static final SelfTransformer INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             SelfTransformer.class,
             HiddenDefineHook.class
@@ -204,7 +205,35 @@ public final class HiddenDefineHook implements SelfTransformer {
                 return originalClass;
             }
         }
+        if (Boolean.TRUE.equals(TRANSFORMING_CLASS_BYTES.get())
+                || Boolean.TRUE.equals(LOADING_ORIGINAL_CLASS.get())) {
+            return hidden;
+        }
+        LOADING_ORIGINAL_CLASS.set(Boolean.TRUE);
+        try {
+            for (String possibleName : possibleNames) {
+                Class<?> originalClass = tryLoadOriginalClass(hidden.getClassLoader(), possibleName);
+                if (isCompatibleOriginal(hidden, originalClass)) {
+                    actualHiddenToOriginal.put(hidden, originalClass);
+                    return originalClass;
+                }
+            }
+        } finally {
+            LOADING_ORIGINAL_CLASS.remove();
+        }
         return hidden;
+    }
+
+    private static Class<?> tryLoadOriginalClass(ClassLoader loader, String binaryName) {
+        if (binaryName == null) {
+            return null;
+        }
+        try {
+            return Class.forName(binaryName, false, loader);
+        } catch (ClassNotFoundException | LinkageError | SecurityException ignored) {
+            // A circular or incomplete definition may become loadable after this call stack unwinds.
+            return null;
+        }
     }
 
     private static Class<?> findAlreadyLoadedClass(ClassLoader loader, String binaryName) {
