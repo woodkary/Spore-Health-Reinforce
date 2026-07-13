@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.utils;
 
+import com.Harbinger.Spore.Core.asmHooks.HiddenDefineHook;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.objectweb.asm.ClassWriter;
@@ -41,6 +42,10 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
     public Class<?> tryAvoidHiddenClass(Class<?> clazz){
         if(!clazz.isHidden()){
             return clazz;
+        }
+        Class<?> original = HiddenDefineHook.tryGetOriginalClass(clazz);
+        if (original != clazz) {
+            return original;
         }
         for (Field field : clazz.getDeclaredFields()) {
             if(!Modifier.isStatic(field.getModifiers())){

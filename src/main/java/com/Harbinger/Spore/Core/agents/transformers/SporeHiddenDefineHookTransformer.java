@@ -42,6 +42,8 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
             "(Ljava/lang/Object;" + OBJECT_ARRAY_DESC + ")Ljava/lang/Object;";
     private static final String DEFINE_HIDDEN_HOOK_DESC =
             "(" + LOOKUP_DESC + "[B)[B";
+    private static final String RECORD_HIDDEN_LOOKUP_DESC =
+            "(" + LOOKUP_DESC + ")" + LOOKUP_DESC;
     private static final String FIND_STATIC_HOOK_DESC =
             "(" + METHOD_HANDLE_DESC + ")" + METHOD_HANDLE_DESC;
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
@@ -147,10 +149,15 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
         for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; ) {
             AbstractInsnNode next = insn.getNext();
             if (insn instanceof MethodInsnNode methodInsn) {
-                if (isDefineHiddenClassCall(methodInsn)
-                        && !hasHookBefore(methodInsn, "lookupDefineHiddenClassHook", 8)) {
-                    patchDefineHiddenClassCall(method, methodInsn);
-                    modified = true;
+                if (isDefineHiddenClassCall(methodInsn)) {
+                    if (!hasHookBefore(methodInsn, "lookupDefineHiddenClassHook", 8)) {
+                        patchDefineHiddenClassCall(method, methodInsn);
+                        modified = true;
+                    }
+                    if (!hasHookAfter(methodInsn, "recordHiddenLookup", 1)) {
+                        patchRecordHiddenLookup(method, methodInsn);
+                        modified = true;
+                    }
                 } else if (isFindStaticCall(methodInsn)
                         && !hasHookAfter(methodInsn, "lookupFindDefineClass0StaticHook", 1)) {
                     patchFindStaticCall(method, methodInsn);
@@ -210,6 +217,18 @@ public final class SporeHiddenDefineHookTransformer extends SporeClassFileTransf
         inject.add(new VarInsnNode(Opcodes.ILOAD, initializeLocal));
         inject.add(new VarInsnNode(Opcodes.ALOAD, classOptionsLocal));
         method.instructions.insertBefore(methodInsn, inject);
+    }
+
+    private void patchRecordHiddenLookup(MethodNode method, MethodInsnNode methodInsn) {
+        InsnList inject = new InsnList();
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKESTATIC,
+                HOOK_OWNER,
+                "recordHiddenLookup",
+                RECORD_HIDDEN_LOOKUP_DESC,
+                false
+        ));
+        method.instructions.insert(methodInsn, inject);
     }
 
     private void patchFindStaticCall(MethodNode method, MethodInsnNode methodInsn) {

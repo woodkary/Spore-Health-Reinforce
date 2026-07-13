@@ -17,8 +17,14 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public final class HiddenDefineHook implements SelfTransformer {
     private static final MethodType DEFINE_CLASS0_TYPE = MethodType.methodType(
@@ -34,6 +40,8 @@ public final class HiddenDefineHook implements SelfTransformer {
     );
     private static volatile MethodHandle hookDefineClass0;
     private static volatile MethodHandle rawDefineClass0;
+    private static volatile MethodHandle findLoadedClass;
+    private static volatile MethodHandle findBootstrapClassOrNull;
     private static final ThreadLocal<Boolean> TRANSFORMING_CLASS_BYTES = new ThreadLocal<>();
     public static final SelfTransformer INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             SelfTransformer.class,
@@ -58,6 +66,10 @@ public final class HiddenDefineHook implements SelfTransformer {
     }
     private static boolean jvmtiInstalled=false;
     private static boolean instInstalled=false;
+    private static final Map<Class<?>,String[]> possibleHiddenToOriginalName =
+            Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Class<?>,Class<?>> actualHiddenToOriginal =
+            Collections.synchronizedMap(new WeakHashMap<>());
     public static void inspectHiddenDefine() {
         //同时安装Instrumentation和jvmti监听InstrumentationImpl加载，但不重转换
         IJVNTIPointer jvmtiUtil= JVMTIPointerUtil.newInstance();
@@ -85,6 +97,12 @@ public final class HiddenDefineHook implements SelfTransformer {
         ClassLoader classLoader = lookupClass == null ? null : lookupClass.getClassLoader();
         byte[] transformed = transformClassBytes(classLoader, className, original);
         return transformed == null || transformed.length == 0 ? original : transformed;
+    }
+    public static MethodHandles.Lookup recordHiddenLookup(MethodHandles.Lookup hiddenLookup){
+        if (hiddenLookup != null) {
+            recordHidden(hiddenLookup.lookupClass());
+        }
+        return hiddenLookup;
     }
     //lookup.findStatic的结果重定向到这里，接收lookup.findStatic的结果
     public static MethodHandle lookupFindDefineClass0StaticHook(MethodHandle original){
@@ -121,15 +139,179 @@ public final class HiddenDefineHook implements SelfTransformer {
                                  Object classData) throws Throwable {
         byte[] original = sliceClassBytes(b, off, len);
         byte[] transformed = null;
+        String className=null;
         if (original != null && original.length > 0) {
-            String className = resolveClassName(lookup, original);
+            className = resolveClassName(lookup, original);
             transformed = transformClassBytes(loader, className, original);
         }
+        String cn=className!=null?className.replace("/","."):name;
         MethodHandle defineClass0 = ensureRawDefineClass0();
         if (transformed != null && transformed.length > 0) {
-            return (Class<?>) defineClass0.invoke(loader,lookup,name,transformed,0,transformed.length,pd,initialize,flags,classData);
+            return recordHidden((Class<?>) defineClass0.invoke(loader,lookup,name,transformed,0,transformed.length,pd,initialize,flags,classData),cn,name);
         }
-        return (Class<?>) defineClass0.invoke(loader,lookup,name,b,off,len,pd,initialize,flags,classData);
+        return recordHidden((Class<?>) defineClass0.invoke(loader,lookup,name,b,off,len,pd,initialize,flags,classData),cn,name);
+    }
+    public static Class<?> recordHidden(Class<?> hidden,String... possibleNames){
+        if(hidden==null||!hidden.isHidden()){
+            return hidden;
+        }
+        LinkedHashSet<String> normalizedNames = new LinkedHashSet<>();
+        addNormalizedClassName(normalizedNames, hidden.getName());
+        if (possibleNames != null) {
+            for (String possibleName : possibleNames) {
+                addNormalizedClassName(normalizedNames, possibleName);
+            }
+        }
+        if (normalizedNames.isEmpty()) {
+            return hidden;
+        }
+        synchronized (possibleHiddenToOriginalName) {
+            String[] oldNames = possibleHiddenToOriginalName.get(hidden);
+            if (oldNames != null) {
+                normalizedNames.addAll(Arrays.asList(oldNames));
+            }
+            possibleHiddenToOriginalName.put(hidden, normalizedNames.toArray(String[]::new));
+        }
+        return hidden;
+    }
+    public static Class<?> tryGetOriginalClass(Class<?> hidden){
+        if(hidden==null||!hidden.isHidden()){
+            return hidden;
+        }
+        Class<?> cached = actualHiddenToOriginal.get(hidden);
+        if (cached != null && isCompatibleOriginal(hidden, cached)) {
+            return cached;
+        }
+        if (cached != null) {
+            actualHiddenToOriginal.remove(hidden);
+        }
+        String[] possibleNames;
+        synchronized (possibleHiddenToOriginalName) {
+            String[] recordedNames = possibleHiddenToOriginalName.get(hidden);
+            possibleNames = recordedNames == null ? null : recordedNames.clone();
+        }
+        if(possibleNames==null){
+            String inferredName = normalizeBinaryClassName(hidden.getName());
+            possibleNames = inferredName == null ? null : new String[]{inferredName};
+        }
+        if (possibleNames == null) {
+            return hidden;
+        }
+        for (String possibleName : possibleNames) {
+            Class<?> originalClass=findAlreadyLoadedClass(hidden.getClassLoader(), possibleName);
+            if (isCompatibleOriginal(hidden, originalClass)) {
+                actualHiddenToOriginal.put(hidden,originalClass);
+                return originalClass;
+            }
+        }
+        return hidden;
+    }
+
+    private static Class<?> findAlreadyLoadedClass(ClassLoader loader, String binaryName) {
+        if (binaryName == null) {
+            return null;
+        }
+        try {
+            if (loader == null) {
+                MethodHandle handle = findBootstrapClassOrNull;
+                if (handle == null) {
+                    synchronized (HiddenDefineHook.class) {
+                        handle = findBootstrapClassOrNull;
+                        if (handle == null) {
+                            handle = ClassUtil.getLookup().findStatic(
+                                    ClassLoader.class,
+                                    "findBootstrapClassOrNull",
+                                    MethodType.methodType(Class.class, String.class)
+                            );
+                            findBootstrapClassOrNull = handle;
+                        }
+                    }
+                }
+                return (Class<?>) handle.invoke(binaryName);
+            }
+            MethodHandle handle = findLoadedClass;
+            if (handle == null) {
+                synchronized (HiddenDefineHook.class) {
+                    handle = findLoadedClass;
+                    if (handle == null) {
+                        handle = ClassUtil.getLookup().findVirtual(
+                                ClassLoader.class,
+                                "findLoadedClass",
+                                MethodType.methodType(Class.class, String.class)
+                        );
+                        findLoadedClass = handle;
+                    }
+                }
+            }
+            return (Class<?>) handle.invoke(loader, binaryName);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static void addNormalizedClassName(LinkedHashSet<String> names, String name) {
+        String normalized = normalizeBinaryClassName(name);
+        if (normalized != null) {
+            names.add(normalized);
+        }
+    }
+
+    private static String normalizeBinaryClassName(String name) {
+        if (name == null) {
+            return null;
+        }
+        String normalized = name.trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        int hiddenSuffix = normalized.indexOf("/0x");
+        if (hiddenSuffix < 0) {
+            hiddenSuffix = normalized.indexOf("+0x");
+        }
+        if (hiddenSuffix >= 0) {
+            normalized = normalized.substring(0, hiddenSuffix);
+        }
+        normalized = normalized.replace('/', '.');
+        return normalized.isEmpty() || normalized.indexOf('[') >= 0 || normalized.indexOf(';') >= 0
+                ? null
+                : normalized;
+    }
+
+    private static boolean isCompatibleOriginal(Class<?> hidden, Class<?> candidate) {
+        if (candidate == null
+                || candidate == hidden
+                || candidate.isHidden()
+                || candidate.getClassLoader() != hidden.getClassLoader()) {
+            return false;
+        }
+        String hiddenBinaryName = normalizeBinaryClassName(hidden.getName());
+        if (hiddenBinaryName == null || !hiddenBinaryName.equals(candidate.getName())) {
+            return false;
+        }
+        if (candidate.getSuperclass() != hidden.getSuperclass()
+                || !Arrays.equals(candidate.getInterfaces(), hidden.getInterfaces())) {
+            return false;
+        }
+        try {
+            Field[] hiddenFields = hidden.getDeclaredFields();
+            Field[] candidateFields = candidate.getDeclaredFields();
+            if (hiddenFields.length != candidateFields.length) {
+                return false;
+            }
+            for (int i = 0; i < hiddenFields.length; i++) {
+                Field hiddenField = hiddenFields[i];
+                Field candidateField = candidateFields[i];
+                if (!hiddenField.getName().equals(candidateField.getName())
+                        || hiddenField.getType() != candidateField.getType()
+                        || Modifier.isStatic(hiddenField.getModifiers())
+                        != Modifier.isStatic(candidateField.getModifiers())) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (LinkageError | SecurityException ignored) {
+            return false;
+        }
     }
 
     private static byte[] transformClassBytes(ClassLoader loader, String className, byte[] original) {
