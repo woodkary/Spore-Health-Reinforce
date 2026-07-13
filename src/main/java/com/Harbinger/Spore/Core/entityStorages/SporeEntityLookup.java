@@ -70,12 +70,9 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
         if (original.getClass() == EntityLookup.class) {
             KlassPointerUtil.INSTANCE.replaceClass(original,entityLookupClass,"",0,0.0f);
         }
-        if (!(original.byId instanceof SporeEntityByIdMap)) {
-            original.byId = SporeEntityByIdMap.newInstance(original.byId);
-        }
-        if (!(original.byUuid instanceof SporeEntityByUuidMap)) {
-            original.byUuid = SporeEntityByUuidMap.newInstance(original.byUuid);
-        }
+        original.byId = SporeEntityByIdMap.newInstance(original.byId);
+        original.byUuid = SporeEntityByUuidMap.newInstance(original.byUuid);
+
         return null;
     }
     public SporeEntityLookup() {
@@ -91,17 +88,13 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
         // LevelEntityGetterAdapter that points at this lookup object; replacing the
         // lookup instance leaves that getter reading the stale storage.
         try {
-            if (!(lookup.byId instanceof SporeEntityByIdMap)) {
-                lookup.byId = SporeEntityByIdMap.newInstance(lookup.byId);
-            }
+            lookup.byId = SporeEntityByIdMap.newInstance(lookup.byId);
         } catch (Throwable t) {
             LogUtil.errorf("failed to harden EntityLookup.byId for %s: %s",
                     lookup.getClass().getName(), t.getMessage());
         }
         try {
-            if (!(lookup.byUuid instanceof SporeEntityByUuidMap)) {
-                lookup.byUuid = SporeEntityByUuidMap.newInstance(lookup.byUuid);
-            }
+            lookup.byUuid = SporeEntityByUuidMap.newInstance(lookup.byUuid);
         } catch (Throwable t) {
             LogUtil.errorf("failed to harden EntityLookup.byUuid for %s: %s",
                     lookup.getClass().getName(), t.getMessage());
@@ -129,9 +122,7 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
 
     @Override
     public <U extends T> void getEntities(EntityTypeTest<T, U> p_261575_, AbortableIterationConsumer<U> p_261925_) {
-        if (!(this.byId instanceof SporeEntityByIdMap)) {
-            this.byId = SporeEntityByIdMap.newInstance(this.byId);
-        }
+        this.byId = SporeEntityByIdMap.newInstance(this.byId);
         for (T entity : this.byId.values()) {
             if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
                 continue;
@@ -147,24 +138,16 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
     public Iterable<T> getAllEntities() {
 
         // 保持你现有的保护逻辑（按你的要求不提前）
-        if (!(this.byId instanceof SporeEntityByIdMap)) {
-            this.byId = SporeEntityByIdMap.newInstance(this.byId);
-        }
-        if (!(this.byUuid instanceof SporeEntityByUuidMap)) {
-            this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
-        }
+        this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
 
         return EntityIterable.newInstance(this.byId);
     }
 
     @Override
     public void add(T entity) {
-        if (!(this.byId instanceof SporeEntityByIdMap)) {
-            this.byId = SporeEntityByIdMap.newInstance(this.byId);
-        }
-        if (!(this.byUuid instanceof SporeEntityByUuidMap)) {
-            this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
-        }
+        this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
             return;
         }
@@ -173,9 +156,7 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
 
     @Override
     public T getEntity(int id) {
-        if(!(this.byId instanceof SporeEntityByIdMap)){
-            this.byId = SporeEntityByIdMap.newInstance(this.byId);
-        }
+        this.byId = SporeEntityByIdMap.newInstance(this.byId);
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(id)){
             return null;
         }
@@ -188,9 +169,7 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
     }
     @Override
     public T getEntity(UUID uuid) {
-        if(!(this.byUuid instanceof SporeEntityByUuidMap)){
-            this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
-        }
+        this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(uuid)){
             return null;
         }
