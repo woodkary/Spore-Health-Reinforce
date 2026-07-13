@@ -80,13 +80,13 @@ public final class SporeServerLevel extends ServerLevel {
         this.getEntities(p_262152_, p_261808_, p_261583_, Integer.MAX_VALUE);
     }
     public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> p_261842_, Predicate<? super T> p_262091_, List<? super T> p_261703_, int p_261907_) {
-        List<? super T> filtered=new ArrayList<>();
+        super.getEntities(p_261842_, p_262091_, p_261703_, p_261907_);
         for (Object entity : p_261703_) {
-            if(!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
-                filtered.add((T)entity);
+            if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
+                //super里可以add，所以这里可以remove
+                p_261703_.remove((T)entity);
             }
         }
-        super.getEntities(p_261842_, p_262091_, filtered, p_261907_);
     }
     public @NotNull LevelEntityGetter<Entity> getEntities() {
         if(this.entityManager.entityGetter.getClass()!= SporeEntityGetter.entityGetterClass){
