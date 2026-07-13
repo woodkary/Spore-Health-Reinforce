@@ -1,6 +1,8 @@
 package com.Harbinger.Spore.Core.entityStorages.clientSide;
 
+import com.Harbinger.Spore.Core.entityStorages.SporeEntityCallback;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
+import com.Harbinger.Spore.Core.entityStorages.SporeLevelCallback;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import net.minecraft.world.level.entity.*;
@@ -29,6 +31,9 @@ public final class SporeTransientEntitySectionManager<T extends EntityAccess> ex
     public void addEntity(T p_157654_) {
         if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(p_157654_)) {
             return;
+        }
+        if(!(this.callbacks instanceof SporeLevelCallback<T>)){
+            this.callbacks= SporeEntityCallback.newInstance(this.callbacks);
         }
         super.addEntity(p_157654_);
     }

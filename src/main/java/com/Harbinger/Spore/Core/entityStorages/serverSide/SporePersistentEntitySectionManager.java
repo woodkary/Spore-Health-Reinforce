@@ -1,8 +1,6 @@
 package com.Harbinger.Spore.Core.entityStorages.serverSide;
 
-import com.Harbinger.Spore.Core.entityStorages.ISporeEntityStorage;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntityGetter;
-import com.Harbinger.Spore.Core.entityStorages.SporeKnownUuidsHashSet;
+import com.Harbinger.Spore.Core.entityStorages.*;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
@@ -31,6 +29,28 @@ public final class SporePersistentEntitySectionManager<T extends EntityAccess> e
         } else {
             return true;
         }
+    }
+
+    @Override
+    public void startTicking(T entity) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
+            return;
+        }
+        if(!(this.callbacks instanceof SporeLevelCallback<T>)){
+            this.callbacks= SporeEntityCallback.newInstance(this.callbacks);
+        }
+        super.startTicking(entity);
+    }
+
+    @Override
+    public void startTracking(T entity) {
+        if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
+            return;
+        }
+        if(!(this.callbacks instanceof SporeLevelCallback<T>)){
+            this.callbacks= SporeEntityCallback.newInstance(this.callbacks);
+        }
+        super.startTracking(entity);
     }
 
     @Override
