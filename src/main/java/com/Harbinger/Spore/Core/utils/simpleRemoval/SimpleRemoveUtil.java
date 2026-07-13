@@ -337,6 +337,9 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     }
     @Override
     public boolean isRemoved(Entity entity){
+        if(entity.isRemoved()){
+            return true;
+        }
         return containsKey(entity.level.isClientSide?clientNotSpawning:serverNotSpawning,entity.getClass())||
                 containsKey(entity.level.isClientSide?clientTypeNotSpawning:serverTypeNotSpawning,entity.getType());
     }
