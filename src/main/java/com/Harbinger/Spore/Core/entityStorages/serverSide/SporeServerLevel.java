@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -81,10 +82,12 @@ public final class SporeServerLevel extends ServerLevel {
     }
     public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> p_261842_, Predicate<? super T> p_262091_, List<? super T> p_261703_, int p_261907_) {
         super.getEntities(p_261842_, p_262091_, p_261703_, p_261907_);
-        for (Object entity : p_261703_) {
+        Iterator<? super T> iterator = p_261703_.iterator();
+        while (iterator.hasNext()) {
+            Object entity = iterator.next();
             if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
                 //super里可以add，所以这里可以remove
-                p_261703_.remove((T)entity);
+                iterator.remove();
             }
         }
     }
