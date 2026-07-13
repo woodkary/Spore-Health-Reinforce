@@ -31,6 +31,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -77,6 +78,15 @@ public final class SporeServerLevel extends ServerLevel {
 
     public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> p_262152_, Predicate<? super T> p_261808_, List<? super T> p_261583_) {
         this.getEntities(p_262152_, p_261808_, p_261583_, Integer.MAX_VALUE);
+    }
+    public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> p_261842_, Predicate<? super T> p_262091_, List<? super T> p_261703_, int p_261907_) {
+        List<? super T> filtered=new ArrayList<>();
+        for (Object entity : p_261703_) {
+            if(!SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
+                filtered.add((T)entity);
+            }
+        }
+        super.getEntities(p_261842_, p_262091_, filtered, p_261907_);
     }
     public @NotNull LevelEntityGetter<Entity> getEntities() {
         if(this.entityManager.entityGetter.getClass()!= SporeEntityGetter.entityGetterClass){
