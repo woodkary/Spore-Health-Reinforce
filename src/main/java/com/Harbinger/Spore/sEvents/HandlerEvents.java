@@ -410,6 +410,7 @@ public class HandlerEvents {
                     nukeEntity.setDuration(SConfig.SERVER.nuke_time.get());
                     nukeEntity.setDamage((float) (SConfig.SERVER.nuke_damage.get()*1f));
                     nukeEntity.setPos(x,y,z);
+                    nukeEntity.setFinal();
                     world.addFreshEntity(nukeEntity);
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
