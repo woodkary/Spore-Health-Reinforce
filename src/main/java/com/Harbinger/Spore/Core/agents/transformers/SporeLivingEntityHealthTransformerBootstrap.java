@@ -428,7 +428,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         }
         if (targets.isEmpty()) {
             LogUtil.log("No loaded LivingEntity classes need retransform.");
-            return Collections.emptyList();
+            return List.of();
         }
         if (!instrumentation.isRetransformClassesSupported()) {
             LogUtil.error("RetransformClasses is not supported by current Instrumentation.");
@@ -437,7 +437,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         int transformed = retransformBisected(instrumentation, targets,visited);
         LogUtil.logf("Retransformed %d loaded LivingEntity classes.", transformed);
         if(transformed >= targets.size()){
-            return Collections.emptyList();
+            return List.of();
         }
         Collection<Class<?>> remaining = new HashSet<>(targets);
         for (Class<?> vis : visited) {

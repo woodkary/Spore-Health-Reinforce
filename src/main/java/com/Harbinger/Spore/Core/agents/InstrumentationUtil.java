@@ -15,10 +15,8 @@ public final class InstrumentationUtil implements IInstrumentations {
             Instrumentation.class
     );
     static IInstrumentations INSTANCE;
-    public static Instrumentation inst;
     private static MethodHandle constructor;
     public static void setInstrumentationForAgentBridge(Instrumentation instrumentation) {
-        inst=instrumentation;
         constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 clazz,

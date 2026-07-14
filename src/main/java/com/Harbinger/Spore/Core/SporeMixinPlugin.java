@@ -54,13 +54,11 @@ public final class SporeMixinPlugin implements IMixinConfigPlugin {
         ClassLoader classLoader = SporeMixinPlugin.class.getClassLoader();
         if(classLoader!=null) {
             try {
-                //BytecodeUtil.deffineneClazz(classLoader, "com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil");
                 BytecodeUtil.deffineneClazz(classLoader,"com.Harbinger.Spore.Core.asmHooks.HiddenDefineHook");
             } catch (Throwable e) {
                 LogUtil.errorf("failed to load agents transformer class");
             }
         }
-        //InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl();
         HiddenDefineHook.inspectHiddenDefine();
     }
     static{

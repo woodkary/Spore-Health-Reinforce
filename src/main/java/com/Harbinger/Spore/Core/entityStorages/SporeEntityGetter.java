@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -69,11 +70,14 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(id)){
             return null;
         }
-        T entity=owner.get(id);
-        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
-            return null;
-        }
-        return entity;
+        try {
+            T entity = owner.get(id);
+            if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
+                return null;
+            }
+            return entity;
+        }catch (Throwable ignored){}
+        return null;
     }
 
     @Override
@@ -81,31 +85,43 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(uuid)){
             return null;
         }
-        T entity=owner.get(uuid);
-        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
-            return null;
-        }
-        return entity;
+        try {
+            T entity = owner.get(uuid);
+            if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
+                return null;
+            }
+            return entity;
+        }catch (Throwable ignored){}
+        return null;
     }
 
     @Override
     public Iterable<T> getAll() {
-        return FilteredIterable.newInstance(owner.getAll());
+        try {
+            return FilteredIterable.newInstance(owner.getAll());
+        }catch (Throwable ignored){}
+        return List.of();
     }
 
     @Override
     public <U extends T> void get(EntityTypeTest<T, U> entityTypeTest, AbortableIterationConsumer<U> abortableIterationConsumer) {
-        owner.get(entityTypeTest, abortableIterationConsumer);
+        try {
+            owner.get(entityTypeTest, abortableIterationConsumer);
+        }catch (Throwable ignored){}
     }
 
     @Override
     public void get(AABB aabb, Consumer<T> consumer) {
-        owner.get(aabb, consumer);
+        try {
+            owner.get(aabb, consumer);
+        }catch (Throwable ignored){}
     }
 
     @Override
     public <U extends T> void get(EntityTypeTest<T, U> entityTypeTest, AABB aabb, AbortableIterationConsumer<U> abortableIterationConsumer) {
-        owner.get(entityTypeTest, aabb, abortableIterationConsumer);
+        try {
+            owner.get(entityTypeTest, aabb, abortableIterationConsumer);
+        }catch (Throwable ignored){}
     }
 
     private static final class FilteredIterable<E extends EntityAccess> implements Iterable<E> {

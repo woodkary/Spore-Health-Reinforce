@@ -36,6 +36,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.*;
@@ -470,12 +471,18 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }
     }
     private void createWrapppper(Object entity){
-        Class<?> wrapper = ClassLoaderUtil.INSTANCE.creeateveWrapperHidden(
-                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(
-                        ASMHurtArrowUtil.INSTANCE.getOrginalClass(entity.getClass()))
-        );
+        Class<?> currentClass = entity.getClass();
+        Class<?> originalClass;
+        if(Projectile.class.isAssignableFrom(currentClass)){
+            originalClass=ASMHurtArrowUtil.INSTANCE.getOrginalClass(currentClass);
+        }else if(LivingEntity.class.isAssignableFrom(currentClass)){
+            originalClass=LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getRawOrginalClass(currentClass);
+        }else{
+            originalClass=getOrginalClass(currentClass);
+        }
+        Class<?> wrapper = ClassLoaderUtil.INSTANCE.creeateveWrapperHidden(ClassLoaderUtil.INSTANCE.tryAvoidHiddenClass(originalClass));
         if (wrapper != null) {
-            wrapperToOriginal.putIfAbsent(wrapper,entity.getClass());
+            wrapperToOriginal.putIfAbsent(wrapper, originalClass);
             KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
     }

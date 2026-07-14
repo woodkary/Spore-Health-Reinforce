@@ -1,7 +1,10 @@
 package com.Harbinger.Spore;
 
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
@@ -71,6 +74,15 @@ public class Spore
         SporeEventBus.tick().addSelfListener();
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onMobEffectAdded);
         MinecraftForge.EVENT_BUS.addListener(SporeEffectsUtil.INSTANCE);
+        ClassLoader classLoader = Spore.class.getClassLoader();
+        if(classLoader != null){
+            try {
+                BytecodeUtil.deffineneClazz(classLoader, "com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil");
+            } catch (Throwable e) {
+                LogUtil.errorf("failed to load agents transformer class");
+            }
+        }
+        InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl();
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();
