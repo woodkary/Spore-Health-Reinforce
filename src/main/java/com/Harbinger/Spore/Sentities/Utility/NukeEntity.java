@@ -97,7 +97,10 @@ public class NukeEntity extends Entity {
         setRange(compoundTag.getFloat("range"));
         setInitDuration(compoundTag.getInt("init_duration"));
         setDuration(compoundTag.getInt("duration"));
-          setDamage(compoundTag.getFloat("damage"));
+        setDamage(compoundTag.getFloat("damage"));
+        if(compoundTag.getBoolean("final")){
+            this.setFinal();
+        }
     }
 
     @Override
@@ -107,6 +110,7 @@ public class NukeEntity extends Entity {
         compoundTag.putInt("init_duration",this.getInitDuration());
         compoundTag.putInt("duration",this.getDuration());
         compoundTag.putFloat("damage", this.getDamage());
+        compoundTag.putBoolean("final",this.isFinal());
     }
     @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {
