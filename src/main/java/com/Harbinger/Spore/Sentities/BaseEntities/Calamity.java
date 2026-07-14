@@ -84,6 +84,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     protected int breakCounter;
     private int stun = 0;
     private int crushingTick = 0;
+    private int set_healthDamageCooldown=0;
     private int damageAdaptationCount;
     private boolean isSpecialDead;
     private Vec3 lastLegalPosition = Vec3.ZERO;
@@ -102,6 +103,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         this.xpReward = 50;
         this.setLegalPosition(Vec3.ZERO);
         this.initDATA_HEALTH_IDToZero();
+        set_healthDamageCooldown=0;
     }
 
     protected int calculateFallDamage(float p_149389_, float p_149390_) {
@@ -207,6 +209,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         tag.putInt("adaptationCount", this.getDamageAdaptationCount());
         addFakeAdditionalData(tag);
         addAdditionalLegalPositionData(tag);
+        tag.putInt("setCooldown",set_healthDamageCooldown);
     }
 
     public void setMutationColor(){
@@ -287,6 +290,9 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         }
         readFakeHealthData(tag);
         readAdditionalLegalPositionData(tag);
+        if(tag.contains("setCooldown")) {
+            set_healthDamageCooldown=tag.getInt("setCooldown");
+        }
     }
 
     protected void defineSynchedData() {
@@ -308,6 +314,14 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public void setHealth(float newHealth) {
+        float current = getHealth();
+        float damage= current -newHealth;
+        //由于自定义血量/setHealth冷却会重置，所以上层LivingEntity的setHealth调用不影响
+        if(damage>0&&set_healthDamageCooldown==0){
+            set_healthDamageCooldown=30;
+            newHealth=current-Math.min(damage,10.0f);
+            SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(this,newHealth);
+        }
     }
 
     public boolean isRooted(){
@@ -521,6 +535,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     public void tick() {
         super.tick();
         tickLegalPosition();
+        set_healthDamageCooldown=Math.max(set_healthDamageCooldown-1,0);
         if (this.crushingTick > 0 && !this.level().isClientSide) {
             boolean willPlaySound = this.crushingTick-- % 10 == 0;
             DamageSource source = getCustomDamage(this);
