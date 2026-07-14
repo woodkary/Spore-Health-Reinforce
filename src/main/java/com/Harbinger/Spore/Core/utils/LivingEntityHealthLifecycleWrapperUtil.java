@@ -72,6 +72,10 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
 
     public LivingEntityHealthLifecycleWrapperUtil() {
     }
+    @Override
+    public Class<?> getRawOrginalClass(Class<?> wrapperValue){
+        return wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue);
+    }
 
     @Override
     public Class<?> getOrginalClass(Class<?> wrapperValue){

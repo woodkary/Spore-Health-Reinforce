@@ -3,6 +3,8 @@ package com.Harbinger.Spore.Core.utils;
 import net.minecraft.world.entity.player.Player;
 
 public interface ILivingEntityLifeCycle {
+    Class<?> getRawOrginalClass(Class<?> wrapperValue);
+
     Class<?> getOrginalClass(Class<?> wrapperValue);
 
     void createWrapppperLocal(Object entity);
