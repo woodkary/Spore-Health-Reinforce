@@ -1,11 +1,10 @@
 package com.Harbinger.Spore.Core.agents.transformers;
 
-import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public abstract class SporeClassFileTransformer0 implements ClassFileTransformer {
+public abstract class SporeClassFileTransformer0 implements ISporeClassFileTransformer {
     protected final ConcurrentMap<String, String> superNameCache = new ConcurrentHashMap<>();
 
     static {
