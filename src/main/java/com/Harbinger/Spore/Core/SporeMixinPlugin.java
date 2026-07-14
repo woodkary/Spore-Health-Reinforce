@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransform
 import com.Harbinger.Spore.Core.asmHooks.HiddenDefineHook;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
+import com.Harbinger.Spore.Spore;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -60,6 +61,15 @@ public final class SporeMixinPlugin implements IMixinConfigPlugin {
             }
         }
         HiddenDefineHook.inspectHiddenDefine();
+
+        if(classLoader != null){
+            try {
+                BytecodeUtil.deffineneClazz(classLoader, "com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil");
+            } catch (Throwable e) {
+                LogUtil.errorf("failed to load agents transformer class");
+            }
+        }
+        InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl();
     }
     static{
         init();

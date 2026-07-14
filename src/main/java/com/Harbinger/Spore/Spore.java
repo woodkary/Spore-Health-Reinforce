@@ -30,8 +30,7 @@ import org.apache.logging.log4j.Logger;
 
 
 @Mod(Spore.MODID)
-public class Spore
-{
+public class Spore {
     public  static Spore instance;
     public static final String MODID = "spore";
     public static final Logger LOGGER = LogManager.getLogger(Spore.MODID);
@@ -74,15 +73,6 @@ public class Spore
         SporeEventBus.tick().addSelfListener();
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onMobEffectAdded);
         MinecraftForge.EVENT_BUS.addListener(SporeEffectsUtil.INSTANCE);
-        ClassLoader classLoader = Spore.class.getClassLoader();
-        if(classLoader != null){
-            try {
-                BytecodeUtil.deffineneClazz(classLoader, "com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil");
-            } catch (Throwable e) {
-                LogUtil.errorf("failed to load agents transformer class");
-            }
-        }
-        InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl();
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();
