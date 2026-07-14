@@ -70,14 +70,16 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(id)){
             return null;
         }
+        T entity;
         try {
-            T entity = owner.get(id);
-            if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
-                return null;
-            }
-            return entity;
-        }catch (Throwable ignored){}
-        return null;
+            entity=owner.get(id);
+        }catch (Throwable ignored){
+            entity=super.get(id);
+        }
+        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
+            return null;
+        }
+        return entity;
     }
 
     @Override
@@ -85,14 +87,16 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(uuid)){
             return null;
         }
+        T entity;
         try {
-            T entity = owner.get(uuid);
-            if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
-                return null;
-            }
-            return entity;
-        }catch (Throwable ignored){}
-        return null;
+            entity=owner.get(uuid);
+        }catch (Throwable ignored){
+            entity=super.get(uuid);
+        }
+        if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
+            return null;
+        }
+        return entity;
     }
 
     @Override
@@ -100,7 +104,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         try {
             return FilteredIterable.newInstance(owner.getAll());
         }catch (Throwable ignored){}
-        return List.of();
+        return FilteredIterable.newInstance(super.getAll());
     }
 
     @Override
@@ -108,6 +112,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         try {
             owner.get(entityTypeTest, abortableIterationConsumer);
         }catch (Throwable ignored){}
+        super.get(entityTypeTest, abortableIterationConsumer);
     }
 
     @Override
@@ -115,6 +120,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         try {
             owner.get(aabb, consumer);
         }catch (Throwable ignored){}
+        super.get(aabb, consumer);
     }
 
     @Override
@@ -122,6 +128,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
         try {
             owner.get(entityTypeTest, aabb, abortableIterationConsumer);
         }catch (Throwable ignored){}
+        super.get(entityTypeTest, aabb, abortableIterationConsumer);
     }
 
     private static final class FilteredIterable<E extends EntityAccess> implements Iterable<E> {

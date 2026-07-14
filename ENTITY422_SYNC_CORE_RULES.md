@@ -100,7 +100,7 @@
 - 首选路径是在定义前转换。`spore.mixins.json` 必须继续声明 `Core.SporeMixinPlugin`；插件加载 `HiddenDefineHook.inspectHiddenDefine()`，后者通过 Instrumentation/JVMTI 安装 `SporeHiddenDefineHookTransformer`，但不主动重转换已加载调用者。
 - `SporeHiddenDefineHookTransformer` 只扫描 `StackTraceUtil.isBadModName(...)` 目标，并覆盖直接 `Lookup#defineHiddenClass`、反射 `Method.invoke` 到 `defineHiddenClass`/`makeHiddenClassDefiner`，以及 `Lookup#findStatic` 获取 `ClassLoader#defineClass0` 的路径。反射 Method 判定必须以内联 ASM 完成，非目标调用不能先加载 `HiddenDefineHook`；新增分支必须用 `COMPUTE_FRAMES | COMPUTE_MAXS`。
 - `HiddenDefineHook` 必须在原始 bytes 定义前串联 health/effect transformer，并保留 `ThreadLocal` 重入保护、原 bytes 回退和原始 `defineClass0` MethodHandle，避免 `ClassCircularityError` 或递归再次定义。
-- `InstrumentationImplTransformUtil` 目前在 `SporeMixinPlugin` 中未启用，但源码、接口和转换逻辑仍是必要保留项；不要把“必须保留”改写为“同步后必须启用”。其用途是修改 `sun.instrument.InstrumentationImpl#transform(...)`，阻止非本 mod 的 Instrumentation 转换 Spore 类。
+- `InstrumentationImplTransformUtil` 是正式启用的启动保护：`SporeMixinPlugin` 必须定义该 transformer 类并调用 `InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl()`。该入口必须先完成 agent attach 和 bootstrap `SporeAgent.getRealByte(...)` bridge 检查，再优先通过 Instrumentation 注册/重转换 `sun.instrument.InstrumentationImpl`，失败时回退 JVMTI；不能仅保留源码而移除启用调用。
 - `SporeFrameClassWriter` 必须保留基于 class resource/缓存的 `getCommonSuperClass`、接口/数组及隐藏类 `/0x`/`+0x` 名称兼容，避免帧计算通过 `Class.forName` 触发加载或对隐藏类解析失败。
 - 所有核心 transformer 必须继续调用 `SporeTransformerDebugDump.rememberTransformed(...)`；bootstrap 的 Instrumentation/JVMTI 失败分支必须调用 `dumpFailedTransform(...)`，保留 input/transformed class 与元数据，以便定位无 message 的 `VerifyError`。
 - `LivingEntityHealthLifecycleWrapperUtil` 的死亡 tick 包装逻辑应保留 `forceDeathTimeIncreasing` 语义：不是粗暴把 tick 改成只调用 death tick，而是在原 tick 后强制死亡时间继续增长。
@@ -330,7 +330,7 @@ rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_
 - JVMTI/Instrumentation 双后端、native `ClassFileLoadHook`、`sporeAgent.jar`、C 源码/JNI header/当前 DLL 均有代码和跟踪证据；若 native 源码或签名变化，DLL 已同步重编译。
 - 已定义隐藏类兜底重转换入口仍由 `HeasdalthUtil` 调用，并保留依赖预加载、flag 临时清除/`finally` 恢复、独立 transformer 安装状态与二分失败隔离。
 - 定义前转换链有完整入口证据：`spore.mixins.json -> SporeMixinPlugin -> HiddenDefineHook.inspectHiddenDefine -> SporeHiddenDefineHookTransformer -> HiddenDefineHook -> health/effect transformers`；反射判定内联且 `HiddenDefineHook` 有 `ThreadLocal` 重入保护。
-- `SporeFrameClassWriter` 和 `SporeTransformerDebugDump` 仍被核心 transformer/bootstrap 实际调用；`InstrumentationImplTransformUtil` 保留但不被误设为当前强制启用入口。
+- `SporeFrameClassWriter` 和 `SporeTransformerDebugDump` 仍被核心 transformer/bootstrap 实际调用；`SporeMixinPlugin` 中有 `InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl()` 的当前启用证据，且 Instrumentation/JVMTI 重转换必须以实际应用 Hook 为成功条件。
 - `UtilityEntity`/`Infected` 自定义 `sporeTarget` 目标字段、`getTarget()`/`setTarget(...)` 覆盖和 Spore 目标过滤全部有代码证据。
 - 旧灾难的 `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 部位弱点额外直接扣血逻辑有代码证据：Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 均保留 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 调用；Verfalldrachen 不属于这条必保规则。
 - `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.attack(...)`。

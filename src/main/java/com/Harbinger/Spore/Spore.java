@@ -1,10 +1,7 @@
 package com.Harbinger.Spore;
 
 import com.Harbinger.Spore.Core.*;
-import com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
-import com.Harbinger.Spore.Core.utils.BytecodeUtil;
-import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
