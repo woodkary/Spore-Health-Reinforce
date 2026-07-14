@@ -232,7 +232,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         return map.containsKey(clazz)||map.containsKey(getOrginalClass(clazz));
     }
     private boolean containsKey(Map<EntityType<?>, Integer> map, EntityType<?> type) {
-        return map.containsKey(type);
+        return type!=null&&map.containsKey(type);
     }
     @Override
     public boolean checkIsRemovedAndUpdate(Object target){
