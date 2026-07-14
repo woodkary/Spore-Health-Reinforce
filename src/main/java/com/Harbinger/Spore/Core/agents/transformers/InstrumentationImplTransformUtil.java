@@ -11,12 +11,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.JumpInsnNode;
-import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
@@ -27,9 +22,9 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
     private static final String INSTRUMENTATION_IMPL_INTERNAL = "sun/instrument/InstrumentationImpl";
     private static final String TARGET_METHOD_NAME = "transform";
     private static final String TARGET_METHOD_DESC = "(Ljava/lang/Module;Ljava/lang/ClassLoader;Ljava/lang/String;Ljava/lang/Class;Ljava/security/ProtectionDomain;[BZ)[B";
-    private static final String SPORE_INTERNAL_PREFIX = "com/Harbinger/Spore";
+    private static final String SPORE_INTERNAL_PREFIX = "com/Harbinger/Spore/Core";
     private static final String SELF_INTERNAL = "com/Harbinger/Spore/Core/agents/transformers/InstrumentationImplTransformUtil";
-    private static final String SHOULD_SKIP_TRANSFORM_DESC = "(Ljava/lang/instrument/Instrumentation;Ljava/lang/String;)Z";
+    private static final String GET_REAL_BYTE_DESC = "(Ljava/lang/instrument/Instrumentation;Ljava/lang/String;[B)[B";
     public static final IInstrumentationImplTransformer INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             IInstrumentationImplTransformer.class,
             InstrumentationImplTransformUtil.class
@@ -53,12 +48,15 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
             instInstalled = true;
         }
     }
+    public static byte[] getRealByte(Instrumentation inst, String className,byte[] original){
+        return shouldSkipTransform(inst,className)?null:original;
+    }
     public static boolean shouldSkipTransform(Instrumentation inst, String className){
         if (className == null || !className.startsWith(SPORE_INTERNAL_PREFIX)) {
             return false;
         }
         Instrumentation current = InstrumentationUtil.inst;
-        return inst != current;
+        return current!=null && inst != current;
     }
 
     @Override
@@ -91,19 +89,10 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
                 if (!TARGET_METHOD_NAME.equals(mn.name)||!TARGET_METHOD_DESC.equals(mn.desc)) {
                     continue;
                 }
-                //以下是对private byte[]
-                //    transform(  Module              module,
-                //                ClassLoader         loader,
-                //                String              classname,
-                //                Class<?>            classBeingRedefined,
-                //                ProtectionDomain    protectionDomain,
-                //                byte[]              classfileBuffer,
-                //                boolean             isRetransformer)
-                //的修改：开头插入指令：if(InstrumentationImplTransformUtil.shouldSkipTransform(this, classname)) return null;
-                //即非本mod安装的Instrumentation不能转换我自己的类（包括可能的隐藏类）。
-                if (patchTransformMethod(classNode.name, mn)) {
+                // Replace every original return value with getRealByte(this, className, original).
+                if (patchTransformMethod(mn)) {
                     modified=true;
-                    LogUtil.log("Transformed sun.instrument.InstrumentationImpl transform method to skip Spore classes.");
+                    LogUtil.log("Transformed sun.instrument.InstrumentationImpl transform return values for Spore classes.");
                 }
             }
             return modified ? toBytes(loader, effectiveClassName, classfileBuffer, classNode) : null;
@@ -114,69 +103,46 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
         }
     }
 
-    private boolean patchTransformMethod(String ownerInternalName, MethodNode method) {
-        if (method == null || method.instructions == null || alreadySkipsSporeClasses(method)) {
+    private boolean patchTransformMethod(MethodNode method) {
+        if (method == null || method.instructions == null || alreadyWrapsReturnValue(method)) {
             return false;
         }
-        AbstractInsnNode firstRealInsn = findFirstRealInstruction(method);
-        if (firstRealInsn == null) {
-            return false;
+        int originalLocal = method.maxLocals;
+        method.maxLocals = originalLocal + 1;
+        boolean modified = false;
+        for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; ) {
+            AbstractInsnNode next = insn.getNext();
+            if (insn.getOpcode() == Opcodes.ARETURN) {
+                InsnList inject = new InsnList();
+                inject.add(new VarInsnNode(Opcodes.ASTORE, originalLocal));
+                inject.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                inject.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                inject.add(new VarInsnNode(Opcodes.ALOAD, originalLocal));
+                inject.add(new MethodInsnNode(
+                        Opcodes.INVOKESTATIC,
+                        SELF_INTERNAL,
+                        "getRealByte",
+                        GET_REAL_BYTE_DESC,
+                        false
+                ));
+                method.instructions.insertBefore(insn, inject);
+                modified = true;
+            }
+            insn = next;
         }
-        LabelNode continueLabel = new LabelNode();
-        InsnList inject = new InsnList();
-        inject.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        inject.add(new VarInsnNode(Opcodes.ALOAD, 3));
-        inject.add(new MethodInsnNode(
-                Opcodes.INVOKESTATIC,
-                SELF_INTERNAL,
-                "shouldSkipTransform",
-                SHOULD_SKIP_TRANSFORM_DESC,
-                false
-        ));
-        inject.add(new JumpInsnNode(Opcodes.IFEQ, continueLabel));
-        inject.add(new InsnNode(Opcodes.ACONST_NULL));
-        inject.add(new InsnNode(Opcodes.ARETURN));
-        inject.add(continueLabel);
-        inject.add(new FrameNode(
-                Opcodes.F_NEW,
-                8,
-                new Object[]{
-                        ownerInternalName,
-                        "java/lang/Module",
-                        "java/lang/ClassLoader",
-                        "java/lang/String",
-                        "java/lang/Class",
-                        "java/security/ProtectionDomain",
-                        "[B",
-                        Opcodes.INTEGER
-                },
-                0,
-                null
-        ));
-        method.instructions.insertBefore(firstRealInsn, inject);
-        return true;
+        return modified;
     }
 
-    private boolean alreadySkipsSporeClasses(MethodNode method) {
+    private boolean alreadyWrapsReturnValue(MethodNode method) {
         for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
             if (insn instanceof MethodInsnNode methodInsn
                     && SELF_INTERNAL.equals(methodInsn.owner)
-                    && "shouldSkipTransform".equals(methodInsn.name)
-                    && SHOULD_SKIP_TRANSFORM_DESC.equals(methodInsn.desc)) {
+                    && "getRealByte".equals(methodInsn.name)
+                    && GET_REAL_BYTE_DESC.equals(methodInsn.desc)) {
                 return true;
             }
         }
         return false;
-    }
-
-    private AbstractInsnNode findFirstRealInstruction(MethodNode method) {
-        for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
-            if (insn instanceof LabelNode || insn instanceof LineNumberNode || insn.getType() == AbstractInsnNode.FRAME) {
-                continue;
-            }
-            return insn;
-        }
-        return null;
     }
     private byte[] toBytes(ClassLoader loader, String className, byte[] inputBytes, ClassNode classNode) {
         ClassWriter writer = new SporeFrameClassWriter(loader, classNode, ClassWriter.COMPUTE_MAXS);
