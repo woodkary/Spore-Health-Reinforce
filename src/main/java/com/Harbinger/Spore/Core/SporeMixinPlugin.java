@@ -46,6 +46,10 @@ public final class SporeMixinPlugin implements IMixinConfigPlugin {
 
     }
     private static void init(){
+        Throwable.class.toString();
+        try{
+            Class.forName("java.lang.Throwable$WrappedPrintStream");
+        }catch (ClassNotFoundException ignored){}
         ClassLoader classLoader = SporeMixinPlugin.class.getClassLoader();
         if(classLoader!=null) {
             try {
