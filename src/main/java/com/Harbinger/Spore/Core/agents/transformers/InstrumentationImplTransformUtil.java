@@ -63,32 +63,17 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
             return;
         }
 
-        // Prefer JVMTI after the bridge is ready. If this backend cannot retransform
-        // the class, keep the installed hook and fall back to Instrumentation below.
-        IJVNTIPointer jvmtiUtil = JVMTIPointerUtil.newInstance();
-        if (jvmtiUtil != null && !jvmtiInstalled) {
-            jvmtiUtil.addTransformer(this);
-            jvmtiInstalled = jvmtiUtil.isTransformerHookInstalled();
-        }
-        if (canRetransform(jvmtiUtil) && !jvmtiRetransformed) {
-            int generation = successfulTransformGeneration;
-            try {
-                jvmtiUtil.retransformClasses(new Class<?>[]{instImplClass});
-                if (successfulTransformGeneration != generation) {
-                    jvmtiRetransformed = true;
-                    return;
-                }
-                LogUtil.error("JVMTI retransform completed without applying the InstrumentationImpl hook; falling back to Instrumentation.");
-            } catch (Throwable t) {
-                LogUtil.errorf("Cannot retransform sun.instrument.InstrumentationImpl via JVMTI: %s", t.getMessage());
-                LogUtil.printStackTrace(t);
-            }
-        }
-
+        // Prefer Instrumentation because attaching it also prepares the bootstrap
+        // bridge. Initialize JVMTI only when this path cannot apply the hook.
         boolean instrumentationReady = canRetransform(instrumentation);
         if (instrumentationReady && !instInstalled) {
-            instrumentation.addTransformer(this);
-            instInstalled = true;
+            try {
+                instrumentation.addTransformer(this);
+                instInstalled = true;
+            } catch (Throwable t) {
+                LogUtil.errorf("Cannot install InstrumentationImpl transformer via instrumentation: %s", t.getMessage());
+                LogUtil.printStackTrace(t);
+            }
         }
         if (instrumentationReady && instInstalled && !instRetransformed) {
             int generation = successfulTransformGeneration;
@@ -96,13 +81,39 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
                 instrumentation.retransformClasses(new Class<?>[]{instImplClass});
                 if (successfulTransformGeneration != generation) {
                     instRetransformed = true;
+                    return;
                 } else {
-                    LogUtil.error("Instrumentation retransform completed without applying the InstrumentationImpl hook.");
+                    LogUtil.error("Instrumentation retransform completed without applying the InstrumentationImpl hook; falling back to JVMTI.");
                 }
             } catch (UnmodifiableClassException e) {
                 LogUtil.errorf("Cannot retransform sun.instrument.InstrumentationImpl via instrumentation: %s", e.getMessage());
             } catch (Throwable t) {
                 LogUtil.errorf("Unexpected failure retransformed sun.instrument.InstrumentationImpl via instrumentation: %s", t.getMessage());
+                LogUtil.printStackTrace(t);
+            }
+        }
+
+        IJVNTIPointer jvmtiUtil = JVMTIPointerUtil.newInstance();
+        if (jvmtiUtil != null && !jvmtiInstalled) {
+            try {
+                jvmtiUtil.addTransformer(this);
+                jvmtiInstalled = jvmtiUtil.isTransformerHookInstalled();
+            } catch (Throwable t) {
+                LogUtil.errorf("Cannot install InstrumentationImpl transformer via JVMTI: %s", t.getMessage());
+                LogUtil.printStackTrace(t);
+            }
+        }
+        if (canRetransform(jvmtiUtil) && !jvmtiRetransformed) {
+            int generation = successfulTransformGeneration;
+            try {
+                jvmtiUtil.retransformClasses(new Class<?>[]{instImplClass});
+                if (successfulTransformGeneration != generation) {
+                    jvmtiRetransformed = true;
+                } else {
+                    LogUtil.error("JVMTI retransform completed without applying the InstrumentationImpl hook.");
+                }
+            } catch (Throwable t) {
+                LogUtil.errorf("Cannot retransform sun.instrument.InstrumentationImpl via JVMTI: %s", t.getMessage());
                 LogUtil.printStackTrace(t);
             }
         }
