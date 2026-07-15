@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-public class Syringe extends BaseItem2 {
+public final class Syringe extends BaseItem2 {
     public Syringe() {
         super(new Item.Properties());
     }

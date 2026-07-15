@@ -4,7 +4,7 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Sitems.BaseWeapons.DamagePiercingModifier;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
 
-public class InfectedMace extends SporeToolsBaseItem implements DamagePiercingModifier {
+public final class InfectedMace extends SporeToolsBaseItem implements DamagePiercingModifier {
     public InfectedMace() {
         super(SConfig.SERVER.mace_damage.get(), 2f, 3, SConfig.SERVER.mace_durability.get(), 1,"mace");
     }

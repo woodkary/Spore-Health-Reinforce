@@ -6,8 +6,7 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sentities.Projectile.SyringeProjectile;
-import com.Harbinger.Spore.Sitems.Agents.ArmorSyringe;
-import com.Harbinger.Spore.Sitems.Agents.WeaponSyringe;
+import com.Harbinger.Spore.Sitems.Agents.AbstractSyringe;
 import com.google.common.collect.ImmutableSet;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.nbt.CompoundTag;
@@ -144,8 +143,7 @@ public class SyringeGun extends BaseItem2 implements CustomModelArmorData, Vanis
     private int encodeColors(ItemStack stack) {
         if (stack.isEmpty()) return 0;
         if (stack.getItem().equals(Sitems.SYRINGE.get())) return -1;
-        if (stack.getItem() instanceof WeaponSyringe w) return w.getColor();
-        if (stack.getItem() instanceof ArmorSyringe a) return a.getColor();
+        if (stack.getItem() instanceof AbstractSyringe syringe) return syringe.getColor();
         return 0;
     }
 

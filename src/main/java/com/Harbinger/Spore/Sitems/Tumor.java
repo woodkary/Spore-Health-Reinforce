@@ -11,7 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-public class Tumor extends BaseItem {
+public final class Tumor extends BaseItem {
     private final TumorType type;
     public Tumor(TumorType type) {
         super(new Item.Properties().stacksTo(16));
@@ -35,18 +35,5 @@ public class Tumor extends BaseItem {
         }
 
         return InteractionResultHolder.sidedSuccess(itemstack, level.isClientSide());
-    }
-
-    public enum TumorType{
-        REGULAR(0),
-        SICKEN(1),
-        CALCIFIED(2),
-        FROZEN(3),
-        BILE(4);
-        private int type;
-        TumorType(int e){
-            type=e;
-        }
-        public int getType(){return type;}
     }
 }

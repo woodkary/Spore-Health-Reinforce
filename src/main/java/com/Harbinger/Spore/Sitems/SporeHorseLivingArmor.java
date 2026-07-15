@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class SporeHorseLivingArmor extends SporeHorseArmor implements CustomModelArmorData{
+public final class SporeHorseLivingArmor extends SporeHorseArmor implements CustomModelArmorData{
     private static final ResourceLocation LOCATION = new ResourceLocation("spore:textures/armor/living_horse_set.png");
 
     public SporeHorseLivingArmor() {

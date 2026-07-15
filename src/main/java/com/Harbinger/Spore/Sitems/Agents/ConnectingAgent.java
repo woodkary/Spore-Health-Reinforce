@@ -5,7 +5,7 @@ import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import com.Harbinger.Spore.Core.SConfig;
 import net.minecraft.world.item.ItemStack;
 
-public class ConnectingAgent extends MutationAgents{
+public final class ConnectingAgent extends MutationAgents{
     public ConnectingAgent() {
         super(30);
     }

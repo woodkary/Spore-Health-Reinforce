@@ -3,8 +3,6 @@ package com.Harbinger.Spore.Sitems.Agents;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorData;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorMutations;
-import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
-import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -20,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ArmorSyringe extends AbstractSyringe{
+public final class ArmorSyringe extends AbstractSyringe implements ArmorMutationSyringe {
     private final SporeArmorMutations mutations;
     public ArmorSyringe(SporeArmorMutations mutations) {
         this.mutations = mutations;
@@ -32,11 +30,14 @@ public class ArmorSyringe extends AbstractSyringe{
 
     @Override
     public void useSyringe(ItemStack stack, LivingEntity living) {
-        switch (mutations){
-            case REINFORCED -> {living.addEffect(new MobEffectInstance(MobEffects.ABSORPTION,200 ,1));}
-            case SKELETAL -> {living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,400 ,1));}
-            case DROWNED -> {living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING,600,0));}
-            case CHARRED ->{living.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE,600,0));}
+        if (mutations == SporeArmorMutations.REINFORCED) {
+            living.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 200, 1));
+        } else if (mutations == SporeArmorMutations.SKELETAL) {
+            living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 400, 1));
+        } else if (mutations == SporeArmorMutations.DROWNED) {
+            living.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, 600, 0));
+        } else if (mutations == SporeArmorMutations.CHARRED) {
+            living.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600, 0));
         }
         stack.shrink(1);
         addMycelium(living);
@@ -54,6 +55,7 @@ public class ArmorSyringe extends AbstractSyringe{
         return false;
     }
 
+    @Override
     public SporeArmorMutations getMutations(){return mutations;}
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level p_41422_, List<Component> components, TooltipFlag p_41424_) {

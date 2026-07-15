@@ -15,7 +15,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Objects;
 
-public class Innards extends CerebrumItem {
+public final class Innards extends CerebrumItem {
     public Innards() {
         super(null,null, Sblocks.INNARDS_BLOCK.get().defaultBlockState());
     }

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core;
 
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Sitems.*;
 import com.Harbinger.Spore.Sitems.Agents.*;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorMutations;
@@ -12,6 +13,8 @@ import com.Harbinger.Spore.Spore;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -24,6 +27,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class Sitems {
     public  static  final List<Item> BIOLOGICAL_ITEMS = new ArrayList<>();
@@ -34,6 +38,26 @@ public class Sitems {
             DeferredRegister.create(ForgeRegistries.ITEMS, Spore.MODID);
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
+    }
+
+    private static Item hiddenItem(String className) {
+        return hiddenItem(className, new Class<?>[0]);
+    }
+
+    private static Item hiddenItem(String className, Class<?>[] constructorTypes, Object... constructorArgs) {
+        return BytecodeUtil.createInstanceByName(className, constructorTypes, constructorArgs);
+    }
+
+    private static Item hiddenSpawnEgg(Supplier<? extends EntityType<? extends Mob>> type,
+                                       int backgroundColor,
+                                       SpawnEggType spawnEggType) {
+        return hiddenItem(
+                "com.Harbinger.Spore.Sitems.SporeSpawnEgg",
+                new Class<?>[]{Supplier.class, int.class, SpawnEggType.class},
+                type,
+                backgroundColor,
+                spawnEggType
+        );
     }
 
     public  static final RegistryObject<Item> CLAW_FRAGMENT = ITEMS.register("claw_fragment",
@@ -79,7 +103,7 @@ public class Sitems {
     public  static final RegistryObject<Item> TENDONS = ITEMS.register("tendons",
             () -> new BaseItem( new Item.Properties()));
     public  static final RegistryObject<Item> INNARDS = ITEMS.register("innards",
-            Innards::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Innards"));
     public  static final RegistryObject<Item> SICKLE_FRAGMENT = ITEMS.register("sickle_fragment",
             () -> new BaseItem( new Item.Properties()));
     public  static final RegistryObject<Item> FANG = ITEMS.register("fang",
@@ -91,18 +115,18 @@ public class Sitems {
     public  static final RegistryObject<Item> R_WING = ITEMS.register("r_wing",
             () -> new BaseItem( new Item.Properties()));
     public  static final RegistryObject<Item> FUNGAL_BONEMEAL = ITEMS.register("fungal_bonemeal",
-            FungalBonemeal::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.FungalBonemeal"));
 
     public  static final RegistryObject<Item> TUMOR = ITEMS.register("tumor",
-            () -> new Tumor(Tumor.TumorType.REGULAR));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Tumor", new Class<?>[]{TumorType.class}, TumorType.REGULAR));
     public  static final RegistryObject<Item> SICKEN_TUMOR = ITEMS.register("sicken_tumor",
-            () -> new Tumor(Tumor.TumorType.SICKEN));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Tumor", new Class<?>[]{TumorType.class}, TumorType.SICKEN));
     public  static final RegistryObject<Item> CALCIFIED_TUMOR = ITEMS.register("calcified_tumor",
-            () -> new Tumor(Tumor.TumorType.CALCIFIED));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Tumor", new Class<?>[]{TumorType.class}, TumorType.CALCIFIED));
     public  static final RegistryObject<Item> BILE_TUMOR = ITEMS.register("bile_tumor",
-            () -> new Tumor(Tumor.TumorType.BILE));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Tumor", new Class<?>[]{TumorType.class}, TumorType.BILE));
     public  static final RegistryObject<Item> FROZEN_TUMOR = ITEMS.register("frozen_tumor",
-            () -> new Tumor(Tumor.TumorType.FROZEN));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Tumor", new Class<?>[]{TumorType.class}, TumorType.FROZEN));
     public  static final RegistryObject<Item> REFORGED_BIOMASS_T = ITEMS.register("reforged_biomass_t",
             () -> new BaseItem(new Item.Properties()));
     public  static final RegistryObject<Item> REFORGED_BIOMASS_W = ITEMS.register("reforged_biomass_w",
@@ -125,8 +149,9 @@ public class Sitems {
             () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(8).saturationMod(0.8F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
                     .effect(()-> new MobEffectInstance(MobEffects.ABSORPTION,300,1),1f).meat().build())));
     public  static final RegistryObject<Item> FIBER_STEW = ITEMS.register("fiber_stew",
-            () -> new BowlItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(6).saturationMod(1.5F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
-                    .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,300,0),1f).meat().build())));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.BowlItem", new Class<?>[]{Item.Properties.class},
+                    new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(6).saturationMod(1.5F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                            .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,300,0),1f).meat().build())));
     public  static final RegistryObject<Item> HEART_KEBAB = ITEMS.register("heart_kebab",
             () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(2).saturationMod(0.4F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
                     .effect(()-> new MobEffectInstance(MobEffects.HUNGER,100,0),1f).meat().build())));
@@ -137,13 +162,15 @@ public class Sitems {
             () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(10).saturationMod(1.8F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
                     .effect(()-> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,300,1),1f).meat().build())));
     public  static final RegistryObject<Item> VIGIL_EYE_SOUP = ITEMS.register("vigil_eye_soup",
-            () -> new BowlItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(12).saturationMod(1.2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
-                    .effect(()-> new MobEffectInstance(MobEffects.NIGHT_VISION,1200,0),1f).meat().build())));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.BowlItem", new Class<?>[]{Item.Properties.class},
+                    new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(12).saturationMod(1.2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                            .effect(()-> new MobEffectInstance(MobEffects.NIGHT_VISION,1200,0),1f).meat().build())));
     public  static final RegistryObject<Item> MILKY_SACK = ITEMS.register("milky_sack",
             () -> new BaseItem(new Item.Properties().stacksTo(8).food(new FoodProperties.Builder().nutrition(4).saturationMod(1.2F).meat().alwaysEat().build())));
     public  static final RegistryObject<Item> BRAIN_NOODLES = ITEMS.register("brain_noodles",
-            () -> new BowlItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(10).saturationMod(2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
-                    .effect(()-> new MobEffectInstance(MobEffects.DIG_SPEED,300,1),1f).meat().build())));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.BowlItem", new Class<?>[]{Item.Properties.class},
+                    new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(10).saturationMod(2F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                            .effect(()-> new MobEffectInstance(MobEffects.DIG_SPEED,300,1),1f).meat().build())));
     public  static final RegistryObject<Item> FRIED_WING_MEMBRANE = ITEMS.register("fried_wing_membrane",
             () -> new BaseItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder().nutrition(10).saturationMod(3F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
                     .effect(()-> new MobEffectInstance(MobEffects.SLOW_FALLING,300,1),1f).meat().build())));
@@ -154,11 +181,13 @@ public class Sitems {
             () -> new BaseItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(1F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
                     .effect(()-> new MobEffectInstance(MobEffects.JUMP,300,1),1f).meat().build())));
     public  static final RegistryObject<Item> ORGANOID_SOUP = ITEMS.register("organoid_soup",
-            () -> new BowlItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(4F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
-                    .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,400,2),1f).meat().build()).stacksTo(16)));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.BowlItem", new Class<?>[]{Item.Properties.class},
+                    new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(4F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                            .effect(()-> new MobEffectInstance(MobEffects.REGENERATION,400,2),1f).meat().build()).stacksTo(16)));
     public  static final RegistryObject<Item> FUNGAL_SAUCE = ITEMS.register("fungal_sauce",
-            () -> new BowlItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationMod(6F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),400,0),1f)
-                    .meat().build()).stacksTo(16)));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.BowlItem", new Class<?>[]{Item.Properties.class},
+                    new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationMod(6F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),400,0),1f)
+                            .meat().build()).stacksTo(16)));
     public  static final RegistryObject<Item> SLICE_OF_HEARTPIE = ITEMS.register("slice_of_heartpie",
             () -> new BaseItem(new Item.Properties().food(new FoodProperties.Builder().nutrition(6).saturationMod(3F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
                     .effect(()-> new MobEffectInstance(MobEffects.HEALTH_BOOST,100,1),1f)
@@ -195,208 +224,209 @@ public class Sitems {
     public  static final RegistryObject<Item> STUFFED_TORSO = ITEMS.register("stuffed_torso",
             () -> new BaseItem(new Item.Properties()));
     public  static final RegistryObject<Item> DECAYED_LIMBS = ITEMS.register("decayed_limbs",
-            () -> new DecayedLimbs(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(1F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
-                    .effect(()-> new MobEffectInstance(MobEffects.ABSORPTION,300,1),1f).meat().build())));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.DecayedLimbs", new Class<?>[]{Item.Properties.class},
+                    new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(1F).effect(()-> new MobEffectInstance(Seffects.MYCELIUM.get(),200,0),0.4f)
+                            .effect(()-> new MobEffectInstance(MobEffects.ABSORPTION,300,1),1f).meat().build())));
     public static final RegistryObject<Item> HEART_PIE = block(Sblocks.HEART_PIE);
 
     public  static final RegistryObject<Item> INFECTED_HUMAN_SPAWNEGG = ITEMS.register("infected_human_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_HUMAN,-9357608,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_HUMAN,-9357608,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INFECTED_HUSK_SPAWNEGG = ITEMS.register("inf_husk_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_HUSK,-875608,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_HUSK,-875608,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_VILLAGER_SPAWNEGG = ITEMS.register("inf_villager_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_VILLAGER,-6639718,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_VILLAGER,-6639718,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_DISEASED_VILLAGER_SPAWNEGG = ITEMS.register("inf_diseased_villager_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_DISEASED_VILLAGER,-6633211,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_DISEASED_VILLAGER,-6633211,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_WITCH_SPAWNEGG = ITEMS.register("inf_witch_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_WITCH,-8512718,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_WITCH,-8512718,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_PILLAGER_SPAWNEGG = ITEMS.register("inf_pillager_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_PILLAGER,-2312718,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_PILLAGER,-2312718,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_VIND_SPAWNEGG = ITEMS.register("inf_vind_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_VINDICATOR,-984718,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.INF_VINDICATOR,-984718,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> INF_EVO_SPAWNEGG = ITEMS.register("inf_evo_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_EVOKER,-254718,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.INF_EVOKER,-254718,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> INF_WANDERER_SPAWNEGG = ITEMS.register("inf_wanderer_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_WANDERER,-6639718,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_WANDERER,-6639718,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_DROWNED_SPAWNEGG = ITEMS.register("inf_drowned_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_DROWNED,-16751002,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_DROWNED,-16751002,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_PLAYER_SPAWNEGG = ITEMS.register("inf_player_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_PLAYER,-86751002,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_PLAYER,-86751002,SpawnEggType.INFECTED));
     public  static final RegistryObject<Item> INF_HAZMAT_SPAWNEGG = ITEMS.register("inf_hazmat_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_HAZMAT,-6345002,SpawnEggType.INFECTED));
+            () -> hiddenSpawnEgg(Sentities.INF_HAZMAT,-6345002,SpawnEggType.INFECTED));
 
     public  static final RegistryObject<Item> PLAGUED_SPAWNEGG = ITEMS.register("plagued_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.PLAGUED,78294644,SpawnEggType.EXPERIMENT));
+            () -> hiddenSpawnEgg(Sentities.PLAGUED,78294644,SpawnEggType.EXPERIMENT));
     public  static final RegistryObject<Item> LACERATOR_SPAWNEGG = ITEMS.register("lacerator_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.LACERATOR,2412344,SpawnEggType.EXPERIMENT));
+            () -> hiddenSpawnEgg(Sentities.LACERATOR,2412344,SpawnEggType.EXPERIMENT));
     public  static final RegistryObject<Item> BIOBLOOB_SPAWNEGG = ITEMS.register("biobloob_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BIOBLOOB,7412344,SpawnEggType.EXPERIMENT));
+            () -> hiddenSpawnEgg(Sentities.BIOBLOOB,7412344,SpawnEggType.EXPERIMENT));
     public  static final RegistryObject<Item> SAUGLING_SPAWNEGG = ITEMS.register("saugling_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SAUGLING,8901238,SpawnEggType.EXPERIMENT));
+            () -> hiddenSpawnEgg(Sentities.SAUGLING,8901238,SpawnEggType.EXPERIMENT));
 
 
     public  static final RegistryObject<Item> KNIGHT_SPAWNEGG = ITEMS.register("knight_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.KNIGHT,-7681208,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.KNIGHT,-7681208,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> GRIEFER_SPAWNEGG = ITEMS.register("griefer_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.GRIEFER,-5750208,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.GRIEFER,-5750208,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> BRAIO_SPAWNEGG = ITEMS.register("braio_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BRAIOMIL,-6124508,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.BRAIOMIL,-6124508,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> BUSSER_SPAWNEGG = ITEMS.register("busser_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BUSSER,-3724508,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.BUSSER,-3724508,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> LEAPER_SPAWNEGG = ITEMS.register("leaper_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.LEAPER,-9762718,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.LEAPER,-9762718,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> SLASHER_SPAWNEGG = ITEMS.register("slasher_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SLASHER,-8564118,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.SLASHER,-8564118,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> SPITTER_SPAWNEGG = ITEMS.register("spitter_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SPITTER,-8164818,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.SPITTER,-8164818,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> HOWLER_SPAWNEGG = ITEMS.register("howler_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HOWLER,-32464818,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.HOWLER,-32464818,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> STALKER_SPAWNEGG = ITEMS.register("stalker_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.STALKER,-42364818,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.STALKER,-42364818,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> BRUTE_SPAWNEGG = ITEMS.register("brute_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BRUTE,-1235818,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.BRUTE,-1235818,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> VOLATILE_SPAWNEGG = ITEMS.register("volatile_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.VOLATILE,-976435818,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.VOLATILE,-976435818,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> MEPH_SPAWNEGG = ITEMS.register("meph_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.MEPHETIC,-412343453,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.MEPHETIC,-412343453,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> GORGON_SPAWNEGG = ITEMS.register("gorgon_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.GORGON,-65464564,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.GORGON,-65464564,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> INEBRIATER_SPAWNEGG = ITEMS.register("inebriater_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INEBRIATER,-412435818,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.INEBRIATER,-412435818,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> CHEMIST_SPAWNEGG = ITEMS.register("chemist_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.CHEMIST,-455964234,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.CHEMIST,-455964234,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> CONDUCTOR_SPAWNEGG = ITEMS.register("conductor_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.CONDUCTOR,-655964234,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.CONDUCTOR,-655964234,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> THORN_SPAWNEGG = ITEMS.register("thorn_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.THORN,-1243545,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.THORN,-1243545,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> JAGD_SPAWNEGG = ITEMS.register("jagd_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.JAGD,-95469235,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.JAGD,-95469235,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> SCAVENGER_SPAWNEGG = ITEMS.register("scavenger_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SCAVENGER,-54353454,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.SCAVENGER,-54353454,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> BLOATER_SPAWNEGG = ITEMS.register("bloater_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BLOATER,-6834952,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.BLOATER,-6834952,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> NAIAD_SPAWNEGG = ITEMS.register("naiad_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.NAIAD,-336457645,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.NAIAD,-336457645,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> NUCLEA_SPAWNEGG = ITEMS.register("nuclea_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.NUCLEA,-265262544,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.NUCLEA,-265262544,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> PROT_SPAWNEGG = ITEMS.register("prot_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.PROTECTOR,-965262544,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.PROTECTOR,-965262544,SpawnEggType.EVOLVED));
     public  static final RegistryObject<Item> GARG_SPAWNEGG = ITEMS.register("garg_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.GARGOYLE,-923123323,SpawnEggType.EVOLVED));
+            () -> hiddenSpawnEgg(Sentities.GARGOYLE,-923123323,SpawnEggType.EVOLVED));
 
     public  static final RegistryObject<Item> SCENT_SPAWNEGG = ITEMS.register("scent_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SCENT,-1,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.SCENT,-1,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> BAIRN = ITEMS.register("bairn_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BAIRN,-2433455,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.BAIRN,-2433455,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> ILLUSION_SPAWNEGG = ITEMS.register("illusion_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.ILLUSION,-1,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.ILLUSION,-1,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> SCAMPER_SPAWNEGG = ITEMS.register("scamper_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SCAMPER,-33777216,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.SCAMPER,-33777216,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> GASTGABER_SPAWNEGG = ITEMS.register("gastgaber_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.GASTGABER,-241247216,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.GASTGABER,-241247216,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> SPECTER_SPAWNEGG = ITEMS.register("specter_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SPECTER,-876534333,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.SPECTER,-876534333,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> REAPER_SPAWNEGG = ITEMS.register("reaper_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.REAPER,-454534333,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.REAPER,-454534333,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> CONSTRUCT_SPAWNEGG = ITEMS.register("construct_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INF_CONSTRUCT,-65242341,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.INF_CONSTRUCT,-65242341,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> VANGUARD_SPAWNEGG = ITEMS.register("vanguard_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.VANGUARD,-87345354,SpawnEggType.UNKNOWN));
+            () -> hiddenSpawnEgg(Sentities.VANGUARD,-87345354,SpawnEggType.UNKNOWN));
 
     public  static final RegistryObject<Item> MOUND_SPAWNEGG = ITEMS.register("mound_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.MOUND,-5750208,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.MOUND,-5750208,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> VIGIL_SPAWNEGG = ITEMS.register("vigil_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.VIGIL,-64160208,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.VIGIL,-64160208,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> UMARMED_SPAWNEGG = ITEMS.register("umarmed_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.UMARMED,-8650208,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.UMARMED,-8650208,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> USURPER_SPAWNEGG = ITEMS.register("usurper_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.USURPER,-432208,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.USURPER,-432208,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> BRAUREI_SPAWNEGG = ITEMS.register("braurei_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BRAUREI,-745723,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.BRAUREI,-745723,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> VERVA_SPAWNEGG = ITEMS.register("verva_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.VERVA,-412323,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.VERVA,-412323,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> DELUSIONER_SPAWNEGG = ITEMS.register("delusioner_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.DELUSIONARE,-93652400,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.DELUSIONARE,-93652400,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> RECONSTRUCTOR_SPAWNEGG = ITEMS.register("reconstructor_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.RECONSTRUCTOR,-2353208,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.RECONSTRUCTOR,-2353208,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> PROTO_SPAWNEGG = ITEMS.register("proto_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.PROTO,244208,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.PROTO,244208,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> HIVE_SPAWNEGG = ITEMS.register("hive_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HIVETUMOR,321344,SpawnEggType.ORGANOID));
+            () -> hiddenSpawnEgg(Sentities.HIVETUMOR,321344,SpawnEggType.ORGANOID));
 
     public  static final RegistryObject<Item> WENDIGO_SPAWNEGG = ITEMS.register("wendigo_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.WENDIGO,-354345818,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.WENDIGO,-354345818,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> INQUISITOR_SPAWNEGG = ITEMS.register("inquisitor_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.INQUISITOR,-6435818,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.INQUISITOR,-6435818,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> BROTKATZE_SPAWNEGG = ITEMS.register("brotkatze_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.BROTKATZE,-7352318,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.BROTKATZE,-7352318,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> HEVOKER_SPAWNEGG = ITEMS.register("hevoker_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HEVOKER,-867785,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.HEVOKER,-867785,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> OGRE_SPAWNEGG = ITEMS.register("ogre_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.OGRE,-241434523,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.OGRE,-241434523,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> HVINDICATOR_SPAWNEGG = ITEMS.register("hvindicator_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HVINDICATOR,-347898989,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.HVINDICATOR,-347898989,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> GROBERFUB_SPAWNEGG = ITEMS.register("groberfub_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.GROBER,-234242315,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.GROBER,-234242315,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> HOLLEN_SPAWNEGG = ITEMS.register("hollen_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HOLLEN,-124354364,SpawnEggType.HYPER));
+            () -> hiddenSpawnEgg(Sentities.HOLLEN,-124354364,SpawnEggType.HYPER));
 
     public  static final RegistryObject<Item> SIEGER_SPAWNEGG = ITEMS.register("sieger_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.SIEGER,244208,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.SIEGER,244208,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> GAZEN_SPAWNEGG = ITEMS.register("gazen_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.GAZENBREACHER,865020865,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.GAZENBREACHER,865020865,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> HINDEN_SPAWNEGG = ITEMS.register("hinden_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HINDENBURG,346320865,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.HINDENBURG,346320865,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> HOWITZER_SPAWNEGG = ITEMS.register("howitzer_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HOWITZER,18414394,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.HOWITZER,18414394,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> HOHLFRESSER_SPAWNEGG = ITEMS.register("hohlfresser_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.HOHLFRESSER,76414394,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.HOHLFRESSER,76414394,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> KRAKEN_SPAWNEGG = ITEMS.register("kraken_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.KRAKEN,214325443,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.KRAKEN,214325443,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> STAHL_SPAWNEGG = ITEMS.register("stahl_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.STALH,546456633,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.STALH,546456633,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> LEVIATHAN_SPAWNEGG = ITEMS.register("levi_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.LEVIATHAN,24420845,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.LEVIATHAN,24420845,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> VERFALL_SPAWNEGG = ITEMS.register("verfall_spawnegg",
-            () -> new SporeSpawnEgg(Sentities.VERFALL,345346642,SpawnEggType.CALAMITY));
+            () -> hiddenSpawnEgg(Sentities.VERFALL,345346642,SpawnEggType.CALAMITY));
 
     public  static final RegistryObject<Item> ACID = ITEMS.register("acid",
             () -> new Item( new Item.Properties()));
@@ -407,49 +437,50 @@ public class Sitems {
 
 
     public  static final RegistryObject<Item> SABER = ITEMS.register("saber",
-            InfectedSaber::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedSaber"));
     public  static final RegistryObject<Item> GREATSWORD = ITEMS.register("greatsword",
-            InfectedGreatSword::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedGreatSword"));
     public  static final RegistryObject<Item> CLEAVER = ITEMS.register("cleaver",
-            InfectedCleaver::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedCleaver"));
     public  static final RegistryObject<Item> ARMADS = ITEMS.register("armads",
-            InfectedArmads::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedArmads"));
     public  static final RegistryObject<Item> INFECTED_BOW = ITEMS.register("infected_bow",
-            () -> new InfectedGreatBow( new Item.Properties().durability(SConfig.SERVER.bow_durability.get())));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedGreatBow", new Class<?>[]{Item.Properties.class},
+                    new Item.Properties().durability(SConfig.SERVER.bow_durability.get())));
     public  static final RegistryObject<Item> MAUL = ITEMS.register("maul",
-            InfectedMaul::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedMaul"));
     public  static final RegistryObject<Item> COMBAT_PICKAXE = ITEMS.register("combat_pickaxe",
-            InfectedPickaxe::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedPickaxe"));
     public  static final RegistryObject<Item> SCYTHE = ITEMS.register("scythe",
             InfectedScythe::new);
     public  static final RegistryObject<Item> COMBAT_SHOVEL = ITEMS.register("combat_shovel",
             InfectedCombatShovel::new);
     public  static final RegistryObject<Item> INFECTED_SPEAR = ITEMS.register("infected_spear",
-            InfectedSpearItem::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedSpearItem"));
     public  static final RegistryObject<Item> INFECTED_CROSSBOW = ITEMS.register("infected_crossbow",
             InfectedCrossbow::new);
     public  static final RegistryObject<Item> MACE = ITEMS.register("mace",
-            InfectedMace::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedMace"));
     public  static final RegistryObject<Item> SICKLE = ITEMS.register("sickle",
             InfectedSickle::new);
     public  static final RegistryObject<Item> HALBERD = ITEMS.register("halberd",
-            InfectedHalbert::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedHalbert"));
     public  static final RegistryObject<Item> KNIFE = ITEMS.register("knife",
-            InfectedKnife::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedKnife"));
     public  static final RegistryObject<Item> BOOMERANG = ITEMS.register("boomerang",
-            InfectedBoomerang::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedBoomerang"));
     public  static final RegistryObject<Item> RAPIER = ITEMS.register("rapier",
-            InfectedRapier::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedRapier"));
     public  static final RegistryObject<Item> SHIELD = ITEMS.register("shield",
             InfectedShield::new);
     public  static final RegistryObject<Item> MISTMAKER = ITEMS.register("mistmaker",
             MistMaker::new);
     public  static final RegistryObject<Item> BILE_BLASTER = ITEMS.register("bile_blaster",
-            BileBlaster::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Guns.BileBlaster"));
     public  static final RegistryObject<Item> ACIDIC_ASSASSIN = ITEMS.register("acidic_assassin",
-            AcidicAssasin::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Guns.AcidicAssasin"));
     public  static final RegistryObject<Item> TERRORISER = ITEMS.register("terroriser",
-            ToxicTerroriser::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Guns.ToxicTerroriser"));
     public  static final RegistryObject<Item> VIGIL_EYE = ITEMS.register("vigil_eye",
             VigilEye::new);
     public  static final RegistryObject<Item> SYMBIOTIC_REAGENT = ITEMS.register("symbiotic_reagent",
@@ -496,64 +527,68 @@ public class Sitems {
             });
 
     public  static final RegistryObject<Item> INF_HELMET = ITEMS.register("inf_helmet",
-            InfectedHelmet::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedHelmet"));
     public  static final RegistryObject<Item> INF_CHEST = ITEMS.register("inf_chest",
-            InfectedChestplate::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedChestplate"));
     public  static final RegistryObject<Item> INF_PANTS = ITEMS.register("inf_pants",
-            InfectedLeggings::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedLeggings"));
     public  static final RegistryObject<Item> INF_BOOTS = ITEMS.register("inf_boots",
-            InfectedBoots::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedBoots"));
 
     public  static final RegistryObject<Item> PLATED_HELMET = ITEMS.register("plated_helmet",
-            PlatedHelmet::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.PlatedHelmet"));
     public  static final RegistryObject<Item> PLATED_CHEST = ITEMS.register("plated_chest",
-            PlatedChestplate::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.PlatedChestplate"));
     public  static final RegistryObject<Item> PLATED_PANTS = ITEMS.register("plated_pants",
-            PlatedLeggings::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.PlatedLeggings"));
     public  static final RegistryObject<Item> PLATED_BOOTS = ITEMS.register("plated_boots",
-            PlatedBoots::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.PlatedBoots"));
 
     public  static final RegistryObject<Item> LIVING_HELMET = ITEMS.register("living_helmet",
-            LivingHelmet::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.LivingHelmet"));
     public  static final RegistryObject<Item> LIVING_CHEST = ITEMS.register("living_chest",
-            LivingChestplate::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.LivingChestplate"));
     public  static final RegistryObject<Item> LIVING_PANTS = ITEMS.register("living_pants",
-            LivingLeggings::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.LivingLeggings"));
     public  static final RegistryObject<Item> LIVING_BOOTS = ITEMS.register("living_boots",
-            LivingBoots::new);
-    public  static final RegistryObject<Item> R_ELYTRON = ITEMS.register("r_elytron", Elytron.InfectedElytron::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.LivingBoots"));
+    public  static final RegistryObject<Item> R_ELYTRON = ITEMS.register("r_elytron",
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedElytron"));
 
     public  static final RegistryObject<Item> INF_UP_HELMET = ITEMS.register("inf_up_helmet",
-            UpgradedInfectedExoskeleton.InfectedUpHelmet::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedUpHelmet"));
     public  static final RegistryObject<Item> INF_UP_CHESTPLATE = ITEMS.register("inf_up_chest",
-            UpgradedInfectedExoskeleton.InfectedUpChestplate::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedUpChestplate"));
     public  static final RegistryObject<Item> INF_UP_PANTS = ITEMS.register("inf_up_pants",
-            UpgradedInfectedExoskeleton.InfectedUpPants::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedUpPants"));
     public  static final RegistryObject<Item> INF_UP_BOOTS = ITEMS.register("inf_up_boots",
-            UpgradedInfectedExoskeleton.InfectedUpBoots::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedUpBoots"));
 
     public  static final RegistryObject<Item> FLESH_HORSE_ARMOR = ITEMS.register("flesh_horse_armor",
-            SporeHorseFleshArmor::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.SporeHorseFleshArmor"));
     public  static final RegistryObject<Item> PLATED_HORSE_ARMOR = ITEMS.register("plated_horse_armor",
-            SporeHorsePlatedArmor::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.SporeHorsePlatedArmor"));
     public  static final RegistryObject<Item> LIVING_HORSE_ARMOR = ITEMS.register("living_horse_armor",
-            SporeHorseLivingArmor::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.SporeHorseLivingArmor"));
 
 
     public  static final RegistryObject<Item> CORRUPTED_RECORD = ITEMS.register("corrupted_record",
-            CorruptedRecord::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.CorruptedRecord"));
     public  static final RegistryObject<Item> FORGOTTEN_RECORD = ITEMS.register("forgotten_record",
-            ForgottenRecord::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.ForgottenRecord"));
     public  static final RegistryObject<Item> FORSAKEN_RECORD = ITEMS.register("forsaken_record",
-            ForsakenRecord::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.ForsakenRecord"));
     public  static final RegistryObject<Item> BUCKET_OF_BILE = ITEMS.register("bucket_of_bile",
-            () -> new SporeBucket(Sfluids.Bile_FLUID_SOURCE,new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.SporeBucket",
+                    new Class<?>[]{Supplier.class, Item.Properties.class},
+                    Sfluids.Bile_FLUID_SOURCE,
+                    new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)));
     public  static final RegistryObject<Item> GAS_MASK = ITEMS.register("gas_mask",
             GasMaskItem::new);
     public  static final RegistryObject<Item> SCANNER = ITEMS.register("scanner",
             () -> new ScannerItem( new Item.Properties().stacksTo(1)));
     public  static final RegistryObject<Item> BIOMASS = ITEMS.register("biomass",
-            Biomass::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Biomass"));
     public  static final RegistryObject<Item> CIRCUIT_BOARD = ITEMS.register("circuit_board",
             () -> new BaseItem2( new Item.Properties()));
     public  static final RegistryObject<Item> ICE_CANISTER = ITEMS.register("ice_canister",
@@ -567,11 +602,11 @@ public class Sitems {
     public  static final RegistryObject<Item> COMPOUND_PLATE = ITEMS.register("compound_plate",
             () -> new BaseItem2( new Item.Properties()));
     public  static final RegistryObject<Item> HARDENING_AGENT = ITEMS.register("hardening_agent",
-            HardeningAgent::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.HardeningAgent"));
     public  static final RegistryObject<Item> SHARPENING_AGENT = ITEMS.register("sharpening_agent",
-            SharpeningAgent::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.SharpeningAgent"));
     public  static final RegistryObject<Item> INTEGRATING_AGENT = ITEMS.register("integrating_agent",
-            ConnectingAgent::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.ConnectingAgent"));
     public  static final RegistryObject<Item> BILE_VIAL = ITEMS.register("bile_vial",
             () -> new BaseItem2(new Item.Properties()));
     public  static final RegistryObject<Item> ACID_VIAL = ITEMS.register("acid_vial",
@@ -579,29 +614,38 @@ public class Sitems {
     public  static final RegistryObject<Item> TOXIN_VIAL = ITEMS.register("toxin_vial",
             () -> new BaseItem2(new Item.Properties()));
     public  static final RegistryObject<Item> MUTATION_SYRINGE = ITEMS.register("mutation_syringe",
-            MutationSyringe::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.MutationSyringe"));
     public  static final RegistryObject<Item> SYRINGE = ITEMS.register("syringe",
-            Syringe::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.Syringe"));
     public  static final RegistryObject<Item> EVOLUTION_SYRINGE = ITEMS.register("evo_syringe",
-            EvolutionSyringe::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.EvolutionSyringe"));
     public  static final RegistryObject<Item> VAMPIRIC_SYRINGE = ITEMS.register("vampiric_syringe",
-            () -> new WeaponSyringe(SporeToolsMutations.VAMPIRIC));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.WeaponSyringe",
+                    new Class<?>[]{SporeToolsMutations.class}, SporeToolsMutations.VAMPIRIC));
     public  static final RegistryObject<Item> CALCIFIED_SYRINGE = ITEMS.register("calcified_syringe",
-            () -> new WeaponSyringe(SporeToolsMutations.CALCIFIED));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.WeaponSyringe",
+                    new Class<?>[]{SporeToolsMutations.class}, SporeToolsMutations.CALCIFIED));
     public  static final RegistryObject<Item> BEZERK_SYRINGE = ITEMS.register("bezerk_syringe",
-            () -> new WeaponSyringe(SporeToolsMutations.BEZERK));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.WeaponSyringe",
+                    new Class<?>[]{SporeToolsMutations.class}, SporeToolsMutations.BEZERK));
     public  static final RegistryObject<Item> TOXIC_SYRINGE = ITEMS.register("toxic_syringe",
-            () -> new WeaponSyringe(SporeToolsMutations.TOXIC));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.WeaponSyringe",
+                    new Class<?>[]{SporeToolsMutations.class}, SporeToolsMutations.TOXIC));
     public  static final RegistryObject<Item> ROTTEN_SYRINGE = ITEMS.register("rotten_syringe",
-            () -> new WeaponSyringe(SporeToolsMutations.ROTTEN));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.WeaponSyringe",
+                    new Class<?>[]{SporeToolsMutations.class}, SporeToolsMutations.ROTTEN));
     public  static final RegistryObject<Item> REINFORCED_SYRINGE = ITEMS.register("reinforced_syringe",
-            () -> new ArmorSyringe(SporeArmorMutations.REINFORCED));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.ArmorSyringe",
+                    new Class<?>[]{SporeArmorMutations.class}, SporeArmorMutations.REINFORCED));
     public  static final RegistryObject<Item> SKELETAL_SYRINGE = ITEMS.register("skeletal_syringe",
-            () -> new ArmorSyringe(SporeArmorMutations.SKELETAL));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.ArmorSyringe",
+                    new Class<?>[]{SporeArmorMutations.class}, SporeArmorMutations.SKELETAL));
     public  static final RegistryObject<Item> DROWNED_SYRINGE = ITEMS.register("drowned_syringe",
-            () -> new ArmorSyringe(SporeArmorMutations.DROWNED));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.ArmorSyringe",
+                    new Class<?>[]{SporeArmorMutations.class}, SporeArmorMutations.DROWNED));
     public  static final RegistryObject<Item> CHARRED_SYRINGE = ITEMS.register("charred_syringe",
-            () -> new ArmorSyringe(SporeArmorMutations.CHARRED));
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.ArmorSyringe",
+                    new Class<?>[]{SporeArmorMutations.class}, SporeArmorMutations.CHARRED));
     public  static final RegistryObject<Item> REAVER = ITEMS.register("reaver",
             Reaver::new);
     public  static final RegistryObject<Item> PCI = ITEMS.register("pci",
@@ -621,10 +665,19 @@ public class Sitems {
         return ITEMS.register(block.getId().getPath(), () -> new BlockItemBase2(block.get(), new Item.Properties()));
     }
     private static RegistryObject<Item> Techblock(RegistryObject<Block> block) {
-        return ITEMS.register(block.getId().getPath(), () -> new BlockItemBase(block.get(), new Item.Properties()));
+        return ITEMS.register(block.getId().getPath(), () -> hiddenItem(
+                "com.Harbinger.Spore.Sitems.BlockItemBase",
+                new Class<?>[]{Block.class, Item.Properties.class},
+                block.get(),
+                new Item.Properties()
+        ));
     }
     private static RegistryObject<Item> Exceptions(RegistryObject<Block> block) {
-        return ITEMS.register(block.getId().getPath(), () -> new BlockItemCBU(block.get()));
+        return ITEMS.register(block.getId().getPath(), () -> hiddenItem(
+                "com.Harbinger.Spore.Sitems.BlockItemCBU",
+                new Class<?>[]{Block.class},
+                block.get()
+        ));
     }
     public static final RegistryObject<Item> COOKED_TORSO = block(Sblocks.COOKED_TORSO);
     public static final RegistryObject<Item> SKULL_SOUP = soup(Sblocks.SKULL_SOUP);

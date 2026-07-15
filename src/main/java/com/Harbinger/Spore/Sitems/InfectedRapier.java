@@ -8,7 +8,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
 
-public class InfectedRapier extends SporeSwordBase implements DamagePiercingModifier {
+public final class InfectedRapier extends SporeSwordBase implements DamagePiercingModifier {
     public InfectedRapier() {
         super(SConfig.SERVER.rapier_damage.get(), 2, 2, SConfig.SERVER.rapier_durability.get(),"rapier");
     }

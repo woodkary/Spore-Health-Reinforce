@@ -59,6 +59,45 @@ public class BytecodeUtil {
     public static Class<?> resolveHiddenClassOrSelf(Class<?> clazz) {
         return resolveHiddenClassOrSelf(clazz, (Class<?>) null);
     }
+    public static <T> T createInstanceByName(String className, Class<?>[] ctorParamTypes,
+                                             Object... ctorArgs){
+        Class<?>[] safeParamTypes = ctorParamTypes == null ? new Class<?>[0] : ctorParamTypes;
+        Object[] safeArgs = ctorArgs == null ? new Object[0] : ctorArgs;
+        Class<T> targetClass= (Class<T>) resolveHiddenClassByNameSafe(className, safeParamTypes);
+        return instantiateWithLookupFallback(targetClass,safeParamTypes,safeArgs);
+    }
+    //这需要外部调用自己在Class为null时做fallback
+    public static Class<?> resolveHiddenClassByName(String className, Class<?>... ctorParamTypes) {
+        Class<?>[] safeParamTypes = ctorParamTypes == null ? new Class<?>[0] : ctorParamTypes;
+        return resolveHiddenClassByNameSafe(className, safeParamTypes);
+    }
+    //这需要外部调用自己保证safeParamTypes不为空
+    public static Class<?> resolveHiddenClassByNameSafe(String className, Class<?>... safeParamTypes) {
+        Set<String> bootstrapping = HIDDEN_INSTANCE_BOOTSTRAP.get();
+        String key = className + "#" + Arrays.toString(safeParamTypes);
+        if (bootstrapping.contains(key)) {
+            throw new IllegalStateException("Class " + className + " resolved: recursively");
+        }
+
+        bootstrapping.add(key);
+        try {
+            byte[] selfBytes = loadClassBytes(className);
+            if (selfBytes != null && selfBytes.length > 0) {
+                Class<?> hidden = ClassUtil.deffineneHiddenClazz(BytecodeUtil.class, selfBytes, true);
+                if (hidden != null) {
+                    return hidden;
+                }
+            }
+        } catch (Throwable t) {
+            LogUtil.error("failed to instantiate hidden util class, fallback.");
+        } finally {
+            bootstrapping.remove(key);
+            if (bootstrapping.isEmpty()) {
+                HIDDEN_INSTANCE_BOOTSTRAP.remove();
+            }
+        }
+        throw new IllegalStateException("failed to instantiate hidden util class.");
+    }
 
     public static Class<?> resolveHiddenClassOrSelf(Class<?> clazz, Class<?>... ctorParamTypes) {
         if (clazz == null || clazz.isHidden()) {

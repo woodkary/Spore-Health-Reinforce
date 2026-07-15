@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MutationSyringe extends BaseItem2 {
+public final class MutationSyringe extends BaseItem2 {
     public MutationSyringe() {
         super(new Item.Properties().stacksTo(1));
     }

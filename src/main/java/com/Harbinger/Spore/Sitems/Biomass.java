@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class Biomass extends BaseItem2 {
+public final class Biomass extends BaseItem2 {
     public Biomass() {
         super(new Item.Properties().food(new FoodProperties.Builder().nutrition(4).saturationMod(0.3F).meat().effect(new MobEffectInstance(Seffects.MYCELIUM.get(),100,0),0.5f).build()));
     }

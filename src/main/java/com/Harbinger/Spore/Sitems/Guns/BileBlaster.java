@@ -19,7 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
-public class BileBlaster extends AbstractSporeGun implements CustomModelArmorData {
+public final class BileBlaster extends AbstractSporeGun implements CustomModelArmorData {
     private static final ResourceLocation TEXTURE =new ResourceLocation("spore:textures/item/bile_blaster.png");
     public BileBlaster() {
         super(SConfig.SERVER.bile_blaster_durability.get());

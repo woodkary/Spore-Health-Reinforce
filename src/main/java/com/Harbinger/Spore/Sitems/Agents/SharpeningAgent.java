@@ -5,7 +5,7 @@ import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorData;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import net.minecraft.world.item.ItemStack;
 
-public class SharpeningAgent extends MutationAgents{
+public final class SharpeningAgent extends MutationAgents{
     public SharpeningAgent() {
         super(25);
     }

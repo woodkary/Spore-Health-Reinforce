@@ -29,11 +29,10 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InfectedPickaxe extends SporePickaxeItems {
+public final class InfectedPickaxe extends SporePickaxeItems {
     public InfectedPickaxe() {
         super(SConfig.SERVER.inf_pickaxe_damage.get(), 2.5f, 3F, SConfig.SERVER.inf_pickaxe_durability.get(), 7,"pickaxe");
     }
-    record StoreDouble(Block value1, Block value2){}
     private List<StoreDouble> getBlockChange(){
         List<StoreDouble> blocks = new ArrayList<>();
         for (String str : SConfig.DATAGEN.block_infection.get()){
@@ -51,9 +50,9 @@ public class InfectedPickaxe extends SporePickaxeItems {
         if (!values.isEmpty()) {
             BlockState state = level.getBlockState(pos);
             for (StoreDouble storeDouble : values){
-                if (storeDouble.value1.equals(state.getBlock()) && !storeDouble.value1.defaultBlockState().isAir()){
-                    level.setBlock(pos,storeDouble.value2.defaultBlockState(),2);
-                    level.sendBlockUpdated(pos, storeDouble.value1.defaultBlockState(), storeDouble.value2.defaultBlockState(), 2);
+                if (storeDouble.value1().equals(state.getBlock()) && !storeDouble.value1().defaultBlockState().isAir()){
+                    level.setBlock(pos,storeDouble.value2().defaultBlockState(),2);
+                    level.sendBlockUpdated(pos, storeDouble.value1().defaultBlockState(), storeDouble.value2().defaultBlockState(), 2);
                     level.addParticle(Sparticles.SPORE_PARTICLE.get(),pos.getX(),pos.getY(),pos.getZ(),0,0.2f,0);
                 }
             }

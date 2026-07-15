@@ -4,8 +4,8 @@ import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Recipes.InjectionRecipe;
 import com.Harbinger.Spore.Sentities.VariantKeeper;
-import com.Harbinger.Spore.Sitems.Agents.ArmorSyringe;
-import com.Harbinger.Spore.Sitems.Agents.WeaponSyringe;
+import com.Harbinger.Spore.Sitems.Agents.ArmorMutationSyringe;
+import com.Harbinger.Spore.Sitems.Agents.WeaponMutationSyringe;
 import com.Harbinger.Spore.Sitems.BaseWeapons.*;
 import com.Harbinger.Spore.Sitems.BiologicalReagent;
 import com.Harbinger.Spore.Spore;
@@ -142,10 +142,10 @@ public class InjectionRecipeScreen extends AbstractContainerScreen<InjectionReci
         if (!mutatedTool.equals(ItemStack.EMPTY)){
             renderFakeItem(font,guiGraphics,mutatedTool.copy(), leftPos +133, topPos +53);
         }
-        if (stack.getItem() instanceof WeaponSyringe){
+        if (stack.getItem() instanceof WeaponMutationSyringe){
             renderFakeItem(font,guiGraphics,weapon.copy(), leftPos +133, topPos +17);
         }
-        if (stack.getItem() instanceof ArmorSyringe){
+        if (stack.getItem() instanceof ArmorMutationSyringe){
             renderFakeItem(font,guiGraphics,armor.copy(), leftPos +133, topPos +17);
         }
 
@@ -172,14 +172,14 @@ public class InjectionRecipeScreen extends AbstractContainerScreen<InjectionReci
         }
     }
     public ItemStack getCurrentMutantConstruct(ItemStack stack,ItemStack weapon,ItemStack armor){
-        if (stack.getItem() instanceof WeaponSyringe syringe){
+        if (stack.getItem() instanceof WeaponMutationSyringe syringe){
             SporeToolsMutations mutations = syringe.getMutations();
             if (weapon.getItem() instanceof SporeWeaponData sporeToolsBaseItem){
                 sporeToolsBaseItem.setVariant(mutations,weapon);
                 return weapon.copy();
             }
         }
-        if (stack.getItem() instanceof ArmorSyringe syringe){
+        if (stack.getItem() instanceof ArmorMutationSyringe syringe){
             SporeArmorMutations mutations = syringe.getMutations();
             if (armor.getItem() instanceof SporeArmorData sporeToolsBaseItem){
                 sporeToolsBaseItem.setVariant(mutations,armor);

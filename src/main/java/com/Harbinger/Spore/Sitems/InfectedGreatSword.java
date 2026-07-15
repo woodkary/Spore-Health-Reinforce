@@ -14,7 +14,7 @@ import net.minecraftforge.common.ForgeMod;
 
 import java.util.UUID;
 
-public class InfectedGreatSword extends SporeSwordBase {
+public final class InfectedGreatSword extends SporeSwordBase {
     private final UUID BONUS_ARMOR_MODIFIER_UUID = UUID.fromString("6d8794d2-25bc-41ad-8da7-1d2ce0818d75");
     private final UUID BONUS_TOUGHNESS_MODIFIER_UUID = UUID.fromString("69df05bf-4f50-47eb-9108-a55dc2673144");
     public InfectedGreatSword() {

@@ -32,7 +32,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWeapon {
+public final class InfectedCleaver extends SporeSwordBase implements DeathRewardingWeapon {
     private final List<EnAndItem> heads;
     public InfectedCleaver() {
         super(SConfig.SERVER.cleaver_damage.get(), 2.5f, 3F, SConfig.SERVER.cleaver_durability.get(),"cleaver");
@@ -47,8 +47,6 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
     public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
         return true;
     }
-    private record EnAndItem(String id, Item item){}
-
     private List<EnAndItem> getHeads(){
         List<EnAndItem> values = new ArrayList<>();
         for(String string : SConfig.SERVER.cleaver_drops.get()){
@@ -69,8 +67,8 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
     public void computeAfterEffect(LivingEntity victim, LivingEntity source, ItemStack weapon) {
         if (victim.level().isClientSide){return;}
         for (EnAndItem item : heads){
-            if (item.id.equals(victim.getEncodeId()) && Math.random() < 0.1){
-                dropLoot(victim.level(),victim.getX(),victim.getY(),victim.getZ(),new ItemStack(item.item));
+            if (item.id().equals(victim.getEncodeId()) && Math.random() < 0.1){
+                dropLoot(victim.level(),victim.getX(),victim.getY(),victim.getZ(),new ItemStack(item.item()));
                 break;
             }
         }
@@ -108,7 +106,7 @@ public class InfectedCleaver extends SporeSwordBase implements DeathRewardingWea
                 }
 
                 AABB area = player.getBoundingBox().inflate(3.5,1,3.5);
-                List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class, area, e -> e != player && e.isAlive());
+                List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class, area, LivingEntityJudge.newInstance(player));
                 for (LivingEntity target : targets) {
                     this.hurtEnemy(stack,target,player);
                     DamageSource source = player.damageSources().playerAttack(player);

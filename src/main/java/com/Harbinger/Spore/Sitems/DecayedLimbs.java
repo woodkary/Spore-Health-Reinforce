@@ -7,7 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-public class DecayedLimbs extends BaseItem{
+public final class DecayedLimbs extends BaseItem{
     public DecayedLimbs(Properties properties) {
         super(properties);
     }

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class WeaponSyringe extends AbstractSyringe{
+public final class WeaponSyringe extends AbstractSyringe implements WeaponMutationSyringe {
     private final SporeToolsMutations mutations;
     public WeaponSyringe(SporeToolsMutations mutations) {
         this.mutations = mutations;
@@ -30,16 +30,23 @@ public class WeaponSyringe extends AbstractSyringe{
 
     @Override
     public void useSyringe(ItemStack stack, LivingEntity living) {
-        switch (mutations){
-            case VAMPIRIC -> {living.heal(4); living.addEffect(new MobEffectInstance(MobEffects.REGENERATION,400 ,1));}
-            case CALCIFIED -> {living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,600 ,0));}
-            case BEZERK -> {living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED,400,0));living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST,200,0));}
-            case TOXIC ->{living.addEffect(new MobEffectInstance(MobEffects.POISON,300,0));}
-            case ROTTEN ->{living.addEffect(new MobEffectInstance(MobEffects.WITHER,300,0));}
+        if (mutations == SporeToolsMutations.VAMPIRIC) {
+            living.heal(4);
+            living.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 400, 1));
+        } else if (mutations == SporeToolsMutations.CALCIFIED) {
+            living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 600, 0));
+        } else if (mutations == SporeToolsMutations.BEZERK) {
+            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 400, 0));
+            living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0));
+        } else if (mutations == SporeToolsMutations.TOXIC) {
+            living.addEffect(new MobEffectInstance(MobEffects.POISON, 300, 0));
+        } else if (mutations == SporeToolsMutations.ROTTEN) {
+            living.addEffect(new MobEffectInstance(MobEffects.WITHER, 300, 0));
         }
         stack.shrink(1);
         addMycelium(living);
     }
+    @Override
     public SporeToolsMutations getMutations(){return mutations;}
 
     @Override

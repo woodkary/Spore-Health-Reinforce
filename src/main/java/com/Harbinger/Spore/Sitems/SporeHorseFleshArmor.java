@@ -8,7 +8,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-public class SporeHorseFleshArmor extends SporeHorseArmor implements CustomModelArmorData{
+public final class SporeHorseFleshArmor extends SporeHorseArmor implements CustomModelArmorData{
     private static final ResourceLocation LOCATION =new ResourceLocation("spore:textures/armor/flesh_horse_set.png");
 
     public SporeHorseFleshArmor() {

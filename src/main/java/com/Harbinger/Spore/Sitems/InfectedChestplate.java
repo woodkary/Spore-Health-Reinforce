@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class InfectedChestplate extends InfectedExoskeleton{
+public final class InfectedChestplate extends InfectedExoskeleton{
     public InfectedChestplate() {
         super(Type.CHESTPLATE);
     }

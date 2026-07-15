@@ -16,7 +16,9 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 
-public class InfectedBoomerang extends SporeSwordBase {
+import java.util.function.Consumer;
+
+public final class InfectedBoomerang extends SporeSwordBase implements Consumer<Player> {
     public InfectedBoomerang() {
         super(SConfig.SERVER.boomerang_damage.get(), 1f, 3f, SConfig.SERVER.boomerang_durability.get(),"boomerang");
     }
@@ -25,8 +27,7 @@ public class InfectedBoomerang extends SporeSwordBase {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player instanceof ServerPlayer && !level.isClientSide) {
-            stack.hurtAndBreak(1, player, (ss) -> {
-                ss.broadcastBreakEvent(player.getUsedItemHand());});
+            stack.hurtAndBreak(1, player, this);
             ThrownBoomerang thrownSpear = new ThrownBoomerang(level, player, stack,getVariant(stack).getColor());
             thrownSpear.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1F , 0.75F);
             if (player.getAbilities().instabuild) {
@@ -53,4 +54,8 @@ public class InfectedBoomerang extends SporeSwordBase {
         return super.use(level, player, hand);
     }
 
+    @Override
+    public void accept(Player ss) {
+        ss.broadcastBreakEvent(ss.getUsedItemHand());
+    }
 }

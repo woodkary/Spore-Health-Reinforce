@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class InfectedGreatBow extends BowItem implements SporeWeaponData {
+public final class InfectedGreatBow extends BowItem implements SporeWeaponData {
     private final UUID BONUS_DAMAGE_MODIFIER_UUID = UUID.fromString("035e66d6-5a74-402f-b64c-e61432ec39ba");
     private final UUID BONUS_REACH_MODIFIER_UUID = UUID.fromString("d8c35ba5-f440-4335-92b2-3c8b1b703706");
     private final UUID BONUS_RECHARGE_MODIFIER_UUID = UUID.fromString("6dee499d-60f9-4f91-9ae9-fa62f285cc24");

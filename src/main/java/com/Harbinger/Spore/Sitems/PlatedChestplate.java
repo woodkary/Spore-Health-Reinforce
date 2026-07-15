@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class PlatedChestplate extends PlatedExoskeleton {
+public final class PlatedChestplate extends PlatedExoskeleton {
     public PlatedChestplate() {
         super(Type.CHESTPLATE);
     }

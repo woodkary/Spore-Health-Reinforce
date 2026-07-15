@@ -22,7 +22,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class InfectedSpearItem extends SporeSwordBase {
+public final class InfectedSpearItem extends SporeSwordBase {
     public InfectedSpearItem() {
         super(SConfig.SERVER.spear_damage.get(), 2.5f, 3, SConfig.SERVER.spear_durability.get(),"spear");
     }
@@ -51,8 +51,7 @@ public class InfectedSpearItem extends SporeSwordBase {
         if (entity instanceof Player player) {
             int i = this.getUseDuration(stack) - T;
             if (i >= 10 && !level.isClientSide) {
-                            stack.hurtAndBreak(1, player, (ss) -> {
-                            ss.broadcastBreakEvent(entity.getUsedItemHand());});
+                            stack.hurtAndBreak(1, player, HurtAndBreakConsumer.newInstance(entity));
 
                             ThrownSpear thrownSpear = new ThrownSpear(level, player, stack,this.getVariant(stack).getColor());
                             thrownSpear.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 2.5F , 1.0F);

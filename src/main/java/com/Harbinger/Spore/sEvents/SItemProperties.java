@@ -79,7 +79,7 @@ public class SItemProperties {
     }
     private static void makeCleaver(Item item){
         ItemProperties.register(item, new ResourceLocation("swipe"), (stack, p_174586_, player, p_174588_) -> {
-            return stack.getItem() instanceof InfectedCleaver && player != null && player.isUsingItem() ? 1.0F : 0.0F;
+            return stack.getItem() == item && player != null && player.isUsingItem() ? 1.0F : 0.0F;
         });
     }
     private static void makeShield(Item item){

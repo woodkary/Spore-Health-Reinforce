@@ -6,11 +6,11 @@ import com.Harbinger.Spore.Client.MusicManager.MenuMusicPlayer;
 import com.Harbinger.Spore.Client.MusicManager.SporeMusicPlayer;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SporeGunFirePacket;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.Sitems.CustomModelArmorData;
 import com.Harbinger.Spore.Sitems.Guns.AbstractSporeGun;
-import com.Harbinger.Spore.Sitems.Guns.AcidicAssasin;
 import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -108,7 +108,7 @@ public class SpecificClientEvents {
         LocalPlayer player = mc.player;
         if (player == null) return;
         ItemStack stack = player.getMainHandItem();
-        if (stack.getItem() instanceof AcidicAssasin) {
+        if (stack.getItem() == Sitems.ACIDIC_ASSASSIN.get()) {
             if (player.isShiftKeyDown()) {
                 float zoomMultiplier = 0.4f;
                 event.setFOV(event.getFOV() * zoomMultiplier);
@@ -135,7 +135,7 @@ public class SpecificClientEvents {
         int screenHeight = guiGraphics.guiHeight();
 
         ItemStack stack = player.getMainHandItem();
-        if (stack.getItem() instanceof AcidicAssasin) {
+        if (stack.getItem() == Sitems.ACIDIC_ASSASSIN.get()) {
             if (player.isShiftKeyDown()) {
                 renderOverlay(event,screenWidth,screenHeight,ASSASIN_SCOPE,false,0);
             }

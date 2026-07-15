@@ -6,7 +6,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public class LivingBoots extends LivingExoskeleton implements CustomModelArmorData{
+public final class LivingBoots extends LivingExoskeleton implements CustomModelArmorData{
     public LivingBoots() {
         super(Type.BOOTS);
     }

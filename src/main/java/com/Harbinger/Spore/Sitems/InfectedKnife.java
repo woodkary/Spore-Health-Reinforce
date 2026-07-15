@@ -2,6 +2,9 @@ package com.Harbinger.Spore.Sitems;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
+import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Sentities.Projectile.ThrownKnife;
 import com.Harbinger.Spore.Sentities.Projectile.ThrownSpear;
 import com.Harbinger.Spore.Sitems.BaseWeapons.LootModifierWeapon;
@@ -25,7 +28,10 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class InfectedKnife extends SporeSwordBase implements LootModifierWeapon {
+import java.lang.invoke.MethodHandle;
+import java.util.function.Consumer;
+
+public final class InfectedKnife extends SporeSwordBase implements LootModifierWeapon {
     public InfectedKnife() {
         super(SConfig.SERVER.knife_damage.get(), 0, -1, SConfig.SERVER.knife_durability.get(),"knife");
     }
@@ -68,8 +74,7 @@ public class InfectedKnife extends SporeSwordBase implements LootModifierWeapon 
         if (entity instanceof Player player) {
             int i = this.getUseDuration(stack) - T;
             if (i >= 10 && !level.isClientSide) {
-                stack.hurtAndBreak(1, player, (ss) -> {
-                    ss.broadcastBreakEvent(entity.getUsedItemHand());});
+                stack.hurtAndBreak(1, player, HurtAndBreakConsumer.newInstance(entity));
 
                 ThrownKnife thrownSpear = new ThrownKnife(level, player, stack,getVariant(stack).getColor());
                 thrownSpear.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 2F , 0.75F);
@@ -96,4 +101,5 @@ public class InfectedKnife extends SporeSwordBase implements LootModifierWeapon 
             player.awardStat(Stats.ITEM_USED.get(this));
         }
     }
+
 }

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class SporeSpawnEgg extends ForgeSpawnEggItem {
+public final class SporeSpawnEgg extends ForgeSpawnEggItem {
     private final SpawnEggType type;
 
     public SporeSpawnEgg(Supplier<? extends EntityType<? extends Mob>> type, int backgroundColor, SpawnEggType type1) {

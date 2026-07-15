@@ -6,7 +6,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public class LivingHelmet extends LivingExoskeleton  implements CustomModelArmorData{
+public final class LivingHelmet extends LivingExoskeleton  implements CustomModelArmorData{
     public LivingHelmet() {
         super(Type.HELMET);
     }

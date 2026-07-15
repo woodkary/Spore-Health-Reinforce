@@ -6,7 +6,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public class InfectedLeggings extends InfectedExoskeleton{
+public final class InfectedLeggings extends InfectedExoskeleton{
     public InfectedLeggings() {
         super(Type.LEGGINGS);
     }

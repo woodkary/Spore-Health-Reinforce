@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class EvolutionSyringe extends BaseItem2 {
+public final class EvolutionSyringe extends BaseItem2 {
     public EvolutionSyringe() {
         super(new Properties().stacksTo(1));
     }

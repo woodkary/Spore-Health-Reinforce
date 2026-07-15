@@ -5,7 +5,7 @@ import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorData;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
 import net.minecraft.world.item.ItemStack;
 
-public class HardeningAgent extends MutationAgents{
+public final class HardeningAgent extends MutationAgents{
     public HardeningAgent() {
         super(20);
     }

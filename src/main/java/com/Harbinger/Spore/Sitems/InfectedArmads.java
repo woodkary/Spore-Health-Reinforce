@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class InfectedArmads extends SporeAxeItems {
+public final class InfectedArmads extends SporeAxeItems {
     public InfectedArmads() {
         super(SConfig.SERVER.armads_damage.get(), 3.5, 3.2, SConfig.SERVER.armads_durability.get(), 3,"armads");
     }
