@@ -111,6 +111,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
     public <U extends T> void get(EntityTypeTest<T, U> entityTypeTest, AbortableIterationConsumer<U> abortableIterationConsumer) {
         try {
             owner.get(entityTypeTest, abortableIterationConsumer);
+            return;
         }catch (Throwable ignored){}
         super.get(entityTypeTest, abortableIterationConsumer);
     }
@@ -119,6 +120,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
     public void get(AABB aabb, Consumer<T> consumer) {
         try {
             owner.get(aabb, consumer);
+            return;
         }catch (Throwable ignored){}
         super.get(aabb, consumer);
     }
@@ -127,6 +129,7 @@ public final class SporeEntityGetter<T extends EntityAccess> extends LevelEntity
     public <U extends T> void get(EntityTypeTest<T, U> entityTypeTest, AABB aabb, AbortableIterationConsumer<U> abortableIterationConsumer) {
         try {
             owner.get(entityTypeTest, aabb, abortableIterationConsumer);
+            return;
         }catch (Throwable ignored){}
         super.get(entityTypeTest, aabb, abortableIterationConsumer);
     }
