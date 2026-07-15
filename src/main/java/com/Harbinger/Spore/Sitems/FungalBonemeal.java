@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.MushroomBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class FungalBonemeal extends BaseItem implements FoliageSpread {
-    private final static RandomSource random = RandomSource.create();
+    private final RandomSource random = RandomSource.create();
     public FungalBonemeal() {
         super(new Properties());
     }

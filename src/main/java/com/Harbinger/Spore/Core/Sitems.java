@@ -5,12 +5,7 @@ import com.Harbinger.Spore.Sitems.*;
 import com.Harbinger.Spore.Sitems.Agents.*;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
-import com.Harbinger.Spore.Sitems.Guns.AcidicAssasin;
-import com.Harbinger.Spore.Sitems.Guns.BileBlaster;
-import com.Harbinger.Spore.Sitems.Guns.MistMaker;
-import com.Harbinger.Spore.Sitems.Guns.ToxicTerroriser;
 import com.Harbinger.Spore.Spore;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -474,7 +469,7 @@ public class Sitems {
     public  static final RegistryObject<Item> SHIELD = ITEMS.register("shield",
             InfectedShield::new);
     public  static final RegistryObject<Item> MISTMAKER = ITEMS.register("mistmaker",
-            MistMaker::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.Guns.MistMaker"));
     public  static final RegistryObject<Item> BILE_BLASTER = ITEMS.register("bile_blaster",
             () -> hiddenItem("com.Harbinger.Spore.Sitems.Guns.BileBlaster"));
     public  static final RegistryObject<Item> ACIDIC_ASSASSIN = ITEMS.register("acidic_assassin",

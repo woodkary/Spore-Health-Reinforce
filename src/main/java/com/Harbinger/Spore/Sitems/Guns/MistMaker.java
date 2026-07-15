@@ -29,8 +29,8 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public class MistMaker extends AbstractSporeGun implements CustomModelArmorData {
-    private static final ResourceLocation TEXTURE =new ResourceLocation("spore:textures/item/mistmaker.png");
+public final class MistMaker extends AbstractSporeGun implements CustomModelArmorData {
+    private final ResourceLocation TEXTURE =new ResourceLocation("spore:textures/item/mistmaker.png");
     public MistMaker() {
         super(SConfig.SERVER.mistmaker_durability.get());
     }
@@ -116,10 +116,7 @@ public class MistMaker extends AbstractSporeGun implements CustomModelArmorData 
                     startPos.x + radius, startPos.y + radius, startPos.z + radius
             ).expandTowards(lookVec.scale(range));
             List<Entity> entities = level.getEntities(player, attackArea,
-                    entity -> entity instanceof LivingEntity &&
-                            entity != player &&
-                            !entity.isSpectator() &&
-                            entity.isAlive()
+                    new MistMakerEntityJudge(player)
             );
 
             int hitCount = 0;

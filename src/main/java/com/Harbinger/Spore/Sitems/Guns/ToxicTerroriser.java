@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 public final class ToxicTerroriser extends AbstractSporeGun implements CustomModelArmorData {
-    private static final ResourceLocation TEXTURE =new ResourceLocation("spore:textures/item/terroriser.png");
+    private final ResourceLocation TEXTURE =new ResourceLocation("spore:textures/item/terroriser.png");
     public ToxicTerroriser() {
         super(SConfig.SERVER.terroriser_durability.get());
     }
