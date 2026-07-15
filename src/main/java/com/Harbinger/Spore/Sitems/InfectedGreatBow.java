@@ -70,7 +70,7 @@ public final class InfectedGreatBow extends BowItem implements SporeWeaponData {
                     arrowItem = new ItemStack(Items.ARROW);
                 }
 
-                float f = getPowerForTime(i);
+                float f = BowItem.getPowerForTime(i);
                 if (!((double)f < 0.1D)) {
                     boolean flag1 = player.getAbilities().instabuild || (arrowItem.getItem() instanceof ArrowItem && ((ArrowItem)arrowItem.getItem()).isInfinite(arrowItem, stack, player));
                     if (!level.isClientSide) {

@@ -25,7 +25,7 @@ public final class InfectedElytron extends Elytron {
         return Objects.equals(Sitems.BIOMASS.get(), repairitem.getItem());
     }
 
-    public static boolean isFlyEnabled(ItemStack stack) {
+    private boolean isFlyEnabled(ItemStack stack) {
         return stack.getDamageValue() < stack.getMaxDamage() - 10;
     }
 

@@ -10,7 +10,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public final class SporeHorseLivingArmor extends SporeHorseArmor implements CustomModelArmorData{
-    private static final ResourceLocation LOCATION = new ResourceLocation("spore:textures/armor/living_horse_set.png");
+    private final ResourceLocation location = new ResourceLocation("spore:textures/armor/living_horse_set.png");
 
     public SporeHorseLivingArmor() {
         super(SConfig.SERVER.living_h_protection.get());
@@ -18,7 +18,7 @@ public final class SporeHorseLivingArmor extends SporeHorseArmor implements Cust
 
     @Override
     public ResourceLocation getTextureLocation() {
-        return LOCATION;
+        return location;
     }
 
     @Override

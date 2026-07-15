@@ -146,9 +146,9 @@ public final class MistMaker extends AbstractSporeGun implements CustomModelArmo
             }
 
             if (hitCount > 0) {
-                int stomach = getInt(stack, "Stomach");
+                int stomach = AbstractSporeGun.getInt(stack, "Stomach");
                 int newStomach = Math.min(stomach + hitCount, getClipSize());
-                setInt(stack, "Stomach", newStomach);
+                AbstractSporeGun.setInt(stack, "Stomach", newStomach);
                 level.playSound(null, player.getX(), player.getY(), player.getZ(),
                         Ssounds.MISTMAKER_BITE.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
                 int i = calculateDurabilityLostForMutations(1,stack);

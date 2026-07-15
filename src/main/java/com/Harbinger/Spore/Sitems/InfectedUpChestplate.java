@@ -19,7 +19,7 @@ public final class InfectedUpChestplate extends UpgradedInfectedExoskeleton {
         super(Type.CHESTPLATE);
     }
 
-    public static boolean isFlyEnabled(ItemStack stack) {
+    private boolean isFlyEnabled(ItemStack stack) {
         return stack.getDamageValue() < stack.getMaxDamage() - 10;
     }
 

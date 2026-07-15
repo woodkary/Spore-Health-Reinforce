@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public final class SporeHorsePlatedArmor extends SporeHorseArmor implements CustomModelArmorData{
-    private static final ResourceLocation LOCATION = new ResourceLocation("spore:textures/armor/plated_horse_set.png");
+    private final ResourceLocation location = new ResourceLocation("spore:textures/armor/plated_horse_set.png");
 
     public SporeHorsePlatedArmor() {
         super(SConfig.SERVER.plate_h_protection.get());
@@ -16,7 +16,7 @@ public final class SporeHorsePlatedArmor extends SporeHorseArmor implements Cust
 
     @Override
     public ResourceLocation getTextureLocation() {
-        return LOCATION;
+        return location;
     }
 
     @Override

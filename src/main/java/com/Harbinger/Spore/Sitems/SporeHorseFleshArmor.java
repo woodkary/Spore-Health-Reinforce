@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public final class SporeHorseFleshArmor extends SporeHorseArmor implements CustomModelArmorData{
-    private static final ResourceLocation LOCATION =new ResourceLocation("spore:textures/armor/flesh_horse_set.png");
+    private final ResourceLocation location = new ResourceLocation("spore:textures/armor/flesh_horse_set.png");
 
     public SporeHorseFleshArmor() {
         super(SConfig.SERVER.flesh_h_protection.get());
@@ -17,7 +17,7 @@ public final class SporeHorseFleshArmor extends SporeHorseArmor implements Custo
 
     @Override
     public ResourceLocation getTextureLocation() {
-        return LOCATION;
+        return location;
     }
 
 
