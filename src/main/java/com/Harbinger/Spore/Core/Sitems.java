@@ -649,6 +649,10 @@ public class Sitems {
             SyringeGun::new);
 
 
+    public  static final RegistryObject<Item> ENTITY_REMOVER=ITEMS.register("entity_remover",
+    () -> hiddenItem("com.Harbinger.Spore.Sitems.BaseWeapons.EntityRemover"));
+
+
 
 
 
