@@ -20,7 +20,7 @@ public class SporeJudge {
         return isSporeClass(entity.getClass());
     }
     public static boolean isSporeClass(Class<?> clazz) {
-        return clazz.getName().contains("Spore");
+        return clazz.getName().startsWith("com.Harbinger.Spore");
     }
     public static boolean isSporeItem(ItemStack item) {
         return isSporeItem(item.getItem());
