@@ -279,7 +279,7 @@ public final class SporeAttackUtil implements IAttack {
             }
         }
         EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
-        if(attacker instanceof Calamity){
+        if(attacker instanceof Calamity&&!(target instanceof Player)){
             EntityInvulCheckTaskManager.INSTANCE.add(target);
         }
     }
