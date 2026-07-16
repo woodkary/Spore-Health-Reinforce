@@ -26,7 +26,7 @@ import net.minecraftforge.common.ForgeMod;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public final class EntityKiller extends Item implements Predicate<LivingEntity>,IBlockableSwordItem {
+public final class EntityKiller extends Item implements Predicate<Entity>,IBlockableSwordItem {
     private final UUID BONUS_DAMAGE_MODIFIER_UUID = UUID.fromString("035e66d6-5a74-402f-b64c-e61432ec39ba");
     private final UUID BONUS_REACH_MODIFIER_UUID = UUID.fromString("d8c35ba5-f440-4335-92b2-3c8b1b703706");
     private final UUID BONUS_RECHARGE_MODIFIER_UUID = UUID.fromString("6dee499d-60f9-4f91-9ae9-fa62f285cc24");
@@ -50,14 +50,14 @@ public final class EntityKiller extends Item implements Predicate<LivingEntity>,
         if (!(living instanceof Player player)) {
             return;
         }
-        for (LivingEntity entity : SimpleRemoveUtil.INSTANCE.getAllEntities(level, this)) {
+        for (Entity entity : SimpleRemoveUtil.INSTANCE.getAllEntities(level, this)) {
             double x=entity.getX();
             double y=entity.getY();
             double z=entity.getZ();
             SporeAttackUtil.INSTANCE.playSound(level,null, x,y,z,
                     SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1.0F, 1.0F);
             player.crit(entity);
-            EntityHeealuthManager.INSTANCE.killEntity(entity,entity.damageSources().cactus());
+            EntityHeealuthManager.INSTANCE.killEntity((LivingEntity) entity,entity.damageSources().cactus());
         }
     }
     @Override
@@ -82,8 +82,8 @@ public final class EntityKiller extends Item implements Predicate<LivingEntity>,
             return false;
         }
         Entity target= SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
-        if(target!=null){
-            EntityHeealuthManager.INSTANCE.killEntity(entity,entity.damageSources().cactus());
+        if(target instanceof LivingEntity livTar){
+            EntityHeealuthManager.INSTANCE.killEntity(livTar,entity.damageSources().cactus());
         }
         return false;
     }
@@ -118,7 +118,7 @@ public final class EntityKiller extends Item implements Predicate<LivingEntity>,
     }
 
     @Override
-    public boolean test(LivingEntity entity) {
-        return entity instanceof Player;
+    public boolean test(Entity entity) {
+        return !(entity instanceof LivingEntity)||entity instanceof Player;
     }
 }
