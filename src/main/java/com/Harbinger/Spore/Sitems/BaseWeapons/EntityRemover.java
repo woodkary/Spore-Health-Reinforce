@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
+import com.Harbinger.Spore.Core.utils.BossEventUtil;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.google.common.collect.ImmutableMultimap;
@@ -57,7 +58,9 @@ public final class EntityRemover extends Item implements Predicate<Entity>,IBloc
             SporeAttackUtil.INSTANCE.playSound(level,null, x,y,z,
                     SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1.0F, 1.0F);
             player.crit(entity);
-            SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION);
+            if(SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.CHANGED_DIMENSION)){
+                BossEventUtil.INSTANCE.disableBossEvent(entity);
+            }
         }
         SimpleRemoveUtil.INSTANCE.resetRenderData(level);
     }
