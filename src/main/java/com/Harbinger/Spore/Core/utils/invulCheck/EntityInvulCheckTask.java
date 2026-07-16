@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 
 import java.lang.invoke.MethodHandle;
 
@@ -43,7 +44,7 @@ final class EntityInvulCheckTask implements IEntityInvulCheckTask {
     private final LivingEntity entity;
     private final int startCountingTime;
     private int maxDeathTime=0;
-    private int removeCounter=20;
+    private int removeCounter=50;
     public EntityInvulCheckTask(LivingEntity entity) {
         this.entity = entity;
         startCountingTime=entity.tickCount;
@@ -57,7 +58,7 @@ final class EntityInvulCheckTask implements IEntityInvulCheckTask {
         if(entity.deathTime<maxDeathTime){
             --removeCounter;
         }
-        return (removeCounter<=0||entity.tickCount-startCountingTime>400)&&remove();
+        return (removeCounter<=0||entity.tickCount-startCountingTime>(entity.getPose()==Pose.DYING?50:400))&&remove();
     }
     private boolean remove(){
         double x=entity.getX();
