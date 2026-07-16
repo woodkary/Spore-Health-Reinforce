@@ -279,7 +279,7 @@ public final class SporeAttackUtil implements IAttack {
             }
         }
         EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
-        if(target.getHealth()<=0&&attacker instanceof Calamity&&!(target instanceof Player)){
+        if(target.getHealth()<=0.0f&&attacker instanceof Calamity&&!(target instanceof Player)){
             //清除赖着不死的实体
             EntityInvulCheckTaskManager.INSTANCE.add(target);
         }
