@@ -101,7 +101,7 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         if(shutdownField!=null){
             ClassUtil.setFieldValue(shutdownField,this,false);
         }
-        if(event instanceof EntityEvent entityEvent&&!(entityEvent instanceof ItemTooltipEvent)&&SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entityEvent.getEntity())){
+        if(event instanceof EntityEvent entityEvent&&!(entityEvent instanceof ItemTooltipEvent)&&entityEvent.getEntity()!=null&&SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entityEvent.getEntity())){
             return true;
         }
         if(event instanceof MobEffectEvent.Applicable applicable){
