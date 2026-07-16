@@ -114,6 +114,10 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             team.add(config + "_" + add);
         }
     }
+    @Override
+    public void kill(){
+
+    }
 
     protected void initializeValues(){
         this.weights = new double[INPUT_SIZE * OUTPUT_SIZE];

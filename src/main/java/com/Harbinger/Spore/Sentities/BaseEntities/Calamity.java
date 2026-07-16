@@ -130,7 +130,14 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     public void setCrushingTick(int ticks) {
         this.crushingTick = ticks;
     }
-
+    @Override
+    public void kill(){
+        if(set_healthDamageCooldown!=0){
+            return;
+        }
+        set_healthDamageCooldown=30;
+        hurt(damageSources().genericKill(),10.0f);
+    }
     public boolean doHurtTarget(Entity entity) {
         if (super.doHurtTarget(entity)) {
             if (entity instanceof LivingEntity livingEntity) {
