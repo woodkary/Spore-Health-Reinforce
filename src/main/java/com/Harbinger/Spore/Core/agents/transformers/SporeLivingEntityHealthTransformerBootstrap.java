@@ -14,6 +14,8 @@ import java.lang.instrument.ClassFileTransformer;
 import java.util.*;
 
 public final class SporeLivingEntityHealthTransformerBootstrap implements ICommonBootStrap  {
+    private static final String SPORE_PACKAGE_PREFIX = "com.Harbinger.Spore.";
+    private static final String ENTITY_RENDERER_CLASS_NAME = "net.minecraft.client.renderer.entity.EntityRenderer";
     private static final long CLASS_KLASS_OFFSET = 16L;
     private static final long KLASS_ACCESS_FLAGS_OFFSET = 164L;
     private static final int JVM_ACC_IS_HIDDEN_CLASS = 0x04000000;
@@ -337,8 +339,10 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         }
         SelfTransformer healthTransformer = SporeLivingEntityHealthTransformer.newSelfTransformer();
         SelfTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newSelfTransformer();
+        SelfTransformer entityRendererTransformer = SporeEntityRendererTransformer.newSelfTransformer();
         jvmtiUtil.addTransformer(healthTransformer);
         jvmtiUtil.addTransformer(effectApplicationTransformer);
+        jvmtiUtil.addTransformer(entityRendererTransformer);
         jvmtiTransInstalled=jvmtiUtil.isTransformerHookInstalled();
         return true;
     }
@@ -362,8 +366,10 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         }
         ClassFileTransformer healthTransformer = SporeLivingEntityHealthTransformer.newInstance();
         ClassFileTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newInstance();
+        ClassFileTransformer entityRendererTransformer = SporeEntityRendererTransformer.newInstance();
         instrumentation.addTransformer(healthTransformer);
         instrumentation.addTransformer(effectApplicationTransformer);
+        instrumentation.addTransformer(entityRendererTransformer);
         installed = true;
         return true;
     }
@@ -552,7 +558,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
             return false;
         }
-        if (!LivingEntity.class.isAssignableFrom(clazz)) {
+        if (!isLivingEntityOrExternalEntityRenderer(clazz)) {
             return false;
         }
         return instrumentation.isModifiableClass(clazz);
@@ -569,11 +575,26 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
             return false;
         }
-        if (!LivingEntity.class.isAssignableFrom(clazz)) {
+        if (!isLivingEntityOrExternalEntityRenderer(clazz)) {
             return false;
         }
         return jvmtiUtil.isModifiableClass(clazz);
     }
+    private boolean isLivingEntityOrExternalEntityRenderer(Class<?> clazz) {
+        if (LivingEntity.class.isAssignableFrom(clazz)) {
+            return true;
+        }
+        if (clazz.getName().startsWith(SPORE_PACKAGE_PREFIX)) {
+            return false;
+        }
+        for (Class<?> current = clazz; current != null; current = current.getSuperclass()) {
+            if (ENTITY_RENDERER_CLASS_NAME.equals(current.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private boolean shouldRetransformHiddenCandidate(IInstrumentations instrumentation, Class<?> clazz) {
         if (clazz == null
