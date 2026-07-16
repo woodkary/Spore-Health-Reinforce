@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.utils.attack;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.*;
+import com.Harbinger.Spore.Core.utils.invulCheck.EntityInvulCheckTaskManager;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
@@ -259,23 +260,27 @@ public final class SporeAttackUtil implements IAttack {
         target.animateHurt(v);
         target.hurtDuration = 10;
         target.hurtTime = target.hurtDuration;
+        if (!willDie) {
+            return;
+        }
         // ⚡ 目标死亡逻辑
-        if (willDie) {
-            if (attacker!=null) {
-                if(!attacker.level.isClientSide) {
-                    attacker.killedEntity((ServerLevel) attacker.level(), target);
-                }
-                double maxHealth = target.attributes.getValue(Attributes.MAX_HEALTH);
-                attacker.awardKillScore(target, target.deathScore+(int) (maxHealth*0.5),damageSource);
+        if (attacker!=null) {
+            if(!attacker.level.isClientSide) {
+                attacker.killedEntity((ServerLevel) attacker.level(), target);
             }
-            addKills(attacker,2);
-            if(flag==1){
-                SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);
-                if(target instanceof IFakeDataHealthEntity fake){
-                    fake.clearHllealthDelta();
-                }
+            double maxHealth = target.attributes.getValue(Attributes.MAX_HEALTH);
+            attacker.awardKillScore(target, target.deathScore+(int) (maxHealth*0.5),damageSource);
+        }
+        addKills(attacker,2);
+        if(flag==1){
+            SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(target,0.0f);
+            if(target instanceof IFakeDataHealthEntity fake){
+                fake.clearHllealthDelta();
             }
-            EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
+        }
+        EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
+        if(attacker instanceof Calamity){
+            EntityInvulCheckTaskManager.INSTANCE.add(target);
         }
     }
     private void addKills(LivingEntity attacker,Integer count) {

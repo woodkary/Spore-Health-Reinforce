@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
+import com.Harbinger.Spore.Core.utils.invulCheck.EntityInvulCheckTaskManager;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -155,6 +156,11 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
                 }
                 KlassPointerUtil.INSTANCE.replaceClass(manager.sectionStorage, SporeEntitySectionStorage.entitySectionStorageClass, "", 0, 0.0f);
             }
+            if(serverTickEvent.phase==TickEvent.ServerTickEvent.Phase.START){
+                EntityInvulCheckTaskManager.INSTANCE.preServerTick();
+                return;
+            }
+            EntityInvulCheckTaskManager.INSTANCE.postServerTick();
             return;
         }
         SimpleRemoveUtil.INSTANCE.tickClient();
