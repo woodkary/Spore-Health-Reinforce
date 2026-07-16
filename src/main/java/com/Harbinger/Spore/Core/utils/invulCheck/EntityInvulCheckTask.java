@@ -48,7 +48,7 @@ final class EntityInvulCheckTask implements IEntityInvulCheckTask {
         if(entity.deathScore<maxDeathTime){
             --removeCounter;
         }
-        return removeCounter==0&&SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.DISCARDED);
+        return removeCounter<=0&&SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.DISCARDED);
     }
 
     @Override
