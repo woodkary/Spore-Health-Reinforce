@@ -585,7 +585,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 target.entityData.isDirty = true;
             }
         }
-        if(!target.level.isClientSide) {
+        if(!(target instanceof Player&&actualSource.getEntity() instanceof Player&&target.level.isClientSide)) {
             runDeathMethods(target, actualSource);
         }
         setDeathFields(target, true);
