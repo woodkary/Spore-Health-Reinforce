@@ -1,5 +1,7 @@
 package com.Harbinger.Spore.Core.utils;
 
+import com.sun.management.HotSpotDiagnosticMXBean;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -19,14 +21,11 @@ public final class KlassPointerUtil implements IKlassPointer {
     private volatile Function<Class<?>,Number> klassPointerComputeFunction;
     private final boolean compressedClassPointers;
     public KlassPointerUtil() {
-        boolean flag = true;
-        for(String s : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-            if (s.contains("-UseCompressedClassPointers")) {
-                flag = false;
-                break;
-            }
-        }
-        compressedClassPointers = flag;
+        HotSpotDiagnosticMXBean bean =
+                ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class);
+        compressedClassPointers = Boolean.parseBoolean(
+                bean.getVMOption("UseCompressedClassPointers").getValue()
+        );
     }
 
     private int addressSize(){
