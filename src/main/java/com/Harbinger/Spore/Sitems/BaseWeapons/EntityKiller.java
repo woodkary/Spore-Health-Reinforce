@@ -57,7 +57,7 @@ public final class EntityKiller extends Item implements Predicate<Entity>,IBlock
             SporeAttackUtil.INSTANCE.playSound(level,null, x,y,z,
                     SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1.0F, 1.0F);
             player.crit(entity);
-            EntityHeealuthManager.INSTANCE.killEntity((LivingEntity) entity,entity.damageSources().cactus());
+            EntityHeealuthManager.INSTANCE.killEntity((LivingEntity) entity,entity.damageSources().playerAttack(player));
         }
     }
     @Override
@@ -83,7 +83,7 @@ public final class EntityKiller extends Item implements Predicate<Entity>,IBlock
         }
         Entity target= SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
         if(target instanceof LivingEntity livTar){
-            EntityHeealuthManager.INSTANCE.killEntity(livTar,entity.damageSources().cactus());
+            EntityHeealuthManager.INSTANCE.killEntity(livTar,entity.damageSources().playerAttack(player));
         }
         return false;
     }
