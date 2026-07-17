@@ -585,7 +585,9 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 target.entityData.isDirty = true;
             }
         }
-        runDeathMethods(target, actualSource);
+        if(!target.level.isClientSide) {
+            runDeathMethods(target, actualSource);
+        }
         setDeathFields(target, true);
         CompoundTag tag = new CompoundTag();
         target.addAdditionalSaveData(tag);
