@@ -5,7 +5,6 @@ import com.Harbinger.Spore.Core.utils.ASMHurtArrowUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsMutations;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeWeaponData;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -36,7 +35,6 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -47,10 +45,10 @@ import org.joml.Vector3f;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
-public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
+public final class InfectedCrossbow extends CrossbowItem implements SporeWeaponData, UnaryOperator<Component> {
     private boolean startSoundPlayed = false;
     private boolean midLoadSoundPlayed = false;
     private final String desc;
@@ -80,15 +78,15 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         if (!tooHurt(itemstack)){
             return InteractionResultHolder.fail(itemstack);
         }
-        if (isCharged(itemstack)) {
+        if (isCrossBowCharged(itemstack)) {
             performCrossBowShooting(level, player, hand, itemstack, getShootingPower(itemstack), 1.0F);
             if (!player.getAbilities().instabuild){
                 hurtTool(itemstack,player,1);
             }
-            setCharged(itemstack, false);
+            setCrossBowCharged(itemstack, false);
             return InteractionResultHolder.consume(itemstack);
         } else if (!player.getProjectile(itemstack).isEmpty()) {
-            if (!isCharged(itemstack)) {
+            if (!isCrossBowCharged(itemstack)) {
                 this.startSoundPlayed = false;
                 this.midLoadSoundPlayed = false;
                 player.startUsingItem(hand);
@@ -101,22 +99,22 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
     }
 
     private float getShootingPower(ItemStack stack) {
-        float value = containsChargedProjectile(stack, Items.FIREWORK_ROCKET) ? 2.6F : 4.15F;
+        float value = containsCrossBosChargedProjectile(stack, Items.FIREWORK_ROCKET) ? 2.6F : 4.15F;
         return (float) calculateTrueDamage(stack,value);
     }
 
     public void releaseUsing(ItemStack stack, Level level, LivingEntity living, int value) {
         int i = this.getUseDuration(stack) - value;
         float f = getPowerForTime(i, stack);
-        if (f >= 1.0F && !isCharged(stack) && tryLoadProjectiles(living, stack)) {
-            setCharged(stack, true);
+        if (f >= 1.0F && !isCrossBowCharged(stack) && tryLoadProjectiles(living, stack)) {
+            setCrossBowCharged(stack, true);
             SoundSource soundsource = living instanceof Player ? SoundSource.PLAYERS : SoundSource.HOSTILE;
             level.playSound(null, living.getX(), living.getY(), living.getZ(), SoundEvents.CROSSBOW_LOADING_END, soundsource, 1.0F, 1.0F / (living.getRandom().nextFloat() * 0.5F + 1.0F) + 0.2F);
         }
 
     }
 
-    private static boolean tryLoadProjectiles(LivingEntity entity, ItemStack stack) {
+    private boolean tryLoadProjectiles(LivingEntity entity, ItemStack stack) {
         int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.MULTISHOT, stack);
         int j = i == 0 ? 1 : 3;
         boolean flag = entity instanceof Player && ((Player)entity).getAbilities().instabuild;
@@ -141,7 +139,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         return true;
     }
 
-    private static boolean loadProjectile(LivingEntity entity, ItemStack stack, ItemStack itemStack, boolean p_40866_, boolean p_40867_) {
+    private boolean loadProjectile(LivingEntity entity, ItemStack stack, ItemStack itemStack, boolean p_40866_, boolean p_40867_) {
         if (itemStack.isEmpty()) {
             return false;
         } else {
@@ -161,17 +159,17 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         }
     }
 
-    public static boolean isCharged(ItemStack stack) {
+    private boolean isCrossBowCharged(ItemStack stack) {
         CompoundTag compoundtag = stack.getTag();
         return compoundtag != null && compoundtag.getBoolean("Charged");
     }
 
-    public static void setCharged(ItemStack stack, boolean p_40886_) {
+    private void setCrossBowCharged(ItemStack stack, boolean p_40886_) {
         CompoundTag compoundtag = stack.getOrCreateTag();
         compoundtag.putBoolean("Charged", p_40886_);
     }
 
-    private static void addChargedProjectile(ItemStack stack, ItemStack itemStack) {
+    private void addChargedProjectile(ItemStack stack, ItemStack itemStack) {
         CompoundTag compoundtag = stack.getOrCreateTag();
         ListTag listtag;
         if (compoundtag.contains("ChargedProjectiles", 9)) {
@@ -186,7 +184,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         compoundtag.put("ChargedProjectiles", listtag);
     }
 
-    private static List<ItemStack> getChargedProjectiles(ItemStack stack) {
+    private List<ItemStack> getChargedProjectiles(ItemStack stack) {
         List<ItemStack> list = Lists.newArrayList();
         CompoundTag compoundtag = stack.getTag();
         if (compoundtag != null && compoundtag.contains("ChargedProjectiles", 9)) {
@@ -201,7 +199,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         return list;
     }
 
-    private static void clearChargedProjectiles(ItemStack stack) {
+    private void clearChargedProjectiles(ItemStack stack) {
         CompoundTag compoundtag = stack.getTag();
         if (compoundtag != null) {
             ListTag listtag = compoundtag.getList("ChargedProjectiles", 9);
@@ -211,8 +209,13 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
 
     }
 
-    public static boolean containsChargedProjectile(ItemStack stack, Item item) {
-        return getChargedProjectiles(stack).stream().anyMatch((p_40870_) -> p_40870_.is(item));
+    private boolean containsCrossBosChargedProjectile(ItemStack stack, Item item) {
+        for (ItemStack itemStack : getChargedProjectiles(stack)) {
+            if(itemStack.is(item)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void shootProjectile(Level level, LivingEntity entity, InteractionHand hand, ItemStack bowItem, ItemStack arrowItem, float p_40900_, boolean p_40901_, float p_40902_, float p_40903_, float p_40904_) {
@@ -249,7 +252,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         }
     }
 
-    private static AbstractArrow getArrow(Level level, LivingEntity entity, ItemStack bowItem, ItemStack arrowItem) {
+    private AbstractArrow getArrow(Level level, LivingEntity entity, ItemStack bowItem, ItemStack arrowItem) {
         ArrowItem arrowitem = (ArrowItem)(arrowItem.getItem() instanceof ArrowItem ? arrowItem.getItem() : Items.ARROW);
         AbstractArrow abstractarrow = arrowitem.createArrow(level, arrowItem, entity);
         if (entity instanceof Player) {
@@ -289,17 +292,17 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         onCrossbowShot(p_40888_, p_40889_, p_40891_);
     }
 
-    private static float[] getShotPitches(RandomSource p_220024_) {
+    private float[] getShotPitches(RandomSource p_220024_) {
         boolean flag = p_220024_.nextBoolean();
         return new float[]{1.0F, getRandomShotPitch(flag, p_220024_), getRandomShotPitch(!flag, p_220024_)};
     }
 
-    private static float getRandomShotPitch(boolean p_220026_, RandomSource p_220027_) {
+    private float getRandomShotPitch(boolean p_220026_, RandomSource p_220027_) {
         float f = p_220026_ ? 0.63F : 0.43F;
         return 1.0F / (p_220027_.nextFloat() * 0.5F + 1.8F) + f;
     }
 
-    private static void onCrossbowShot(Level p_40906_, LivingEntity p_40907_, ItemStack p_40908_) {
+    private void onCrossbowShot(Level p_40906_, LivingEntity p_40907_, ItemStack p_40908_) {
         if (p_40907_ instanceof ServerPlayer serverplayer) {
             if (!p_40906_.isClientSide) {
                 CriteriaTriggers.SHOT_CROSSBOW.trigger(serverplayer, p_40908_);
@@ -316,7 +319,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
             int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.QUICK_CHARGE, p_40912_);
             SoundEvent soundevent = this.getStartSound(i);
             SoundEvent soundevent1 = i == 0 ? SoundEvents.CROSSBOW_LOADING_MIDDLE : null;
-            float f = (float)(p_40912_.getUseDuration() - p_40913_) / (float)getChargeDuration(p_40912_);
+            float f = (float)(p_40912_.getUseDuration() - p_40913_) / (float) getCrossBowChargeDuration(p_40912_);
             if (f < 0.2F) {
                 this.startSoundPlayed = false;
                 this.midLoadSoundPlayed = false;
@@ -336,10 +339,10 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
     }
 
     public int getUseDuration(ItemStack p_40938_) {
-        return getChargeDuration(p_40938_) + 3;
+        return getCrossBowChargeDuration(p_40938_) + 3;
     }
 
-    public static int getChargeDuration(ItemStack p_40940_) {
+    private int getCrossBowChargeDuration(ItemStack p_40940_) {
         int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.QUICK_CHARGE, p_40940_);
         return i == 0 ? 25 : 25 - 5 * i;
     }
@@ -361,8 +364,8 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         }
     }
 
-    private static float getPowerForTime(int p_40854_, ItemStack p_40855_) {
-        float f = (float)p_40854_ / (float)getChargeDuration(p_40855_);
+    private float getPowerForTime(int p_40854_, ItemStack p_40855_) {
+        float f = (float)p_40854_ / (float) getCrossBowChargeDuration(p_40855_);
         if (f > 1.0F) {
             f = 1.0F;
         }
@@ -372,14 +375,14 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
 
     public void appendHoverText(ItemStack stack, @Nullable Level p_40881_, List<Component> components, TooltipFlag p_40883_) {
         List<ItemStack> list = getChargedProjectiles(stack);
-        if (isCharged(stack) && !list.isEmpty()) {
+        if (isCrossBowCharged(stack) && !list.isEmpty()) {
             ItemStack itemstack = list.get(0);
             components.add(Component.translatable("item.minecraft.crossbow.projectile").append(" ").append(itemstack.getDisplayName()));
             if (p_40883_.isAdvanced() && itemstack.is(Items.FIREWORK_ROCKET)) {
                 List<Component> list1 = Lists.newArrayList();
                 Items.FIREWORK_ROCKET.appendHoverText(itemstack, p_40881_, list1, p_40883_);
                 if (!list1.isEmpty()) {
-                    list1.replaceAll(p130942 -> Component.literal("  ").append(p130942).withStyle(ChatFormatting.GRAY));
+                    list1.replaceAll(this);
                     components.addAll(list1);
                 }
             }
@@ -440,7 +443,7 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         return false;
     }
 
-    public static void abstractEffects(ItemStack stack, Arrow arrow){
+    public void abstractEffects(ItemStack stack, Arrow arrow){
         if (stack.getEnchantmentLevel(Senchantments.CORROSIVE_POTENCY.get())>0){
             arrow.addEffect(new MobEffectInstance(Seffects.CORROSION.get(),200,1));
         }
@@ -465,12 +468,12 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         return super.hurtEnemy(stack, living, entity);
     }
 
-    private static SporeToolsMutations getMutation(ItemStack stack){
+    private SporeToolsMutations getMutation(ItemStack stack){
         CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
         return SporeToolsMutations.byId(tag.getInt(MUTATION) & 255);
     }
 
-    private static double getAdditionalDamageCrossbow(ItemStack itemStack,double damage){
+    private double getAdditionalDamageCrossbow(ItemStack itemStack,double damage){
         CompoundTag tag = itemStack.getOrCreateTagElement(BASE_TAG);
         double value = tag.getDouble(MELEE_TAG) * 0.01;
         if (value > 0){
@@ -504,6 +507,11 @@ public class InfectedCrossbow extends CrossbowItem implements SporeWeaponData {
         }
 
         return shouldOverride;
+    }
+
+    @Override
+    public Component apply(Component component) {
+        return Component.literal("  ").append(component).withStyle(ChatFormatting.GRAY);
     }
 }
 

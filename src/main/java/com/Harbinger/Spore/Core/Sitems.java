@@ -453,7 +453,7 @@ public class Sitems {
     public  static final RegistryObject<Item> INFECTED_SPEAR = ITEMS.register("infected_spear",
             () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedSpearItem"));
     public  static final RegistryObject<Item> INFECTED_CROSSBOW = ITEMS.register("infected_crossbow",
-            InfectedCrossbow::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedCrossbow"));
     public  static final RegistryObject<Item> MACE = ITEMS.register("mace",
             () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedMace"));
     public  static final RegistryObject<Item> SICKLE = ITEMS.register("sickle",
