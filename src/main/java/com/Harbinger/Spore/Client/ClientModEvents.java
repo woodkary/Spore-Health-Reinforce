@@ -34,6 +34,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Mod.EventBusSubscriber(modid = Spore.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
 
@@ -435,28 +438,31 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void registerItemColorHandlers(RegisterColorHandlersEvent.Item event) {
-        for (Item item : Sitems.TINTABLE_ITEMS){
-            if (item instanceof SporeWeaponData data){
+        Set<Item> tintableItems = new LinkedHashSet<>(Sitems.TINTABLE_ITEMS);
+        tintableItems.add(Sitems.ENTITY_REMOVER.get());
+        tintableItems.add(Sitems.ENTITY_KILLER.get());
+        for (Item item : tintableItems){
+            if (item instanceof SporeWeaponData){
                 event.register((itemStack, tintIndex) -> {
-                    if (tintIndex == 0) {
+                    if (tintIndex == 0 && itemStack.getItem() instanceof SporeWeaponData data) {
                         return data.getVariant(itemStack).getColor();
                     }
                     return -1;
                 },item);
 
             }
-            if (item instanceof SporeArmorData data){
+            if (item instanceof SporeArmorData){
                 event.register((itemStack, tintIndex) -> {
-                    if (tintIndex == 0) {
+                    if (tintIndex == 0 && itemStack.getItem() instanceof SporeArmorData data) {
                         return data.getVariant(itemStack).getColor();
                     }
                     return -1;
                 },item);
 
             }
-            if (item instanceof AbstractSyringe data){
+            if (item instanceof AbstractSyringe){
                 event.register((itemStack, tintIndex) -> {
-                    if (tintIndex == 0) {
+                    if (tintIndex == 0 && itemStack.getItem() instanceof AbstractSyringe data) {
                         return data.getColor();
                     }
                     return -1;
