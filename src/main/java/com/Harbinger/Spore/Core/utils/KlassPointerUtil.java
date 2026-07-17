@@ -3,9 +3,9 @@ package com.Harbinger.Spore.Core.utils;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Future;
 import java.util.function.Function;
 
 public final class KlassPointerUtil implements IKlassPointer {
@@ -13,9 +13,22 @@ public final class KlassPointerUtil implements IKlassPointer {
             IKlassPointer.class,
             KlassPointerUtil.class
     );
-    private final ConcurrentMap<Class<?>, Integer> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<?>, Number> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
     private MethodHandle addressSize=null;
-    private MethodHandle putIntVolatile;
+    private volatile MethodHandle putKlassPointerVolatile;
+    private volatile Function<Class<?>,Number> klassPointerComputeFunction;
+    private final boolean compressedClassPointers;
+    public KlassPointerUtil() {
+        boolean flag = true;
+        for(String s : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+            if (s.contains("-UseCompressedClassPointers")) {
+                flag = false;
+                break;
+            }
+        }
+        compressedClassPointers = flag;
+    }
+
     private int addressSize(){
         Object internal = ClassUtil.getInternalUnsafe();
         if (internal == null) {
@@ -61,19 +74,26 @@ public final class KlassPointerUtil implements IKlassPointer {
             }
             if (o!=null&&tc!=null){
                 MethodHandles.Lookup lookup = ClassUtil.getLookup();
-                int klassPtr = KLASS_PTR_CACHE.computeIfAbsent(tc, KlassPointerComputeFunction.newInstance(lookup,internalClass,maybeSubClass,internal,addressSize));
+                Function<Class<?>,Number> computeFunction = getKlassPointerComputeFunction(
+                        lookup,
+                        internalClass,
+                        maybeSubClass,
+                        internal,
+                        addressSize
+                );
+                Number klassPtr = KLASS_PTR_CACHE.computeIfAbsent(tc, computeFunction);
                 // 替换对象 klass_ptr
-                if (putIntVolatile == null) {
-                    putIntVolatile=lookup.findSpecial(
-                            internalClass,
-                            "putIntVolatile",
-                            MethodType.methodType(void.class,Object.class,long.class,int.class),
-                            maybeSubClass
-                    );
-                    putIntVolatile=putIntVolatile.bindTo(internal);
+                MethodHandle putKlassPointer = getPutKlassPointerVolatile(
+                        lookup,
+                        internalClass,
+                        maybeSubClass,
+                        internal
+                );
+                if (compressedClassPointers) {
+                    putKlassPointer.invoke(o, (long) addressSize, klassPtr.intValue());
+                } else {
+                    putKlassPointer.invoke(o, (long) addressSize, klassPtr.longValue());
                 }
-                putIntVolatile.invoke(o, addressSize, klassPtr);
-                //unsafe.putIntVolatile(o, 8L, klassPtr);
             }
         }catch (Throwable e){
             LogUtil.errorf("error when replaceClass: %s,target: %s,class: %s", e.getMessage(),o,tc.getName());
@@ -81,13 +101,67 @@ public final class KlassPointerUtil implements IKlassPointer {
         }
         return o;
     }
-    private static final class KlassPointerComputeFunction implements Function<Class<?>,Integer> {
-        private static Class<? extends Function<Class<?>,Integer>> funcClass= (Class<? extends Function<Class<?>, Integer>>) BytecodeUtil.resolveHiddenClassOrSelf(
+
+    private Function<Class<?>,Number> getKlassPointerComputeFunction(MethodHandles.Lookup lookup,
+                                                                      Class<?> internalClass,
+                                                                      Class<?> maybeSubClass,
+                                                                      Object internal,
+                                                                      int addressSize) {
+        Function<Class<?>,Number> result = klassPointerComputeFunction;
+        if (result != null) {
+            return result;
+        }
+        synchronized (this) {
+            result = klassPointerComputeFunction;
+            if (result == null) {
+                result = KlassPointerComputeFunction.newInstance(
+                        lookup,
+                        internalClass,
+                        maybeSubClass,
+                        internal,
+                        addressSize,
+                        compressedClassPointers
+                );
+                klassPointerComputeFunction = result;
+            }
+        }
+        return result;
+    }
+
+    private MethodHandle getPutKlassPointerVolatile(MethodHandles.Lookup lookup,
+                                                     Class<?> internalClass,
+                                                     Class<?> maybeSubClass,
+                                                     Object internal) throws Throwable {
+        MethodHandle result = putKlassPointerVolatile;
+        if (result != null) {
+            return result;
+        }
+        synchronized (this) {
+            result = putKlassPointerVolatile;
+            if (result == null) {
+                String methodName = compressedClassPointers ? "putIntVolatile" : "putLongVolatile";
+                Class<?> valueType = compressedClassPointers ? int.class : long.class;
+                result = lookup.findSpecial(
+                        internalClass,
+                        methodName,
+                        MethodType.methodType(void.class,Object.class,long.class,valueType),
+                        maybeSubClass
+                ).bindTo(internal);
+                putKlassPointerVolatile = result;
+            }
+        }
+        return result;
+    }
+
+    private static final class KlassPointerComputeFunction implements Function<Class<?>,Number> {
+        private static Class<? extends Function<Class<?>,Number>> funcClass= (Class<? extends Function<Class<?>, Number>>) BytecodeUtil.resolveHiddenClassOrSelf(
                 KlassPointerComputeFunction.class,
                 MethodHandles.Lookup.class,
                 Class.class,
                 Class.class,
-                Object.class
+                Object.class,
+                int.class,
+                boolean.class
         );
         private static MethodHandle constructor;
         static {
@@ -99,10 +173,11 @@ public final class KlassPointerUtil implements IKlassPointer {
                     Class.class,
                     Class.class,
                     Object.class,
-                    int.class
+                    int.class,
+                    boolean.class
             );
         }
-        private static Function<Class<?>,Integer> newInstance(MethodHandles.Lookup lookup, Class<?> internalClass, Class<?> maybeSubClass, Object internal, int addressSize){
+        private static Function<Class<?>,Number> newInstance(MethodHandles.Lookup lookup, Class<?> internalClass, Class<?> maybeSubClass, Object internal, int addressSize,boolean compressed){
             constructor=MethodHandleUtil.INSTANCE.ensureConstructor(
                     constructor,
                     funcClass,
@@ -111,49 +186,93 @@ public final class KlassPointerUtil implements IKlassPointer {
                     Class.class,
                     Class.class,
                     Object.class,
-                    int.class
+                    int.class,
+                    boolean.class
             );
             if(constructor!=null){
                 try{
-                    return (Function<Class<?>, Integer>) constructor.invoke(lookup, internalClass, maybeSubClass, internal, addressSize);
+                    return (Function<Class<?>, Number>) constructor.invoke(lookup, internalClass, maybeSubClass, internal, addressSize,compressed);
                 } catch (Throwable e) {
                     LogUtil.errorf("failed to new KlassPointerComputeFunction: %s", e.getMessage());
                 }
             }
-            return new KlassPointerComputeFunction(lookup, internalClass, maybeSubClass, internal, addressSize);
+            return new KlassPointerComputeFunction(lookup, internalClass, maybeSubClass, internal, addressSize,compressed);
         }
         private final MethodHandles.Lookup lookup;
         private final Class<?> internalClass;
         private final Class<?> maybeSubClass;
         private final Object internal;
         private final int addressSize;
+        private final boolean compressed;
+        private volatile MethodHandle allocateInstance;
+        private volatile MethodHandle getKlassPointerVolatile;
 
-        private KlassPointerComputeFunction(MethodHandles.Lookup lookup, Class<?> internalClass, Class<?> maybeSubClass, Object internal, int addressSize) {
+        private KlassPointerComputeFunction(MethodHandles.Lookup lookup, Class<?> internalClass, Class<?> maybeSubClass, Object internal, int addressSize,boolean compressed) {
             this.lookup = lookup;
             this.internalClass = internalClass;
             this.maybeSubClass = maybeSubClass;
             this.internal = internal;
             this.addressSize = addressSize;
+            this.compressed = compressed;
         }
 
         @Override
-        public Integer apply(Class<?> clazz) {
+        public Number apply(Class<?> clazz) {
             try {
-                MethodHandle allocateInstance = lookup.findSpecial(internalClass,
-                        "allocateInstance",
-                        MethodType.methodType(Object.class, Class.class),
-                        maybeSubClass);
-                MethodHandle getIntVolatile = lookup.findSpecial(internalClass,
-                        "getIntVolatile",
-                        MethodType.methodType(int.class, Object.class, long.class),
-                        maybeSubClass);
+                MethodHandle allocate = getAllocateInstance();
+                MethodHandle getKlassPointer = getKlassPointerVolatile();
                 // 分配未初始化对象并获取 klass_ptr
-                Object tmp = allocateInstance.bindTo(internal).invoke(clazz);
-                return (Integer) getIntVolatile.bindTo(internal).invoke(tmp, addressSize);
+                Object tmp = allocate.invoke(clazz);
+                if (compressed) {
+                    return (int) getKlassPointer.invoke(tmp, (long) addressSize);
+                }
+                return (long) getKlassPointer.invoke(tmp, (long) addressSize);
             } catch (Throwable e) {
                 LogUtil.errorf("error when allocateInstance: %s", e.getMessage());
                 throw new RuntimeException(e);
             }
+        }
+
+        private MethodHandle getAllocateInstance() throws Throwable {
+            MethodHandle result = allocateInstance;
+            if (result != null) {
+                return result;
+            }
+            synchronized (this) {
+                result = allocateInstance;
+                if (result == null) {
+                    result = lookup.findSpecial(
+                            internalClass,
+                            "allocateInstance",
+                            MethodType.methodType(Object.class, Class.class),
+                            maybeSubClass
+                    ).bindTo(internal);
+                    allocateInstance = result;
+                }
+            }
+            return result;
+        }
+
+        private MethodHandle getKlassPointerVolatile() throws Throwable {
+            MethodHandle result = getKlassPointerVolatile;
+            if (result != null) {
+                return result;
+            }
+            synchronized (this) {
+                result = getKlassPointerVolatile;
+                if (result == null) {
+                    String methodName = compressed ? "getIntVolatile" : "getLongVolatile";
+                    Class<?> returnType = compressed ? int.class : long.class;
+                    result = lookup.findSpecial(
+                            internalClass,
+                            methodName,
+                            MethodType.methodType(returnType, Object.class, long.class),
+                            maybeSubClass
+                    ).bindTo(internal);
+                    getKlassPointerVolatile = result;
+                }
+            }
+            return result;
         }
     }
 }
