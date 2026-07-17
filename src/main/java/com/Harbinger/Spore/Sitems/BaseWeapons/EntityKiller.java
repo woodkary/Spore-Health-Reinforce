@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
+import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
@@ -26,12 +27,18 @@ import net.minecraftforge.common.ForgeMod;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public final class EntityKiller extends Item implements Predicate<Entity>,IBlockableSwordItem {
+public final class EntityKiller extends Item implements Predicate<Entity>,IBlockableSwordItem,SporeWeaponData {
     private final UUID BONUS_DAMAGE_MODIFIER_UUID = UUID.fromString("035e66d6-5a74-402f-b64c-e61432ec39ba");
     private final UUID BONUS_REACH_MODIFIER_UUID = UUID.fromString("d8c35ba5-f440-4335-92b2-3c8b1b703706");
     private final UUID BONUS_RECHARGE_MODIFIER_UUID = UUID.fromString("6dee499d-60f9-4f91-9ae9-fa62f285cc24");
     public EntityKiller() {
         super(new Item.Properties().durability(1024).rarity(Rarity.EPIC));
+        Sitems.TINTABLE_ITEMS.add(this);
+    }
+
+    @Override
+    public boolean supportsWeaponDataFeatures() {
+        return false;
     }
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {

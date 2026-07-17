@@ -106,7 +106,7 @@ public class SurgeryRecipeScreen extends AbstractContainerScreen<SurgeryRecipeMe
 
         renderFakeItem(font,guiGraphics,new ItemStack(tagItems.get(currentTagIndex)),leftPos +  97, topPos +8);
         ItemStack stack = recipe.getResultItem(null);
-        if (stack.getItem() instanceof SporeWeaponData || stack.getItem() instanceof SporeArmorData){
+        if (SporeWeaponData.hasWeaponDataFeatures(stack) || stack.getItem() instanceof SporeArmorData){
             renderFakeItem(font,guiGraphics,currentTagIndex % 2 == 0 ? ItemStack.EMPTY : new ItemStack(Sitems.HARDENING_AGENT.get()), leftPos +115, topPos +8);
             renderFakeItem(font,guiGraphics,currentTagIndex % 2 == 0 ? ItemStack.EMPTY : new ItemStack(Sitems.SHARPENING_AGENT.get()), leftPos +133, topPos +8);
             renderFakeItem(font,guiGraphics,currentTagIndex % 2 == 0 ? ItemStack.EMPTY : new ItemStack(Sitems.INTEGRATING_AGENT.get()), leftPos +151,topPos + 8);

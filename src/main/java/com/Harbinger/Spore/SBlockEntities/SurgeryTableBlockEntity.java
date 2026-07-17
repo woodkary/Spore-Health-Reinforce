@@ -145,6 +145,10 @@ public class SurgeryTableBlockEntity extends BlockEntity implements MenuProvider
         }
     }
     public void assembleWeapon(Player player, ItemStack stack){
+        boolean hasWeaponDataFeatures = SporeWeaponData.hasWeaponDataFeatures(stack);
+        if (!hasWeaponDataFeatures && !(stack.getItem() instanceof SporeArmorData)) {
+            return;
+        }
         int mutation = 15;
         int[] e = new int[]{AGENT_SLOT_1,AGENT_SLOT_2,AGENT_SLOT_3};
         List<MutationAgents> mutagens = new ArrayList<>();
@@ -155,19 +159,17 @@ public class SurgeryTableBlockEntity extends BlockEntity implements MenuProvider
                 itemStack.shrink(1);
             }
         }
-        if (stack.getItem() instanceof SporeWeaponData || stack.getItem() instanceof SporeArmorData){
-            for (MutationAgents mutagen : mutagens){
-                mutagen.mutateWeapon(stack);
-                mutation = mutation + mutagen.getMutationChance();
-            }
-            if (Math.random() < (mutation * 0.01) && stack.getItem() instanceof SporeWeaponData item){
-                item.setVariant(SporeToolsMutations.byId(player.getRandom().nextInt(SporeToolsMutations.values().length)),stack);
-            }
-            if (Math.random() < (mutation * 0.01) && stack.getItem() instanceof SporeArmorData item){
-                item.setVariant(SporeArmorMutations.byId(player.getRandom().nextInt(SporeArmorMutations.values().length)),stack);
-            }
-            stack.setDamageValue(itemHandler.getStackInSlot(AGENT_SLOT_3) == ItemStack.EMPTY ? player.getRandom().nextInt(stack.getMaxDamage()) : 0);
+        for (MutationAgents mutagen : mutagens){
+            mutagen.mutateWeapon(stack);
+            mutation = mutation + mutagen.getMutationChance();
         }
+        if (Math.random() < (mutation * 0.01) && hasWeaponDataFeatures && stack.getItem() instanceof SporeWeaponData item){
+            item.setVariant(SporeToolsMutations.byId(player.getRandom().nextInt(SporeToolsMutations.values().length)),stack);
+        }
+        if (Math.random() < (mutation * 0.01) && stack.getItem() instanceof SporeArmorData item){
+            item.setVariant(SporeArmorMutations.byId(player.getRandom().nextInt(SporeArmorMutations.values().length)),stack);
+        }
+        stack.setDamageValue(itemHandler.getStackInSlot(AGENT_SLOT_3) == ItemStack.EMPTY ? player.getRandom().nextInt(stack.getMaxDamage()) : 0);
     }
 
     public ItemStack assembleGraft(ItemStack stack){
@@ -175,24 +177,25 @@ public class SurgeryTableBlockEntity extends BlockEntity implements MenuProvider
         ItemStack secondItem = itemHandler.getStackInSlot(GRATING_ITEM_TWO);
         Map<Enchantment,Integer> enchants = EnchantmentHelper.getEnchantments(firstItem);
         enchants.putAll(EnchantmentHelper.getEnchantments(secondItem));
-        if (stack.getItem() instanceof SporeWeaponData weaponData){
+        if (stack.getItem() instanceof SporeWeaponData weaponData && weaponData.supportsWeaponDataFeatures()){
             int luck = 0;
             int extra_durability= 0;
             double extra_damage= 0;
             int mutation= 0;
-            if (firstItem.getItem() instanceof SporeWeaponData firstWdata && secondItem.getItem() instanceof SporeWeaponData secondWData){
+            if (firstItem.getItem() instanceof SporeWeaponData firstWdata && firstWdata.supportsWeaponDataFeatures()
+                    && secondItem.getItem() instanceof SporeWeaponData secondWData && secondWData.supportsWeaponDataFeatures()){
                 luck = (firstWdata.getLuck(firstItem) + secondWData.getLuck(secondItem))/2;
                 extra_durability = (firstWdata.getMaxAdditionalDurability(firstItem) + secondWData.getMaxAdditionalDurability(secondItem))/2;
                 extra_damage = (firstWdata.getAdditionalDamage(firstItem) + secondWData.getAdditionalDamage(secondItem))/2;
                 mutation = Math.random() < 0.5f ? firstWdata.getTypeVariant(firstItem) : secondWData.getTypeVariant(secondItem);
             }else {
-                if (firstItem.getItem() instanceof SporeWeaponData firstWdata){
+                if (firstItem.getItem() instanceof SporeWeaponData firstWdata && firstWdata.supportsWeaponDataFeatures()){
                     luck = firstWdata.getLuck(firstItem);
                     extra_durability = firstWdata.getMaxAdditionalDurability(firstItem);
                     extra_damage = firstWdata.getAdditionalDamage(firstItem);
                     mutation =firstWdata.getTypeVariant(firstItem);
                 }
-                if (secondItem.getItem() instanceof SporeWeaponData secondWData){
+                if (secondItem.getItem() instanceof SporeWeaponData secondWData && secondWData.supportsWeaponDataFeatures()){
                     luck = secondWData.getLuck(secondItem);
                     extra_durability = secondWData.getMaxAdditionalDurability(secondItem);
                     extra_damage = secondWData.getAdditionalDamage(secondItem);

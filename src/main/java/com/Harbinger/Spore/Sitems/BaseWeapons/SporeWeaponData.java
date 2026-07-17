@@ -27,8 +27,16 @@ public interface SporeWeaponData {
     String ENCHANTING = "mutant_enchanting";
     String MUTATION = "mutation";
 
+    default boolean supportsWeaponDataFeatures() {
+        return true;
+    }
+
+    static boolean hasWeaponDataFeatures(ItemStack stack) {
+        return stack.getItem() instanceof SporeWeaponData data && data.supportsWeaponDataFeatures();
+    }
+
     default boolean tooHurt(ItemStack stack){
-        return stack.getDamageValue() < stack.getMaxDamage() - 10;
+        return supportsWeaponDataFeatures() && stack.getDamageValue() < stack.getMaxDamage() - 10;
     }
     default void addHealingInhibitRandom(LivingEntity target) {
         addHealingInhibitRandom(target, 0.3, 60);
@@ -37,11 +45,17 @@ public interface SporeWeaponData {
         addHealingInhibitRandom(target, chance, 60);
     }
     default void addHealingInhibitRandom(LivingEntity target, double chance, int duration) {
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         if (target.random.nextDouble() < chance) {
             SporeEffectsUtil.INSTANCE.forceAddEffect(target,new MobEffectInstance(Seffects.HEALING_INHIBITION.get(), duration, 0),null);
         }
     }
     default boolean doASMRangeHurtOnSwing(ItemStack stack, LivingEntity attacker) {
+        if (!supportsWeaponDataFeatures()) {
+            return false;
+        }
         if (!(attacker instanceof Player player)) {
             return false;
         }
@@ -78,6 +92,9 @@ public interface SporeWeaponData {
         return false;
     }
     default double calculateTrueDamage(ItemStack stack,double meleeDamage){
+        if (!supportsWeaponDataFeatures()) {
+            return meleeDamage;
+        }
         double value = getAdditionalDamage(stack) * 0.01;
         if (value > 0){
             return meleeDamage + (meleeDamage * value);
@@ -85,31 +102,52 @@ public interface SporeWeaponData {
         return meleeDamage;
     }
     default void setAdditionalDamage(double value, ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
         tag.putDouble(MELEE_TAG,value);
     }
     default double getAdditionalDamage(ItemStack itemStack){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         CompoundTag tag = itemStack.getOrCreateTagElement(BASE_TAG);
         return tag.getDouble(MELEE_TAG);
     }
 
     default int getMaxAdditionalDurability(ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
         return tag.getInt(MAX_DURABILITY);
     }
     default void setMaxAdditionalDurability(int value,ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
         tag.putInt(MAX_DURABILITY,value);
     }
     default int getAdditionalDurability(ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
         return tag.getInt(MELEE_DURABILITY);
     }
     default void setAdditionalDurability(int value,ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
         tag.putInt(MELEE_DURABILITY,value);
     }
     default void hurtTool(ItemStack stack, LivingEntity entity,int value){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         int lostDurability = this.calculateDurabilityLostForMutations(value,stack);
         if (getAdditionalDurability(stack) > 0){
             hurtExtraDurability(stack,lostDurability,entity);
@@ -120,6 +158,9 @@ public interface SporeWeaponData {
         }
     }
     default int calculateDurabilityLostForMutations(int value ,ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         if (getVariant(stack) == SporeToolsMutations.TOXIC){
             return value * 2;
         }
@@ -130,14 +171,23 @@ public interface SporeWeaponData {
     }
 
     default void hurtExtraDurability(ItemStack stack,int value,@Nullable LivingEntity living){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         setAdditionalDurability(getAdditionalDurability(stack)-value,stack);
     }
 
     default void setLuck(int value, ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
         tag.putDouble(ENCHANTING,value);
     }
     default int getLuck(ItemStack itemStack){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         CompoundTag tag = itemStack.getOrCreateTagElement(BASE_TAG);
         return tag.getInt(ENCHANTING);
     }
@@ -147,8 +197,8 @@ public interface SporeWeaponData {
     }
 
     default int getTypeVariant(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTagElement(BASE_TAG);
-        return tag.getInt(MUTATION);
+        CompoundTag tag = stack.getTagElement(BASE_TAG);
+        return tag == null ? 0 : tag.getInt(MUTATION);
     }
 
     default void setVariant(SporeToolsMutations variant,ItemStack stack) {
@@ -158,6 +208,9 @@ public interface SporeWeaponData {
     default boolean doesExtraKnockBack(){return false;}
     default boolean reversedKnockback(){return false;}
     default void doEntityHurtAfterEffects(ItemStack stack, LivingEntity victim, LivingEntity entity){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         if (reversedKnockback()){
             victim.knockback(1.2F, -Mth.sin(entity.getYRot() * ((float) Math.PI / 180F)), Mth.cos(entity.getYRot() * ((float) Math.PI / 180F)));
         }
@@ -192,20 +245,32 @@ public interface SporeWeaponData {
     }
 
     default double modifyDamage(ItemStack stack,double value){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         return (getVariant(stack) == SporeToolsMutations.VAMPIRIC ? (calculateTrueDamage(stack,value) * -0.2) : 0);
     }
     default double modifyRange(ItemStack stack){
         return 0;
     }
     default double modifyRecharge(ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         return getVariant(stack) == SporeToolsMutations.CALCIFIED ? -0.5 : 0;
     }
 
     default int getMaxTrueAdditionalDurability(ItemStack stack){
+        if (!supportsWeaponDataFeatures()) {
+            return 0;
+        }
         return (int)(stack.getMaxDamage() * (getMaxAdditionalDurability(stack) * 0.01));
     }
 
     default void healTool(ItemStack stack,int value){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         if (stack.getDamageValue() < stack.getMaxDamage()){
             stack.setDamageValue(stack.getDamageValue()-value);
         }
@@ -215,6 +280,9 @@ public interface SporeWeaponData {
     }
 
     default void abstractMutationBuffs(LivingEntity victim , LivingEntity owner , ItemStack stack,SporeWeaponData data){
+        if (!supportsWeaponDataFeatures()) {
+            return;
+        }
         if (data.getVariant(stack) == SporeToolsMutations.TOXIC){
             victim.addEffect(new MobEffectInstance(MobEffects.POISON,60,1));
         }
