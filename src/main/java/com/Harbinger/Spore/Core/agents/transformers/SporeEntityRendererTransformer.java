@@ -32,14 +32,14 @@ import java.util.Set;
 public final class SporeEntityRendererTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
     private static final String SPORE_PACKAGE_PREFIX = "com/Harbinger/Spore/";
     private static final String ENTITY_RENDERER_INTERNAL = "net/minecraft/client/renderer/entity/EntityRenderer";
-    private static final String ENTITY_INTERNAL = "net/minecraft/world/entity/Entity";
     private static final String SIMPLE_REMOVE_OWNER = "com/Harbinger/Spore/Core/utils/simpleRemoval/SimpleRemoveUtil";
     private static final String SIMPLE_REMOVE_INTERFACE = "com/Harbinger/Spore/Core/utils/simpleRemoval/ISimpleRemoval";
     private static final String CHECK_REMOVED_METHOD = "checkIsRemovedAndUpdate";
-    private static final String CHECK_REMOVED_DESC = "(L" + ENTITY_INTERNAL + ";)Z";
-    private static final String RENDER_DESC = "(Lnet/minecraft/world/entity/Entity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
-    private static final String RENDER_NAME_TAG_DESC = "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/network/chat/Component;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
-    private static final String SHOULD_RENDER_DESC = "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z";
+    private static final String CHECK_REMOVED_DESC = "(Ljava/lang/Object;)Z";
+    private static final String LEGACY_CHECK_REMOVED_DESC = "(Lnet/minecraft/world/entity/Entity;)Z";
+    private static final String RENDER_DESC_TAIL = "FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
+    private static final String RENDER_NAME_TAG_DESC_TAIL = "Lnet/minecraft/network/chat/Component;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
+    private static final String SHOULD_RENDER_DESC_TAIL = "Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z";
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
             (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
                     SporeEntityRendererTransformer.class
@@ -188,19 +188,28 @@ public final class SporeEntityRendererTransformer extends SporeClassFileTransfor
     }
 
     private int resolveShortCircuitOpcode(MethodNode method) {
-        if (RENDER_DESC.equals(method.desc)
-                && ("render".equals(method.name) || "m_7392_".equals(method.name))) {
+        if (("render".equals(method.name) || "m_7392_".equals(method.name))
+                && matchesDescriptorTail(method, RENDER_DESC_TAIL)) {
             return Opcodes.RETURN;
         }
-        if (RENDER_NAME_TAG_DESC.equals(method.desc)
-                && ("renderNameTag".equals(method.name) || "m_7649_".equals(method.name))) {
+        if (("renderNameTag".equals(method.name) || "m_7649_".equals(method.name))
+                && matchesDescriptorTail(method, RENDER_NAME_TAG_DESC_TAIL)) {
             return Opcodes.RETURN;
         }
-        if (SHOULD_RENDER_DESC.equals(method.desc)
-                && ("shouldRender".equals(method.name) || "m_5523_".equals(method.name))) {
+        if (("shouldRender".equals(method.name) || "m_5523_".equals(method.name))
+                && matchesDescriptorTail(method, SHOULD_RENDER_DESC_TAIL)) {
             return Opcodes.IRETURN;
         }
         return -1;
+    }
+
+    private boolean matchesDescriptorTail(MethodNode method, String expectedTail) {
+        Type[] arguments = Type.getArgumentTypes(method.desc);
+        if (arguments.length == 0 || arguments[0].getSort() != Type.OBJECT) {
+            return false;
+        }
+        int tailStart = 1 + arguments[0].getDescriptor().length();
+        return tailStart < method.desc.length() && expectedTail.equals(method.desc.substring(tailStart));
     }
 
     private boolean canPatch(MethodNode method) {
@@ -218,7 +227,8 @@ public final class SporeEntityRendererTransformer extends SporeClassFileTransfor
             if (insn instanceof MethodInsnNode methodInsn
                     && SIMPLE_REMOVE_INTERFACE.equals(methodInsn.owner)
                     && CHECK_REMOVED_METHOD.equals(methodInsn.name)
-                    && CHECK_REMOVED_DESC.equals(methodInsn.desc)) {
+                    && (CHECK_REMOVED_DESC.equals(methodInsn.desc)
+                        || LEGACY_CHECK_REMOVED_DESC.equals(methodInsn.desc))) {
                 return true;
             }
         }
