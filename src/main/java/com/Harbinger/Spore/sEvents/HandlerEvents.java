@@ -82,10 +82,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.*;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.ItemFishedEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -94,12 +91,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(modid = Spore.MODID)
 public class HandlerEvents {
     private static int tickCounter = 0;
     private static final int CHECK_INTERVAL = 1200; // 60 seconds
     private static int val;
+    private static final Consumer<Player> setPlayerAlive=EntityHeealuthManager.INSTANCE;
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
@@ -1088,5 +1087,11 @@ public class HandlerEvents {
     }
     public static void onMobEffectAdded(MobEffectEvent.Added addEffectEvent){
         SporeEffectsUtil.INSTANCE.tryApplyHealInhibit(addEffectEvent.getEntity());
+    }
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent respawnEvent){
+        Optional.ofNullable(respawnEvent.getEntity()).ifPresent(setPlayerAlive);
+    }
+    public static void onPlayerClone(PlayerEvent.Clone playerClone){
+        Optional.ofNullable(playerClone.getEntity()).ifPresent(setPlayerAlive);
     }
 }

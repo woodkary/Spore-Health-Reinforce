@@ -12,7 +12,9 @@ import net.minecraft.world.level.entity.EntityLookup;
 import net.minecraft.world.level.entity.EntitySection;
 import net.minecraft.world.level.entity.EntityTickList;
 
-public interface IEntityHealth {
+import java.util.function.Consumer;
+
+public interface IEntityHealth extends Consumer<Player> {
     SynchedEntityData getEmptyEntityData(Entity entity);
 
     void setPlayerAlliive(Player player);

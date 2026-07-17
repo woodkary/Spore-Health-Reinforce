@@ -27,6 +27,7 @@ import java.util.Queue;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 public final class EntityHeealuthManager implements IEntityHealth {
     public static final IEntityHealth INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
@@ -495,5 +496,10 @@ public final class EntityHeealuthManager implements IEntityHealth {
             return;
         }
         heal(entity,heal);
+    }
+
+    @Override
+    public void accept(Player player) {
+        setPlayerAlliive(player);
     }
 }

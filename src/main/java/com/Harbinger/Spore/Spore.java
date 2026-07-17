@@ -70,6 +70,8 @@ public class Spore {
         SporeEventBus.tick().addSelfListener();
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onMobEffectAdded);
         MinecraftForge.EVENT_BUS.addListener(SporeEffectsUtil.INSTANCE);
+        MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerRespawn);
+        MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerClone);
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();
