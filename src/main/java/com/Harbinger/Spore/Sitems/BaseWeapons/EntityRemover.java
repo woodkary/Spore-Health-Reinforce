@@ -47,7 +47,7 @@ public final class EntityRemover extends Item implements Predicate<Entity>,IBloc
             ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
             return builder.put(Attributes.ATTACK_DAMAGE,new AttributeModifier(BONUS_DAMAGE_MODIFIER_UUID,"Tool modifier",10.0, AttributeModifier.Operation.ADDITION))
                     .put(Attributes.ATTACK_SPEED, new AttributeModifier(BONUS_RECHARGE_MODIFIER_UUID, "Tool modifier", -3.0, AttributeModifier.Operation.ADDITION))
-                    .put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier(BONUS_REACH_MODIFIER_UUID, "Tool modifier",3, AttributeModifier.Operation.ADDITION))
+                    .put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier(BONUS_REACH_MODIFIER_UUID, "Tool modifier",5, AttributeModifier.Operation.ADDITION))
                     .build();
         }
         return ImmutableMultimap.of();
