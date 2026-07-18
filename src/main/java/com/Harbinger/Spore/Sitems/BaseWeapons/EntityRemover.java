@@ -93,8 +93,8 @@ public final class EntityRemover extends Item implements Predicate<Entity>,IBloc
             return false;
         }
         Entity target= SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
-        if(target!=null){
-            SimpleRemoveUtil.INSTANCE.remove(target, Entity.RemovalReason.CHANGED_DIMENSION);
+        if(target!=null&&SimpleRemoveUtil.INSTANCE.remove(target, Entity.RemovalReason.CHANGED_DIMENSION)){
+            BossEventUtil.INSTANCE.disableBossEvent(target);
         }
         return false;
     }
