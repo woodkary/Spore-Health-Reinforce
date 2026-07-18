@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.utils.invulCheck;
 
+import com.Harbinger.Spore.Core.utils.BossEventUtil;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
@@ -69,7 +70,11 @@ final class EntityInvulCheckTask implements IEntityInvulCheckTask {
         if (entity.getDeathSound() != null) {
             SporeAttackUtil.INSTANCE.playSound(entity.level, null, entity.blockPosition, entity.getDeathSound(), entity.getSoundSource(), 1.0f, entity.getVoicePitch());
         }
-        return SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.DISCARDED);
+        if(SimpleRemoveUtil.INSTANCE.remove(entity, Entity.RemovalReason.DISCARDED)){
+            BossEventUtil.INSTANCE.disableBossEvent(entity);
+            return true;
+        }
+        return false;
     }
 
 
