@@ -120,6 +120,10 @@ public final class EntityRemover extends Item implements Predicate<Entity>,IBloc
     }
 
     @Override
+    public boolean isFoil(ItemStack stack) {
+        return true;
+    }
+    @Override
     public boolean isDamageable(ItemStack stack) {
         return false;
     }
