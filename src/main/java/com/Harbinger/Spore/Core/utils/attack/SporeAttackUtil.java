@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.utils.attack;
 
+import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.*;
@@ -31,6 +32,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -279,9 +281,16 @@ public final class SporeAttackUtil implements IAttack {
             }
         }
         EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
-        if(target.getHealth()<=0.0f&&attacker instanceof Calamity&&!(target instanceof Player)){
+        if(target.getHealth()<=0.0f&&attacker instanceof Calamity calamity&&!(target instanceof Player)){
             //清除赖着不死的实体
-            EntityInvulCheckTaskManager.INSTANCE.add(target);
+            AttributeInstance penetration = calamity.getAttribute(SAttributes.LACERATION.get());
+            if (penetration == null){
+                EntityInvulCheckTaskManager.INSTANCE.add(target);
+                return;
+            }
+            double e = penetration.getValue();
+            int maxDelay= (int) (400/(e*6.25));
+            EntityInvulCheckTaskManager.INSTANCE.add(target,maxDelay);
         }
     }
     private void addKills(LivingEntity attacker,Integer count) {

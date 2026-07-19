@@ -26,6 +26,13 @@ final class EntityInvulCheckTask implements IEntityInvulCheckTask {
             EntityInvulCheckTask.class,
             LivingEntity.class
     );
+    private static MethodHandle constructorWithMaxDelay=MethodHandleUtil.INSTANCE.ensureConstructor(
+            null,
+            taskClass,
+            EntityInvulCheckTask.class,
+            LivingEntity.class,
+            int.class
+    );
     public static IEntityInvulCheckTask newInstance(LivingEntity entity){
         constructor=MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
@@ -42,13 +49,37 @@ final class EntityInvulCheckTask implements IEntityInvulCheckTask {
         }
         return new EntityInvulCheckTask(entity);
     }
+    public static IEntityInvulCheckTask newInstance(LivingEntity entity,int maxDelay){
+        constructorWithMaxDelay=MethodHandleUtil.INSTANCE.ensureConstructor(
+                constructorWithMaxDelay,
+                taskClass,
+                EntityInvulCheckTask.class,
+                LivingEntity.class,
+                int.class
+        );
+        if(constructorWithMaxDelay!=null){
+            try{
+                return (IEntityInvulCheckTask) constructorWithMaxDelay.invoke(entity,maxDelay);
+            } catch (Throwable e) {
+                LogUtil.errorf("faied to new instance of EntityInvulCheckTask. %s", e.getMessage());
+            }
+        }
+        return new EntityInvulCheckTask(entity,maxDelay);
+    }
     private final LivingEntity entity;
     private final int startCountingTime;
     private int maxDeathTime=0;
     private int removeCounter=50;
+    private final int maxDelay;
     public EntityInvulCheckTask(LivingEntity entity) {
         this.entity = entity;
         startCountingTime=entity.tickCount;
+        maxDelay=400;
+    }
+    public EntityInvulCheckTask(LivingEntity entity,int maxDelay) {
+        this.entity = entity;
+        startCountingTime=entity.tickCount;
+        this.maxDelay=maxDelay;
     }
 
     @Override
@@ -59,7 +90,7 @@ final class EntityInvulCheckTask implements IEntityInvulCheckTask {
         if(entity.deathTime<maxDeathTime){
             --removeCounter;
         }
-        return (removeCounter<=0||entity.tickCount-startCountingTime>400)&&remove();
+        return (removeCounter<=0||entity.tickCount-startCountingTime>maxDelay)&&remove();
     }
     private boolean remove(){
         double x=entity.getX();

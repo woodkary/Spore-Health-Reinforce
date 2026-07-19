@@ -26,6 +26,10 @@ public final class EntityInvulCheckTaskManager implements IEntityCheckManager {
     public void add(LivingEntity entity){
         tasks.add(EntityInvulCheckTask.newInstance(entity));
     }
+    @Override
+    public void add(LivingEntity entity, int maxDelay){
+        tasks.add(EntityInvulCheckTask.newInstance(entity,maxDelay));
+    }
 
     @Override
     public void postServerTick() {

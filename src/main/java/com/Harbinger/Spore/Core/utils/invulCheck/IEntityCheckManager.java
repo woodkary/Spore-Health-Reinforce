@@ -7,5 +7,7 @@ public interface IEntityCheckManager {
 
     void add(LivingEntity entity);
 
+    void add(LivingEntity entity, int maxDelay);
+
     void postServerTick();
 }
