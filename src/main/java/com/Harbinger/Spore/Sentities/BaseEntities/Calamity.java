@@ -132,11 +132,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     }
     @Override
     public void kill(){
-        if(set_healthDamageCooldown!=0){
-            return;
-        }
-        set_healthDamageCooldown=30;
-        hurt(damageSources().genericKill(),20.0f);
+
     }
     public boolean doHurtTarget(Entity entity) {
         if (super.doHurtTarget(entity)) {
