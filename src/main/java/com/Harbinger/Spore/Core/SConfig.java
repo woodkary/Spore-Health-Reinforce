@@ -682,6 +682,7 @@ public class SConfig {
         public final ForgeConfigSpec.ConfigValue<Integer> experiment_bd;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> gas_masks;
 
+        public final ForgeConfigSpec.ConfigValue<Boolean> revive_inhibit;
         public Server(ForgeConfigSpec.Builder builder) {
             builder.push("Despawning system");
             this.max_infected_cap = builder.define("Maximum number of regular infected",60);
@@ -1745,6 +1746,10 @@ public class SConfig {
             this.bile_blaster_damage = builder.comment("Default 8").defineInRange("Bile Blaster Damage", 8, 1, Integer.MAX_VALUE);
             this.acidic_assassin_damage = builder.comment("Default 15").defineInRange("Acidic Assassin Damage", 15, 1, Integer.MAX_VALUE);
             this.terroriser_damage = builder.comment("Default 5").defineInRange("Toxic Terroriser Damage", 5, 1, Integer.MAX_VALUE);
+            builder.pop();
+
+            builder.push(("calamities special attack"));
+            this.revive_inhibit=builder.define("calamities remove target when target's health lower than 0 (check via getHealth() method)",false);
             builder.pop();
         }
     }
