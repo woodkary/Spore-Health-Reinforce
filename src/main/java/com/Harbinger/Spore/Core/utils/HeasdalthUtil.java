@@ -1,8 +1,11 @@
 package com.Harbinger.Spore.Core.utils;
 
 import com.Harbinger.Spore.Core.agents.IInstrumentations;
+import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
+import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
@@ -68,7 +71,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     private final Map<Field, MethodHandle> getMethodCache = new ConcurrentHashMap<>();
     private final Map<Field, MethodHandle> putMethodCache = new ConcurrentHashMap<>();
     private final Map<Class<?>, Object> initializedStaticClasses = new ConcurrentHashMap<>();
-    private final Object nullObject = new Object();
+    private final Object nullObject = EntityHeealuthManager.NULL_OBJECT;
 
     public HeasdalthUtil() {
     }
@@ -833,12 +836,21 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             if (initializedStaticClasses.containsKey(entityClass)) {
                 return;
             }
-            IInstrumentations instrumentation = InstrumentationUtil.getInstance();
-            if (instrumentation != null) {
-                initializeStaticHealthMaps(instrumentation.getAllLoadedClasses());
+
+            Class<?>[] allClasses =allClasses();
+            if(allClasses!=null) {
+                initializeStaticHealthMaps(allClasses);
             }
             initializedStaticClasses.put(entityClass, nullObject);
         }
+    }
+    private Class<?>[] allClasses(){
+        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
+        if (instrumentation != null) {
+            return instrumentation.getAllLoadedClasses();
+        }
+        IJVNTIPointer jvmtiUtil = JVMTIPointerUtil.newInstance();
+        return jvmtiUtil!=null?jvmtiUtil.getAllLoadedClasses():null;
     }
 
     private void initializeStaticHealthMaps(Class<?>[] loadedClasses) {
