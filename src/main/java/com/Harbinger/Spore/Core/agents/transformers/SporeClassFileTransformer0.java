@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public abstract class SporeClassFileTransformer0 implements ISporeClassFileTransformer {
-    protected final ConcurrentMap<String, String> superNameCache = new ConcurrentHashMap<>();
+    protected static final ConcurrentMap<String, String> superNameCache = new ConcurrentHashMap<>();
 
     static {
         SporeNativeBridge.INSTANCE.load();
