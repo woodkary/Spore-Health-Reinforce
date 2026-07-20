@@ -132,7 +132,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     }
     @Override
     public void kill(){
-
+        SporeEntityHeeaafastthManager.INSTANCE.setIffranemeTicgk(this,0);
     }
     public boolean doHurtTarget(Entity entity) {
         if (super.doHurtTarget(entity)) {
