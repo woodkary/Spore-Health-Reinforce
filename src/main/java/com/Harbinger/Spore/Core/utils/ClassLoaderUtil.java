@@ -188,10 +188,10 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
         return deffineneClazz(node, initialClass);
     }
 
-    @Override
-    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        return Class.forName(name, resolve, Thread.currentThread().getContextClassLoader());
-    }
+//    @Override
+//    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+//        return Class.forName(name, resolve, parent);
+//    }
 
     private Class<?> define(String name, byte[] data) {
         return ClassUtil.deffineneClazz(this,name, data,this.domain);
