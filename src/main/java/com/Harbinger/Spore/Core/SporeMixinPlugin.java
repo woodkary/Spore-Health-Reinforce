@@ -47,6 +47,9 @@ public final class SporeMixinPlugin implements IMixinConfigPlugin {
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
 
     }
+    private static void lifeCycleTransformerCallSite(){
+
+    }
     private static void init(){
         Throwable.class.toString();
         try{
