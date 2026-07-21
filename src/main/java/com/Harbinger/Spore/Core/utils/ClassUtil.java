@@ -215,11 +215,22 @@ public class ClassUtil {
         return deffineneHiddenClazz(hostClass, data, true);
     }
     public static Class<?> deffineneHiddenClazz(Class<?> hostClass, byte[] data, boolean initialize) {
+        return deffineneHiddenClazz(hostClass.getClassLoader(),hostClass,data,initialize);
+    }
+    public static Class<?> deffineneHiddenClazz(ClassLoader loader,Class<?> hostClass, byte[] data, boolean initialize) {
         if (hostClass == null || data == null || data.length == 0) {
             return null;
         }
         MethodHandles.Lookup.ClassOption nestmate = MethodHandles.Lookup.ClassOption.NESTMATE;
         if (!hostClass.isHidden()) {
+            try{
+                Class<?> res=HiddenClassDefiner.defaneClazz0(loader,hostClass,data,initialize,nestmate);
+                if(res!=null&&res.isHidden()){
+                    return res;
+                }
+            }catch (Throwable t){
+                LogUtil.errorf("failed to invoke defineClazz0 for %s,%s" , hostClass,t);
+            }
             try{
                 Class<?> res=HiddenClassDefiner.defaneClazz0(hostClass,data,initialize,nestmate);
                 if(res!=null&&res.isHidden()){

@@ -166,6 +166,16 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
         byte[] bytes = cw.toByteArray();
 
         try {
+            Class<?> hidden = ClassUtil.deffineneHiddenClazz(this,initialClass, bytes, true);
+            if (hidden != null) {
+                return hidden;
+            }
+        } catch (Exception e) {
+            LogUtil.errorf("failed to define hidden all return class by host " + initialClass.getName());
+            LogUtil.printStackTrace(e);
+        }
+
+        try {
             Class<?> hidden = ClassUtil.deffineneHiddenClazz(initialClass, bytes, true);
             if (hidden != null) {
                 return hidden;

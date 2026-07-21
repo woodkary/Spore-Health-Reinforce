@@ -33,12 +33,14 @@ public class HiddenClassDefiner {
     private static final ReferenceQueue<Class<?>> hiddenClassRefQueue = new ReferenceQueue<>();
     private static final ThreadLocal<HashSet<HiddenDefineKey>> inProgress = ThreadLocal.withInitial(HashSet::new);
     public static Class<?> defaneClazz0(Class<?> lookupClass,byte[] bytes,boolean initialize,MethodHandles.Lookup.ClassOption... options) throws Throwable{
+        return defaneClazz0(lookupClass.getClassLoader(),lookupClass,bytes,initialize,options);
+    }
+    public static Class<?> defaneClazz0(ClassLoader loader,Class<?> lookupClass,byte[] bytes,boolean initialize,MethodHandles.Lookup.ClassOption... options) throws Throwable{
         if (lookupClass == null || bytes == null || bytes.length == 0) {
             return null;
         }
         cleanupStaleHiddenClassCacheEntries();
         Set<MethodHandles.Lookup.ClassOption> optionSet = toOptionSet(options);
-        ClassLoader loader = lookupClass.getClassLoader();
         ProtectionDomain pd = (loader != null) ? lookupClass.getProtectionDomain() : null;
         int flags=getFlags(optionSet, loader);
         MethodHandle handle = ensureDefineClass0();
