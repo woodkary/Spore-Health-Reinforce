@@ -18,7 +18,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 
-public final class ASMHurtArrowUtil implements IASMHurtArrow {
+public final class ASMHurtArrowUtil implements IASMHurtArrow, IOptionalClassValueLoader {
     public static final IASMHurtArrow INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
             IASMHurtArrow.class,
             ASMHurtArrowUtil.class
@@ -32,7 +32,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow {
     private static final String HOOK_METHOD_DESC = "(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/EntityHitResult;)V";
     private static final String HIDDEN_NAME_SEGMENT = "/0x";
     private final ClassValue<Optional<Class<?>>> wrapperCache =
-            new LoadingClassValue<>(this::buildCachedWrapper);
+            new LoadingClassValue<>(new OptionalClassValueFunction(this));
     @Override
     public void wrap(Object arrow){
         Class<?> wrapper=getWrapper(arrow.getClass());
@@ -93,7 +93,8 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow {
         }
     }
 
-    private Optional<Class<?>> buildCachedWrapper(Class<?> original) {
+    @Override
+    public Optional<Class<?>> loadClassValue(Class<?> original) {
         return Optional.ofNullable(buildWrapperClass(original));
     }
     @Override

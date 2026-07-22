@@ -19,12 +19,7 @@ public final class ParentUtil implements IParents,Function<Class<?>, List<Method
             ParentUtil.class
     );
     // 缓存每个类中可能的 getParent 方法
-    private final ClassValue<List<MethodHandle>> GET_PARENT_METHODS = new ClassValue<>() {
-        @Override
-        protected List<MethodHandle> computeValue(Class<?> type) {
-            return ParentUtil.this.apply(type);
-        }
-    };
+    private final ClassValue<List<MethodHandle>> GET_PARENT_METHODS = new LoadingClassValue<>(this);
 
     /**
      * 获取缓存的 getParent 方法

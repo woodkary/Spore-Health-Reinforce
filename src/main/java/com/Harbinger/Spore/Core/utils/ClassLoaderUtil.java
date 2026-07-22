@@ -19,7 +19,7 @@ import java.util.Optional;
 /**
  * @author karywoodOyo
  */
-public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
+public final class ClassLoaderUtil extends ClassLoader implements IClassLoader, IOptionalClassValueLoader {
     public static final IClassLoader INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
             IClassLoader.class,
             ClassLoaderUtil.class,
@@ -27,7 +27,7 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
             ClassLoaderUtil.class.getClassLoader()
     );
     private final ClassValue<Optional<Class<?>>> hiddenClassCache =
-            new LoadingClassValue<>(this::buildAllReturnWrapper);
+            new LoadingClassValue<>(new OptionalClassValueFunction(this));
     private final ProtectionDomain domain;
 
     public ClassLoaderUtil(ClassLoader parent) {
@@ -105,7 +105,8 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
         }
     }
 
-    private Optional<Class<?>> buildAllReturnWrapper(Class<?> callback) {
+    @Override
+    public Optional<Class<?>> loadClassValue(Class<?> callback) {
         try {
             ClassNode node = new ClassNode();
             AllReturnUtil.INSTANCE.ttranssansformNode(node, callback);

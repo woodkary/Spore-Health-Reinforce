@@ -11,18 +11,8 @@ public final class BossEventUtil implements IBossEvent {
             IBossEvent.class,
             BossEventUtil.class
     );
-    private final ClassValue<Optional<Field>> entityBossEventFields = new ClassValue<>() {
-        @Override
-        protected Optional<Field> computeValue(Class<?> type) {
-            for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
-                Field field = findDeclaredBossEventField(current);
-                if (field != null) {
-                    return Optional.of(field);
-                }
-            }
-            return Optional.empty();
-        }
-    };
+    private final ClassValue<Optional<Field>> entityBossEventFields =
+            new LoadingClassValue<>(new BossEventFieldFunction());
     @Override
     public BossEvent findBossEvent(Object entity) {
         Field field = getBossEventField(entity.getClass());
@@ -46,14 +36,5 @@ public final class BossEventUtil implements IBossEvent {
 
     private Field getBossEventField(Class<?> type) {
         return entityBossEventFields.get(type).orElse(null);
-    }
-
-    private Field findDeclaredBossEventField(Class<?> clazz) {
-        for (Field field : clazz.getDeclaredFields()) {
-            if (BossEvent.class.isAssignableFrom(field.getType())) {
-                return field;
-            }
-        }
-        return null;
     }
 }

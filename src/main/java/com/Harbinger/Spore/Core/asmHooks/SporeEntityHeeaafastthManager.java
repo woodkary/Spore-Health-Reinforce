@@ -293,13 +293,19 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
                     }
                 }
             }
-            partToHead.entrySet().removeIf(entry -> {
+            for (Map.Entry<ICalamityMultipart, LivingEntity> entry : partToHead.entrySet()) {
                 ICalamityMultipart part = entry.getKey();
                 LivingEntity head = entry.getValue();
-                return head == null
+                if (head == null
                         || head.isRemoved()
-                        || part instanceof Entity partEntity && partEntity.isRemoved();
-            });
+                        || part instanceof Entity partEntity && partEntity.isRemoved()) {
+                    if (head == null) {
+                        partToHead.remove(part);
+                    } else {
+                        partToHead.remove(part, head);
+                    }
+                }
+            }
             tickCount = 100;
         }
     }

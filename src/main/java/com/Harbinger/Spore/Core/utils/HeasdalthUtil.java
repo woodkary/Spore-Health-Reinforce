@@ -49,28 +49,37 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public final class HeasdalthUtil implements IHeasdalthUtil {
+public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValueLoader {
     private static final String DAMAGE_SOURCE_CLASS_NAME = "net.minecraft.world.damagesource.DamageSource";
     public static final IHeasdalthUtil INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
             IHeasdalthUtil.class,
             HeasdalthUtil.class
     );
 
-    private final ClassValue<List<Field>> allHealthFields = new LoadingClassValue<>(this::scanAllHealthFields);
-    private final ClassValue<List<IWrappedMethod>> allSetHealthMethods = new LoadingClassValue<>(this::scanAllSetHealthMethods);
-    private final ClassValue<List<Field>> allSubFields = new LoadingClassValue<>(this::scanAllSubFields);
-    private final ClassValue<List<IWrappedMethod>> tickDeathMethods = new LoadingClassValue<>(this::scanTickDeathMethods);
-    private final ClassValue<List<Field>> tickDeathFields = new LoadingClassValue<>(this::scanTickDeathFields);
-    private final ClassValue<Map<EntityDataAccessor<?>, String>> accessorNameCache = new LoadingClassValue<>(this::buildAccessorNameMap);
-    private final ClassValue<List<IWrappedMethod>> allHurtMethods = new LoadingClassValue<>(this::scanAllHurtMethods);
-    private final ClassValue<List<IWrappedMethod>> deathMethodCache = new LoadingClassValue<>(this::scanDeathMethods);
-    private final ClassValue<List<Field>> deathFieldCache = new LoadingClassValue<>(this::scanDeathFields);
+    private final ClassValue<List<Field>> allHealthFields =
+            new LoadingClassValue<>(new HeasdalthAllHealthFieldsFunction(this));
+    private final ClassValue<List<IWrappedMethod>> allSetHealthMethods =
+            new LoadingClassValue<>(new HeasdalthAllSetHealthMethodsFunction(this));
+    private final ClassValue<List<Field>> allSubFields =
+            new LoadingClassValue<>(new HeasdalthAllSubFieldsFunction(this));
+    private final ClassValue<List<IWrappedMethod>> tickDeathMethods =
+            new LoadingClassValue<>(new HeasdalthTickDeathMethodsFunction(this));
+    private final ClassValue<List<Field>> tickDeathFields =
+            new LoadingClassValue<>(new HeasdalthTickDeathFieldsFunction(this));
+    private final ClassValue<Map<EntityDataAccessor<?>, String>> accessorNameCache =
+            new LoadingClassValue<>(new HeasdalthAccessorNamesFunction(this));
+    private final ClassValue<List<IWrappedMethod>> allHurtMethods =
+            new LoadingClassValue<>(new HeasdalthAllHurtMethodsFunction(this));
+    private final ClassValue<List<IWrappedMethod>> deathMethodCache =
+            new LoadingClassValue<>(new HeasdalthDeathMethodsFunction(this));
+    private final ClassValue<List<Field>> deathFieldCache =
+            new LoadingClassValue<>(new HeasdalthDeathFieldsFunction(this));
     private final Map<Class<?>, List<String>> staticHealthMapFields =
             Collections.synchronizedMap(new WeakHashMap<>());
     private final ClassValue<Optional<MethodHandle>> staticMapGetMethods =
-            new LoadingClassValue<>(this::buildStaticMapGetHandle);
+            new LoadingClassValue<>(new HeasdalthStaticMapGetFunction(this));
     private final ClassValue<Optional<MethodHandle>> staticMapPutMethods =
-            new LoadingClassValue<>(this::buildStaticMapPutHandle);
+            new LoadingClassValue<>(new HeasdalthStaticMapPutFunction(this));
     private volatile boolean staticHealthMapsInitialized;
 
     public HeasdalthUtil() {
@@ -206,7 +215,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return allHealthFields.get(clazz);
     }
 
-    private List<Field> scanAllHealthFields(Class<?> clazz) {
+    @Override
+    public List<Field> scanAllHealthFields(Class<?> clazz) {
         List<Field> fields = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Field[] declaredFields = current.getDeclaredFields();
@@ -228,7 +238,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return allSetHealthMethods.get(clazz);
     }
 
-    private List<IWrappedMethod> scanAllSetHealthMethods(Class<?> clazz) {
+    @Override
+    public List<IWrappedMethod> scanAllSetHealthMethods(Class<?> clazz) {
         List<IWrappedMethod> methods = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Method[] declaredMethods = current.getDeclaredMethods();
@@ -254,7 +265,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return allSubFields.get(clazz);
     }
 
-    private List<Field> scanAllSubFields(Class<?> clazz) {
+    @Override
+    public List<Field> scanAllSubFields(Class<?> clazz) {
         List<Field> fields = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Field[] declaredFields = current.getDeclaredFields();
@@ -283,7 +295,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return tickDeathFields.get(clazz);
     }
 
-    private List<Field> scanTickDeathFields(Class<?> clazz) {
+    @Override
+    public List<Field> scanTickDeathFields(Class<?> clazz) {
         List<Field> result = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Field[] fields = current.getDeclaredFields();
@@ -302,7 +315,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return accessorNameCache.get(clazz);
     }
 
-    private Map<EntityDataAccessor<?>, String> buildAccessorNameMap(Class<?> clazz) {
+    @Override
+    public Map<EntityDataAccessor<?>, String> buildAccessorNameMap(Class<?> clazz) {
         Map<EntityDataAccessor<?>, String> map = new HashMap<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Field[] fields = current.getDeclaredFields();
@@ -346,7 +360,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return tickDeathMethods.get(clazz);
     }
 
-    private List<IWrappedMethod> scanTickDeathMethods(Class<?> clazz) {
+    @Override
+    public List<IWrappedMethod> scanTickDeathMethods(Class<?> clazz) {
         List<IWrappedMethod> result = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Method[] methods = current.getDeclaredMethods();
@@ -464,7 +479,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return allHurtMethods.get(clazz);
     }
 
-    private List<IWrappedMethod> scanAllHurtMethods(Class<?> clazz) {
+    @Override
+    public List<IWrappedMethod> scanAllHurtMethods(Class<?> clazz) {
         List<IWrappedMethod> methods = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Method[] declaredMethods = current.getDeclaredMethods();
@@ -646,7 +662,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return deathMethodCache.get(clazz);
     }
 
-    private List<IWrappedMethod> scanDeathMethods(Class<?> clazz) {
+    @Override
+    public List<IWrappedMethod> scanDeathMethods(Class<?> clazz) {
         List<IWrappedMethod> list = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Method[] methods = current.getDeclaredMethods();
@@ -708,7 +725,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return deathFieldCache.get(clazz);
     }
 
-    private List<Field> scanDeathFields(Class<?> clazz) {
+    @Override
+    public List<Field> scanDeathFields(Class<?> clazz) {
         List<Field> list = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Field[] fields = current.getDeclaredFields();
@@ -883,11 +901,13 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         }
     }
 
-    private Optional<MethodHandle> buildStaticMapGetHandle(Class<?> mapClass) {
+    @Override
+    public Optional<MethodHandle> buildStaticMapGetHandle(Class<?> mapClass) {
         return buildSpecialMapHandle(mapClass, "get", MethodType.methodType(Object.class, Object.class));
     }
 
-    private Optional<MethodHandle> buildStaticMapPutHandle(Class<?> mapClass) {
+    @Override
+    public Optional<MethodHandle> buildStaticMapPutHandle(Class<?> mapClass) {
         return buildSpecialMapHandle(mapClass, "put",
                 MethodType.methodType(Object.class, Object.class, Object.class));
     }

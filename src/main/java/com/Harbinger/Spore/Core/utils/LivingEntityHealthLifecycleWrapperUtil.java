@@ -66,9 +66,9 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             BuildDeathWrapperClassFunction.class
     );
     private final ClassValue<Optional<Class<?>>> wrapperCache =
-            new LoadingClassValue<>(this::buildCachedWrapper);
+            new LoadingClassValue<>(new OptionalClassFunction(BUILD_WARPPER_FUNC));
     private final ClassValue<Optional<Class<?>>> deathWrapperCache =
-            new LoadingClassValue<>(this::buildCachedDeathWrapper);
+            new LoadingClassValue<>(new OptionalClassFunction(BUILD_DEATH_WARPPER_FUNC));
 
     public LivingEntityHealthLifecycleWrapperUtil() {
     }
@@ -192,13 +192,6 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         return deathWrapperCache.get(callback).orElse(null);
     }
 
-    private Optional<Class<?>> buildCachedWrapper(Class<?> callback) {
-        return Optional.ofNullable(BUILD_WARPPER_FUNC.apply(callback));
-    }
-
-    private Optional<Class<?>> buildCachedDeathWrapper(Class<?> callback) {
-        return Optional.ofNullable(BUILD_DEATH_WARPPER_FUNC.apply(callback));
-    }
     @Override
     public Class<?> buildWrapperClass(Class<?> callback) {
         try {
