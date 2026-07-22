@@ -13,7 +13,6 @@ import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ClassUtil {
     private static volatile MethodHandle DEFINE_CLASS_MH;
@@ -42,7 +41,12 @@ public class ClassUtil {
     private static MethodHandle putByteInternal;
     private static MethodHandle putCharInternal;
     private static MethodHandle putObjectInternal;
-    private static final Map<Class<?>, Map<String, Field>> FIELD_CACHE = new ConcurrentHashMap<>();
+    private static final ClassValue<Map<String, Field>> FIELD_CACHE = new ClassValue<>() {
+        @Override
+        protected Map<String, Field> computeValue(Class<?> type) {
+            return scanClassFields(type);
+        }
+    };
     private ClassUtil() {
     }
     public static synchronized MethodHandles.Lookup getLookup() {
@@ -554,9 +558,7 @@ public class ClassUtil {
         }
     }
     private static Field findFieldInHierarchy(Class<?> cls, String fieldName) {
-        return FIELD_CACHE
-                .computeIfAbsent(cls, ClassUtil::scanClassFields)
-                .get(fieldName);
+        return FIELD_CACHE.get(cls).get(fieldName);
     }
 
     private static Map<String, Field> scanClassFields(Class<?> cls) {

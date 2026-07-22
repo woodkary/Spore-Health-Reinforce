@@ -53,7 +53,12 @@ public class ChunkLoadRequest {
     }
 
     public ServerLevel getDimension() {
-        return ServerLifecycleHooks.getCurrentServer().getLevel(dimension);
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? null : server.getLevel(dimension);
+    }
+
+    public ResourceKey<Level> getDimensionKey() {
+        return dimension;
     }
 
     public String getRequestID() {

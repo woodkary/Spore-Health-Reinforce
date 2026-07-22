@@ -88,6 +88,10 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     public List<String> team_5 = new ArrayList<>();
     private final Random random = new Random();
     private boolean isSpecialDead;
+    private int signalRetryCooldown;
+    private int signalSummonAttempts;
+    private static final int SIGNAL_RETRY_INTERVAL = 20;
+    private static final int MAX_SIGNAL_SUMMON_ATTEMPTS = 20;
     public Proto(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         setPersistenceRequired();
@@ -193,8 +197,13 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     }
 
     private void scanForHosts(){
-        List<Entity> entities = this.level().getEntities(this, seachbox() , EntitySelector.NO_CREATIVE_OR_SPECTATOR);
-        entityData.set(HOSTS,0);
+        List<Entity> entities = this.level().getEntities(this, seachbox(), entity ->
+                EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity)
+                        && (entity instanceof Infected
+                        || entity instanceof Mound
+                        || (SConfig.SERVER.proto_raid.get()
+                        && (entity instanceof Player || SConfig.SERVER.proto_sapient_target.get().contains(entity.getEncodeId())))));
+        int hosts = 0;
         for (Entity en : entities) {
             if (en instanceof Infected infected){
                 if (!infected.getLinked()){
@@ -202,17 +211,17 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                 }
                 if (infected.getTarget() == null || infected.getY() < 0 || infected.getHealth() < infected.getMaxHealth()/2){
                     if (!level().isClientSide && harvestBiomassByDespawning(infected)){
-                        setHosts(getHosts() + 1);
+                        hosts++;
                     }
                 }else {
-                    setHosts(getHosts() + 1);
+                    hosts++;
                 }
             }
             if (en instanceof Mound mound){
                 if (!mound.getLinked()){
                     mound.setLinked(true);
                 }
-                setHosts(getHosts()+1);
+                hosts++;
             }
             if (SConfig.SERVER.proto_raid.get()){
                 if (Math.random() < (SConfig.SERVER.proto_raid_chance.get()/100f) && (en instanceof Player || SConfig.SERVER.proto_sapient_target.get().contains(en.getEncodeId()))){
@@ -227,6 +236,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                     break;
                 }
             }
+        }
+        if (getHosts() != hosts) {
+            setHosts(hosts);
         }
     }
 
@@ -268,7 +280,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         }
     }
     private boolean checkForScent() {
-        AABB hitbox = this.getBoundingBox().inflate(3);
+        AABB hitbox = this.getBoundingBox().inflate(16);
         List<ScentEntity> entities = this.level().getEntitiesOfClass(ScentEntity.class, hitbox);
         return entities.isEmpty();
     }
@@ -318,8 +330,19 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                 addBiomass(1);
             }
 
-            if (getSignal()  != null && getSignal().active() && checkForCalamities(getSignal().pos())){
-                this.SummonConstructor(this.level(),this,getSignal().pos());
+            if (getSignal() != null && Boolean.TRUE.equals(getSignal().active())) {
+                if (signalRetryCooldown > 0) {
+                    signalRetryCooldown--;
+                } else {
+                    signalRetryCooldown = SIGNAL_RETRY_INTERVAL;
+                    if (checkForCalamities(getSignal().pos())) {
+                        this.SummonConstructor(this.level(), this, getSignal().pos());
+                        signalSummonAttempts++;
+                        if (signalSummonAttempts >= MAX_SIGNAL_SUMMON_ATTEMPTS && getSignal() != null) {
+                            setSignal(null);
+                        }
+                    }
+                }
             }
             if (this.tickCount % 3000 == 0 && SConfig.SERVER.proto_madness.get()){
                 this.giveMadness(this);
@@ -378,7 +401,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     }
     protected boolean checkForOrganoids(Entity entity){
         AABB aabb = entity.getBoundingBox().inflate(12);
-        List<Entity> entities = level().getEntities(this,aabb,entity1 -> { return entity1 instanceof Organoid;});
+        List<Organoid> entities = level().getEntitiesOfClass(Organoid.class, aabb, organoid -> organoid != this);
         return entities.size() <= 4;
     }
     private boolean checkTheGround(BlockPos pos,Level level){
@@ -442,11 +465,10 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
     protected void giveMadness(Proto proto){
         AABB aabb = proto.getBoundingBox().inflate(128);
-        List<Entity> entities = this.level().getEntities(this, aabb);
-        for (Entity entity : entities){
-            if (entity instanceof LivingEntity living && (SConfig.SERVER.proto_sapient_target.get().contains(living.getEncodeId()) || living instanceof Player)){
-                living.addEffect(new MobEffectInstance(Seffects.MADNESS.get(),6000,0,false,false));
-            }
+        List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, aabb,
+                living -> SConfig.SERVER.proto_sapient_target.get().contains(living.getEncodeId()) || living instanceof Player);
+        for (LivingEntity living : entities){
+            living.addEffect(new MobEffectInstance(Seffects.MADNESS.get(),6000,0,false,false));
         }
     }
 
@@ -639,9 +661,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     }
 
     private void cleanupChunkLoading() {
-        ChunkPos chunk = this.chunkPosition();
-        String requestId = "hivemind_" + this.getUUID() + "_" + chunk;
-        ChunkLoaderHelper.removeRequest(requestId);
+        ChunkLoaderHelper.removeRequestsByPrefix(getChunkId());
     }
 
     private void spreadBlocksAroundDeath() {
@@ -697,6 +717,10 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
 
     public void setSignal(@Nullable Signal signal) {
+        if (!Objects.equals(this.signal, signal)) {
+            signalRetryCooldown = 0;
+            signalSummonAttempts = 0;
+        }
         this.signal = signal;
     }
 
@@ -707,7 +731,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
 
     public void SummonConstructor(Level level ,Entity entity,BlockPos pos){
-        RandomSource randomSource = RandomSource.create();
+        RandomSource randomSource = this.getRandom();
         int a = randomSource.nextInt(-12,12);
         int b = randomSource.nextInt(-12,12);
         int c = randomSource.nextInt(-4,4);
@@ -752,19 +776,20 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
     private boolean checkForLiquids(BlockPos blockPos){
         AABB aabb = AABB.ofSize(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), 14, 14, 14);
-        List<BlockPos> liquids = new ArrayList<>();
+        int liquidCount = 0;
         for(BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
-            if (level().getBlockState(blockpos).getFluidState() != Fluids.EMPTY.defaultFluidState()){
-                liquids.add(blockpos);
+            if (!level().getFluidState(blockpos).isEmpty() && ++liquidCount > 6){
+                return blockPos.getY() < 70;
             }
         }
-        return liquids.size() > 6 && blockPos.getY() <70;
+        return false;
     }
 
     public boolean checkForCalamities(BlockPos pos){
-        List<Entity> entities = this.level().getEntities(this, seachbox() , EntitySelector.NO_CREATIVE_OR_SPECTATOR);
-        for (Entity en : entities) {
-            if (en instanceof Calamity calamity && calamity.getSearchArea() == BlockPos.ZERO && Math.random() < 0.5){
+        List<Calamity> entities = this.level().getEntitiesOfClass(Calamity.class, seachbox(), calamity ->
+                calamity.getSearchArea() == BlockPos.ZERO);
+        for (Calamity calamity : entities) {
+            if (Math.random() < 0.5){
                 calamity.setSearchArea(pos);
                 this.setSignal(null);
                 for(ServerPlayer player : this.level().getServer().getPlayerList().getPlayers()){
@@ -798,25 +823,21 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
     public void loadChunks(){
         if (SConfig.SERVER.proto_chunk.get() && this.level() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().execute(() -> {
-                ChunkPos chunk = this.chunkPosition();
-                UUID ownerId = this.getUUID();
-                String id = "hivemind_" + ownerId + "_" + chunk.toString();
-
-                ChunkLoadRequest request = new ChunkLoadRequest(
-                        serverLevel.dimension(),
-                        new ChunkPos[]{chunk},
-                        1,
-                        id,
-                        20 * 60 * 10,
-                        ownerId
-                );
-
-                if (ChunkLoaderHelper.ACTIVE_REQUESTS.containsValue(request)){
-                    return;
-                }
-                ChunkLoaderHelper.addRequest(request);
-            });
+            ChunkPos chunk = this.chunkPosition();
+            UUID ownerId = this.getUUID();
+            String id = "hivemind_" + ownerId + "_" + chunk;
+            ChunkLoaderHelper.removeRequestsByPrefixExcept(getChunkId(), id);
+            if (ChunkLoaderHelper.containsRequest(id)) {
+                return;
+            }
+            ChunkLoaderHelper.addRequest(new ChunkLoadRequest(
+                    serverLevel.dimension(),
+                    new ChunkPos[]{chunk},
+                    1,
+                    id,
+                    this.chunkLifeTicks(),
+                    ownerId
+            ));
         }
     }
 
@@ -965,8 +986,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
 
     @Override
-    public void SpreadFoliageAndConvert(Level level, BlockState blockstate, BlockPos blockpos) {
-        FoliageSpread.super.SpreadFoliageAndConvert(level, blockstate, blockpos);
+    public void afterSpreadFoliageAndConvert(Level level, BlockState blockstate, BlockPos blockpos) {
         if (blockstate.getBlock().equals(Sblocks.CDU.get())){
             CDUBlock.replaceCDU(blockpos,level);
         }

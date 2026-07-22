@@ -21,8 +21,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 /**
@@ -67,20 +65,29 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             Function.class,
             BuildDeathWrapperClassFunction.class
     );
-    private final ConcurrentMap<Class<?>, Class<?>> CACHE = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Class<?>, Class<?>> DEATH_CACHE = new ConcurrentHashMap<>();
+    private final ClassValue<Optional<Class<?>>> wrapperCache =
+            new LoadingClassValue<>(this::buildCachedWrapper);
+    private final ClassValue<Optional<Class<?>>> deathWrapperCache =
+            new LoadingClassValue<>(this::buildCachedDeathWrapper);
 
     public LivingEntityHealthLifecycleWrapperUtil() {
     }
     @Override
     public Class<?> getRawOrginalClass(Class<?> wrapperValue){
-        return wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue);
+        if (wrapperValue != null && (wrapperValue.getName().contains(WRAPPER_SUFFIX)
+                || wrapperValue.getName().contains(DEATH_WRAPPER_SUFFIX))) {
+            Class<?> original = wrapperValue.getSuperclass();
+            if (original != null) {
+                return original;
+            }
+        }
+        return wrapperValue;
     }
 
     @Override
     public Class<?> getOrginalClass(Class<?> wrapperValue){
         //通过value找回第一个key
-        return ClassLoaderUtil.INSTANCE.tryAvoidHiddenClass(wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue));
+        return ClassLoaderUtil.INSTANCE.tryAvoidHiddenClass(getRawOrginalClass(wrapperValue));
     }
     @Override
     public void createWrapppperLocal(Object entity){
@@ -148,11 +155,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             return null;
         }
 
-        Class<?> wrapper=CACHE.computeIfAbsent(callback,BUILD_WARPPER_FUNC);
-        if(wrapper!=null){
-            wrapperToOriginal.putIfAbsent(wrapper, callback);
-        }
-        return wrapper;
+        return wrapperCache.get(callback).orElse(null);
     }
     private Class<?> createDeathWrapper(Class<?> callback) {
         callback = getOrginalClass(callback);
@@ -169,11 +172,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             return null;
         }
 
-        Class<?> wrapper = DEATH_CACHE.computeIfAbsent(callback, BUILD_DEATH_WARPPER_FUNC);
-        if(wrapper!=null){
-            wrapperToOriginal.putIfAbsent(wrapper, callback);
-        }
-        return wrapper;
+        return deathWrapperCache.get(callback).orElse(null);
     }
     private Class<?> createDeathWrapperForPlayer(Class<?> callback) {
         callback = getOrginalClass(callback);
@@ -190,13 +189,16 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             return null;
         }
 
-        Class<?> wrapper = DEATH_CACHE.computeIfAbsent(callback, BUILD_DEATH_WARPPER_FUNC);
-        if(wrapper!=null){
-            wrapperToOriginal.putIfAbsent(wrapper, callback);
-        }
-        return wrapper;
+        return deathWrapperCache.get(callback).orElse(null);
     }
-    private final ConcurrentHashMap<Class<?>, Class<?>> wrapperToOriginal = new ConcurrentHashMap<>();
+
+    private Optional<Class<?>> buildCachedWrapper(Class<?> callback) {
+        return Optional.ofNullable(BUILD_WARPPER_FUNC.apply(callback));
+    }
+
+    private Optional<Class<?>> buildCachedDeathWrapper(Class<?> callback) {
+        return Optional.ofNullable(BUILD_DEATH_WARPPER_FUNC.apply(callback));
+    }
     @Override
     public Class<?> buildWrapperClass(Class<?> callback) {
         try {

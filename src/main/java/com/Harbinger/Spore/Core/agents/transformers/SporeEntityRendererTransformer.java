@@ -95,7 +95,7 @@ public final class SporeEntityRendererTransformer extends SporeClassFileTransfor
                 return null;
             }
             String effectiveClassName = className == null ? classNode.name : className;
-            superNameCache.putIfAbsent(classNode.name, classNode.superName);
+            cacheSuperName(classNode.name, classNode.superName);
             if (classNode.name.startsWith(SPORE_PACKAGE_PREFIX)
                     || !isSubClass(classNode, loader, ENTITY_RENDERER_INTERNAL)) {
                 return null;
@@ -132,7 +132,7 @@ public final class SporeEntityRendererTransformer extends SporeClassFileTransfor
                 return false;
             }
             if (parent.superName != null) {
-                superNameCache.putIfAbsent(parent.name, parent.superName);
+                cacheSuperName(parent.name, parent.superName);
             }
             superName = parent.superName;
         }

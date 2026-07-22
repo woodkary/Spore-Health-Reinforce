@@ -8,8 +8,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -21,13 +19,18 @@ public final class ParentUtil implements IParents,Function<Class<?>, List<Method
             ParentUtil.class
     );
     // 缓存每个类中可能的 getParent 方法
-    private final Map<Class<?>, List<MethodHandle>> GET_PARENT_METHODS = new ConcurrentHashMap<>();
+    private final ClassValue<List<MethodHandle>> GET_PARENT_METHODS = new ClassValue<>() {
+        @Override
+        protected List<MethodHandle> computeValue(Class<?> type) {
+            return ParentUtil.this.apply(type);
+        }
+    };
 
     /**
      * 获取缓存的 getParent 方法
      */
     private List<MethodHandle> getParentMethods(Class<?> clazz) {
-        return GET_PARENT_METHODS.computeIfAbsent(clazz, this);
+        return GET_PARENT_METHODS.get(clazz);
     }
 
     @Override

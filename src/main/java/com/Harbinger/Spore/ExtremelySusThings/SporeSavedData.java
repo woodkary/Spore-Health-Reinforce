@@ -9,30 +9,123 @@ import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.lang.ref.WeakReference;
 
 public class SporeSavedData extends SavedData {
-    public static final Map<String, ChunkLoadRequest> activeRequests = new HashMap<>();
     public static final String NAME = Spore.MODID +"_world_data";
-    private static final List<Protector> protectorList = new ArrayList<>();
-    private static final List<Proto> protos = new ArrayList<>();
+    private static final List<WeakReference<Protector>> protectorList = new ArrayList<>();
+    private static final List<WeakReference<Proto>> protos = new ArrayList<>();
+    private final Map<String, ChunkLoadRequest> activeRequests = new HashMap<>();
+    private transient ServerLevel ownerLevel;
     private boolean casingLightAllowed;
-    public static void addProtector(Protector protector){
-        protectorList.add(protector);
+
+    public static synchronized void addProtector(Protector protector){
+        pruneProtectors();
+        for (WeakReference<Protector> reference : protectorList) {
+            if (reference.get() == protector) {
+                return;
+            }
+        }
+        protectorList.add(new WeakReference<>(protector));
     }
-    public static void removeProtector(Protector protector){
-        protectorList.remove(protector);
+
+    public static synchronized void removeProtector(Protector protector){
+        protectorList.removeIf(reference -> {
+            Protector value = reference.get();
+            return value == null || value == protector;
+        });
     }
-    public static List<Protector> protectorList(){
-        return protectorList;
+
+    public static synchronized List<Protector> protectorList(){
+        List<Protector> result = new ArrayList<>();
+        protectorList.removeIf(reference -> {
+            Protector value = reference.get();
+            if (value == null || value.isRemoved()) {
+                return true;
+            }
+            result.add(value);
+            return false;
+        });
+        return result;
     }
-    public static void addProto(Proto protector){
-        protos.add(protector);
+
+    public static synchronized List<Protector> protectorList(ServerLevel level){
+        List<Protector> result = new ArrayList<>();
+        protectorList.removeIf(reference -> {
+            Protector value = reference.get();
+            if (value == null || value.isRemoved()) {
+                return true;
+            }
+            if (value.level() == level) {
+                result.add(value);
+            }
+            return false;
+        });
+        return result;
     }
-    public static void removeProto(Proto protector){
-        protos.remove(protector);
+
+    public static synchronized void addProto(Proto proto){
+        pruneProtos();
+        for (WeakReference<Proto> reference : protos) {
+            if (reference.get() == proto) {
+                return;
+            }
+        }
+        protos.add(new WeakReference<>(proto));
     }
-    public static List<Proto> getHiveminds(){
-        return protos;
+
+    public static synchronized void removeProto(Proto proto){
+        protos.removeIf(reference -> {
+            Proto value = reference.get();
+            return value == null || value == proto;
+        });
+    }
+
+    public static synchronized List<Proto> getHiveminds(){
+        List<Proto> result = new ArrayList<>();
+        protos.removeIf(reference -> {
+            Proto value = reference.get();
+            if (value == null || value.isRemoved()) {
+                return true;
+            }
+            result.add(value);
+            return false;
+        });
+        return result;
+    }
+
+    public static synchronized List<Proto> getHiveminds(ServerLevel level){
+        List<Proto> result = new ArrayList<>();
+        protos.removeIf(reference -> {
+            Proto value = reference.get();
+            if (value == null || value.isRemoved()) {
+                return true;
+            }
+            if (value.level() == level) {
+                result.add(value);
+            }
+            return false;
+        });
+        return result;
+    }
+
+    private static void pruneProtectors() {
+        protectorList.removeIf(reference -> {
+            Protector value = reference.get();
+            return value == null || value.isRemoved();
+        });
+    }
+
+    private static void pruneProtos() {
+        protos.removeIf(reference -> {
+            Proto value = reference.get();
+            return value == null || value.isRemoved();
+        });
+    }
+
+    public static synchronized void clearRuntimeEntityReferences() {
+        protectorList.clear();
+        protos.clear();
     }
 
     public SporeSavedData() {
@@ -40,20 +133,26 @@ public class SporeSavedData extends SavedData {
     }
 
     public int getAmountOfHiveminds(){
-        return protos.size();
+        return ownerLevel == null ? getHiveminds().size() : getHiveminds(ownerLevel).size();
     }
 
 
     public static SporeSavedData getDataLocation(ServerLevel level){
-        return level.getDataStorage().get(SporeSavedData::load,NAME);
+        SporeSavedData data = level.getDataStorage().get(SporeSavedData::load,NAME);
+        if (data != null) {
+            data.ownerLevel = level;
+        }
+        return data;
     }
 
     public static SporeSavedData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(
+        SporeSavedData data = level.getDataStorage().computeIfAbsent(
                 SporeSavedData::load,
                 SporeSavedData::new,
                 NAME
         );
+        data.ownerLevel = level;
+        return data;
     }
 
     public void addRequest(ChunkLoadRequest request) {
@@ -67,7 +166,7 @@ public class SporeSavedData extends SavedData {
     }
 
     public Collection<ChunkLoadRequest> getRequests() {
-        return activeRequests.values();
+        return List.copyOf(activeRequests.values());
     }
 
     public boolean isCasingLightAllowed() {
@@ -87,7 +186,7 @@ public class SporeSavedData extends SavedData {
             for (int i = 0; i < list.size(); i++) {
                 CompoundTag entry = list.getCompound(i);
                 ChunkLoadRequest request = ChunkLoadRequest.deserializeNBT(entry);
-                activeRequests.put(request.getRequestID(), request);
+                data.activeRequests.put(request.getRequestID(), request);
             }
         }
         return data;

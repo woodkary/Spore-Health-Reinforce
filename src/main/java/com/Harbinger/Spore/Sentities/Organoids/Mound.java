@@ -318,7 +318,9 @@ public class Mound extends Organoid implements FoliageSpread {
                 return;
             } else
             {
-                List<Proto> protos = SporeSavedData.getHiveminds();
+                List<Proto> protos = this.level() instanceof ServerLevel serverLevel
+                        ? SporeSavedData.getHiveminds(serverLevel)
+                        : List.of();
                 if (protos.isEmpty()){
                     return;
                 }

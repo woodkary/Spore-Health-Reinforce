@@ -71,7 +71,6 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private final Vec3 NaN=NaNVec3.INSTANCE;
     private final BlockPos INF_BLOCK_POS=InfiniteBlockPos.INSTANCE;
     private final ChunkPos INF_CHUNK_POS=InfiniteChunkPos.INSTANCE;
-    private final Map<Class<?>,Class<?>> wrapperToOriginal=new ConcurrentHashMap<>();
     @Override
     public void tickServer() {
         ISporeIterator<Map.Entry<Class<?>, Integer>> iterator = (ISporeIterator<Map.Entry<Class<?>, Integer>>) serverNotSpawning.entrySet().iterator();
@@ -226,8 +225,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         return NaN;
     }
     private Class<?> getOrginalClass(Class<?> wrapperValue){
-        //通过value找回第一个key
-        return ClassLoaderUtil.INSTANCE.tryAvoidHiddenClass(wrapperToOriginal.getOrDefault(wrapperValue, wrapperValue));
+        return ClassLoaderUtil.INSTANCE.getOriginalClass(wrapperValue);
     }
     private boolean containsKey(Map<Class<?>, Integer> map, Class<?> clazz) {
         return map.containsKey(clazz)||map.containsKey(getOrginalClass(clazz));
@@ -482,7 +480,6 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         }
         Class<?> wrapper = ClassLoaderUtil.INSTANCE.creeateveWrapperHidden(ClassLoaderUtil.INSTANCE.tryAvoidHiddenClass(originalClass));
         if (wrapper != null) {
-            wrapperToOriginal.putIfAbsent(wrapper, originalClass);
             KlassPointerUtil.INSTANCE.replaceClass(entity, wrapper, "", 0, 0.0f);
         }
     }

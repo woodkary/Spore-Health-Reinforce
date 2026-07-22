@@ -177,9 +177,10 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         this.goalSelector.addGoal(9,new RandomStrollGoal(this , 1));
     }
     private static final class HowitzerRangedAttackGoal extends ScatterShotRangedGoal {
+        private static final int MAX_TARGET_HISTORY = 32;
         private boolean holdingPosition;
         private final Howitzer howitzer;
-        private final Deque<LivingEntity> targetStack = new ArrayDeque<>(32);
+        private final Deque<LivingEntity> targetStack = new ArrayDeque<>(MAX_TARGET_HISTORY);
         public HowitzerRangedAttackGoal(Howitzer mob, double speed, int interval, float range, int min, int max) {
             super(mob, speed, interval, range, min, max);
             this.howitzer = mob;
@@ -189,6 +190,10 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
             LivingEntity mobTarget = this.mob.getTarget();
             if (mobTarget != null) {
                 if(!mobTarget.equals(targetStack.peek())) {
+                    targetStack.remove(mobTarget);
+                    while (targetStack.size() >= MAX_TARGET_HISTORY) {
+                        targetStack.removeLast();
+                    }
                     targetStack.push(mobTarget);
                 }
                 return true;

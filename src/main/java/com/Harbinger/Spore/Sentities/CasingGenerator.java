@@ -12,16 +12,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public interface CasingGenerator {
@@ -84,62 +85,109 @@ public interface CasingGenerator {
     default void generateChasing(BlockPos pos,Entity entity, int radius,int thickness){
         Level level = entity.level();
         RandomSource randomSource = RandomSource.create();
-        for(int i = 0; i <= 2*radius; ++i) {
-            for(int j = 0; j <= 2*radius; ++j) {
-                for(int k = 0; k <= 2*radius; ++k) {
-                    double distance = Mth.sqrt((i-radius)*(i-radius) + (j-radius)*(j-radius) + (k-radius)*(k-radius));
-                    if (Math.abs(i) != 2 || Math.abs(j) != 2 || Math.abs(k) != 2) {
-                        if (distance>radius-(thickness/2d) && distance<radius+(thickness/2d)){
-                            BlockPos blockpos = pos.offset(i-radius,j-radius,k-radius);
-                            BlockState blockstate = level.getBlockState(blockpos);
-                            if (Math.random() < 0.1 && !blockstate.isSolidRender(level,blockpos) && !blockstate.is(Blocks.BARRIER) && compare(level,blockpos)){
-                                if (!level.isClientSide){
-                                    level.setBlock(blockpos,this.randomCasingBlock(randomSource),3);
-                                    if (Math.random() < 0.001){
-                                        createSpots(blockpos,level,randomSource.nextInt(3,6),Math.random() < 0.5 ? Sblocks.SICKEN_BIOMASS_BLOCK.get().defaultBlockState():Sblocks.CALCIFIED_BIOMASS_BLOCK.get().defaultBlockState(), randomSource);
-                                    }
-                                    if (Math.random() < 0.001){
-                                        createPussSpots(blockpos,level,randomSource.nextInt(2,5), randomSource);
-                                    }
-                                    if (Math.random() < 0.005){
-                                        if (level.getBlockState(blockpos.above()).isAir()){
-                                            createFungalStalks(blockpos,level,randomSource,false);
-                                        }else if (level.getBlockState(blockpos.below()).isAir()){
-                                            createFungalStalks(blockpos,level,randomSource,true);
-                                        }
-                                    }
-                                }
-                            }
-                            if (Math.random() < 0.05 && blockstate.isSolidRender(level,blockpos)){
-                                for (String str : SConfig.DATAGEN.block_infection.get()){
-                                    String[] string = str.split("\\|" );
-                                    ItemStack stack = new ItemStack(ForgeRegistries.BLOCKS.getValue(new ResourceLocation(string[0])));
-                                    if (stack != ItemStack.EMPTY && blockstate.getBlock().asItem() == stack.getItem()){
-                                        ItemStack itemStack = new ItemStack(ForgeRegistries.BLOCKS.getValue(new ResourceLocation(string[1])));
-                                        if (itemStack != ItemStack.EMPTY && itemStack.getItem() instanceof BlockItem blockItem){
-                                            level.setBlock(blockpos,blockItem.getBlock().defaultBlockState(),3);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+        Map<Block, Block> blockInfections = resolveBlockInfections();
+        double minDistance = radius - thickness / 2.0D;
+        double maxDistance = radius + thickness / 2.0D;
+        double minDistanceSqr = minDistance * minDistance;
+        double maxDistanceSqr = maxDistance * maxDistance;
+        for (int offsetX = -radius; offsetX <= radius; ++offsetX) {
+            for (int offsetY = -radius; offsetY <= radius; ++offsetY) {
+                double horizontalDistanceSqr = offsetX * offsetX + offsetY * offsetY;
+                double remainingOuterDistance = maxDistanceSqr - horizontalDistanceSqr;
+                if (remainingOuterDistance <= 0.0D) {
+                    continue;
+                }
+                int maxOffsetZ = Math.min(radius,
+                        (int) Math.ceil(Math.sqrt(remainingOuterDistance)) - 1);
+                double remainingInnerDistance = minDistanceSqr - horizontalDistanceSqr;
+                int minOffsetZ = remainingInnerDistance < 0.0D
+                        ? 0
+                        : (int) Math.floor(Math.sqrt(remainingInnerDistance)) + 1;
+                for (int offsetZ = minOffsetZ; offsetZ <= maxOffsetZ; ++offsetZ) {
+                    generateCasingAt(level, pos, offsetX, offsetY, offsetZ, randomSource, blockInfections);
+                    if (offsetZ != 0) {
+                        generateCasingAt(level, pos, offsetX, offsetY, -offsetZ, randomSource, blockInfections);
                     }
                 }
             }
         }
     }
 
+    private void generateCasingAt(Level level, BlockPos center, int offsetX, int offsetY, int offsetZ,
+                                  RandomSource source, Map<Block, Block> blockInfections) {
+        BlockPos blockpos = center.offset(offsetX, offsetY, offsetZ);
+        if (!level.hasChunkAt(blockpos)) {
+            return;
+        }
+        BlockState blockstate = level.getBlockState(blockpos);
+        if (source.nextFloat() < 0.1F && !blockstate.isSolidRender(level, blockpos)
+                && !blockstate.is(Blocks.BARRIER) && compare(level, blockpos)) {
+            if (!level.isClientSide) {
+                level.setBlock(blockpos, this.randomCasingBlock(source), 3);
+                if (source.nextFloat() < 0.001F) {
+                    createSpots(blockpos, level, source.nextInt(3, 6),
+                            source.nextBoolean()
+                                    ? Sblocks.SICKEN_BIOMASS_BLOCK.get().defaultBlockState()
+                                    : Sblocks.CALCIFIED_BIOMASS_BLOCK.get().defaultBlockState(),
+                            source);
+                }
+                if (source.nextFloat() < 0.001F) {
+                    createPussSpots(blockpos, level, source.nextInt(2, 5), source);
+                }
+                if (source.nextFloat() < 0.005F) {
+                    if (level.getBlockState(blockpos.above()).isAir()) {
+                        createFungalStalks(blockpos, level, source, false);
+                    } else if (level.getBlockState(blockpos.below()).isAir()) {
+                        createFungalStalks(blockpos, level, source, true);
+                    }
+                }
+            }
+        }
+        if (source.nextFloat() < 0.05F && blockstate.isSolidRender(level, blockpos)) {
+            Block replacement = blockInfections.get(blockstate.getBlock());
+            if (replacement != null) {
+                level.setBlock(blockpos, replacement.defaultBlockState(), 3);
+            }
+        }
+    }
+
+    private Map<Block, Block> resolveBlockInfections() {
+        Map<Block, Block> result = new HashMap<>();
+        for (String entry : SConfig.DATAGEN.block_infection.get()) {
+            String[] parts = entry.split("\\|", 2);
+            if (parts.length != 2) {
+                continue;
+            }
+            ResourceLocation fromId = ResourceLocation.tryParse(parts[0]);
+            ResourceLocation toId = ResourceLocation.tryParse(parts[1]);
+            if (fromId == null || toId == null) {
+                continue;
+            }
+            Block from = ForgeRegistries.BLOCKS.getValue(fromId);
+            Block to = ForgeRegistries.BLOCKS.getValue(toId);
+            if (from != null && to != null) {
+                result.put(from, to);
+            }
+        }
+        return result;
+    }
+
     default void createSpots(BlockPos pos,Level level, int range,BlockState state){
         createSpots(pos, level, range, state, RandomSource.create());
     }
     default void createSpots(BlockPos pos,Level level, int range,BlockState state, RandomSource source){
+        double maxDistance = range + 0.5D;
+        double maxDistanceSqr = maxDistance * maxDistance;
         for(int i = 0; i <= 2*range; ++i) {
             for(int j = 0; j <= 2*range; ++j) {
                 for(int k = 0; k <= 2*range; ++k) {
-                    double distance = Mth.sqrt((float) ((i-range)*(i-range) + (j-range)*(j-range) + (k-range)*(k-range)));
+                    int offsetX = i - range;
+                    int offsetY = j - range;
+                    int offsetZ = k - range;
+                    double distanceSqr = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ;
                     if (Math.abs(i) != 2 || Math.abs(j) != 2 || Math.abs(k) != 2) {
-                        if (distance<range+(0.5)){
-                            BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
+                        if (distanceSqr < maxDistanceSqr){
+                            BlockPos blockpos = pos.offset(offsetX, offsetY, offsetZ);
                             if (isPossibleBlock(level.getBlockState(blockpos))){
                                 level.setBlock(blockpos,withCasingLight(state, source),3);
                             }
@@ -149,19 +197,26 @@ public interface CasingGenerator {
         createPussSpots(pos, level, range, RandomSource.create());
     }
     default void createPussSpots(BlockPos pos,Level level, int range, RandomSource source){
+        double outerDistance = range + 0.5D;
+        double innerDistance = range - 0.5D;
+        double outerDistanceSqr = outerDistance * outerDistance;
+        double innerDistanceSqr = innerDistance * innerDistance;
         for(int i = 0; i <= 2*range; ++i) {
             for(int j = 0; j <= 2*range; ++j) {
                 for(int k = 0; k <= 2*range; ++k) {
-                    double distance = Mth.sqrt((float) ((i-range)*(i-range) + (j-range)*(j-range) + (k-range)*(k-range)));
+                    int offsetX = i - range;
+                    int offsetY = j - range;
+                    int offsetZ = k - range;
+                    double distanceSqr = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ;
                     if (Math.abs(i) != 2 || Math.abs(j) != 2 || Math.abs(k) != 2) {
-                        if (distance<range+(0.5) && distance>range-(0.5)){
-                            BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
+                        if (distanceSqr < outerDistanceSqr && distanceSqr > innerDistanceSqr){
+                            BlockPos blockpos = pos.offset(offsetX, offsetY, offsetZ);
                             if (level.getBlockState(blockpos).isAir()){
                                 level.setBlock(blockpos,withCasingLight(Math.random() < 0.5 ? Sblocks.GASTRIC_BIOMASS.get().defaultBlockState() : Sblocks.BIOMASS_BLOCK.get().defaultBlockState(), source), 3);
                             }
                         }
-                        if (distance<range-(0.5)){
-                            BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
+                        if (distanceSqr < innerDistanceSqr){
+                            BlockPos blockpos = pos.offset(offsetX, offsetY, offsetZ);
                             if (level.getBlockState(blockpos).isAir()){
                                 level.setBlock(blockpos,withCasingLight(Math.random() < 0.5 ? Sblocks.SICKEN_BIOMASS_BLOCK.get().defaultBlockState() : Sblocks.BILE.get().defaultBlockState(), source), 3);
                             }

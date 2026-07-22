@@ -14,8 +14,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.security.cert.Certificate;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Optional;
 
 /**
  * @author karywoodOyo
@@ -27,11 +26,8 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
             new Class<?>[]{ClassLoader.class},
             ClassLoaderUtil.class.getClassLoader()
     );
-    private final ConcurrentMap<Class<?>, Class<?>> classCache = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Class<?>, Class<?>> wrapperToOriginal = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Class<?>, Class<?>> hiddenClassCache = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Class<?>, Class<?>> hiddenWrapperToOriginal = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Class<?>, Boolean> hiddenClassBuildFailed = new ConcurrentHashMap<>();
+    private final ClassValue<Optional<Class<?>>> hiddenClassCache =
+            new LoadingClassValue<>(this::buildAllReturnWrapper);
     private final ProtectionDomain domain;
 
     public ClassLoaderUtil(ClassLoader parent) {
@@ -59,51 +55,31 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
         if(!clazz.getName().contains("SporeAllReturnWrapper")){
             return clazz;
         }
-        return tryAvoidHiddenClass((clazz.isHidden()?hiddenWrapperToOriginal:wrapperToOriginal).getOrDefault(clazz,clazz));
+        Class<?> original = clazz.getSuperclass();
+        return original == null ? clazz : tryAvoidHiddenClass(original);
     }
 
     @Override
     public Class<?> deffineneClazz(ClassNode node, Class<?> initialClass) {
-        if (initialClass != null) {
-            Class<?> cached = classCache.get(initialClass);
-            if (cached != null) {
-                return cached;
-            }
-        }
         ClassWriter cw = new MixinClassWriter(3);
         node.accept(cw);
         String replace = node.name.replace('/', '.');
         byte[] bytes = cw.toByteArray();
         try {
-            Class<?> defined = define(replace, bytes);
-            if (defined != null && initialClass != null) {
-                classCache.putIfAbsent(initialClass, defined);
-                wrapperToOriginal.putIfAbsent(defined, initialClass);
-            }
-            return defined;
+            return define(replace, bytes);
         }catch (Exception e) {
             LogUtil.errorf("failed to define all return class by my ClassLoader" + replace);
             LogUtil.printStackTrace(e);
         }
         if (initialClass != null) {
             try {
-                Class<?> defined = ClassUtil.deffineneClazz(initialClass.getClassLoader(), replace, bytes);
-                if (defined != null) {
-                    classCache.putIfAbsent(initialClass, defined);
-                    wrapperToOriginal.putIfAbsent(defined, initialClass);
-                }
-                return defined;
+                return ClassUtil.deffineneClazz(initialClass.getClassLoader(), replace, bytes);
             } catch (Exception e) {
                 LogUtil.errorf("failed to define all return class by other ClassLoader" + replace);
             }
         }
         try {
-            Class<?> defined = ClassUtil.deffineneClazz(Thread.currentThread().getContextClassLoader(), replace, bytes);
-            if (defined != null && initialClass != null) {
-                classCache.putIfAbsent(initialClass, defined);
-                wrapperToOriginal.putIfAbsent(defined, initialClass);
-            }
-            return defined;
+            return ClassUtil.deffineneClazz(Thread.currentThread().getContextClassLoader(), replace, bytes);
         } catch (Exception e) {
             LogUtil.errorf("failed to define all return class by context ClassLoader" + replace);
             LogUtil.printStackTrace(e);
@@ -123,39 +99,21 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader {
             if (callback.getName().contains("SporeAllReturnWrapper")) {
                 return callback;
             }
-            Class<?> cached = hiddenClassCache.get(callback);
-            if (cached != null) {
-                return cached;
-            }
-            if (hiddenClassBuildFailed.containsKey(callback)) {
-                return null;
-            }
-            try {
-                synchronized (hiddenClassCache) {
-                    Class<?> cache2 = hiddenClassCache.get(callback);
-                    if (cache2 != null) {
-                        return cache2;
-                    }
-                    if (hiddenClassBuildFailed.containsKey(callback)) {
-                        return null;
-                    }
-                    ClassNode node = new ClassNode();
-                    AllReturnUtil.INSTANCE.ttranssansformNode(node, callback);
-                    Class<?> wrapper = deffineneHiddenClazz(node, callback);
-                    if (wrapper != null) {
-                        hiddenClassCache.putIfAbsent(callback, wrapper);
-                        hiddenWrapperToOriginal.putIfAbsent(wrapper, callback);
-                    } else {
-                        hiddenClassBuildFailed.putIfAbsent(callback, Boolean.TRUE);
-                    }
-                    return wrapper;
-                }
-            } catch (Exception var2) {
-                hiddenClassBuildFailed.putIfAbsent(callback, Boolean.TRUE);
-                return null;
-            }
+            return hiddenClassCache.get(callback).orElse(null);
         } else {
             return null;
+        }
+    }
+
+    private Optional<Class<?>> buildAllReturnWrapper(Class<?> callback) {
+        try {
+            ClassNode node = new ClassNode();
+            AllReturnUtil.INSTANCE.ttranssansformNode(node, callback);
+            return Optional.ofNullable(deffineneHiddenClazz(node, callback));
+        } catch (Throwable throwable) {
+            LogUtil.errorf("failed to build all return wrapper for %s: %s",
+                    callback.getName(), throwable.getMessage());
+            return Optional.empty();
         }
     }
 

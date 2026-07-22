@@ -84,6 +84,7 @@ import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -185,8 +186,15 @@ public class HandlerEvents {
                 despawns++;
             }
         } else {
-            entities.sort(Comparator.comparingDouble((Entity e) ->
-                    level.getNearestPlayer(e, -1) != null ? e.distanceToSqr(Objects.requireNonNull(level.getNearestPlayer(e, -1))) : Double.MAX_VALUE).reversed());
+            Map<T, Double> nearestPlayerDistances = new IdentityHashMap<>(entities.size());
+            for (T entity : entities) {
+                double nearestDistance = Double.MAX_VALUE;
+                for (ServerPlayer player : players) {
+                    nearestDistance = Math.min(nearestDistance, entity.distanceToSqr(player));
+                }
+                nearestPlayerDistances.put(entity, nearestDistance);
+            }
+            entities.sort(Comparator.comparingDouble(nearestPlayerDistances::get).reversed());
             for (int i = 0; i < toRemove; i++) {
                 T entity = entities.get(i);
                 entity.discard();
@@ -200,6 +208,13 @@ public class HandlerEvents {
         if (event.getLevel() instanceof ServerLevel level) {
             SporeSavedData data = SporeSavedData.get(level);
             for (ChunkLoadRequest request : data.getRequests()) {
+                if (request.isExpired() || !request.getDimensionKey().equals(level.dimension())) {
+                    data.removeRequest(request.getRequestID());
+                    continue;
+                }
+                if (ChunkLoaderHelper.containsRequest(request.getRequestID())) {
+                    continue;
+                }
                 ChunkLoaderHelper.ACTIVE_REQUESTS.put(request.getRequestID(), request);
                 for (ChunkPos pos : request.getChunkPositionsToLoad()) {
                     ChunkLoaderHelper.forceChunk(level, pos);
@@ -207,10 +222,16 @@ public class HandlerEvents {
             }
         }
     }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        ChunkLoaderHelper.clearRuntimeRequests();
+        SporeSavedData.clearRuntimeEntityReferences();
+    }
     @SubscribeEvent
     public static void onLivingSpawned(EntityJoinLevelEvent event) {
         if (event != null && event.getEntity() != null) {
-            if (event.getEntity() instanceof Protector protector){
+            if (event.getEntity() instanceof Protector protector && event.getLevel() instanceof ServerLevel){
                 SporeSavedData.addProtector(protector);
             }
             if (event.getEntity() instanceof Proto proto && event.getLevel() instanceof ServerLevel){
@@ -799,9 +820,14 @@ public class HandlerEvents {
         if (entity instanceof ChunkLoaderMob mob && entity.level() instanceof ServerLevel serverLevel){
             SectionPos OldChunk = event.getOldPos();
             SectionPos NewChunk = event.getNewPos();
+            if (!mob.shouldLoadChunk()) {
+                ChunkLoaderHelper.removeRequestsByPrefix(mob.getChunkId());
+                return;
+            }
             if (mob.shouldLoadChunk() && event.didChunkChange() && OldChunk != NewChunk){
                 ChunkPos chunk = NewChunk.chunk();
                 String id = mob.getChunkId() + chunk.toString();
+                ChunkLoaderHelper.removeRequestsByPrefixExcept(mob.getChunkId(), id);
                 ChunkLoadRequest request = new ChunkLoadRequest(
                         serverLevel.dimension(),
                         new ChunkPos[]{chunk},
@@ -849,7 +875,10 @@ public class HandlerEvents {
 
     @SubscribeEvent
     public static void DiscardProto(EntityLeaveLevelEvent event){
-        if (event.getEntity() instanceof Protector protector){
+        if (event.getEntity() instanceof ChunkLoaderMob mob && event.getLevel() instanceof ServerLevel) {
+            ChunkLoaderHelper.removeRequestsByPrefix(mob.getChunkId());
+        }
+        if (event.getEntity() instanceof Protector protector && event.getLevel() instanceof ServerLevel){
             SporeSavedData.removeProtector(protector);
         }
         if (event.getEntity() instanceof Proto proto && event.getLevel() instanceof ServerLevel){
@@ -932,7 +961,9 @@ public class HandlerEvents {
         }
         if(target instanceof Infected victim && !(victim instanceof Protector)) {
                 LivingEntity attacker = living instanceof LivingEntity e ? e : null;
-                List<Protector> protectorList = SporeSavedData.protectorList();
+                List<Protector> protectorList = attacker != null && attacker.level() instanceof ServerLevel serverLevel
+                        ? SporeSavedData.protectorList(serverLevel)
+                        : List.of();
                 if (!protectorList.isEmpty() && attacker != null){
                     for (Protector protector1 : protectorList){
                         double d0 = protector1.distanceTo(attacker);

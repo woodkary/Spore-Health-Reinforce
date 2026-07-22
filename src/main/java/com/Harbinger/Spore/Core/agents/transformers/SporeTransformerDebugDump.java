@@ -14,7 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public final class SporeTransformerDebugDump {
-    private static final int MAX_CACHE_ENTRIES = Integer.getInteger("spore.transformer.debugDump.cacheLimit", 256);
+    private static final int MAX_CACHE_ENTRIES = Math.max(
+            4,
+            Integer.getInteger("spore.transformer.debugDump.cacheLimit", 64)
+    );
+    private static final boolean CACHE_INPUT_BYTES = Boolean.getBoolean("spore.transformer.debugDump.cacheInput");
     private static final String DUMP_DIR_PROPERTY = "spore.transformer.debugDumpDir";
     private static final DateTimeFormatter FILE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
     private static final ConcurrentMap<String, DumpEntry> LAST_TRANSFORMED = new ConcurrentHashMap<>();
@@ -30,14 +34,14 @@ public final class SporeTransformerDebugDump {
         if (transformedBytes == null || transformedBytes.length == 0) {
             return;
         }
-        if (LAST_TRANSFORMED.size() > MAX_CACHE_ENTRIES) {
+        if (LAST_TRANSFORMED.size() >= MAX_CACHE_ENTRIES) {
             LAST_TRANSFORMED.clear();
         }
         DumpEntry entry = new DumpEntry(
                 transformerName,
                 requestedClassName,
                 internalClassName,
-                copy(inputBytes),
+                CACHE_INPUT_BYTES ? copy(inputBytes) : null,
                 copy(transformedBytes),
                 System.currentTimeMillis()
         );

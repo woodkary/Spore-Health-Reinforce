@@ -4,7 +4,6 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.AABB;
 
@@ -34,13 +33,12 @@ public class ProtoTargeting extends Goal {
 
     public void Targeting(Entity entity){
         AABB boundingBox = entity.getBoundingBox().inflate(SConfig.SERVER.proto_range.get());
-        List<Entity> entities = entity.level().getEntities(entity, boundingBox , EntitySelector.NO_CREATIVE_OR_SPECTATOR);
+        List<Infected> entities = entity.level().getEntitiesOfClass(Infected.class, boundingBox,
+                infected -> !infected.isSpectator());
 
-        for (Entity entity1 : entities) {
-            if(entity1 instanceof Infected infected) {
-                if (infected.getTarget() == null && this.proto.getTarget() != null && this.proto.getTarget().isAlive() && !this.proto.getTarget().isInvulnerable()){
-                    infected.setTarget(proto.getTarget());
-                }
+        for (Infected infected : entities) {
+            if (infected.getTarget() == null && this.proto.getTarget() != null && this.proto.getTarget().isAlive() && !this.proto.getTarget().isInvulnerable()){
+                infected.setTarget(proto.getTarget());
             }
         }
     }

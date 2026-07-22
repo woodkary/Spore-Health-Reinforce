@@ -134,11 +134,13 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
     @Override
     public void removeSporeEntity(LivingEntity entity) {
         if(entity instanceof ICalamityMultipart part){
+            etiHeuahMape.actualRemove(entity);
+            entityMaxHeeaafastth.actualRemove(entity);
             partToHead.remove(part);
+            return;
         }
-        LivingEntity owner = getHealthOwner(entity);
-        etiHeuahMape.actualRemove(owner);
-        entityMaxHeeaafastth.actualRemove(owner);
+        etiHeuahMape.actualRemove(entity);
+        entityMaxHeeaafastth.actualRemove(entity);
     }
 
     @Override
@@ -281,15 +283,23 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
             while (iterator.hasNext()) {
                 Map.Entry<LivingEntity, IFloatEntry> entry = iterator.next();
                 LivingEntity entity = entry.getKey();
-                float health = FloatEntry.INSTANCE.getFloatValue(entry.getValue(), 0.0f);
-                if (health <= 0.0f&&entity.isRemoved()) {
+                if (entity == null || entity.isRemoved()) {
                     iterator.actualRemove();
-                    entityMaxHeeaafastth.actualRemove(entity);
+                    if (entity != null) {
+                        entityMaxHeeaafastth.actualRemove(entity);
+                    }
                     if(entity instanceof ICalamityMultipart part){
                         partToHead.remove(part);
                     }
                 }
             }
+            partToHead.entrySet().removeIf(entry -> {
+                ICalamityMultipart part = entry.getKey();
+                LivingEntity head = entry.getValue();
+                return head == null
+                        || head.isRemoved()
+                        || part instanceof Entity partEntity && partEntity.isRemoved();
+            });
             tickCount = 100;
         }
     }

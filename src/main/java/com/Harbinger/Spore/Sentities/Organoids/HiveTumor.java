@@ -84,7 +84,7 @@ public class HiveTumor extends Organoid implements FoliageSpread {
                 SpreadInfection(level(),SConfig.SERVER.mound_range_age4.get() * 2,getOnPos());
             }
             if (entityData.get(GROWTH) >= SConfig.SERVER.htumor_timer.get() && level() instanceof ServerLevel serverLevel){
-                List<Proto> protos = SporeSavedData.getHiveminds();
+                List<Proto> protos = SporeSavedData.getHiveminds(serverLevel);
                 boolean Proto = true;
                 if (!protos.isEmpty()) {
                     for (Proto proto : protos){
@@ -195,8 +195,7 @@ public class HiveTumor extends Organoid implements FoliageSpread {
         }
     }
     @Override
-    public void SpreadFoliageAndConvert(Level level, BlockState blockstate, BlockPos blockpos) {
-        FoliageSpread.super.SpreadFoliageAndConvert(level, blockstate, blockpos);
+    public void afterSpreadFoliageAndConvert(Level level, BlockState blockstate, BlockPos blockpos) {
         if (blockstate.getBlock().equals(Sblocks.CDU.get())){
             CDUBlock.replaceCDU(blockpos,level);
         }

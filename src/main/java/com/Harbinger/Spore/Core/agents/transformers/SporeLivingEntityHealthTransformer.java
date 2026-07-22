@@ -83,7 +83,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
                 return null;
             }
             String effectiveClassName = className == null ? classNode.name : className;
-            superNameCache.putIfAbsent(classNode.name, classNode.superName);
+            cacheSuperName(classNode.name, classNode.superName);
             if (!isLivingEntityOrSubclass(classNode, loader)) {
                 return null;
             }
@@ -122,7 +122,7 @@ public final class SporeLivingEntityHealthTransformer extends SporeClassFileTran
                 return false;
             }
             if (parent.superName != null) {
-                superNameCache.putIfAbsent(parent.name, parent.superName);
+                cacheSuperName(parent.name, parent.superName);
             }
             superName = parent.superName;
         }

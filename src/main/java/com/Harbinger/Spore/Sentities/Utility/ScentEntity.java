@@ -31,8 +31,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Random;
 
 public class ScentEntity extends UtilityEntity {
@@ -40,6 +41,9 @@ public class ScentEntity extends UtilityEntity {
     private static final EntityDataAccessor<Integer> DISSIPATE = SynchedEntityData.defineId(ScentEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SUMMON = SynchedEntityData.defineId(ScentEntity.class, EntityDataSerializers.INT);
     public List<String> idList = new ArrayList<>();
+    private int dissipateTicks;
+    private int summonTicks;
+    private int summonRetryCooldown;
     public ScentEntity(EntityType<? extends PathfinderMob> mob, Level level) {
         super(mob, level);
     }
@@ -52,25 +56,31 @@ public class ScentEntity extends UtilityEntity {
     @Override
     public void tick() {
         if (this.isAlive()){
-            if (getDissipate() == 1){
+            if (!this.level().isClientSide && getDissipate() == 1){
                 addToTheList(this);
             }
             setDissipate(getDissipate()+1);
             if (getDissipate() >= SConfig.SERVER.scent_life.get()) {
                 this.discard();
             }
-            if (SConfig.SERVER.scent_summon.get()){
-            setSummon(getSummon()+1);
-            if (getSummon() >= SConfig.SERVER.scent_summon_cooldown.get()) {
-                if (!this.level().isClientSide && (getOvercharged() || checkForNonInfected(this))){
-                    Womb womb = getNearbyWombs();
-                    if (womb != null){
-                        womb.setBiomass(womb.getBiomass() + SConfig.SERVER.reconstructor_assimilation.get());
+            if (!this.level().isClientSide && SConfig.SERVER.scent_summon.get()){
+                setSummon(getSummon()+1);
+                if (getSummon() >= SConfig.SERVER.scent_summon_cooldown.get()) {
+                    if (summonRetryCooldown > 0) {
+                        summonRetryCooldown--;
+                    } else if (getOvercharged() || checkForNonInfected(this)){
+                        Womb womb = getNearbyWombs();
+                        if (womb != null){
+                            womb.setBiomass(womb.getBiomass() + SConfig.SERVER.reconstructor_assimilation.get());
+                        }
+                        this.Summon(this);
+                        setSummon(0);
+                        summonRetryCooldown = 0;
+                    } else {
+                        summonRetryCooldown = 20;
                     }
-                    this.Summon(this);
-                setSummon(0);
                 }
-            }}
+            }
         }
         super.tick();
     }
@@ -84,26 +94,30 @@ public class ScentEntity extends UtilityEntity {
     }
     boolean checkForNonInfected(Entity entity){
         AABB boundingBox = entity.getBoundingBox().inflate(16);
-        List<Entity> entities = entity.level().getEntities(entity, boundingBox ,EntitySelector.NO_CREATIVE_OR_SPECTATOR);
-
-        for (Entity en : entities) {
-            if (en instanceof LivingEntity livingEntity && TARGET_SELECTOR.test(livingEntity)){
-                return true;
-            }
-        }
-        return false;
+        return !entity.level().getEntitiesOfClass(LivingEntity.class, boundingBox,
+                living -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(living)
+                        && TARGET_SELECTOR.test(living)).isEmpty();
     }
 
     void addToTheList(Entity entity){
+        Map<String, String> conversions = new HashMap<>();
+        for (String entry : SConfig.SERVER.inf_human_conv.get()) {
+            String[] parts = entry.split("\\|", 2);
+            if (parts.length == 2) {
+                conversions.put(parts[0], parts[1]);
+            }
+        }
+        if (conversions.isEmpty()) {
+            return;
+        }
         AABB boundingBox = entity.getBoundingBox().inflate(100);
-        List<Entity> entities = entity.level().getEntities(entity, boundingBox ,EntitySelector.NO_CREATIVE_OR_SPECTATOR);
+        List<Entity> entities = entity.level().getEntities(entity, boundingBox,
+                candidate -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(candidate)
+                        && conversions.containsKey(candidate.getEncodeId()));
         for (Entity en : entities) {
-            for (String entry : SConfig.SERVER.inf_human_conv.get()) {
-                String[] parts = entry.split("\\|");
-                if (parts.length < 2) continue;
-                if (Objects.equals(en.getEncodeId(), parts[0])){
-                    idList.add(parts[1]);
-                }
+            String convertedId = conversions.get(en.getEncodeId());
+            if (convertedId != null) {
+                idList.add(convertedId);
             }
         }
     }
@@ -117,8 +131,8 @@ public class ScentEntity extends UtilityEntity {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean("overcharged",entityData.get(OVERCHARGED));
-        tag.putInt("summon",entityData.get(SUMMON));
-        tag.putInt("dissipate",entityData.get(DISSIPATE));
+        tag.putInt("summon",getSummon());
+        tag.putInt("dissipate",getDissipate());
         ListTag teamTag = new ListTag();
         for (String member : idList) {
             teamTag.add(StringTag.valueOf(member));
@@ -130,8 +144,8 @@ public class ScentEntity extends UtilityEntity {
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         entityData.set(OVERCHARGED, tag.getBoolean("overcharged"));
-        entityData.set(SUMMON, tag.getInt("summon"));
-        entityData.set(DISSIPATE, tag.getInt("dissipate"));
+        setSummon(tag.getInt("summon"));
+        setDissipate(tag.getInt("dissipate"));
         idList.clear();
         ListTag teamTag = tag.getList("entities", Tag.TAG_STRING);
         for (int l = 0; l < teamTag.size(); l++) {
@@ -139,10 +153,10 @@ public class ScentEntity extends UtilityEntity {
         }
     }
 
-    public void setSummon(int val){entityData.set(SUMMON,val);}
-    public void setDissipate(int val){entityData.set(DISSIPATE,val);}
-    public int getSummon(){return entityData.get(SUMMON);}
-    public int getDissipate(){return entityData.get(DISSIPATE);}
+    public void setSummon(int val){summonTicks = val;}
+    public void setDissipate(int val){dissipateTicks = val;}
+    public int getSummon(){return summonTicks;}
+    public int getDissipate(){return dissipateTicks;}
 
     protected void defineSynchedData() {
         super.defineSynchedData();
@@ -165,7 +179,7 @@ public class ScentEntity extends UtilityEntity {
         if (!this.onGround()){
             this.getDeltaMovement().add(0.0,-0.01,0.0);
         }
-        if (SConfig.SERVER.scent_particles.get()) {
+        if (level().isClientSide && SConfig.SERVER.scent_particles.get()) {
             int i = Mth.floor(this.getX());
             int j = Mth.floor(this.getY());
             int k = Mth.floor(this.getZ());

@@ -28,6 +28,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,22 +37,48 @@ public interface FoliageSpread {
         if (!level.isClientSide)
             if (SConfig.SERVER.mound_foliage.get()){
              additionPlacers(level,pos,range);
-             for(int i = 0; i <= 2*range; ++i) {
-                for(int j = 0; j <= 2*range; ++j) {
-                    for(int k = 0; k <= 2*range; ++k) {
-                        double distance = Mth.sqrt((float) ((i-range)*(i-range) + (j-range)*(j-range) + (k-range)*(k-range)));
-                        if (Math.abs(i) != 2 || Math.abs(j) != 2 || Math.abs(k) != 2) {
-                            if (distance<range+(0.5)){
-                                BlockPos blockpos = pos.offset( i-(int)range,j-(int)range,k-(int)range);
-                                BlockState blockstate = level.getBlockState(blockpos);
-                                SpreadFoliageAndConvert(level,blockstate,blockpos);
-                            }}}}}
+             Map<Block, Block> blockInfections = resolveBlockInfections();
+             BlockPos.MutableBlockPos blockpos = new BlockPos.MutableBlockPos();
+             int maxIndex = (int) Math.floor(2.0D * range);
+             int integerRange = (int) range;
+             double maxDistance = range + 0.5D;
+             double maxDistanceSqr = maxDistance * maxDistance;
+             for (int i = 0; i <= maxIndex; ++i) {
+                 double offsetX = i - range;
+                 for (int j = 0; j <= maxIndex; ++j) {
+                     double offsetY = j - range;
+                     double remainingDistance = maxDistanceSqr - offsetX * offsetX - offsetY * offsetY;
+                     if (remainingDistance <= 0.0D) {
+                         continue;
+                     }
+                     double zExtent = Math.sqrt(remainingDistance);
+                     int minK = Math.max(0, (int) Math.floor(range - zExtent) + 1);
+                     int maxK = Math.min(maxIndex, (int) Math.ceil(range + zExtent) - 1);
+                     for (int k = minK; k <= maxK; ++k) {
+                         if (i == 2 && j == 2 && k == 2) {
+                             continue;
+                         }
+                         blockpos.set(pos.getX() + i - integerRange,
+                                 pos.getY() + j - integerRange,
+                                 pos.getZ() + k - integerRange);
+                         if (!level.hasChunkAt(blockpos)) {
+                             continue;
+                         }
+                         BlockState blockstate = level.getBlockState(blockpos);
+                         SpreadFoliageAndConvert(level,blockstate,blockpos,blockInfections);
+                     }
+                 }
+             }
 
             }else{
              additionIgnoreConfigPlacers(level,pos,range);
             }
     }
     default void SpreadFoliageAndConvert(Level level,BlockState blockstate,BlockPos blockpos){
+        SpreadFoliageAndConvert(level, blockstate, blockpos, resolveBlockInfections());
+    }
+    private void SpreadFoliageAndConvert(Level level, BlockState blockstate, BlockPos blockpos,
+                                         Map<Block, Block> blockInfections) {
         BlockState nord = level.getBlockState(blockpos.north());
         BlockState south = level.getBlockState(blockpos.south());
         BlockState west = level.getBlockState(blockpos.west());
@@ -66,7 +93,7 @@ public interface FoliageSpread {
         boolean belowT = !below.isSolidRender(level,blockpos.below());
         if (Math.random() < 0.1 && blockstate.isSolidRender(level,blockpos)
                 && (nordT || southT || westT || eastT || aboveT || belowT)){
-            convertBlocks(blockstate,level,blockpos);
+            convertBlocks(blockstate,level,blockpos,blockInfections);
         }
         if (Math.random() < 0.2){
             convertWood(level,blockstate,blockpos);
@@ -90,6 +117,9 @@ public interface FoliageSpread {
         if (Math.random() < 0.01){
             placeWallFoliage(nord,south,west,east,nordT,southT,westT,eastT,level,blockpos,blockstate);
         }
+        afterSpreadFoliageAndConvert(level, blockstate, blockpos);
+    }
+    default void afterSpreadFoliageAndConvert(Level level, BlockState blockstate, BlockPos blockpos) {
     }
 
     default void additionPlacers(Level level,BlockPos pos,double range){
@@ -192,16 +222,35 @@ public interface FoliageSpread {
         }
     }
     default void convertBlocks(BlockState blockstate,Level level,BlockPos blockpos){
-        for (String str : SConfig.DATAGEN.block_infection.get()){
-            String[] string = str.split("\\|" );
-            Block blockCon1 = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(string[0]));
-            Block blockCon2 = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(string[1]));
-            if (blockCon1 != null && blockCon2 != null){
-                if (blockCon1 == blockstate.getBlock()){
-                    level.setBlock(blockpos,blockCon2.defaultBlockState(),3);
-                }
+        convertBlocks(blockstate, level, blockpos, resolveBlockInfections());
+    }
+    private void convertBlocks(BlockState blockstate, Level level, BlockPos blockpos,
+                               Map<Block, Block> blockInfections) {
+        Block replacement = blockInfections.get(blockstate.getBlock());
+        if (replacement != null) {
+            level.setBlock(blockpos, replacement.defaultBlockState(), 3);
+        }
+    }
+
+    private Map<Block, Block> resolveBlockInfections() {
+        Map<Block, Block> result = new HashMap<>();
+        for (String entry : SConfig.DATAGEN.block_infection.get()) {
+            String[] parts = entry.split("\\|", 2);
+            if (parts.length != 2) {
+                continue;
+            }
+            ResourceLocation fromId = ResourceLocation.tryParse(parts[0]);
+            ResourceLocation toId = ResourceLocation.tryParse(parts[1]);
+            if (fromId == null || toId == null) {
+                continue;
+            }
+            Block from = ForgeRegistries.BLOCKS.getValue(fromId);
+            Block to = ForgeRegistries.BLOCKS.getValue(toId);
+            if (from != null && to != null) {
+                result.put(from, to);
             }
         }
+        return result;
     }
     default void convertFromJson(Level level, BlockState blockstate, BlockPos blockpos) {
         Block targetBlock = SporeConversionData.getResult(blockstate.getBlock());

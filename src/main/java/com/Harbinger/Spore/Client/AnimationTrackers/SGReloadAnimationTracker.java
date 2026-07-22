@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Client.AnimationTrackers;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -56,6 +57,8 @@ public class SGReloadAnimationTracker {
     }
 
     public static void tickAll() {
+        var level = Minecraft.getInstance().level;
+        rotationStates.keySet().removeIf(id -> level == null || level.getPlayerByUUID(id) == null);
         rotationStates.forEach((id, state) -> {
             if (state.animationTicks > 0) {
                 state.animationTicks--;

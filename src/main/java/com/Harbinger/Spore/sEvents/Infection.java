@@ -212,10 +212,10 @@ public class Infection {
         return false;
     }
     private static void callProto(Entity entity) {
-        if (!(entity.level() instanceof ServerLevel)){
+        if (!(entity.level() instanceof ServerLevel serverLevel)){
             return;
         }
-        List<Proto> protos = SporeSavedData.getHiveminds();
+        List<Proto> protos = SporeSavedData.getHiveminds(serverLevel);
         if (!protos.isEmpty()) {
             for (Proto proto : protos){
                 if (proto.distanceTo(entity) <= SConfig.SERVER.proto_range.get()){

@@ -23,6 +23,7 @@ public class BileBlasterReloadAnimationTracker {
     }
 
     public static void tickAll() {
-        animationTicks.replaceAll((uuid, ticks) -> Math.max(0, ticks - 1));
+        animationTicks.replaceAll((uuid, ticks) -> ticks - 1);
+        animationTicks.values().removeIf(ticks -> ticks <= 0);
     }
 }

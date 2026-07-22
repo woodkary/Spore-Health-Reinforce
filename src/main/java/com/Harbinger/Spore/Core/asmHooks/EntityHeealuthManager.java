@@ -168,6 +168,17 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if (queuingEntities.containsKey(entity)) {
             return;
         }
+        while (pendingEntities.size() >= MAX_QUEUE_SIZE) {
+            Entity oldest = pendingEntities.poll();
+            if (oldest == null) {
+                break;
+            }
+            queuingEntities.remove(oldest);
+            if (oldest instanceof LivingEntity livingEntity) {
+                heaalthDeltaMap.actualRemove(livingEntity);
+            }
+            removeTrueDeeauthMark(oldest);
+        }
         pendingEntities.offer(entity);
         queuingEntities.put(entity, NULL_OBJECT);
     }

@@ -16,11 +16,9 @@ import org.objectweb.asm.tree.ClassNode;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.Optional;
 
-public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>, Class<?>> {
+public final class ASMHurtArrowUtil implements IASMHurtArrow {
     public static final IASMHurtArrow INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
             IASMHurtArrow.class,
             ASMHurtArrowUtil.class
@@ -33,8 +31,8 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
     private static final String HOOK_METHOD_NAME = "onHitEntityHook";
     private static final String HOOK_METHOD_DESC = "(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/EntityHitResult;)V";
     private static final String HIDDEN_NAME_SEGMENT = "/0x";
-    private final Map<Class<?>,Class<?>> WRAPPER_CACHE=new ConcurrentHashMap<>();
-    private final Map<Class<?>,Class<?>> WRAPPER_TO_ORIGINAL_CACHE=new ConcurrentHashMap<>();
+    private final ClassValue<Optional<Class<?>>> wrapperCache =
+            new LoadingClassValue<>(this::buildCachedWrapper);
     @Override
     public void wrap(Object arrow){
         Class<?> wrapper=getWrapper(arrow.getClass());
@@ -44,7 +42,13 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
     }
     @Override
     public Class<?> getOrginalClass(Class<?> wrapperValue){
-        return WRAPPER_TO_ORIGINAL_CACHE.getOrDefault(wrapperValue,wrapperValue);
+        if (wrapperValue != null && wrapperValue.getName().contains(WRAPPER_SUFFIX)) {
+            Class<?> original = wrapperValue.getSuperclass();
+            if (original != null) {
+                return original;
+            }
+        }
+        return wrapperValue;
     }
     private Class<?> getWrapper(Class<?> original) {
         original=getOrginalClass(original);
@@ -54,11 +58,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
         if(original.getName().contains(WRAPPER_SUFFIX)) {
             return original;
         }
-        Class<?> wrapper=WRAPPER_CACHE.computeIfAbsent(original, this);
-        if(wrapper!=null){
-            WRAPPER_TO_ORIGINAL_CACHE.putIfAbsent(wrapper,original);
-        }
-        return wrapper;
+        return wrapperCache.get(original).orElse(null);
     }
     private Class<?> buildWrapperClass(Class<?> original) {
         try {
@@ -93,9 +93,8 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, Function<Class<?>,
         }
     }
 
-    @Override
-    public Class<?> apply(Class<?> original) {
-        return buildWrapperClass(original);
+    private Optional<Class<?>> buildCachedWrapper(Class<?> original) {
+        return Optional.ofNullable(buildWrapperClass(original));
     }
     @Override
     public void onHitEntityHook(Projectile projectile, EntityHitResult result) {

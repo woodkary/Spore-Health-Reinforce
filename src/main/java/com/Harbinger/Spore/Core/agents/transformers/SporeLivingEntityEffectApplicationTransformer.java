@@ -102,7 +102,7 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
                 return null;
             }
             String effectiveClassName = className == null ? classNode.name : className;
-            superNameCache.putIfAbsent(classNode.name, classNode.superName);
+            cacheSuperName(classNode.name, classNode.superName);
             if (!StackTraceUtil.isBadModName(classNode.name) || !isLivingEntityOrSubclass(classNode, loader)) {
                 return null;
             }
@@ -141,7 +141,7 @@ public final class SporeLivingEntityEffectApplicationTransformer extends SporeCl
                 return false;
             }
             if (parent.superName != null) {
-                superNameCache.putIfAbsent(parent.name, parent.superName);
+                cacheSuperName(parent.name, parent.superName);
             }
             superName = parent.superName;
         }

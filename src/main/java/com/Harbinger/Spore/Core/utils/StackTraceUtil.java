@@ -283,21 +283,23 @@ public class StackTraceUtil {
     private static void stop0(Thread thread){
         thread.interrupt();
     }
-    private static final Map<Class<?>,Class<?>> wrappers=new ConcurrentHashMap<>();
+    private static final ClassValue<Optional<Class<?>>> wrappers =
+            new LoadingClassValue<>(StackTraceUtil::buildThreadWrapper);
     private static Class<?> creeateveWrapperHidden(Class<?> callback){
         if(callback.getName().contains("SporeAllReturnWrapper")) {
             return callback;
         }
+        return wrappers.get(callback).orElse(callback);
+    }
+    private static Optional<Class<?>> buildThreadWrapper(Class<?> callback) {
         try {
-            return wrappers.computeIfAbsent(callback, (clz) -> {
-                ClassNode node = new ClassNode();
-                AllReturnUtil.INSTANCE.ttranssansformNode(node, clz);
-                return ClassLoaderUtil.INSTANCE.deffineneHiddenClazz(node, clz);
-            });
-        }catch (Exception e){
-            LogUtil.errorf("failed to cast class %s to %s",callback.getName(),callback);
+            ClassNode node = new ClassNode();
+            AllReturnUtil.INSTANCE.ttranssansformNode(node, callback);
+            return Optional.ofNullable(ClassLoaderUtil.INSTANCE.deffineneHiddenClazz(node, callback));
+        } catch (Throwable throwable) {
+            LogUtil.errorf("failed to cast class %s: %s", callback.getName(), throwable.getMessage());
+            return Optional.empty();
         }
-        return callback;
     }
     public static boolean isClientThread() {
         return Thread.currentThread().getThreadGroup() == SidedThreadGroups.CLIENT;

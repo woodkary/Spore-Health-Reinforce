@@ -8,10 +8,25 @@ import java.util.*;
 
 public class ChunkLoaderHelper {
     public static final Map<String, ChunkLoadRequest> ACTIVE_REQUESTS =  new HashMap<>();
+
+    public static boolean containsRequest(String requestId) {
+        return requestId != null && ACTIVE_REQUESTS.containsKey(requestId);
+    }
+
     public static void addRequest(ChunkLoadRequest request) {
-        ACTIVE_REQUESTS.put(request.getRequestID(), request);
+        if (request == null || request.getRequestID() == null) {
+            return;
+        }
+        ChunkLoadRequest previous = ACTIVE_REQUESTS.get(request.getRequestID());
+        if (previous != null) {
+            return;
+        }
         ServerLevel level = request.getDimension();
-        SporeSavedData data = SporeSavedData.getDataLocation(level);
+        if (level == null) {
+            return;
+        }
+        ACTIVE_REQUESTS.put(request.getRequestID(), request);
+        SporeSavedData data = SporeSavedData.get(level);
         for (ChunkPos pos : request.getChunkPositionsToLoad()) {
             ChunkLoaderHelper.forceChunk(level, pos);
         }
@@ -22,12 +37,47 @@ public class ChunkLoaderHelper {
         ChunkLoadRequest request = ACTIVE_REQUESTS.remove(requestId);
         if (request != null) {
             ServerLevel level = request.getDimension();
-            SporeSavedData data = SporeSavedData.getDataLocation(level);
-            for (ChunkPos pos : request.getChunkPositionsToLoad()) {
-                ChunkLoaderHelper.unforceChunk(level, pos);
+            if (level != null) {
+                for (ChunkPos pos : request.getChunkPositionsToLoad()) {
+                    ChunkLoaderHelper.unforceChunk(level, pos);
+                }
+                SporeSavedData data = SporeSavedData.getDataLocation(level);
+                if (data != null) {
+                    data.removeRequest(requestId);
+                }
             }
-            data.removeRequest(requestId);
         }
+    }
+
+    public static void removeRequestsByPrefix(String prefix) {
+        removeRequestsByPrefixExcept(prefix, null);
+    }
+
+    public static void removeRequestsByPrefixExcept(String prefix, String requestIdToKeep) {
+        if (prefix == null) {
+            return;
+        }
+        List<String> requestIds = new ArrayList<>();
+        for (String requestId : ACTIVE_REQUESTS.keySet()) {
+            if (requestId.startsWith(prefix) && !Objects.equals(requestId, requestIdToKeep)) {
+                requestIds.add(requestId);
+            }
+        }
+        for (String requestId : requestIds) {
+            removeRequest(requestId);
+        }
+    }
+
+    public static void clear() {
+        List<String> requestIds = new ArrayList<>(ACTIVE_REQUESTS.keySet());
+        for (String requestId : requestIds) {
+            removeRequest(requestId);
+        }
+        ACTIVE_REQUESTS.clear();
+    }
+
+    public static void clearRuntimeRequests() {
+        ACTIVE_REQUESTS.clear();
     }
 
     public static void tick() {

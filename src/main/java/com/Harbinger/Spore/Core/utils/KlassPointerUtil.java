@@ -6,8 +6,9 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.management.ManagementFactory;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Function;
 
 public final class KlassPointerUtil implements IKlassPointer {
@@ -15,7 +16,7 @@ public final class KlassPointerUtil implements IKlassPointer {
             IKlassPointer.class,
             KlassPointerUtil.class
     );
-    private final ConcurrentMap<Class<?>, Number> KLASS_PTR_CACHE = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Number> KLASS_PTR_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
     private MethodHandle addressSize=null;
     private volatile MethodHandle putKlassPointerVolatile;
     private volatile Function<Class<?>,Number> klassPointerComputeFunction;

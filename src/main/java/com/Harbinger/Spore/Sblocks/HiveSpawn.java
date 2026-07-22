@@ -83,7 +83,6 @@ public class HiveSpawn extends BaseEntityBlock implements SimpleWaterloggedBlock
                 if (proto != null) {
                     proto.tickEmerging();
                     proto.setPos(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-                    proto.loadChunks();
                     if (SConfig.SERVER.teleport_hive.get()){
                         Proto.teleportToSurface(level,proto);
                     }
@@ -92,7 +91,7 @@ public class HiveSpawn extends BaseEntityBlock implements SimpleWaterloggedBlock
                 for(ServerPlayer player : level.getServer().getPlayerList().getPlayers()){
                     player.playNotifySound(Ssounds.REBIRTH.get(),SoundSource.AMBIENT,1f,1f);
                     player.displayClientMessage(Component.translatable("hivemind_summon_message"), false);
-                    if (SporeSavedData.getHiveminds().size() == 1){
+                    if (SporeSavedData.getHiveminds(level).size() == 1){
                         SporePacketHandler.sendToClient(new SongInitializingPacket(3,false,true),player);
                     }
                 }

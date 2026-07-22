@@ -9,9 +9,10 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 public final class SporeObjectUtil implements IObjects {
     public static final IObjects INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
@@ -23,7 +24,7 @@ public final class SporeObjectUtil implements IObjects {
     private Class<?> internalClass;
     private MethodHandle allocateInstance;
     private final ThreadLocal<Integer> noRecur=new ThreadLocal<>();
-    private final Set<Class<?>> unInstantiableClasses=new HashSet<>();
+    private final Set<Class<?>> unInstantiableClasses = Collections.newSetFromMap(new WeakHashMap<>());
     @Override
     public <T> T clone(T obj){
         Integer deep=noRecur.get();

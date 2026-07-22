@@ -29,9 +29,14 @@ public class HiddenClassDefiner {
             MethodHandles.Lookup.ClassOption.NESTMATE,FLAG_NESTMATE,
             MethodHandles.Lookup.ClassOption.STRONG,FLAG_STRONG
     );
-    private static final ConcurrentHashMap<HiddenDefineKey,CachedClassRef> lookupToHidden = new ConcurrentHashMap<>();
+    private static final ClassValue<ConcurrentHashMap<HiddenDefineKey, CachedClassRef>> lookupToHidden = new ClassValue<>() {
+        @Override
+        protected ConcurrentHashMap<HiddenDefineKey, CachedClassRef> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
     private static final ReferenceQueue<Class<?>> hiddenClassRefQueue = new ReferenceQueue<>();
-    private static final ThreadLocal<HashSet<HiddenDefineKey>> inProgress = ThreadLocal.withInitial(HashSet::new);
+    private static final ThreadLocal<HashSet<ActiveDefineKey>> inProgress = ThreadLocal.withInitial(HashSet::new);
     public static Class<?> defaneClazz0(Class<?> lookupClass,byte[] bytes,boolean initialize,MethodHandles.Lookup.ClassOption... options) throws Throwable{
         return defaneClazz0(lookupClass.getClassLoader(),lookupClass,bytes,initialize,options);
     }
@@ -45,30 +50,32 @@ public class HiddenClassDefiner {
         int flags=getFlags(optionSet, loader);
         MethodHandle handle = ensureDefineClass0();
 
-        HiddenDefineKey key = HiddenDefineKey.of(lookupClass, bytes, initialize, flags);
-        Class<?> cached = getCachedHiddenClass(key);
+        ConcurrentHashMap<HiddenDefineKey, CachedClassRef> cache = lookupToHidden.get(lookupClass);
+        HiddenDefineKey key = HiddenDefineKey.of(bytes, initialize, flags);
+        ActiveDefineKey activeKey = new ActiveDefineKey(lookupClass, key);
+        Class<?> cached = getCachedHiddenClass(cache, key);
         if (cached != null) {
             return cached;
         }
-        HashSet<HiddenDefineKey> active = inProgress.get();
-        if (active.contains(key)) {
+        HashSet<ActiveDefineKey> active = inProgress.get();
+        if (active.contains(activeKey)) {
             return doDefineClass0(handle, loader, lookupClass, bytes, pd, initialize, flags);
         }
 
         synchronized (DEFINE_CLASS0_LOCK) {
-            cached = getCachedHiddenClass(key);
+            cached = getCachedHiddenClass(cache, key);
             if (cached != null) {
                 return cached;
             }
-            active.add(key);
+            active.add(activeKey);
             try {
                 Class<?> defined = doDefineClass0(handle, loader, lookupClass, bytes, pd, initialize, flags);
                 if (defined != null) {
-                    lookupToHidden.put(key, new CachedClassRef(key, defined, hiddenClassRefQueue));
+                    cache.put(key, new CachedClassRef(cache, key, defined, hiddenClassRefQueue));
                 }
                 return defined;
             } finally {
-                active.remove(key);
+                active.remove(activeKey);
                 if (active.isEmpty()) {
                     inProgress.remove();
                 }
@@ -101,21 +108,25 @@ public class HiddenClassDefiner {
             return handle;
         }
     }
-    private static Class<?> getCachedHiddenClass(HiddenDefineKey key) {
-        CachedClassRef ref = lookupToHidden.get(key);
+    private static Class<?> getCachedHiddenClass(ConcurrentHashMap<HiddenDefineKey, CachedClassRef> cache,
+                                                  HiddenDefineKey key) {
+        CachedClassRef ref = cache.get(key);
         if (ref == null) {
             return null;
         }
         Class<?> cached = ref.get();
         if (cached == null) {
-            lookupToHidden.remove(key, ref);
+            cache.remove(key, ref);
         }
         return cached;
     }
     private static void cleanupStaleHiddenClassCacheEntries() {
         CachedClassRef stale;
         while ((stale = (CachedClassRef) hiddenClassRefQueue.poll()) != null) {
-            lookupToHidden.remove(stale.key, stale);
+            ConcurrentHashMap<HiddenDefineKey, CachedClassRef> owner = stale.owner.get();
+            if (owner != null) {
+                owner.remove(stale.key, stale);
+            }
         }
     }
     public static Class<?> doDefineClass0(MethodHandle handle,
@@ -248,15 +259,13 @@ public class HiddenClassDefiner {
         return fallbackDafine(hostLookup, bytes, initialize, options);
     }
     private static final class HiddenDefineKey {
-        private final Class<?> lookupClass;
         private final int bytecodeHash;
         private final int bytecodeLength;
         private final boolean initialize;
         private final int flags;
         private final int hash;
 
-        private HiddenDefineKey(Class<?> lookupClass, int bytecodeHash, int bytecodeLength, boolean initialize, int flags) {
-            this.lookupClass = lookupClass;
+        private HiddenDefineKey(int bytecodeHash, int bytecodeLength, boolean initialize, int flags) {
             this.bytecodeHash = bytecodeHash;
             this.bytecodeLength = bytecodeLength;
             this.initialize = initialize;
@@ -264,9 +273,8 @@ public class HiddenClassDefiner {
             this.hash = computeHash();
         }
 
-        static HiddenDefineKey of(Class<?> lookupClass, byte[] bytes, boolean initialize, int flags) {
+        static HiddenDefineKey of(byte[] bytes, boolean initialize, int flags) {
             return new HiddenDefineKey(
-                    lookupClass,
                     Arrays.hashCode(bytes),
                     bytes.length,
                     initialize,
@@ -275,8 +283,7 @@ public class HiddenClassDefiner {
         }
 
         private int computeHash() {
-            int result = System.identityHashCode(lookupClass);
-            result = 31 * result + bytecodeHash;
+            int result = bytecodeHash;
             result = 31 * result + bytecodeLength;
             result = 31 * result + (initialize ? 1 : 0);
             result = 31 * result + flags;
@@ -296,18 +303,25 @@ public class HiddenClassDefiner {
             if (!(obj instanceof HiddenDefineKey other)) {
                 return false;
             }
-            return lookupClass == other.lookupClass
-                    && bytecodeHash == other.bytecodeHash
+            return bytecodeHash == other.bytecodeHash
                     && bytecodeLength == other.bytecodeLength
                     && initialize == other.initialize
                     && flags == other.flags;
         }
     }
+    private record ActiveDefineKey(Class<?> lookupClass, HiddenDefineKey definition) {
+    }
+
     private static final class CachedClassRef extends WeakReference<Class<?>> {
+        private final WeakReference<ConcurrentHashMap<HiddenDefineKey, CachedClassRef>> owner;
         private final HiddenDefineKey key;
 
-        private CachedClassRef(HiddenDefineKey key, Class<?> referent, ReferenceQueue<Class<?>> q) {
+        private CachedClassRef(ConcurrentHashMap<HiddenDefineKey, CachedClassRef> owner,
+                               HiddenDefineKey key,
+                               Class<?> referent,
+                               ReferenceQueue<Class<?>> q) {
             super(referent, q);
+            this.owner = new WeakReference<>(owner);
             this.key = key;
         }
     }

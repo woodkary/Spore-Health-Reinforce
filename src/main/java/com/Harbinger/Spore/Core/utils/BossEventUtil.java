@@ -11,8 +11,18 @@ public final class BossEventUtil implements IBossEvent {
             IBossEvent.class,
             BossEventUtil.class
     );
-    private final Map<Class<?>, Field> entityBossEventFields = new HashMap<>();
-    private final Set<Class<?>> notBossEntities = new HashSet<>();
+    private final ClassValue<Optional<Field>> entityBossEventFields = new ClassValue<>() {
+        @Override
+        protected Optional<Field> computeValue(Class<?> type) {
+            for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
+                Field field = findDeclaredBossEventField(current);
+                if (field != null) {
+                    return Optional.of(field);
+                }
+            }
+            return Optional.empty();
+        }
+    };
     @Override
     public BossEvent findBossEvent(Object entity) {
         Field field = getBossEventField(entity.getClass());
@@ -35,35 +45,7 @@ public final class BossEventUtil implements IBossEvent {
     }
 
     private Field getBossEventField(Class<?> type) {
-        if (notBossEntities.contains(type)) {
-            return null;
-        }
-
-        Field cached = entityBossEventFields.get(type);
-        if (cached != null) {
-            return cached;
-        }
-        List<Class<?>> visitedClasses = new ArrayList<>();
-        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
-            Field field = entityBossEventFields.get(current);
-            visitedClasses.add(current);
-            if (field == null) {
-                field = findDeclaredBossEventField(current);
-                if (field != null) {
-                    for (Class<?> visitedClass : visitedClasses) {
-                        entityBossEventFields.put(visitedClass, field);
-                    }
-                }
-            }
-
-            if (field != null) {
-                entityBossEventFields.put(type, field);
-                return field;
-            }
-        }
-
-        notBossEntities.add(type);
-        return null;
+        return entityBossEventFields.get(type).orElse(null);
     }
 
     private Field findDeclaredBossEventField(Class<?> clazz) {

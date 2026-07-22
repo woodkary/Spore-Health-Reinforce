@@ -5,7 +5,6 @@ import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
-import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
@@ -49,7 +48,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class HeasdalthUtil implements IHeasdalthUtil {
     private static final String DAMAGE_SOURCE_CLASS_NAME = "net.minecraft.world.damagesource.DamageSource";
@@ -58,20 +56,22 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             HeasdalthUtil.class
     );
 
-    private final Map<Class<?>, List<Field>> allHealthFields = new WeakHashMap<>();
-    private final Map<Class<?>, List<IWrappedMethod>> allSetHealthMethods = new WeakHashMap<>();
-    private final Map<Class<?>, List<Field>> allSubFields = new WeakHashMap<>();
-    private final Map<Class<?>, List<IWrappedMethod>> tickDeathMethods = new WeakHashMap<>();
-    private final Map<Class<?>, List<Field>> tickDeathFields = new WeakHashMap<>();
-    private final Map<Class<?>, Map<EntityDataAccessor<?>, String>> accessorNameCache = new WeakHashMap<>();
-    private final Map<Class<?>, List<IWrappedMethod>> allHurtMethods = new ConcurrentHashMap<>();
-    private final Map<Class<?>, List<IWrappedMethod>> deathMethodCache = new WeakHashMap<>();
-    private final Map<Class<?>, List<Field>> deathFieldCache = new WeakHashMap<>();
-    private final Map<Class<?>, List<Field>> staticHealthMapFields = new ConcurrentHashMap<>();
-    private final Map<Field, MethodHandle> getMethodCache = new ConcurrentHashMap<>();
-    private final Map<Field, MethodHandle> putMethodCache = new ConcurrentHashMap<>();
-    private final Map<Class<?>, Object> initializedStaticClasses = new ConcurrentHashMap<>();
-    private final Object nullObject = EntityHeealuthManager.NULL_OBJECT;
+    private final ClassValue<List<Field>> allHealthFields = new LoadingClassValue<>(this::scanAllHealthFields);
+    private final ClassValue<List<IWrappedMethod>> allSetHealthMethods = new LoadingClassValue<>(this::scanAllSetHealthMethods);
+    private final ClassValue<List<Field>> allSubFields = new LoadingClassValue<>(this::scanAllSubFields);
+    private final ClassValue<List<IWrappedMethod>> tickDeathMethods = new LoadingClassValue<>(this::scanTickDeathMethods);
+    private final ClassValue<List<Field>> tickDeathFields = new LoadingClassValue<>(this::scanTickDeathFields);
+    private final ClassValue<Map<EntityDataAccessor<?>, String>> accessorNameCache = new LoadingClassValue<>(this::buildAccessorNameMap);
+    private final ClassValue<List<IWrappedMethod>> allHurtMethods = new LoadingClassValue<>(this::scanAllHurtMethods);
+    private final ClassValue<List<IWrappedMethod>> deathMethodCache = new LoadingClassValue<>(this::scanDeathMethods);
+    private final ClassValue<List<Field>> deathFieldCache = new LoadingClassValue<>(this::scanDeathFields);
+    private final Map<Class<?>, List<String>> staticHealthMapFields =
+            Collections.synchronizedMap(new WeakHashMap<>());
+    private final ClassValue<Optional<MethodHandle>> staticMapGetMethods =
+            new LoadingClassValue<>(this::buildStaticMapGetHandle);
+    private final ClassValue<Optional<MethodHandle>> staticMapPutMethods =
+            new LoadingClassValue<>(this::buildStaticMapPutHandle);
+    private volatile boolean staticHealthMapsInitialized;
 
     public HeasdalthUtil() {
     }
@@ -203,85 +203,76 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private List<Field> getAllHealthFields(Class<?> clazz) {
-        synchronized (allHealthFields) {
-            List<Field> cached = allHealthFields.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            List<Field> fields = new ArrayList<>();
-            for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-                Field[] declaredFields = current.getDeclaredFields();
-                for (Field field : declaredFields) {
-                    String name = field.getName().toLowerCase(Locale.ROOT);
-                    Class<?> type = field.getType();
-                    if ((type == float.class || type == double.class || type == Float.class || type == Double.class)
-                            && (name.contains("hp") || name.contains("heal"))
-                            && !name.contains("target")) {
-                        field.setAccessible(true);
-                        fields.add(field);
-                    }
-                }
-            }
-            allHealthFields.put(clazz, fields);
-            return fields;
-        }
+        return allHealthFields.get(clazz);
     }
 
-    private List<IWrappedMethod> getAllSetHealthMethods(Class<?> clazz) {
-        synchronized (allSetHealthMethods) {
-            List<IWrappedMethod> cached = allSetHealthMethods.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            List<IWrappedMethod> methods = new ArrayList<>();
-            for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-                Method[] declaredMethods = current.getDeclaredMethods();
-                for (Method method : declaredMethods) {
-                    String methodName = method.getName();
-                    String name = methodName.toLowerCase(Locale.ROOT);
-                    Class<?>[] parameterTypes = method.getParameterTypes();
-                    if ((name.contains("hp") || ((name.contains("set") || name.contains("update")) && name.contains("heal")))
-                            && !name.contains("target")
-                            && method.getParameterCount() == 1
-                            && isFloatOrDouble(parameterTypes[0])) {
-                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, methodName,method.getReturnType(), parameterTypes);
-                        if(wrappedMethod!=null){
-                            methods.add(wrappedMethod);
-                        }
-                    }
-                }
-            }
-            allSetHealthMethods.put(clazz, methods);
-            return methods;
-        }
-    }
-
-    private List<Field> getAllSubFields(Class<?> clazz) {
-        synchronized (allSubFields) {
-            List<Field> cached = allSubFields.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            List<Field> fields = new ArrayList<>();
-            for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-                Field[] declaredFields = current.getDeclaredFields();
-                for (Field field : declaredFields) {
-                    Class<?> type = field.getType();
-                    if (type.isPrimitive()
-                            || type.isEnum()
-                            || type == String.class
-                            || Number.class.isAssignableFrom(type)
-                            || type == Boolean.class
-                            || type == Character.class) {
-                        continue;
-                    }
+    private List<Field> scanAllHealthFields(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+            Field[] declaredFields = current.getDeclaredFields();
+            for (Field field : declaredFields) {
+                String name = field.getName().toLowerCase(Locale.ROOT);
+                Class<?> type = field.getType();
+                if ((type == float.class || type == double.class || type == Float.class || type == Double.class)
+                        && (name.contains("hp") || name.contains("heal"))
+                        && !name.contains("target")) {
                     field.setAccessible(true);
                     fields.add(field);
                 }
             }
-            allSubFields.put(clazz, fields);
-            return fields;
         }
+        return fields;
+    }
+
+    private List<IWrappedMethod> getAllSetHealthMethods(Class<?> clazz) {
+        return allSetHealthMethods.get(clazz);
+    }
+
+    private List<IWrappedMethod> scanAllSetHealthMethods(Class<?> clazz) {
+        List<IWrappedMethod> methods = new ArrayList<>();
+        for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+            Method[] declaredMethods = current.getDeclaredMethods();
+            for (Method method : declaredMethods) {
+                String methodName = method.getName();
+                String name = methodName.toLowerCase(Locale.ROOT);
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if ((name.contains("hp") || ((name.contains("set") || name.contains("update")) && name.contains("heal")))
+                        && !name.contains("target")
+                        && method.getParameterCount() == 1
+                        && isFloatOrDouble(parameterTypes[0])) {
+                    IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, methodName,method.getReturnType(), parameterTypes);
+                    if(wrappedMethod!=null){
+                        methods.add(wrappedMethod);
+                    }
+                }
+            }
+        }
+        return methods;
+    }
+
+    private List<Field> getAllSubFields(Class<?> clazz) {
+        return allSubFields.get(clazz);
+    }
+
+    private List<Field> scanAllSubFields(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+            Field[] declaredFields = current.getDeclaredFields();
+            for (Field field : declaredFields) {
+                Class<?> type = field.getType();
+                if (type.isPrimitive()
+                        || type.isEnum()
+                        || type == String.class
+                        || Number.class.isAssignableFrom(type)
+                        || type == Boolean.class
+                        || type == Character.class) {
+                    continue;
+                }
+                field.setAccessible(true);
+                fields.add(field);
+            }
+        }
+        return fields;
     }
 
     private boolean isFloatOrDouble(Class<?> type) {
@@ -289,37 +280,26 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private List<Field> getTickDeathFields(Class<?> clazz) {
-        synchronized (tickDeathFields) {
-            List<Field> cached = tickDeathFields.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            List<Field> result = new ArrayList<>();
-            for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-                Field[] fields = current.getDeclaredFields();
-                for (Field field : fields) {
-                    String name = field.getName().toLowerCase(Locale.ROOT);
-                    if (isTickDeathFieldName(name) && field.getType() == int.class) {
-                        field.setAccessible(true);
-                        result.add(field);
-                    }
+        return tickDeathFields.get(clazz);
+    }
+
+    private List<Field> scanTickDeathFields(Class<?> clazz) {
+        List<Field> result = new ArrayList<>();
+        for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+            Field[] fields = current.getDeclaredFields();
+            for (Field field : fields) {
+                String name = field.getName().toLowerCase(Locale.ROOT);
+                if (isTickDeathFieldName(name) && field.getType() == int.class) {
+                    field.setAccessible(true);
+                    result.add(field);
                 }
             }
-            tickDeathFields.put(clazz, result);
-            return result;
         }
+        return result;
     }
 
     private Map<EntityDataAccessor<?>, String> getAccessorNameMap(Class<?> clazz) {
-        synchronized (accessorNameCache) {
-            Map<EntityDataAccessor<?>, String> cached = accessorNameCache.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            Map<EntityDataAccessor<?>, String> map = buildAccessorNameMap(clazz);
-            accessorNameCache.put(clazz, map);
-            return map;
-        }
+        return accessorNameCache.get(clazz);
     }
 
     private Map<EntityDataAccessor<?>, String> buildAccessorNameMap(Class<?> clazz) {
@@ -363,30 +343,27 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private List<IWrappedMethod> getTickDeathMethods(Class<?> clazz) {
-        synchronized (tickDeathMethods) {
-            List<IWrappedMethod> cached = tickDeathMethods.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            List<IWrappedMethod> result = new ArrayList<>();
-            for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-                Method[] methods = current.getDeclaredMethods();
-                for (Method method : methods) {
-                    String methodName = method.getName();
-                    String name = methodName.toLowerCase(Locale.ROOT);
-                    if (method.getParameterCount() == 0
-                            && name.contains("tick")
-                            && (name.contains("death") || name.contains("die") || name.contains("dead") || name.contains("kill"))) {
-                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, methodName,method.getReturnType(),method.getParameterTypes());
-                        if (wrappedMethod != null) {
-                            result.add(wrappedMethod);
-                        }
+        return tickDeathMethods.get(clazz);
+    }
+
+    private List<IWrappedMethod> scanTickDeathMethods(Class<?> clazz) {
+        List<IWrappedMethod> result = new ArrayList<>();
+        for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+            Method[] methods = current.getDeclaredMethods();
+            for (Method method : methods) {
+                String methodName = method.getName();
+                String name = methodName.toLowerCase(Locale.ROOT);
+                if (method.getParameterCount() == 0
+                        && name.contains("tick")
+                        && (name.contains("death") || name.contains("die") || name.contains("dead") || name.contains("kill"))) {
+                    IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, methodName,method.getReturnType(),method.getParameterTypes());
+                    if (wrappedMethod != null) {
+                        result.add(wrappedMethod);
                     }
                 }
             }
-            tickDeathMethods.put(clazz, result);
-            return result;
         }
+        return result;
     }
 
     private void oneRound(LivingEntity entity, float health, SynchedEntityData data) {
@@ -484,10 +461,10 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private List<IWrappedMethod> getAllHurtMethods(Class<?> clazz) {
-        List<IWrappedMethod> cached = allHurtMethods.get(clazz);
-        if (cached != null) {
-            return cached;
-        }
+        return allHurtMethods.get(clazz);
+    }
+
+    private List<IWrappedMethod> scanAllHurtMethods(Class<?> clazz) {
         List<IWrappedMethod> methods = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
             Method[] declaredMethods = current.getDeclaredMethods();
@@ -514,7 +491,6 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 }
             }
         }
-        allHurtMethods.put(clazz, methods);
         return methods;
     }
 
@@ -667,33 +643,30 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private List<IWrappedMethod> getDeathMethods(Class<?> clazz) {
-        synchronized (deathMethodCache) {
-            List<IWrappedMethod> cached = deathMethodCache.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            List<IWrappedMethod> list = new ArrayList<>();
-            for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-                Method[] methods = current.getDeclaredMethods();
-                for (Method method : methods) {
-                    String name = method.getName();
-                    if (!isDeathName(name)) {
-                        continue;
+        return deathMethodCache.get(clazz);
+    }
+
+    private List<IWrappedMethod> scanDeathMethods(Class<?> clazz) {
+        List<IWrappedMethod> list = new ArrayList<>();
+        for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+            Method[] methods = current.getDeclaredMethods();
+            for (Method method : methods) {
+                String name = method.getName();
+                if (!isDeathName(name)) {
+                    continue;
+                }
+
+                int paramCount = method.getParameterCount();
+                if (paramCount == 0 || canInvokeDeathMethodWithOneArg(method)) {
+                    IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, name,method.getReturnType(),method.getParameterTypes());
+                    if(wrappedMethod!=null){
+                        list.add(wrappedMethod);
                     }
 
-                    int paramCount = method.getParameterCount();
-                    if (paramCount == 0 || canInvokeDeathMethodWithOneArg(method)) {
-                        IWrappedMethod wrappedMethod=WrappedMethod.of(current,method, name,method.getReturnType(),method.getParameterTypes());
-                        if(wrappedMethod!=null){
-                            list.add(wrappedMethod);
-                        }
-
-                    }
                 }
             }
-            deathMethodCache.put(clazz, list);
-            return list;
         }
+        return list;
     }
 
     private boolean canInvokeDeathMethodWithOneArg(Method method) {
@@ -732,33 +705,30 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
     }
 
     private List<Field> getDeathFields(Class<?> clazz) {
-        synchronized (deathFieldCache) {
-            List<Field> cached = deathFieldCache.get(clazz);
-            if (cached != null) {
-                return cached;
-            }
-            List<Field> list = new ArrayList<>();
-            for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-                Field[] fields = current.getDeclaredFields();
-                for (Field field : fields) {
-                    if (!isDeathName(field.getName())) {
-                        continue;
-                    }
-                    Class<?> type = field.getType();
-                    if (type == boolean.class
-                            || type == int.class
-                            || type == long.class
-                            || type == float.class
-                            || type == double.class
-                            || type == BlockPos.class) {
-                        field.setAccessible(true);
-                        list.add(field);
-                    }
+        return deathFieldCache.get(clazz);
+    }
+
+    private List<Field> scanDeathFields(Class<?> clazz) {
+        List<Field> list = new ArrayList<>();
+        for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
+            Field[] fields = current.getDeclaredFields();
+            for (Field field : fields) {
+                if (!isDeathName(field.getName())) {
+                    continue;
+                }
+                Class<?> type = field.getType();
+                if (type == boolean.class
+                        || type == int.class
+                        || type == long.class
+                        || type == float.class
+                        || type == double.class
+                        || type == BlockPos.class) {
+                    field.setAccessible(true);
+                    list.add(field);
                 }
             }
-            deathFieldCache.put(clazz, list);
-            return list;
         }
+        return list;
     }
 
     @Override
@@ -779,13 +749,21 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             LogUtil.errorf("Entity object expected, got: %s", entityObj);
             return;
         }
-        ensureStaticHealthMapsInitialized(entityObj.getClass());
+        ensureStaticHealthMapsInitialized();
         UUID entityUuid = entity.uuid;
         int entityId = entity.id;
-        for (Map.Entry<Class<?>, List<Field>> entry : staticHealthMapFields.entrySet()) {
-            List<Field> fields = entry.getValue();
-            for (Field field : fields) {
+        List<Map.Entry<Class<?>, List<String>>> cachedFields = new ArrayList<>();
+        synchronized (staticHealthMapFields) {
+            for (Map.Entry<Class<?>, List<String>> entry : staticHealthMapFields.entrySet()) {
+                cachedFields.add(new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue()));
+            }
+        }
+        for (Map.Entry<Class<?>, List<String>> entry : cachedFields) {
+            for (String fieldName : entry.getValue()) {
+                Field field = null;
                 try {
+                    field = entry.getKey().getDeclaredField(fieldName);
+                    field.setAccessible(true);
                     Object mapObj = ClassUtil.getFieldValue(field, (Object) null);
                     if (!(mapObj instanceof Map map)) {
                         continue;
@@ -795,12 +773,12 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                         if (!matchesStaticHealthKey(key, entity, entityUuid, entityId, entityObj)) {
                             continue;
                         }
-                        Object value = invokeSuperGetCached(field, map, key);
+                        Object value = invokeSuperGetCached(map, key);
                         if (value == null) {
                             continue;
                         }
                         if (value instanceof Number) {
-                            invokeSuperPutCached(field, map, key, health);
+                            invokeSuperPutCached(map, key, health);
                         } else {
                             setCustomHealthFields(value, health);
                         }
@@ -808,7 +786,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 } catch (Throwable t) {
                     LogUtil.errorf("Failed to set static health map field %s.%s: %s",
                             entry.getKey().getName(),
-                            field.getName(),
+                            field == null ? fieldName : field.getName(),
                             t.getMessage());
                 }
             }
@@ -828,20 +806,19 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         return Objects.equals(key, entityObj);
     }
 
-    private void ensureStaticHealthMapsInitialized(Class<?> entityClass) {
-        if (initializedStaticClasses.containsKey(entityClass)) {
+    private void ensureStaticHealthMapsInitialized() {
+        if (staticHealthMapsInitialized) {
             return;
         }
-        synchronized (initializedStaticClasses) {
-            if (initializedStaticClasses.containsKey(entityClass)) {
+        synchronized (staticHealthMapFields) {
+            if (staticHealthMapsInitialized) {
                 return;
             }
-
-            Class<?>[] allClasses =allClasses();
-            if(allClasses!=null) {
+            Class<?>[] allClasses = allClasses();
+            if (allClasses != null) {
                 initializeStaticHealthMaps(allClasses);
+                staticHealthMapsInitialized = true;
             }
-            initializedStaticClasses.put(entityClass, nullObject);
         }
     }
     private Class<?>[] allClasses(){
@@ -865,7 +842,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
             if (!className.contains("heal") && !className.contains("hp")) {
                 continue;
             }
-            List<Field> candidateMaps = new ArrayList<>();
+            List<String> candidateMaps = new ArrayList<>();
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 String name = field.getName().toLowerCase(Locale.ROOT);
@@ -880,8 +857,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
                 boolean mapLike = Map.class.isAssignableFrom(fieldType)
                         || fieldType.getName().toLowerCase(Locale.ROOT).contains("map");
                 if (mapLike) {
-                    field.setAccessible(true);
-                    candidateMaps.add(field);
+                    candidateMaps.add(field.getName());
                 }
             }
             if (!candidateMaps.isEmpty()) {
@@ -890,28 +866,16 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         }
     }
 
-    private Object invokeSuperGetCached(Field field, Map map, Object key) throws Throwable {
-        MethodHandle handle = getMethodCache.get(field);
-        if (handle == null) {
-            handle = buildSpecialMapHandle(field, "get", MethodType.methodType(Object.class, Object.class));
-            if (handle != null) {
-                getMethodCache.put(field, handle);
-            }
-        }
+    private Object invokeSuperGetCached(Map map, Object key) throws Throwable {
+        MethodHandle handle = staticMapGetMethods.get(map.getClass()).orElse(null);
         if (handle != null) {
             return handle.bindTo(map).invokeWithArguments(key);
         }
         return map.get(key);
     }
 
-    private void invokeSuperPutCached(Field field, Map map, Object key, Object value) throws Throwable {
-        MethodHandle handle = putMethodCache.get(field);
-        if (handle == null) {
-            handle = buildSpecialMapHandle(field, "put", MethodType.methodType(Object.class, Object.class, Object.class));
-            if (handle != null) {
-                putMethodCache.put(field, handle);
-            }
-        }
+    private void invokeSuperPutCached(Map map, Object key, Object value) throws Throwable {
+        MethodHandle handle = staticMapPutMethods.get(map.getClass()).orElse(null);
         if (handle != null) {
             handle.bindTo(map).invokeWithArguments(key, value);
         } else {
@@ -919,21 +883,26 @@ public final class HeasdalthUtil implements IHeasdalthUtil {
         }
     }
 
-    private MethodHandle buildSpecialMapHandle(Field field, String name, MethodType type) {
+    private Optional<MethodHandle> buildStaticMapGetHandle(Class<?> mapClass) {
+        return buildSpecialMapHandle(mapClass, "get", MethodType.methodType(Object.class, Object.class));
+    }
+
+    private Optional<MethodHandle> buildStaticMapPutHandle(Class<?> mapClass) {
+        return buildSpecialMapHandle(mapClass, "put",
+                MethodType.methodType(Object.class, Object.class, Object.class));
+    }
+
+    private Optional<MethodHandle> buildSpecialMapHandle(Class<?> mapClass, String name, MethodType type) {
         try {
-            Object mapObj = ClassUtil.getFieldValue(field, (Object) null);
-            if (mapObj == null) {
-                return null;
-            }
-            Class<?> utilMapClass = findJavaUtilMapClass(mapObj.getClass());
+            Class<?> utilMapClass = findJavaUtilMapClass(mapClass);
             if (utilMapClass == null) {
-                return null;
+                return Optional.empty();
             }
             MethodHandles.Lookup lookup = ClassUtil.getLookup();
-            return lookup.findSpecial(utilMapClass, name, type, mapObj.getClass());
+            return Optional.of(lookup.findSpecial(utilMapClass, name, type, mapClass));
         } catch (Throwable t) {
-            LogUtil.errorf("Failed to cache map %s handle for field %s: %s", name, field.getName(), t.getMessage());
-            return null;
+            LogUtil.errorf("Failed to cache map %s handle for %s: %s", name, mapClass.getName(), t.getMessage());
+            return Optional.empty();
         }
     }
 
