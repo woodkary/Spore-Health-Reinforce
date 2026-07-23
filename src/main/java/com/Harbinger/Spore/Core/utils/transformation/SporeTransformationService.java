@@ -20,8 +20,31 @@ import java.util.List;
 import java.util.Set;
 
 public final class SporeTransformationService implements ISporeTransformationService {
+    public SporeTransformationService() {
+        Launcher launcher = Launcher.INSTANCE;
+        if (launcher == null) {
+            return;
+        }
+        Object value = ClassUtil.getFieldValue(Launcher.class, launcher, "launchPlugins");
+        if (!(value instanceof LaunchPluginHandler handler)) {
+            return;
+        }
+        ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
+        bootstrap.initPluginsMap(handler);
+    }
+
     @Override
     public @NotNull String name() {
+        Launcher launcher = Launcher.INSTANCE;
+        if (launcher == null) {
+            return "SporeTransformationService";
+        }
+        Object value = ClassUtil.getFieldValue(Launcher.class, launcher, "launchPlugins");
+        if (!(value instanceof LaunchPluginHandler handler)) {
+            return "SporeTransformationService";
+        }
+        ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
+        bootstrap.initPluginsMap(handler);
         return "SporeTransformationService";
     }
 
