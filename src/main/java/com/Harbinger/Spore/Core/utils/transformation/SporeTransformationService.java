@@ -31,6 +31,7 @@ public final class SporeTransformationService implements ISporeTransformationSer
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
         bootstrap.initPluginsMap(handler);
+        bootstrap.wrapLaunchPluginHandler(handler);
     }
 
     @Override
@@ -45,6 +46,7 @@ public final class SporeTransformationService implements ISporeTransformationSer
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
         bootstrap.initPluginsMap(handler);
+        bootstrap.wrapLaunchPluginHandler(handler);
         return "SporeTransformationService";
     }
 
@@ -60,6 +62,7 @@ public final class SporeTransformationService implements ISporeTransformationSer
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
         bootstrap.initPluginsMap(handler);
+        bootstrap.wrapLaunchPluginHandler(handler);
     }
 
     @Override
@@ -74,6 +77,7 @@ public final class SporeTransformationService implements ISporeTransformationSer
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
         bootstrap.initPluginsMap(handler);
+        bootstrap.wrapLaunchPluginHandler(handler);
     }
 
     @Override
@@ -88,6 +92,7 @@ public final class SporeTransformationService implements ISporeTransformationSer
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
         bootstrap.initPluginsMap(handler);
+        bootstrap.wrapLaunchPluginHandler(handler);
         return List.of();
     }
     private static void init(){
