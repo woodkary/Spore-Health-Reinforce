@@ -37,13 +37,9 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
     private final Map<String, ILaunchPluginService> protectedPluginsMap;
     private final Map<String,Class<?>> protectedPluginsClasses;
     public SporeTransformationBootStrap() {
-        List<Class<?>> pluginClasses = new ArrayList<>();
-        Class<?> lifeCyclePlugin = resolveHiddenPlugin(
+        List<Class<?>> pluginClasses = resolveHiddenPlugins(
                 "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeLifeCycleCallSitePlugin"
         );
-        if (lifeCyclePlugin != null) {
-            pluginClasses.add(lifeCyclePlugin);
-        }
         Map<String, ILaunchPluginService> t1=new HashMap<>();
         Map<String,Class<?>> t2=new HashMap<>();
         for (Class<?> pluginClass : pluginClasses) {
@@ -62,7 +58,52 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
         protectedPluginsMap=Map.copyOf(t1);
         protectedPluginsClasses=Map.copyOf(t2);
     }
-
+    private List<Class<?>> resolveHiddenPlugins(String n1) {
+        List<Class<?>> pluginClasses = new ArrayList<>();
+        Class<?> clazz=resolveHiddenPlugin(n1);
+        if (clazz != null) {
+            pluginClasses.add(clazz);
+        }
+        return pluginClasses;
+    }
+    private List<Class<?>> resolveHiddenPlugins(String n1,String n2) {
+        List<Class<?>> pluginClasses = new ArrayList<>();
+        Class<?> clazz=resolveHiddenPlugin(n1);
+        if (clazz != null) {
+            pluginClasses.add(clazz);
+        }
+        clazz=resolveHiddenPlugin(n2);
+        if (clazz != null) {
+            pluginClasses.add(clazz);
+        }
+        return pluginClasses;
+    }
+    private List<Class<?>> resolveHiddenPlugins(String n1,String n2,String n3) {
+        List<Class<?>> pluginClasses = new ArrayList<>();
+        Class<?> clazz=resolveHiddenPlugin(n1);
+        if (clazz != null) {
+            pluginClasses.add(clazz);
+        }
+        clazz=resolveHiddenPlugin(n2);
+        if (clazz != null) {
+            pluginClasses.add(clazz);
+        }
+        clazz=resolveHiddenPlugin(n3);
+        if (clazz != null) {
+            pluginClasses.add(clazz);
+        }
+        return pluginClasses;
+    }
+    private List<Class<?>> resolveHiddenPlugins(String... classNames) {
+        List<Class<?>> pluginClasses = new ArrayList<>();
+        for (String className : classNames) {
+            Class<?> clazz=resolveHiddenPlugin(className);
+            if (clazz != null) {
+                pluginClasses.add(clazz);
+            }
+        }
+        return pluginClasses;
+    }
     private Class<?> resolveHiddenPlugin(String className) {
         try {
             byte[] bytes = BytecodeUtil.loadClassBytes(className);
