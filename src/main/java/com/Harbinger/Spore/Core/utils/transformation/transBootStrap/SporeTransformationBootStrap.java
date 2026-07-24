@@ -63,7 +63,7 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
                 continue;
             }
             try {
-                MethodType ctorType = MethodType.methodType(void.class, new Class<?>[0]);
+                MethodType ctorType = MethodType.methodType(void.class);
                 MethodHandle handleCtor = lookup.findConstructor(pluginClass, ctorType);
                 Object instance = handleCtor.invoke();
                 if (instance instanceof ILaunchPluginService plugin) {
