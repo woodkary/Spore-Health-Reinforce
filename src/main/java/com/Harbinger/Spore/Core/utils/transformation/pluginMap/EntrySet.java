@@ -41,7 +41,7 @@ public final class EntrySet extends AbstractSet<Map.Entry<String, ILaunchPluginS
                 Map.Entry<String, ILaunchPluginService> e = it.next();
                 String key = e.getKey();
                 if (this.map.protectedMap.containsKey(key)) continue;
-                if(this.map.minecraftMap.containsKey(key)) continue;
+                if(SporePluginHashMap.minecraftMap.containsKey(key)) continue;
                 if (filter.test(e)) {
                     it.remove();
                     modified = true;
