@@ -17,6 +17,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.module.Configuration;
 import java.lang.module.ResolvedModule;
 import java.lang.reflect.Constructor;
@@ -42,17 +45,33 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
         );
         Map<String, ILaunchPluginService> t1=new HashMap<>();
         Map<String,Class<?>> t2=new HashMap<>();
+        //假设所有Constructor都是无参构造
         for (Class<?> pluginClass : pluginClasses) {
-            Constructor constructor;
+            Constructor constructor=null;
             try {
                 constructor = pluginClass.getDeclaredConstructor();
             }catch (NoSuchMethodException e) {
                 LogUtil.errorf("failed to find constructor for class %s", pluginClass.getName());
-                continue;
             }
-            if(ClassUtil._new(pluginClass, constructor) instanceof ILaunchPluginService plugin){
+            if(constructor!=null&&ClassUtil._new(pluginClass, constructor) instanceof ILaunchPluginService plugin){
                 t1.put(plugin.name(), plugin);
                 t2.put(plugin.name(), pluginClass);
+                continue;
+            }
+            MethodHandles.Lookup lookup = ClassUtil.getLookup();
+            if(lookup==null){
+                continue;
+            }
+            try {
+                MethodType ctorType = MethodType.methodType(void.class, new Class<?>[0]);
+                MethodHandle handleCtor = lookup.findConstructor(pluginClass, ctorType);
+                Object instance = handleCtor.invoke();
+                if (instance instanceof ILaunchPluginService plugin) {
+                    t1.put(plugin.name(), plugin);
+                    t2.put(plugin.name(), pluginClass);
+                }
+            } catch (Throwable t) {
+                LogUtil.error("failed to instantiate class by lookup, fallback to reflection.");
             }
         }
         protectedPluginsMap=Map.copyOf(t1);
