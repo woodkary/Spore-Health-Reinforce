@@ -13,7 +13,7 @@ import java.lang.ref.WeakReference;
 
 public class SporeSavedData extends SavedData {
     public static final String NAME = Spore.MODID +"_world_data";
-    private static final List<WeakReference<Protector>> protectorList = new ArrayList<>();
+    private static final Set<Protector> protectorList = new HashSet<>();
     private static final Set<Proto> protos = new HashSet<>();
     private final Map<String, ChunkLoadRequest> activeRequests = new HashMap<>();
     private transient ServerLevel ownerLevel;
@@ -21,46 +21,32 @@ public class SporeSavedData extends SavedData {
 
     public static synchronized void addProtector(Protector protector){
         pruneProtectors();
-        for (WeakReference<Protector> reference : protectorList) {
-            if (reference.get() == protector) {
-                return;
-            }
-        }
-        protectorList.add(new WeakReference<>(protector));
+        protectorList.add(protector);
     }
 
     public static synchronized void removeProtector(Protector protector){
-        protectorList.removeIf(reference -> {
-            Protector value = reference.get();
-            return value == null || value == protector;
-        });
+        protectorList.remove(protector);
     }
 
     public static synchronized List<Protector> protectorList(){
         List<Protector> result = new ArrayList<>();
-        protectorList.removeIf(reference -> {
-            Protector value = reference.get();
-            if (value == null || value.isRemoved()) {
-                return true;
+        for (Protector protector : protectorList) {
+            if(protector==null||protector.isRemoved()){
+                continue;
             }
-            result.add(value);
-            return false;
-        });
+            result.add(protector);
+        }
         return result;
     }
 
     public static synchronized List<Protector> protectorList(ServerLevel level){
         List<Protector> result = new ArrayList<>();
-        protectorList.removeIf(reference -> {
-            Protector value = reference.get();
-            if (value == null || value.isRemoved()) {
-                return true;
+        for (Protector protector : protectorList) {
+            if(protector==null||protector.isRemoved()||protector.level!=level){
+                continue;
             }
-            if (value.level() == level) {
-                result.add(value);
-            }
-            return false;
-        });
+            result.add(protector);
+        }
         return result;
     }
 
@@ -70,7 +56,7 @@ public class SporeSavedData extends SavedData {
     }
 
     public static synchronized void removeProto(Proto proto){
-        protos.removeIf(value -> value == null || value.equals(proto));
+        protos.remove(proto);
     }
 
     public static synchronized List<Proto> getHiveminds(){
@@ -96,10 +82,7 @@ public class SporeSavedData extends SavedData {
     }
 
     private static void pruneProtectors() {
-        protectorList.removeIf(reference -> {
-            Protector value = reference.get();
-            return value == null || value.isRemoved();
-        });
+        protectorList.removeIf(value -> value == null || value.isRemoved());
     }
 
     private static void pruneProtos() {

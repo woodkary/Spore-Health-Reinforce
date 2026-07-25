@@ -12,6 +12,7 @@ import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.ICalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
+import com.Harbinger.Spore.Sentities.EvolvedInfected.Protector;
 import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import com.Harbinger.Spore.Sentities.Utility.TumoroidNuke;
 import com.Harbinger.Spore.network.HealthDataPacket;
@@ -59,6 +60,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
         }
         if(entity instanceof Proto proto&&!proto.level.isClientSide){
             SporeSavedData.addProto(proto);
+        }
+        if(entity instanceof Protector protector&&!protector.level.isClientSide){
+            SporeSavedData.addProtector(protector);
         }
     }
     @Override
@@ -298,6 +302,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
                     }
                     if(entity instanceof Proto proto&&!proto.level.isClientSide){
                         SporeSavedData.removeProto(proto);
+                    }
+                    if(entity instanceof Protector protector&&!protector.level.isClientSide){
+                        SporeSavedData.removeProtector(protector);
                     }
                 }
             }
