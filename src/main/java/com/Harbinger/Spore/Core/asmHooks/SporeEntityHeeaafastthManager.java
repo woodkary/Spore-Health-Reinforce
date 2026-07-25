@@ -7,10 +7,12 @@ import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeIterator;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
+import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.ICalamityMultipart;
 import com.Harbinger.Spore.Sentities.BaseEntities.IDieWithDiscardEntity;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
+import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import com.Harbinger.Spore.Sentities.Utility.TumoroidNuke;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
@@ -54,6 +56,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
         etiHeuahMape.actualPut(entity, FloatEntry.INSTANCE.newInstance(maxHealth));
         if(entity instanceof IDieWithDiscardEntity) {
             replaceEntityMap(entity);
+        }
+        if(entity instanceof Proto proto&&!proto.level.isClientSide){
+            SporeSavedData.addProto(proto);
         }
     }
     @Override
@@ -290,6 +295,9 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
                     }
                     if(entity instanceof ICalamityMultipart part){
                         partToHead.remove(part);
+                    }
+                    if(entity instanceof Proto proto&&!proto.level.isClientSide){
+                        SporeSavedData.removeProto(proto);
                     }
                 }
             }

@@ -14,7 +14,7 @@ import java.lang.ref.WeakReference;
 public class SporeSavedData extends SavedData {
     public static final String NAME = Spore.MODID +"_world_data";
     private static final List<WeakReference<Protector>> protectorList = new ArrayList<>();
-    private static final List<WeakReference<Proto>> protos = new ArrayList<>();
+    private static final Set<Proto> protos = new HashSet<>();
     private final Map<String, ChunkLoadRequest> activeRequests = new HashMap<>();
     private transient ServerLevel ownerLevel;
     private boolean casingLightAllowed;
@@ -66,46 +66,32 @@ public class SporeSavedData extends SavedData {
 
     public static synchronized void addProto(Proto proto){
         pruneProtos();
-        for (WeakReference<Proto> reference : protos) {
-            if (reference.get() == proto) {
-                return;
-            }
-        }
-        protos.add(new WeakReference<>(proto));
+        protos.add(proto);
     }
 
     public static synchronized void removeProto(Proto proto){
-        protos.removeIf(reference -> {
-            Proto value = reference.get();
-            return value == null || value.equals(proto);
-        });
+        protos.removeIf(value -> value == null || value.equals(proto));
     }
 
     public static synchronized List<Proto> getHiveminds(){
         List<Proto> result = new ArrayList<>();
-        protos.removeIf(reference -> {
-            Proto value = reference.get();
-            if (value == null || value.isRemoved()) {
-                return true;
+        for (Proto value : protos) {
+            if(value==null||value.isRemoved()){
+                continue;
             }
             result.add(value);
-            return false;
-        });
+        }
         return result;
     }
 
     public static synchronized List<Proto> getHiveminds(ServerLevel level){
         List<Proto> result = new ArrayList<>();
-        protos.removeIf(reference -> {
-            Proto value = reference.get();
-            if (value == null || value.isRemoved()) {
-                return true;
+        for (Proto value : protos) {
+            if(value==null||value.isRemoved()||value.level!=level){
+                continue;
             }
-            if (value.level() == level) {
-                result.add(value);
-            }
-            return false;
-        });
+            result.add(value);
+        }
         return result;
     }
 
@@ -117,10 +103,7 @@ public class SporeSavedData extends SavedData {
     }
 
     private static void pruneProtos() {
-        protos.removeIf(reference -> {
-            Proto value = reference.get();
-            return value == null || value.isRemoved();
-        });
+        protos.removeIf(value -> value == null || value.isRemoved());
     }
 
     public static synchronized void clearRuntimeEntityReferences() {
