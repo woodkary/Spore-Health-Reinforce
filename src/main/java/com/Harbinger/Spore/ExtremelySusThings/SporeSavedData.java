@@ -77,7 +77,7 @@ public class SporeSavedData extends SavedData {
     public static synchronized void removeProto(Proto proto){
         protos.removeIf(reference -> {
             Proto value = reference.get();
-            return value == null || value == proto;
+            return value == null || value.equals(proto);
         });
     }
 
