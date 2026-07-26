@@ -164,6 +164,9 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 return;
             }
             SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(livingClass);
+            if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+                return;
+            }
         }
     }
 
