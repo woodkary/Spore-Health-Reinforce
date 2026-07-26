@@ -292,7 +292,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
             while (iterator.hasNext()) {
                 Map.Entry<LivingEntity, IFloatEntry> entry = iterator.next();
                 LivingEntity entity = entry.getKey();
-                if (entity == null || entity.isRemoved()) {
+                if (entity == null || entity.isRemoved()&&entity.level.getEntity(entity.id)==null) {
                     iterator.actualRemove();
                     if (entity != null) {
                         entityMaxHeeaafastth.actualRemove(entity);

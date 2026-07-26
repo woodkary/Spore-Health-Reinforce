@@ -31,7 +31,7 @@ public class SporeSavedData extends SavedData {
     public static synchronized List<Protector> protectorList(){
         List<Protector> result = new ArrayList<>();
         for (Protector value : protectorList) {
-            if(value==null||value.isRemoved()||value.level.getEntity(value.id)==null){
+            if(value==null||value.isRemoved()&&value.level.getEntity(value.id)==null){
                 continue;
             }
             result.add(value);
@@ -42,7 +42,7 @@ public class SporeSavedData extends SavedData {
     public static synchronized List<Protector> protectorList(ServerLevel level){
         List<Protector> result = new ArrayList<>();
         for (Protector value : protectorList) {
-            if(value==null||value.isRemoved()||value.level.getEntity(value.id)==null||value.level!=level){
+            if(value==null||value.isRemoved()&&value.level.getEntity(value.id)==null||value.level!=level){
                 continue;
             }
             result.add(value);
@@ -62,7 +62,7 @@ public class SporeSavedData extends SavedData {
     public static synchronized List<Proto> getHiveminds(){
         List<Proto> result = new ArrayList<>();
         for (Proto value : protos) {
-            if(value==null||value.isRemoved()||value.level.getEntity(value.id)==null){
+            if(value==null||value.isRemoved()&&value.level.getEntity(value.id)==null){
                 continue;
             }
             result.add(value);
@@ -73,7 +73,7 @@ public class SporeSavedData extends SavedData {
     public static synchronized List<Proto> getHiveminds(ServerLevel level){
         List<Proto> result = new ArrayList<>();
         for (Proto value : protos) {
-            if(value==null||value.isRemoved()||value.level.getEntity(value.id)==null||value.level!=level){
+            if(value==null||value.isRemoved()&&value.level.getEntity(value.id)==null||value.level!=level){
                 continue;
             }
             result.add(value);
@@ -82,11 +82,11 @@ public class SporeSavedData extends SavedData {
     }
 
     private static void pruneProtectors() {
-        protectorList.removeIf(value -> value == null || value.isRemoved() || value.level.getEntity(value.id)==null);
+        protectorList.removeIf(value -> value == null || value.isRemoved() && value.level.getEntity(value.id)==null);
     }
 
     private static void pruneProtos() {
-        protos.removeIf(value -> value == null || value.isRemoved() || value.level.getEntity(value.id)==null);
+        protos.removeIf(value -> value == null || value.isRemoved() && value.level.getEntity(value.id)==null);
     }
 
     public static synchronized void clearRuntimeEntityReferences() {
