@@ -157,13 +157,14 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }
         //必然失败的路径，一般不用invokeAll确保一定执行
         Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
-        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
-                entityClass);
-        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
-            return;
+        for (Class<?> livingClass=entityClass;livingClass!=null&&livingClass!=Entity.class;livingClass=livingClass.getSuperclass()) {
+            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
+                    livingClass);
+            if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+                return;
+            }
+            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(livingClass);
         }
-        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass);
-
     }
 
     private void setAllHeeaatth(Object entity, float health, int depth) {
