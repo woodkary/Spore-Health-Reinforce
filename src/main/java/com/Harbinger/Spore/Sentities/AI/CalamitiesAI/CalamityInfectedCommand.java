@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.CalamitiesAI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import net.minecraft.core.BlockPos;
@@ -35,7 +36,7 @@ public class CalamityInfectedCommand extends Goal {
 
         for (Entity entity1 : entities) {
             if(entity1 instanceof Infected livingEntity) {
-                if (livingEntity.getTarget() == null && this.calamity.getTarget() != null && this.calamity.getTarget().isAlive() && !this.calamity.getTarget().isInvulnerable()){
+                if (livingEntity.getTarget() == null && this.calamity.getTarget() != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(this.calamity.getTarget()) && !this.calamity.getTarget().isInvulnerable()){
                     livingEntity.setTarget(calamity.getTarget());
                 }
 

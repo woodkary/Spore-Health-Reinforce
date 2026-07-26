@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems.BaseWeapons;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Senchantments;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
@@ -230,7 +231,7 @@ public interface SporeWeaponData {
             double knockback2 = reversedKnockback() ? Mth.cos(entity.getYRot() * ((float) Math.PI / 180F) * ((float) Math.PI / 180F)) : -Mth.cos(entity.getYRot() * ((float) Math.PI / 180F));
             victim.knockback(1.5F, knockback, knockback2);
         }
-        if (getVariant(stack) == SporeToolsMutations.VAMPIRIC && entity.getHealth() < entity.getMaxHealth()){
+        if (getVariant(stack) == SporeToolsMutations.VAMPIRIC && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) < entity.getMaxHealth()){
             entity.heal(2f);
         }
         if (getVariant(stack) == SporeToolsMutations.BEZERK && Math.random() < 0.3){
@@ -290,7 +291,7 @@ public interface SporeWeaponData {
             victim.addEffect(new MobEffectInstance(MobEffects.WITHER,60,1));
             addHealingInhibitRandom(victim);
         }
-        if (data.getVariant(stack) == SporeToolsMutations.VAMPIRIC && owner.getHealth() < owner.getMaxHealth()){
+        if (data.getVariant(stack) == SporeToolsMutations.VAMPIRIC && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(owner) < owner.getMaxHealth()){
             owner.heal(2f);
         }
         if (data.getVariant(stack) == SporeToolsMutations.BEZERK && Math.random() < 0.3){

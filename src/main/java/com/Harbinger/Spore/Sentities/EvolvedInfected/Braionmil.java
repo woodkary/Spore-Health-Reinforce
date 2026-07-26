@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Sitems;
@@ -68,7 +69,7 @@ public class Braionmil extends EvolvedInfected implements EvolvingInfected {
 
     public void tick() {
 
-        if (this.isAlive()) {
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this)) {
 
             int i = this.getSwellDir();
             if (i > 0 && this.swell == 0) {

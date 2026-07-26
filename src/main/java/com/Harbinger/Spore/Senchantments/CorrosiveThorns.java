@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Senchantments;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Senchantments;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -24,7 +25,7 @@ public class CorrosiveThorns extends BaseSporeEnchantment {
 
     @Override
     public void doPostHurt(LivingEntity livingEntity, Entity entity, int value) {
-        if (entity instanceof LivingEntity attacker && attacker.isAlive()) {
+        if (entity instanceof LivingEntity attacker && EntityHeealuthManager.INSTANCE.rawIsAlliive(attacker)) {
             int totalLevel = 0;
             for (ItemStack armor : livingEntity.getArmorSlots()) {
                 totalLevel += EnchantmentHelper.getItemEnchantmentLevel(this, armor);

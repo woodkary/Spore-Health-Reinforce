@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
@@ -120,7 +121,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     @Override
     public void tick() {
         super.tick();
-        if (this.tickCount % 20 == 0 && this.getHealth() == this.getMaxHealth()){
+        if (this.tickCount % 20 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) == this.getMaxHealth()){
             if (this.getSwordArm() < this.getMaxArm()){
                 this.setSwordtArm(getSwordArm()+1);
             }
@@ -509,7 +510,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
             if (attackWindup > 0) {
                 attackWindup--;
 
-                if (attackWindup == 1 && delayedTarget != null && delayedTarget.isAlive()) {
+                if (attackWindup == 1 && delayedTarget != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(delayedTarget)) {
                     performDelayedAttack(delayedTarget);
                     delayedTarget = null;
                 }

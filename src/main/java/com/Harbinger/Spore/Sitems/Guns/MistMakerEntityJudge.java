@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems.Guns;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +19,6 @@ public final class MistMakerEntityJudge implements Predicate<Entity> {
         return entity instanceof LivingEntity &&
                 entity != player &&
                 !entity.isSpectator() &&
-                entity.isAlive();
+                EntityHeealuthManager.INSTANCE.rawIsAlliive(entity);
     }
 }

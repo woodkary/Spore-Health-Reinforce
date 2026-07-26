@@ -242,7 +242,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return entity.isDeadOrDying();
     }
     @Override
-    public boolean rawIsAlliive(LivingEntity entity){
+    public boolean rawIsAlliive(Entity entity){
         return entity.isAlive();
     }
     public float getMaaxxHeaaltsh(LivingEntity entity,float initialHealth){
@@ -455,7 +455,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
     public float hurt(LivingEntity entity, float damage){
         IFloatEntry deltaEntry = heaalthDeltaMap.get(entity);
         float delta;
-        float health=entity.getHealth();
+        float health=EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity);
         if (deltaEntry == null) {
             delta = Math.max(0.0F, entity.getMaxHealth() - health) + damage;
             delta = -delta;
@@ -484,7 +484,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if (!HeasdalthUtil.INSTANCE.invokeAllHurtMethods(entity, actualSource, damage, health)) {
             HeasdalthUtil.INSTANCE.setHeeaatth(entity, Math.max(0.0F, health - damage), true);
         }
-        if(entity.getHealth()<=0.0f){
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity)<=0.0f){
             killEntity(entity,source);
         }
     }

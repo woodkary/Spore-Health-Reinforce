@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Client.Special;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Client.Layers.EyeLayer;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
@@ -84,7 +85,7 @@ public abstract class BaseInfectedRenderer<T extends Mob, M extends EntityModel<
         float f7 = this.getBob(infected, value2);
         float f8 = 0.0F;
         float f5 = 0.0F;
-        if (infected.isAlive()) {
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(infected)) {
             f8 = infected.walkAnimation.speed(value2);
             f5 = infected.walkAnimation.position(value2);
             if (f8 > 1.0F) {

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
@@ -209,7 +210,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                 if (!infected.getLinked()){
                     infected.setLinked(true);
                 }
-                if (infected.getTarget() == null || infected.getY() < 0 || infected.getHealth() < infected.getMaxHealth()/2){
+                if (infected.getTarget() == null || infected.getY() < 0 || EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(infected) < infected.getMaxHealth()/2){
                     if (!level().isClientSide && harvestBiomassByDespawning(infected)){
                         hosts++;
                     }
@@ -480,7 +481,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             this.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE,200,0));
         }else if (this.getLastDamageSource() == damageSources().freeze()){
             this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS,400,0));
-        }else if (this.getHealth() < (this.getMaxHealth()/2) && !(hasEffect(MobEffects.WEAKNESS) || hasEffect(MobEffects.DAMAGE_RESISTANCE))){
+        }else if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < (this.getMaxHealth()/2) && !(hasEffect(MobEffects.WEAKNESS) || hasEffect(MobEffects.DAMAGE_RESISTANCE))){
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,100,0));
         }
     }
@@ -587,7 +588,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
     @Override
     public void die(DamageSource source) {
-        if (this.getHealth() > 0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > 0.0f) {
             return;
         }
         specialDie(source);
@@ -596,7 +597,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
     @Override
     public void tickDeath() {
-        if (this.getHealth() > 0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > 0.0f) {
             return;
         }
         this.die(this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus());
@@ -634,7 +635,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     }
     @Override
     public void setRemoved(RemovalReason reason) {
-        if(getHealth()>0.0f&&!isSpecialDefasd()&& StackTraceUtil.isCallFromOther()){
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this)>0.0f&&!isSpecialDefasd()&& StackTraceUtil.isCallFromOther()){
             DamageSource source = this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus();
             specialDie(source);
             HeasdalthUtil.INSTANCE.genericDie(this, source);

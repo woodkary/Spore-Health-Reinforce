@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeAxeItems;
 import net.minecraft.core.BlockPos;
@@ -24,7 +25,7 @@ public final class InfectedArmads extends SporeAxeItems {
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int val, boolean value) {
         super.inventoryTick(stack, level, entity, val, value);
-        if (entity instanceof LivingEntity livingEntity && livingEntity.tickCount % 60 == 0 && livingEntity.getHealth() <= livingEntity.getMaxHealth()/2){
+        if (entity instanceof LivingEntity livingEntity && livingEntity.tickCount % 60 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(livingEntity) <= livingEntity.getMaxHealth()/2){
             if (livingEntity.getMainHandItem().getItem().equals(this)){
                 livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED,60,0));
             }

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.LocHiv;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.google.common.base.Predicate;
 import net.minecraft.world.entity.LivingEntity;
@@ -67,7 +68,7 @@ public class FollowOthersGoal extends Goal {
     public boolean canContinueToUse() {
         LivingEntity partner = infected.getFollowPartner();
 
-        if (partner == null || !partner.isAlive()) {
+        if (partner == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(partner)) {
             return false;
         }
 
@@ -179,7 +180,7 @@ public class FollowOthersGoal extends Goal {
 
     private boolean isValidPartner(LivingEntity entity) {
         // Check if entity is alive and valid
-        if (entity == null || !entity.isAlive()) return false;
+        if (entity == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(entity)) return false;
 
         // Apply custom predicate if exists
         return partnerTargeting == null || partnerTargeting.apply(entity);

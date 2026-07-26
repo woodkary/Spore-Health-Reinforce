@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Screens;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SMenu;
 import com.Harbinger.Spore.Core.SblockEntities;
 import com.Harbinger.Spore.SBlockEntities.ContainerBlockEntity;
@@ -262,7 +263,7 @@ public class ContainerMenu extends AbstractContainerMenu implements Supplier<Map
     public void removed(Player playerIn) {
         super.removed(playerIn);
         if (!bound && playerIn instanceof ServerPlayer serverPlayer) {
-            if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()) {
+            if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(serverPlayer) || serverPlayer.hasDisconnected()) {
                 for (int j = 0; j < internal.getSlots(); ++j) {
                     playerIn.drop(internal.extractItem(j, internal.getStackInSlot(j).getCount(), false), false);
                 }

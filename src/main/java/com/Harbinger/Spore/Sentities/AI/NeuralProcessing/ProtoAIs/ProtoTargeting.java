@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.NeuralProcessing.ProtoAIs;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.Organoids.Proto;
@@ -37,7 +38,7 @@ public class ProtoTargeting extends Goal {
                 infected -> !infected.isSpectator());
 
         for (Infected infected : entities) {
-            if (infected.getTarget() == null && this.proto.getTarget() != null && this.proto.getTarget().isAlive() && !this.proto.getTarget().isInvulnerable()){
+            if (infected.getTarget() == null && this.proto.getTarget() != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(this.proto.getTarget()) && !this.proto.getTarget().isInvulnerable()){
                 infected.setTarget(proto.getTarget());
             }
         }

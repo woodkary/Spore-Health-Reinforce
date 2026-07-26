@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -274,7 +275,7 @@ public class HiveTumor extends Organoid implements FoliageSpread {
 
             LivingEntity living = hiveTumor.getTarget();
 
-            if (hiveTumor.getHealth() <= hiveTumor.getMaxHealth() / 2) {
+            if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(hiveTumor) <= hiveTumor.getMaxHealth() / 2) {
                 return true;
             }
 
@@ -305,7 +306,7 @@ public class HiveTumor extends Organoid implements FoliageSpread {
 
         private void Targeting() {
             LivingEntity target = hiveTumor.getTarget();
-            if (target == null || !target.isAlive()) return;
+            if (target == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) return;
 
             AABB boundingBox = hiveTumor.getBoundingBox().inflate(128);
             List<Entity> entities = hiveTumor.level().getEntities(

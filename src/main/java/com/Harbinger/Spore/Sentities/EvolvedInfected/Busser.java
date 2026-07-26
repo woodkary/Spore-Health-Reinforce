@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -141,7 +142,7 @@ public class Busser extends EvolvedInfected implements Carrier, FlyingInfected, 
     @Override
     public void tick() {
         super.tick();
-        if (this.isAlive() && this.getTypeVariant() == 2) {
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && this.getTypeVariant() == 2) {
             manageExplosiveBusser();
         }
         if (tickCount % 200 == 0 && (!level().canSeeSky(this.blockPosition()) || level().isNight())){

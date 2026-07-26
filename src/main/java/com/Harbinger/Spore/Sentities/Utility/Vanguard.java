@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
@@ -303,7 +304,7 @@ public class Vanguard extends UtilityEntity implements CrossbowAttackMob, Enemy 
         if (tickCount % 40 == 0 && horizontalCollision && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level(), this)){
             griefBlocks();
         }
-        if (tickCount % 20 == 0 && this.getHealth() < this.getMaxHealth() && !hasEffect(MobEffects.REGENERATION) && entityData.get(KILLS) > 0){
+        if (tickCount % 20 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth() && !hasEffect(MobEffects.REGENERATION) && entityData.get(KILLS) > 0){
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION,400,0));
             entityData.set(KILLS,entityData.get(KILLS)-1);
         }
@@ -682,7 +683,7 @@ public class Vanguard extends UtilityEntity implements CrossbowAttackMob, Enemy 
         if (living == null){
             return false;
         }
-        return SConfig.SERVER.proto_sapient_target.get().contains(living.getEncodeId()) || living.getHealth() >= 100 || living instanceof Player;
+        return SConfig.SERVER.proto_sapient_target.get().contains(living.getEncodeId()) || EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living) >= 100 || living instanceof Player;
     }
     private void callReinforcements(){
         List<String> ids = new ArrayList<>();

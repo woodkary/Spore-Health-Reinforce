@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Experiments;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
@@ -91,7 +92,7 @@ public class Biobloob extends Experiment implements RangedAttackMob {
         computeAttribute(Attributes.ATTACK_DAMAGE,damage * getScale());
         computeAttribute(Attributes.ARMOR,armor * getScale());
         computeAttribute(Attributes.MOVEMENT_SPEED,0.3 * (1.0f / getScale()));
-        if (this.getHealth() > this.getMaxHealth()) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > this.getMaxHealth()) {
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(this,this.getMaxHealth());
         }
     }

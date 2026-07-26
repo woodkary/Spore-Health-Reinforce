@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Experiments;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
@@ -189,7 +190,7 @@ public class Saugling extends Experiment {
             if (!isPrimed()) {
                 AABB aabb = this.getBoundingBox().inflate(3);
                 List<LivingEntity> livingEntities = this.level().getEntitiesOfClass(LivingEntity.class, aabb,
-                        entity -> entity.isAlive() && TARGET_SELECTOR.test(entity) && !(entity instanceof Player player && (player.getAbilities().instabuild || player.isSpectator())));
+                        entity -> EntityHeealuthManager.INSTANCE.rawIsAlliive(entity) && TARGET_SELECTOR.test(entity) && !(entity instanceof Player player && (player.getAbilities().instabuild || player.isSpectator())));
 
                 if (!livingEntities.isEmpty()) {
                     setPrimed(true);

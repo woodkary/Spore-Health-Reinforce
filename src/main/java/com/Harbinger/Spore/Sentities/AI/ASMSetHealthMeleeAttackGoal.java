@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.Hyper.Inquisitor;
@@ -17,7 +18,7 @@ public interface ASMSetHealthMeleeAttackGoal {
     default void tickASMAttack(){
         Mob mob = mob();
         LivingEntity target= mob.getTarget();
-        if (target == null || SporeJudge.isSporeEntity(target)||!target.isAlive()) {
+        if (target == null || SporeJudge.isSporeEntity(target)||!EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) {
             return;
         }
         if(!SporeJudge.isSporeEntity(mob)){

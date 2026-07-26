@@ -105,7 +105,7 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
         if(SporeJudge.isSporeEntity(target)){
             return false;
         }
-        return StackTraceUtil.isBadModName(target.getClass().getName())&& target.isAlive()
+        return StackTraceUtil.isBadModName(target.getClass().getName())&& EntityHeealuthManager.INSTANCE.rawIsAlliive(target)
                 || target.canBeSeenAsEnemy();
     }
     @Override
@@ -500,7 +500,7 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
 
     @Override
     public void tickDeath(){
-        if(this.getHealth()>0.0f){
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this)>0.0f){
             return;
         }
         super.tickDeath();
@@ -509,7 +509,7 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
 
     @Override
     public void die(DamageSource source) {
-        if (this.getHealth()>0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this)>0.0f) {
             return;
         }
         placeRemains(source);

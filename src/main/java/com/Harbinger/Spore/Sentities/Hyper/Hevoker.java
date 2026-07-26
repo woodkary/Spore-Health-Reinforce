@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Hyper;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -300,7 +301,7 @@ public class Hevoker extends Hyper {
         if (isFakeDead()){
             return false;
         }
-        if (!isFakeDead() && amount > this.getHealth() && !this.isInPowderSnow){
+        if (!isFakeDead() && amount > EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) && !this.isInPowderSnow){
             setFakeDead(true);
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(this,1f);
             reviveTimer = 200;

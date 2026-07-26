@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Screens;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -232,7 +233,7 @@ public class CabinetMenu extends AbstractContainerMenu implements Supplier<Map<I
     public void removed(Player playerIn) {
         super.removed(playerIn);
         if (!bound && playerIn instanceof ServerPlayer serverPlayer) {
-            if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()) {
+            if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(serverPlayer) || serverPlayer.hasDisconnected()) {
                 for (int j = 0; j < internal.getSlots(); ++j) {
                     playerIn.drop(internal.extractItem(j, internal.getStackInSlot(j).getCount(), false), false);
                 }

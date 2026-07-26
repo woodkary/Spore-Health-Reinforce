@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems.Guns;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Client.AnimationTrackers.MistMakerSawAnimationTracker;
 import com.Harbinger.Spore.Client.AnimationTrackers.MistMakerShootAnimationTracker;
 import com.Harbinger.Spore.Core.SConfig;
@@ -131,7 +132,7 @@ public final class MistMaker extends AbstractSporeGun implements CustomModelArmo
                         if (entity instanceof LivingEntity living) {
                             DamageSource source = level.damageSources().playerAttack(player);
                             float damage = (float) calculateTrueDamage(stack, SConfig.SERVER.mistmaker_melee_damage.get());
-                            if(living instanceof Player||this.getVariant(stack)!=SporeToolsMutations.BEZERK||!living.isAlive()){
+                            if(living instanceof Player||this.getVariant(stack)!=SporeToolsMutations.BEZERK||!EntityHeealuthManager.INSTANCE.rawIsAlliive(living)){
                                 living.hurt(source, damage);
                             }else{
                                 SporeAttackUtil.INSTANCE.attack(living,player,source,damage);

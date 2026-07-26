@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
@@ -107,7 +108,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
                 setSearchArea(pos);
             }
         }
-        if (this.getHealth() >= this.getMaxHealth() && this.getTongue() < this.getMaxTongue()){
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) >= this.getMaxHealth() && this.getTongue() < this.getMaxTongue()){
             if (this.tickCount % 40 == 0){
                 this.setTongue(this.getTongue() +1);
             }
@@ -120,7 +121,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
                 List<Entity> entities = this.level().getEntities(this, boundingBox);
                 for (Entity entity : entities) {
                     if (SConfig.SERVER.whitelist.get().contains(entity.getEncodeId()) || entity instanceof Player player && !player.getAbilities().instabuild){
-                        if (entity instanceof LivingEntity livingEntity  && livingEntity.isAlive()){
+                        if (entity instanceof LivingEntity livingEntity  && EntityHeealuthManager.INSTANCE.rawIsAlliive(livingEntity)){
                             this.playSound(Ssounds.SIGNAL.get(),2f,1f);
                             this.setTarget(livingEntity);
                         }

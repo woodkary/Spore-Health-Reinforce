@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
@@ -66,7 +67,7 @@ public class ThrownSickle extends AbstractArrow {
     }
     public int getColor(){return entityData.get(COLOR);}
     public void tick() {
-        if (this.state == SickelState.HOOKED_IN_ENTITY && hookedEntity != null && hookedEntity.isAlive()) {
+        if (this.state == SickelState.HOOKED_IN_ENTITY && hookedEntity != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(hookedEntity)) {
             this.setPos(hookedEntity.getX(), hookedEntity.getY() + (hookedEntity.getBbHeight() * 0.5), hookedEntity.getZ());
         }
         if (this.inGroundTime > 4) {

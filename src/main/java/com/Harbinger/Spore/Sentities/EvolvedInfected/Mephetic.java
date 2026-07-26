@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Spotion;
@@ -254,7 +255,7 @@ public class Mephetic extends EvolvedInfected implements RangedAttackMob {
         }
 
         public boolean canUse() {
-            return mob.getHealth() < mob.getMaxHealth();
+            return EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(mob) < mob.getMaxHealth();
         }
 
         public boolean canContinueToUse() {

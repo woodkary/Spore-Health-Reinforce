@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
@@ -82,12 +83,12 @@ public class Sieger extends Calamity implements RangedAttackMob, TrueCalamity {
     @Override
     public void tick() {
         super.tick();
-        if (this.getHealth() >= this.getMaxHealth() && this.getTail() < this.getMaxTail()){
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) >= this.getMaxHealth() && this.getTail() < this.getMaxTail()){
             if (this.tickCount % 40 == 0){
                 this.setTail(this.getTail() +1);
             }
         }
-        if (tickCount % 20 == 0 && this.getHealth() < this.getMaxHealth()){
+        if (tickCount % 20 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth()){
             this.entityData.set(ADAPTATION,this.entityData.get(ADAPTATION)+1);
         }
 

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.utils;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
@@ -107,13 +108,13 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
 
     @Override
     public void setHeeaatth(LivingEntity entity, float health, boolean hard, boolean invokeAll) {
-        float damageTaken = entity.getHealth() - health;
+        float damageTaken = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) - health;
         entity.getCombatTracker().recordDamage(
                 entity.lastDamageSource != null ? entity.lastDamageSource : entity.damageSources().generic(),
                 damageTaken
         );
         setHeeaatth(entity, health);
-        if (!invokeAll && (!hard || entity.getHealth() <= health || !entity.isAlive())) {
+        if (!invokeAll && (!hard || EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health || !EntityHeealuthManager.INSTANCE.rawIsAlliive(entity))) {
             return;
         }
         hardSetHeeathtuthWithoutSync(entity, health, invokeAll);
@@ -128,22 +129,22 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             setAllHeeaatth(entity, health, 2);
         } catch (Throwable ignored) {
         }
-        if (!invokeAll && entity.getHealth() <= health) {
+        if (!invokeAll && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         CompoundTag tag = new CompoundTag();
         entity.addAdditionalSaveData(tag);
         setPossibleHealthTag(tag, health);
         entity.readAdditionalSaveData(tag);
-        if (!invokeAll && entity.getHealth() <= health) {
+        if (!invokeAll && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         oneRound(entity, health, entity.entityData);
-        if (!invokeAll && entity.getHealth() <= health) {
+        if (!invokeAll && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         setAllStaticHealthMap(entity, health);
-        if (!invokeAll&&entity.getHealth() <= health) {
+        if (!invokeAll&&EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         if(!invokeAll) {
@@ -151,14 +152,14 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }else{
             LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
         }
-        if(entity.getHealth() <= health) {
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         //必然失败的路径，一般不用invokeAll确保一定执行
         Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
                 entityClass);
-        if(entity.getHealth() <= health) {
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass);
@@ -450,10 +451,10 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             return false;
         }
         float expectedHealth = currentHealth;
-        if (entity.hurt(damageSource, amount) && entity.getHealth() <= expectedHealth - amount) {
+        if (entity.hurt(damageSource, amount) && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= expectedHealth - amount) {
             return true;
         }
-        expectedHealth = entity.getHealth();
+        expectedHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity);
         List<IWrappedMethod> methods = getAllHurtMethods(entity.getClass());
         expectedHealth -= amount * methods.size();
         for (IWrappedMethod method : methods) {
@@ -472,7 +473,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 LogUtil.errorf("failed to invoke hurt method %s,%s.",method.getName(),t.getMessage());
             }
         }
-        return entity.getHealth() <= expectedHealth;
+        return EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= expectedHealth;
     }
 
     private List<IWrappedMethod> getAllHurtMethods(Class<?> clazz) {
@@ -751,7 +752,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
 
     @Override
     public float setHealthAdjuster(LivingEntity entity, float health) {
-        float currentHealth = entity.getHealth();
+        float currentHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity);
         boolean notHealing = entity.getPersistentData().getBoolean("notHeaealing");
         if (health > currentHealth) {
             return notHealing ? currentHealth : health;

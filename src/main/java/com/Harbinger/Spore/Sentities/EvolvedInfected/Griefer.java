@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -80,7 +81,7 @@ public class Griefer extends EvolvedInfected implements VariantKeeper {
     }
 
     public void tick() {
-        if (this.isAlive()) {
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this)) {
             int i = this.getSwellDir();
             if (i > 0 && this.swell == 0) {
                 this.playSound(SoundEvents.CREEPER_PRIMED, 1.0F, 0.5F);

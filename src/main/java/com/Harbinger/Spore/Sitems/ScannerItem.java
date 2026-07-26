@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.Package.AdvancementGivingPackage;
@@ -103,7 +104,7 @@ public class ScannerItem extends BaseItem2 {
         lines.add("------------------");
         lines.add(Component.translatable("spore.scanner.line.2").getString() + name);
         lines.add(Component.translatable("spore.scanner.line.3").getString() + Component.translatable(entity.getType().getDescriptionId()).getString());
-        lines.add(Component.translatable("spore.scanner.line.4").getString() + entity.getHealth() + "/" + entity.getMaxHealth());
+        lines.add(Component.translatable("spore.scanner.line.4").getString() + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) + "/" + entity.getMaxHealth());
 
         addExtraInfo(entity, lines);
 

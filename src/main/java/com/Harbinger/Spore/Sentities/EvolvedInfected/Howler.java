@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sentities;
@@ -337,7 +338,7 @@ public class Howler extends EvolvedInfected implements VariantKeeper, ArmorPerse
             }
         }
         public void shootSonicBoom(LivingEntity target, float damage) {
-            if (target == null || !target.isAlive()) return;
+            if (target == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) return;
             mob.level().playSound(
                     null,
                     mob.getX(), mob.getY(), mob.getZ(),
@@ -396,7 +397,7 @@ public class Howler extends EvolvedInfected implements VariantKeeper, ArmorPerse
                 }
             }else {
                 for (Infected infected : brothers){
-                    if (infected.isAlive() && infected.getTarget() == null){
+                    if (EntityHeealuthManager.INSTANCE.rawIsAlliive(infected) && infected.getTarget() == null){
                         infected.setTarget(mob.getTarget());
                     }
                 }

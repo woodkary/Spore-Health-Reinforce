@@ -269,7 +269,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
         if(sourceEntity instanceof Player player){
             entity.setLastHurtByPlayer(player);
         }
-        if(entity.getHealth()<=0.0f){
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity)<=0.0f){
             EntityHeealuthManager.INSTANCE.killEntity(entity,source);
         }
     }

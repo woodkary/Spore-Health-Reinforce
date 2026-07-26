@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BasicInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -41,7 +42,7 @@ public class InfectedWanderingTrader extends Infected implements EvolvingInfecte
             return !this.isInvisible() && isAggressive() && SConfig.SERVER.inf_van_potion.get();
         }));
         this.goalSelector.addGoal(0, new UseItemGoal<>(this, PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.STRONG_HEALING), SoundEvents.WANDERING_TRADER_DRINK_POTION, (p_35882_) -> {
-            return this.getHealth() < this.getMaxHealth()/2 && !isAggressive() && SConfig.SERVER.inf_van_potion.get();
+            return EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth()/2 && !isAggressive() && SConfig.SERVER.inf_van_potion.get();
         }){
             @Override
             public void start() {

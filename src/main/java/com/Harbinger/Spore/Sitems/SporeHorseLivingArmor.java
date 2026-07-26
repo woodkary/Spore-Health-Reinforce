@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -32,7 +33,7 @@ public final class SporeHorseLivingArmor extends SporeHorseArmor implements Cust
                 horse.setDeltaMovement(climbVec);
             }
         }
-        if (horse.tickCount % 20 == 0 && horse.getHealth() < horse.getMaxHealth() && !horse.hasEffect(MobEffects.REGENERATION)){
+        if (horse.tickCount % 20 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(horse) < horse.getMaxHealth() && !horse.hasEffect(MobEffects.REGENERATION)){
             horse.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0, (false), (false)));
         }
     }

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
@@ -102,7 +103,7 @@ public class ThrownKnife extends AbstractArrow {
 
     private boolean isAcceptibleReturnOwner() {
         Entity entity = this.getOwner();
-        if (entity != null && entity.isAlive()) {
+        if (entity != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(entity)) {
             return !(entity instanceof ServerPlayer) || !entity.isSpectator();
         } else {
             return false;

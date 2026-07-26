@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.BaseEntities.*;
@@ -478,7 +479,7 @@ public class Vigil extends Organoid implements TraceableEntity, VariantKeeper {
                 assert waveentity != null;
                 waveentity.setPos(this.getX(), this.getY(), this.getZ());
                 waveentity.finalizeSpawn(world, this.level().getCurrentDifficultyAt(new BlockPos((int) this.getX(),(int)  this.getY(),(int)  this.getZ())), MobSpawnType.NATURAL, null, null);
-                if (waveentity.getTarget() == null && target.isAlive() && !target.isInvulnerable()){
+                if (waveentity.getTarget() == null && EntityHeealuthManager.INSTANCE.rawIsAlliive(target) && !target.isInvulnerable()){
                     waveentity.setTarget(target);
                 }
                 this.level().addFreshEntity(waveentity);

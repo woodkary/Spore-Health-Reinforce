@@ -287,12 +287,12 @@ public class HandlerEvents {
                     fake.setDefault0HllealthDelta(0.0f);
                     livingEntity.entityData.set(LivingEntity.DATA_HEALTH_ID, 0.0f);
                 }
-                return livingEntity.getHealth() <= 0.0f;
+                return EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(livingEntity) <= 0.0f;
             }
             DamageSource source = livingEntity.damageSources().cactus();
             EntityHeealuthManager.INSTANCE.hurt(livingEntity, Float.POSITIVE_INFINITY, source);
             EntityHeealuthManager.INSTANCE.killEntity(livingEntity, source);
-            return livingEntity.getHealth() <= 0.0f;
+            return EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(livingEntity) <= 0.0f;
         }
 
         entity.remove(Entity.RemovalReason.DISCARDED);
@@ -548,7 +548,7 @@ public class HandlerEvents {
                             }
                             if(entity1 instanceof Infected infected) {
                                 player.displayClientMessage(Component.literal("Entity "+ infected.getEncodeId() + " " + infected.getCustomName()),false);
-                                player.displayClientMessage(Component.literal("Current Health " + infected.getHealth() + "/" + infected.getMaxHealth()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(infected) + "/" + infected.getMaxHealth()),false);
                                 player.displayClientMessage(Component.literal("Kills " + infected.getKills()),false);
                                 player.displayClientMessage(Component.literal("Evolution Points " + infected.getEvoPoints()),false);
                                 player.displayClientMessage(Component.literal("Position to be Searched " + infected.getSearchPos()),false);
@@ -576,7 +576,7 @@ public class HandlerEvents {
 
                             }else if (entity1 instanceof Calamity calamity){
                                     player.displayClientMessage(Component.literal("Entity "+ calamity.getEncodeId() + " " + calamity.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + calamity.getHealth() + "/" + calamity.getMaxHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(calamity) + "/" + calamity.getMaxHealth()),false);
                                     player.displayClientMessage(Component.literal("Kills " + calamity.getKills()),false);
                                     player.displayClientMessage(Component.literal("Position to be Searched " + calamity.getSearchArea()),false);
                                     player.displayClientMessage(Component.literal("Buffs " + calamity.getActiveEffects()),false);
@@ -601,7 +601,7 @@ public class HandlerEvents {
                                     player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if (entity1 instanceof Mound mound){
                                     player.displayClientMessage(Component.literal("Entity "+ mound.getEncodeId() + " " + mound.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + mound.getHealth() + "/" + mound.getMaxHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(mound) + "/" + mound.getMaxHealth()),false);
                                     player.displayClientMessage(Component.literal("Is Linked ? " + mound.getLinked()),false);
                                     player.displayClientMessage(Component.literal("Age " + mound.getAge()),false);
                                     player.displayClientMessage(Component.literal("Seconds until growth " + mound.getAgeCounter() + "/" + SConfig.SERVER.mound_age.get()),false);
@@ -611,7 +611,7 @@ public class HandlerEvents {
 
                             }else if(entity1 instanceof Proto proto) {
                                     player.displayClientMessage(Component.literal("Entity "+ proto.getEncodeId() + " " + proto.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + proto.getHealth() + "/" + proto.getMaxHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(proto) + "/" + proto.getMaxHealth()),false);
                                     player.displayClientMessage(Component.literal("Current Target " + proto.getTarget()),false);
                                     player.displayClientMessage(Component.literal("Buffs " + proto.getActiveEffects()),false);
                                     player.displayClientMessage(Component.literal("Mobs under control " + proto.getHosts()),false);
@@ -638,7 +638,7 @@ public class HandlerEvents {
                             }
                             else if(entity1 instanceof Womb reformator) {
                                     player.displayClientMessage(Component.literal("Entity "+ reformator.getEncodeId() + " " + reformator.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + reformator.getHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(reformator)),false);
                                     player.displayClientMessage(Component.literal("Stored Location " + reformator.getLocation()),false);
                                     player.displayClientMessage(Component.literal("Buffs " + reformator.getActiveEffects()),false);
                                     player.displayClientMessage(Component.literal("Biomass " + reformator.getBiomass()),false);
@@ -649,7 +649,7 @@ public class HandlerEvents {
                                     player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if(entity1 instanceof Vigil vigil) {
                                     player.displayClientMessage(Component.literal("Entity "+ vigil.getEncodeId() + " " + vigil.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + vigil.getHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(vigil)),false);
                                     player.displayClientMessage(Component.literal("Buffs " + vigil.getActiveEffects()),false);
                                     player.displayClientMessage(Component.literal("State " + vigil.getTrigger()),false);
                                     player.displayClientMessage(Component.literal("Horde size " + vigil.getWaveSize()),false);
@@ -658,27 +658,27 @@ public class HandlerEvents {
 
                             }else if(entity1 instanceof Umarmer umarmer) {
                                     player.displayClientMessage(Component.literal("Entity "+ umarmer.getEncodeId() + " " + umarmer.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + umarmer.getHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(umarmer)),false);
                                     player.displayClientMessage(Component.literal("Buffs " + umarmer.getActiveEffects()),false);
                                     player.displayClientMessage(Component.literal("Shielded? " + umarmer.isShielding()),false);
                                     player.displayClientMessage(Component.literal("Pins? " + umarmer.isPinned()),false);
                                     player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if(entity1 instanceof Brauerei brauerei) {
                                     player.displayClientMessage(Component.literal("Entity "+ brauerei.getEncodeId() + " " + brauerei.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + brauerei.getHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(brauerei)),false);
                                     player.displayClientMessage(Component.literal("Buffs " + brauerei.getActiveEffects()),false);
                                     player.displayClientMessage(Component.literal("-------------------------"),false);
                             }
                             else if(entity1 instanceof Delusionare delusionare) {
                                     player.displayClientMessage(Component.literal("Entity "+ delusionare.getEncodeId() + " " + delusionare.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + delusionare.getHealth()),false);
+                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(delusionare)),false);
                                     player.displayClientMessage(Component.literal("Buffs " + delusionare.getActiveEffects()),false);
                                     player.displayClientMessage(Component.literal("Target ? " + delusionare.getTarget()),false);
                                     player.displayClientMessage(Component.literal("Magic state " + delusionare.getSpellById() + " casting "+delusionare.isCasting()),false);
                                     player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if(entity1 instanceof Specter specter) {
                                 player.displayClientMessage(Component.literal("Entity "+ specter.getEncodeId() + " " + specter.getCustomName()),false);
-                                player.displayClientMessage(Component.literal("Current Health " + specter.getHealth()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(specter)),false);
                                 player.displayClientMessage(Component.literal("Buffs " + specter.getActiveEffects()),false);
                                 player.displayClientMessage(Component.literal("Target ? " + specter.getTarget()),false);
                                 player.displayClientMessage(Component.literal("Target Pos " + specter.getTargetPos()),false);
@@ -687,7 +687,7 @@ public class HandlerEvents {
                                 player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if(entity1 instanceof InfestedConstruct construct) {
                                 player.displayClientMessage(Component.literal("Entity "+ construct.getEncodeId() + " " + construct.getCustomName()),false);
-                                player.displayClientMessage(Component.literal("Current Health " + construct.getHealth()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(construct)),false);
                                 player.displayClientMessage(Component.literal("Buffs " + construct.getActiveEffects()),false);
                                 player.displayClientMessage(Component.literal("Target ? " + construct.getTarget()),false);
                                 player.displayClientMessage(Component.literal("Machine hp " + construct.getMachine()),false);
@@ -915,7 +915,7 @@ public class HandlerEvents {
                 int damageMod = SConfig.SERVER.pci_damage_multiplier.get();
                 int charge = pci.getCharge(weapon);
                 boolean freeze = target.getType().is(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES);
-                float targetHealth = freeze ? target.getHealth()/damageMod : target.getHealth();
+                float targetHealth = freeze ? EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target)/damageMod : EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target);
                 int freezeDamage = charge >= targetHealth ? (int) targetHealth : charge;
                 float newDamage = event.getAmount() + (freeze ? freezeDamage * damageMod : freezeDamage);
                 event.setAmount(newDamage);
@@ -967,7 +967,7 @@ public class HandlerEvents {
                 if (!protectorList.isEmpty() && attacker != null){
                     for (Protector protector1 : protectorList){
                         double d0 = protector1.distanceTo(attacker);
-                        if (protector1.isAlive() && d0 < 64f && !attacker.isSpectator() && Utilities.TARGET_SELECTOR.Test(attacker)){
+                        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(protector1) && d0 < 64f && !attacker.isSpectator() && Utilities.TARGET_SELECTOR.Test(attacker)){
                             protector1.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED,100,0));
                             protector1.setTarget(attacker);
                         }
@@ -1045,7 +1045,7 @@ public class HandlerEvents {
                 }
             }
         }
-        SporeEffectsUtil.INSTANCE.tryApplyHealInhibit(target, target.getHealth()-event.getAmount());
+        SporeEffectsUtil.INSTANCE.tryApplyHealInhibit(target, EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target)-event.getAmount());
     }
 
     @SubscribeEvent

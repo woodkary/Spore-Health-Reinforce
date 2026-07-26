@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Hyper;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -115,7 +116,7 @@ public class Brot extends Hyper {
     }
 
     public void tick() {
-        if (this.isAlive()) {
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this)) {
             if (this.tickCount % 20 == 0 && this.getLeapt() && this.onGround()){
                 this.setLeapt(false);
             }

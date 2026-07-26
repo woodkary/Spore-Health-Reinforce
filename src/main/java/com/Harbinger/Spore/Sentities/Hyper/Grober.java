@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Hyper;
 
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
@@ -290,7 +291,7 @@ public class Grober extends Hyper implements ArmorPersentageBypass {
                 return false;
 
             target = mob.getTarget();
-            if (target == null || !target.isAlive() || mob.isInWater())
+            if (target == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(target) || mob.isInWater())
                 return false;
 
             double distance = mob.distanceTo(target);
@@ -306,7 +307,7 @@ public class Grober extends Hyper implements ArmorPersentageBypass {
 
         @Override
         public boolean canContinueToUse() {
-            return mob.getRavageTime() < MAX_CHARGE_TIME && target != null && target.isAlive();
+            return mob.getRavageTime() < MAX_CHARGE_TIME && target != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(target);
         }
 
         @Override
@@ -334,11 +335,11 @@ public class Grober extends Hyper implements ArmorPersentageBypass {
 
             for (LivingEntity living : victims) {
                 mob.playSound(Ssounds.GROBER_CHOKE.get());
-                float oldHealth = living.getHealth();
+                float oldHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living);
                 float expectedHealth = Math.max(oldHealth - damage, 0.0f);
                 DamageSource source = mob.damageSources().mobAttack(mob);
                 living.hurt(source, damage);
-                float newHealth = living.getHealth();
+                float newHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living);
                 if (newHealth > expectedHealth) {
                     SporeAttackUtil.INSTANCE.attack(living, mob, source, newHealth - expectedHealth);
                 }

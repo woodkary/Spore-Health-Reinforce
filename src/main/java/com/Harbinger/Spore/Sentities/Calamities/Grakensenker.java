@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
@@ -401,14 +402,14 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
 
         if (rightId != -1) {
             Entity e = level().getEntity(rightId);
-            if (!(e instanceof LivingEntity le) || !le.isAlive() || !le.isPassengerOfSameVehicle(this)) {
+            if (!(e instanceof LivingEntity le) || !EntityHeealuthManager.INSTANCE.rawIsAlliive(le) || !le.isPassengerOfSameVehicle(this)) {
                 entityData.set(RIGHT_ARM_ENTITY, -1);
             }
         }
 
         if (leftId != -1) {
             Entity e = level().getEntity(leftId);
-            if (!(e instanceof LivingEntity le) || !le.isAlive() || !le.isPassengerOfSameVehicle(this)) {
+            if (!(e instanceof LivingEntity le) || !EntityHeealuthManager.INSTANCE.rawIsAlliive(le) || !le.isPassengerOfSameVehicle(this)) {
                 entityData.set(LEFT_ARM_ENTITY, -1);
             }
         }
@@ -551,7 +552,7 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
                 LivingEntity.class,
                 aabb,
                 e ->
-                        e.isAlive()
+                        EntityHeealuthManager.INSTANCE.rawIsAlliive(e)
                                 && e != this
                                 && !e.isPassenger()
                                 && !e.isInvulnerable()
@@ -1003,7 +1004,7 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
     }
 
     private boolean shouldConsumeEntity(Entity entity, Vec3 baseCenter) {
-        if (!entity.isAlive()) return false;
+        if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(entity)) return false;
         if (entity.isPassenger()) return false;
         double distSq = entity.position().distanceToSqr(baseCenter);
         return distSq < 3.2 * 3.2 && (entity instanceof LivingEntity || entity instanceof Boat);

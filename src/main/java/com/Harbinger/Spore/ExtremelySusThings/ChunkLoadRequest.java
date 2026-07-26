@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.ExtremelySusThings;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -106,7 +107,7 @@ public class ChunkLoadRequest {
         if (level == null) return false;
 
         Entity entity = level.getEntity(ownerUUID);
-        if (entity == null || !entity.isAlive()) {
+        if (entity == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(entity)) {
             return false;
         }
 

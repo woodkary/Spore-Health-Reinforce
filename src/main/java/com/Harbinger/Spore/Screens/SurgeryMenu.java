@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Screens;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SMenu;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Sitems;
@@ -162,7 +163,7 @@ public class SurgeryMenu extends AbstractContainerMenu {
     public void removed(Player playerIn) {
         super.removed(playerIn);
         if (playerIn instanceof ServerPlayer serverPlayer) {
-            if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()) {
+            if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(serverPlayer) || serverPlayer.hasDisconnected()) {
                 for (int j = 0; j < blockEntity.itemHandler.getSlots(); ++j) {
                     if (j != 20){
                         playerIn.drop(blockEntity.itemHandler.extractItem(j, blockEntity.itemHandler.getStackInSlot(j).getCount(), false), false);

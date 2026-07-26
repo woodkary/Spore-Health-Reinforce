@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -114,8 +115,8 @@ public class Knight extends EvolvedInfected implements EvolvingInfected {
     @Override
     public boolean hurt(DamageSource source, float amount) {
         AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
-        if (armor != null && this.getHealth() < this.getMaxHealth()){
-            double new_armor = (this.getMaxHealth()-this.getHealth())/2 + (SConfig.SERVER.knight_armor.get() * SConfig.SERVER.global_armor.get());
+        if (armor != null && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth()){
+            double new_armor = (this.getMaxHealth()-EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this))/2 + (SConfig.SERVER.knight_armor.get() * SConfig.SERVER.global_armor.get());
             armor.setBaseValue(new_armor);
         }
         return super.hurt(source, amount);

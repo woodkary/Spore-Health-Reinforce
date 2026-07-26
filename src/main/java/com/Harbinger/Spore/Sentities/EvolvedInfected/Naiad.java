@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -516,7 +517,7 @@ public class Naiad extends EvolvedInfected implements WaterInfected, VariantKeep
     }
     @Override
     public boolean hasLineOfSight(Entity entity) {
-        if (entity instanceof LivingEntity living && living.isInWater() && living.getHealth() < living.getMaxHealth()){
+        if (entity instanceof LivingEntity living && living.isInWater() && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living) < living.getMaxHealth()){
             return true;
         }
         AttributeInstance instance = this.getAttribute(Attributes.FOLLOW_RANGE);
@@ -719,7 +720,7 @@ public class Naiad extends EvolvedInfected implements WaterInfected, VariantKeep
             return naiad.getVariant() == NaiadVariants.TRITON
                     && naiad.getTridentCharge() >= 200
                     && target != null
-                    && target.isAlive()
+                    && EntityHeealuthManager.INSTANCE.rawIsAlliive(target)
                     && naiad.isInWater()
                     && naiad.distanceToSqr(target) > 4.0
                     && naiad.distanceToSqr(target) < 256.0

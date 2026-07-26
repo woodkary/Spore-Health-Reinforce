@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.entityStorages;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
@@ -43,7 +44,7 @@ public final class SporeServerEntityCallback<T extends EntityAccess> extends Per
     @Override
     public void onRemove(Entity.RemovalReason removalReason) {
         super.onRemove(removalReason);
-        if(entity instanceof LivingEntity liv&&liv.getHealth()>0.0f&&liv instanceof IDieWithDiscardEntity special&&!special.isSpecialDefasd()){
+        if(entity instanceof LivingEntity liv&&EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(liv)>0.0f&&liv instanceof IDieWithDiscardEntity special&&!special.isSpecialDefasd()){
             //SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
             DamageSource source = liv.lastDamageSource != null ? liv.lastDamageSource : liv.damageSources().cactus();
             special.specialDie(source);

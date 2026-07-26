@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.EvolvedInfected.Griefer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -20,7 +21,7 @@ public class GrieferSwellGoal extends Goal {
     public boolean canUse() {
         LivingEntity livingentity = this.griefer.getTarget();
         return this.griefer.getSwellDir() > 0 || livingentity != null && this.griefer.distanceToSqr(livingentity) < 9.0D
-                && griefer.getHealth() <= (griefer.getMaxHealth()/2);
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(griefer) <= (griefer.getMaxHealth()/2);
     }
 
     public void start() {

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -346,7 +347,7 @@ public class Protector extends EvolvedInfected implements ArmedInfected,HasUsabl
             if (mob instanceof Protector protector){
                 double distance = protector.distanceTo(entity);
                 protector.setShielded(distance < 15d && protector.ticksUnShielded <= 0);
-                if (protector.getShielded() && entity.getHealth() > meleeDamage){
+                if (protector.getShielded() && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) > meleeDamage){
                     double d0 = this.getAttackReachSqr(entity);
                     if (at <= d0 && this.ticksUntilNextAttack <= 0 && protector.hasLineOfSight(entity)) {
                         this.resetAttackCooldown(20);

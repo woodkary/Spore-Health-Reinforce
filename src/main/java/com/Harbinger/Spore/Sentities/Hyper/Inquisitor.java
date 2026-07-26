@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Hyper;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
@@ -97,8 +98,8 @@ public class Inquisitor extends Hyper {
         AttributeInstance armor = this.getAttribute(Attributes.ARMOR);
         float baseArmor = (float) (SConfig.SERVER.inquisitor_armor.get() * SConfig.SERVER.global_armor.get());
         float maxPossibleArmor = baseArmor * 3;
-        if (armor != null && this.getHealth() < this.getMaxHealth()){
-            double new_armor = (this.getMaxHealth()-this.getHealth())/2 + baseArmor;
+        if (armor != null && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth()){
+            double new_armor = (this.getMaxHealth()-EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this))/2 + baseArmor;
             armor.setBaseValue(new_armor > maxPossibleArmor ? maxPossibleArmor : new_armor);
         }
         return super.hurt(source, amount);

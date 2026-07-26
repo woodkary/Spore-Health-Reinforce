@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
@@ -482,7 +483,7 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
 
         // Check if any segment is null or dead
         for (HohlMultipart part : parts) {
-            if (part == null || !part.isAlive()) {
+            if (part == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(part)) {
                 return true;
             }
         }
@@ -654,7 +655,7 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
     }
 
     public float getRingBuffer(int bufferOffset, float partialTicks) {
-        if (this.isDeadOrDying()) {
+        if (EntityHeealuthManager.INSTANCE.rawIsDeeadfOrDyaging(this)) {
             partialTicks = 0.0F;
         }
 
@@ -817,7 +818,7 @@ public class Hohlfresser extends Calamity implements TrueCalamity, RangedAttackM
         @Override
         public boolean canUse() {
             LivingEntity target = mob.getTarget();
-            if (target == null || !target.isAlive()) {
+            if (target == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) {
                 chargeTimer = 0;
                 return false;
             }

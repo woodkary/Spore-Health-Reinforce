@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -47,7 +48,7 @@ public class Stalker extends EvolvedInfected implements EvolvingInfected {
         this.moveControl = new InfectedWallMovementControl(this);
     }
     public void customServerAiStep() {
-        this.setSprinting(isAggressive() && this.getTarget() != null && (this.getTarget().isSprinting() || this.getTarget().getHealth() < this.getTarget().getMaxHealth()/2));
+        this.setSprinting(isAggressive() && this.getTarget() != null && (this.getTarget().isSprinting() || EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this.getTarget()) < this.getTarget().getMaxHealth()/2));
         this.spawnSprintParticle();
     }
     @Override

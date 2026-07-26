@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -87,11 +88,11 @@ public class Gargoyl extends EvolvedInfected implements FlyingInfected, ArmedInf
         return super.finalizeSpawn(serverLevelAccessor, difficulty, p_21436_, p_21437_, p_21438_);
     }
 
-    public boolean isBomb(){return getVariant() == GargoyleVariants.BOMBER && getHealth() <= getMaxHealth()/4;}
+    public boolean isBomb(){return getVariant() == GargoyleVariants.BOMBER && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) <= getMaxHealth()/4;}
 
     public boolean causeFallDamage(float damage_val, float protection_val, DamageSource source) {
-        if (fallDistance < 3 || !isAlive() || getVariant() == GargoyleVariants.ICHOR) return false;
-        boolean bomb = getVariant() == GargoyleVariants.BOMBER && getHealth() > getMaxHealth()/4;;
+        if (fallDistance < 3 || !EntityHeealuthManager.INSTANCE.rawIsAlliive(this) || getVariant() == GargoyleVariants.ICHOR) return false;
+        boolean bomb = getVariant() == GargoyleVariants.BOMBER && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > getMaxHealth()/4;;
         if (getVariant() == GargoyleVariants.VALKYRIE){
             setAttackTicks(80);
             this.playSound(Ssounds.LANDING.get(), 2.2f, 0.8f);
@@ -329,7 +330,7 @@ public class Gargoyl extends EvolvedInfected implements FlyingInfected, ArmedInf
                 return false;
             }
             LivingEntity target = gargoyle.getTarget();
-            return target != null && target.isAlive() && gargoyle.distanceTo(target) < 32 && !target.isInWater();
+            return target != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(target) && gargoyle.distanceTo(target) < 32 && !target.isInWater();
         }
 
         @Override
@@ -403,7 +404,7 @@ public class Gargoyl extends EvolvedInfected implements FlyingInfected, ArmedInf
             if (gargoyle.isBomb() || target == null){
                 return false;
             }
-            return state != 2 && gargoyle.isAlive();
+            return state != 2 && EntityHeealuthManager.INSTANCE.rawIsAlliive(gargoyle);
         }
 
         @Override

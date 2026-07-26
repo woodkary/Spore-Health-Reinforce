@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.EvolvedInfected.Volatile;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -20,7 +21,7 @@ public class VolatileSwellGoal extends Goal {
     public boolean canUse() {
         LivingEntity livingentity = this.volat.getTarget();
         return  this.volat.getSwellDir() > 0 || livingentity != null && this.volat.distanceToSqr(livingentity) < 9.0D
-                && this.volat.getHealth() <= this.volat.getMaxHealth()/4;
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this.volat) <= this.volat.getMaxHealth()/4;
     }
 
     public void start() {

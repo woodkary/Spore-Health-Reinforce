@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -231,7 +232,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         @Override
         public void tick() {
             LivingEntity tar=this.targetStack.peek();
-            while(!this.targetStack.isEmpty()&&(tar==null||!tar.isAlive())){
+            while(!this.targetStack.isEmpty()&&(tar==null||!EntityHeealuthManager.INSTANCE.rawIsAlliive(tar))){
                 this.targetStack.pop();
                 tar = this.targetStack.peek();
             }
@@ -270,14 +271,14 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         }
         private void recomputeTargetPath(){
             LivingEntity tar=this.targetStack.peek();
-            while(!this.targetStack.isEmpty()&&(tar==null||!tar.isAlive())){
+            while(!this.targetStack.isEmpty()&&(tar==null||!EntityHeealuthManager.INSTANCE.rawIsAlliive(tar))){
                 this.targetStack.pop();
                 tar = this.targetStack.peek();
             }
             if(tar==null){
                 tar=this.mob.getTarget();
             }
-            if(tar!=null&&tar.isAlive()){
+            if(tar!=null&&EntityHeealuthManager.INSTANCE.rawIsAlliive(tar)){
                 this.mob.getNavigation().moveTo(tar, this.speedModifier);
             }
         }
@@ -400,7 +401,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         if (source.is(DamageTypes.FREEZE)){
             entityData.set(NUKE,0);
         }
-        if (getHealth() <= 50f && isRadioactive() && getSelfDetonation() <= 0){
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) <= 50f && isRadioactive() && getSelfDetonation() <= 0){
             tickDetonation();
         }
         return super.hurt(source, amount);
@@ -487,7 +488,7 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         if (this.getGetLeapTime() > 0){
             getLeapTime--;
         }
-        if (this.tickCount % 20 == 0 && this.getHealth() == this.getMaxHealth()){
+        if (this.tickCount % 20 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) == this.getMaxHealth()){
             if (this.getRightArm() < this.getMaxArm()){
                 this.setRightArm(getRightArm()+1);
             }

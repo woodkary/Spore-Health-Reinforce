@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
@@ -122,8 +123,8 @@ public class Specter extends UtilityEntity implements Enemy, ArmorPersentageBypa
     }
 
     private void buffAI(){
-        if (this.getHealth() < this.getMaxHealth() && !hasEffect(MobEffects.REGENERATION)){
-            addEffect(new MobEffectInstance(MobEffects.REGENERATION,400,this.getHealth() < this.getMaxHealth()/2 ? 1:0));
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth() && !hasEffect(MobEffects.REGENERATION)){
+            addEffect(new MobEffectInstance(MobEffects.REGENERATION,400,EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth()/2 ? 1:0));
             this.setBiomass(this.getBiomass()-1);
         }
     }

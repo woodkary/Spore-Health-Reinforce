@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
@@ -405,7 +406,7 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
     }
     private boolean shouldSpawnChain() {
         LeviathanMultipart part = getFirstSegment();
-        return part == null || !part.isAlive();
+        return part == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(part);
     }
 
     /* ---------------- CHAIN CREATION ---------------- */
@@ -491,7 +492,7 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
     }
 
     public float getRingBuffer(int offset, float partialTicks) {
-        if (isDeadOrDying()) partialTicks = 0.0F;
+        if (EntityHeealuthManager.INSTANCE.rawIsDeeadfOrDyaging(this)) partialTicks = 0.0F;
 
         partialTicks = 1.0F - partialTicks;
 
@@ -544,7 +545,7 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
     }
     @Override
     public void die(DamageSource source) {
-        if (this.getHealth() > 0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > 0.0f) {
             return;
         }
         super.die(source);

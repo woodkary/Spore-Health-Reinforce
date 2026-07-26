@@ -111,7 +111,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     }
     @Override
     public void setRemoved(RemovalReason reason) {
-        if(getHealth()>0.0f&&!isSpecialDefasd()&&StackTraceUtil.isCallFromOther()){
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this)>0.0f&&!isSpecialDefasd()&&StackTraceUtil.isCallFromOther()){
             DamageSource source = this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus();
             specialDie(source);
             HeasdalthUtil.INSTANCE.genericDie(this, source);
@@ -317,7 +317,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public void setHealth(float newHealth) {
-        float current = getHealth();
+        float current = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this);
         float damage= current -newHealth;
         //由于自定义血量/setHealth冷却会重置，所以上层LivingEntity的setHealth调用不影响
         if(damage>0&&set_healthDamageCooldown==0){
@@ -545,7 +545,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
             for (LivingEntity living : this.level().getEntitiesOfClass(
                     LivingEntity.class,
                     this.getBoundingBox().inflate(6.0),
-                    liv -> liv.isAlive() && !SporeJudge.isSporeEntity(liv)
+                    liv -> EntityHeealuthManager.INSTANCE.rawIsAlliive(liv) && !SporeJudge.isSporeEntity(liv)
                             && !(liv instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)))) {
                 if (willPlaySound) {
                     SoundEvent soundEvent = this instanceof Stahlmorder ? Ssounds.STAHL_SLASH.get()
@@ -559,7 +559,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
             }
         }
         if (this.tickCount % 1200 == 0){
-            setRooted(this.getTarget() == null && this.getHealth() <= (this.getMaxHealth()*0.3) && onGround());
+            setRooted(this.getTarget() == null && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) <= (this.getMaxHealth()*0.3) && onGround());
             if (isRooted()){this.setKills(getKills()+1);}
         }
         if (isRooted()){
@@ -583,8 +583,8 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
             double z0 = this.getZ() + (random.nextFloat() - 0.1) * 1.2D;
             serverLevel.sendParticles(Sparticles.BLOOD_PARTICLE.get(), x0, y0, z0, 4, 0, 0, 0, 1);
         }
-        if (this.getHealth() < this.getMaxHealth() && !this.hasEffect(MobEffects.REGENERATION) && this.getKills() > 0){
-            int level = this.getHealth() < this.getMaxHealth()/2 ? 1 : 0;
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth() && !this.hasEffect(MobEffects.REGENERATION) && this.getKills() > 0){
+            int level = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth()/2 ? 1 : 0;
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION,600,level + calculateHealing()));
             this.setKills(this.getKills()-1);
         }
@@ -704,7 +704,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public void die(DamageSource source) {
-        if (this.getHealth() > 0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > 0.0f) {
             return;
         }
         specialDie(source);
@@ -713,7 +713,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public void tickDeath() {
-        if (this.getHealth() > 0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > 0.0f) {
             return;
         }
         this.die(this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus());

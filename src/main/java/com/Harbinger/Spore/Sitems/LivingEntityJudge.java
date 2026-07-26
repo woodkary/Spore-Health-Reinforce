@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
@@ -44,6 +45,6 @@ final class LivingEntityJudge implements Predicate<LivingEntity> {
 
     @Override
     public boolean test(LivingEntity entity) {
-        return !entity.equals(player)&&entity.isAlive();
+        return !entity.equals(player)&&EntityHeealuthManager.INSTANCE.rawIsAlliive(entity);
     }
 }

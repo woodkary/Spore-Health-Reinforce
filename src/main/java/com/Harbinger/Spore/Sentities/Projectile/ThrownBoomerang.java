@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Fluids.BileLiquid;
@@ -91,7 +92,7 @@ public class ThrownBoomerang extends AbstractArrow {
 
     private boolean isAcceptibleReturnOwner() {
         Entity owner = this.getOwner();
-        return owner != null && owner.isAlive() && (!(owner instanceof ServerPlayer) || !owner.isSpectator());
+        return owner != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(owner) && (!(owner instanceof ServerPlayer) || !owner.isSpectator());
     }
 
     @Override

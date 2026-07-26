@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BaseEntities.IkUtil;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.Calamities.Grakensenker;
 import net.minecraft.world.entity.LivingEntity;
@@ -89,7 +90,7 @@ public class IkKrakenArm extends IkKrakenLeg {
         return level.getEntitiesOfClass(
                 LivingEntity.class,
                 searchBox,
-                e -> e.isAlive() && e != owner && !(e.getVehicle() == owner) && Utilities.TARGET_SELECTOR.Test(e) && TargetingConditions.forCombat().test(owner,e)
+                e -> EntityHeealuthManager.INSTANCE.rawIsAlliive(e) && e != owner && !(e.getVehicle() == owner) && Utilities.TARGET_SELECTOR.Test(e) && TargetingConditions.forCombat().test(owner,e)
         ).stream().findFirst();
     }
     public Vec3 getMidSecPivot(){

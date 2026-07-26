@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sentities.ColdEndurance;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
@@ -140,8 +141,8 @@ public class Organoid extends UtilityEntity implements Enemy, ColdWeakness {
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
-        if (this.tickCount % 20 == 0 && this.getHealth() < this.getMaxHealth() && this.getTicksFrozen() <=0){
-            setHealth(getHealth()+1);
+        if (this.tickCount % 20 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth() && this.getTicksFrozen() <=0){
+            setHealth(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this)+1);
         }
     }
 

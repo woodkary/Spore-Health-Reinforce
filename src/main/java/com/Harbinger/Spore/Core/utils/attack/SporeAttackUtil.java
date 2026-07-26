@@ -156,7 +156,7 @@ public final class SporeAttackUtil implements IAttack {
     public void attack(Player player,Entity t,ItemStack stack){
         Item i=stack.getItem();
         t= ParentUtil.INSTANCE.getUltimateParent(t);
-        if(!(t instanceof LivingEntity target)||!target.isAlive()){
+        if(!(t instanceof LivingEntity target)||!EntityHeealuthManager.INSTANCE.rawIsAlliive(target)){
             return;
         }
         Level level = player.level;
@@ -212,7 +212,7 @@ public final class SporeAttackUtil implements IAttack {
                 damage = recalculatedDamage;
             }
         }
-        damage+=0.0005f*(target.getMaxHealth()+target.getHealth());
+        damage+=0.0005f*(target.getMaxHealth()+EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target));
         applyRawHealthDamage(target, attacker, damageSource, damage);
     }
 
@@ -239,7 +239,7 @@ public final class SporeAttackUtil implements IAttack {
         if(damageSource.is(DamageTypes.FREEZE)&& isSpore){
             damage*=5.0f;
         }
-        float targetHealth = target.getHealth();
+        float targetHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target);
         boolean willDie = targetHealth - damage <= 0.0f;
         if(willDie){
             target.getPersistentData().putBoolean("SporeDeeaadfd", true);
@@ -253,7 +253,7 @@ public final class SporeAttackUtil implements IAttack {
         }else{
             EntityHeealuthManager.INSTANCE.hurt(target, damage,damageSource);
         }
-        willDie |= target.getHealth() <= 0.0f;
+        willDie |= EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target) <= 0.0f;
         if(willDie){
             target.getPersistentData().putBoolean("SporeDeeaadfd", true);
             EntityHeealuthManager.INSTANCE.setHeealtthDelta(target,Float.NEGATIVE_INFINITY);
@@ -282,7 +282,7 @@ public final class SporeAttackUtil implements IAttack {
             }
         }
         EntityHeealuthManager.INSTANCE.killEntity(target,damageSource);
-        if(target.getHealth()<=0.0f&&attacker instanceof Calamity calamity&&!(target instanceof Player)&& SConfig.SERVER.revive_inhibit.get()){
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target)<=0.0f&&attacker instanceof Calamity calamity&&!(target instanceof Player)&& SConfig.SERVER.revive_inhibit.get()){
             //清除赖着不死的实体
             AttributeInstance penetration = calamity.getAttribute(SAttributes.LACERATION.get());
             if (penetration == null){

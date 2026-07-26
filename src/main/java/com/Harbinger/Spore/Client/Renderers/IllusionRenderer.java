@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Client.Renderers;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.Utility.Illusion;
 import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -64,7 +65,7 @@ public class IllusionRenderer extends EntityRenderer<Illusion> {
         float f7 = this.getBob(illusion, value2);
         float f8 = 0.0F;
         float f5 = 0.0F;
-        if (illusion.isAlive()) {
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(illusion)) {
             f8 = illusion.walkAnimation.speed(value2);
             f5 = illusion.walkAnimation.position(value2);
             if (illusion.isBaby()) {

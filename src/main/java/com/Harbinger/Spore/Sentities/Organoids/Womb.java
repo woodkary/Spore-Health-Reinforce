@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -403,7 +404,7 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
 
     @Override
     public void tickDeath() {
-        if (this.getHealth() > 0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > 0.0f) {
             return;
         }
         if (this.getBiomass() > (SConfig.SERVER.reconstructor_biomass.get() / 2)) {
@@ -414,7 +415,7 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
 
     @Override
     public void die(DamageSource p_21014_) {
-        if (this.getHealth() > 0.0f) {
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) > 0.0f) {
             return;
         }
         if (this.getBiomass() > (SConfig.SERVER.reconstructor_biomass.get()/2)){
@@ -442,7 +443,7 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
     }
     @Override
     public void setRemoved(RemovalReason reason) {
-        if(getHealth()>0.0f&&!isSpecialDefasd()&& StackTraceUtil.isCallFromOther()){
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this)>0.0f&&!isSpecialDefasd()&& StackTraceUtil.isCallFromOther()){
             DamageSource source = this.lastDamageSource != null ? this.lastDamageSource : this.damageSources().cactus();
             specialDie(source);
             HeasdalthUtil.INSTANCE.genericDie(this, source);

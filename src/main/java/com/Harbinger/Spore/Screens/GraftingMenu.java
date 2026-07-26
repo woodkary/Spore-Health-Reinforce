@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Screens;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SMenu;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.SBlockEntities.SurgeryTableBlockEntity;
@@ -113,7 +114,7 @@ public class GraftingMenu extends AbstractContainerMenu {
     public void removed(Player player) {
         super.removed(player);
         if (player instanceof ServerPlayer serverPlayer) {
-            if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()) {
+            if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(serverPlayer) || serverPlayer.hasDisconnected()) {
                 for (int j = SurgeryTableBlockEntity.GRATING_ITEM_ONE; j <= SurgeryTableBlockEntity.GRATING_ITEM_TWO; ++j) {
                     player.drop(blockEntity.itemHandler.extractItem(j,
                             blockEntity.itemHandler.getStackInSlot(j).getCount(), false), false);

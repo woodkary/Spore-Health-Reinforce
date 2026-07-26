@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.LocHiv;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -12,14 +13,14 @@ public class BufferAI extends Goal {
     }
     @Override
     public boolean canUse() {
-        return infected.isAlive() && infected.getKills() > 0 && infected.getRandom().nextInt(10) == 0;
+        return EntityHeealuthManager.INSTANCE.rawIsAlliive(infected) && infected.getKills() > 0 && infected.getRandom().nextInt(10) == 0;
     }
 
     @Override
     public void tick() {
         super.tick();
         if (infected.getKills() > 0){
-            if (infected.getHealth() < infected.getMaxHealth()){
+            if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(infected) < infected.getMaxHealth()){
                 if (!infected.hasEffect(MobEffects.REGENERATION)){
                     infected.addEffect(new MobEffectInstance(MobEffects.REGENERATION,200,0));
                     infected.setKills(infected.getKills() - 1);

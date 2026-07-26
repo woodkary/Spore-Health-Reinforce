@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.BaseEntities.EvolvedInfected;
@@ -268,7 +269,7 @@ public class Thorn extends EvolvedInfected implements VariantKeeper {
             }
             LivingEntity potentialTarget = this.entity.getTarget();
 
-            if (potentialTarget == null || !potentialTarget.isAlive()) {
+            if (potentialTarget == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(potentialTarget)) {
                 return false;
             }
             double distance = this.entity.distanceToSqr(potentialTarget);

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.SAttributes;
 import com.Harbinger.Spore.Core.Seffects;
@@ -92,7 +93,7 @@ public class ThrownTumor extends ThrowableItemProjectile {
         this.level().getEntitiesOfClass(
                 LivingEntity.class,
                 this.getBoundingBox().inflate(explodeRadius),
-                living -> living.isAlive() && !SporeJudge.isSporeEntity(living) && !(living instanceof Player)
+                living -> EntityHeealuthManager.INSTANCE.rawIsAlliive(living) && !SporeJudge.isSporeEntity(living) && !(living instanceof Player)
         ).forEach(living -> SporeAttackUtil.INSTANCE.attack(
                 living,
                 calamity,

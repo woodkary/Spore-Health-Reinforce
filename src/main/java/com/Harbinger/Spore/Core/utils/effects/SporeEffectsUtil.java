@@ -47,7 +47,7 @@ public final class SporeEffectsUtil implements IEffectManager {
             target.onEffectUpdated(effect, true, source);
         }
         if(effect.getEffect()==Seffects.HEALING_INHIBITION.get()){
-            applyHealInhibit(target,target.getHealth());
+            applyHealInhibit(target,EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target));
         }
     }
     @Override
@@ -147,11 +147,11 @@ public final class SporeEffectsUtil implements IEffectManager {
         if(!foundRemainingHealInhibit){
             return;
         }
-        applyHealInhibit(entity,entity.getHealth());
+        applyHealInhibit(entity,EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity));
     }
     @Override
     public void tryApplyHealInhibit(LivingEntity entity){
-        tryApplyHealInhibit(entity,entity.getHealth());
+        tryApplyHealInhibit(entity,EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity));
     }
     @Override
     public void tryApplyHealInhibit(LivingEntity entity, float expectedHealth){

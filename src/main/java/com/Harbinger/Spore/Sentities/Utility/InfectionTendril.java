@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Sentities;
@@ -177,7 +178,7 @@ public class InfectionTendril extends UtilityEntity {
     @Override
     public void tick() {
         super.tick();
-        if (this.isAlive() && this.entityData.get(LIFE)>0){
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && this.entityData.get(LIFE)>0){
             this.entityData.set(LIFE, this.entityData.get(LIFE) - 1);
         }
         if (this.getSearchArea() != BlockPos.ZERO && this.tickCount % 40 == 0){
@@ -214,7 +215,7 @@ public class InfectionTendril extends UtilityEntity {
     }
 
     protected boolean teleport() {
-        if (!this.level().isClientSide() && this.isAlive()) {
+        if (!this.level().isClientSide() && EntityHeealuthManager.INSTANCE.rawIsAlliive(this)) {
             double d0 = this.getSearchArea().getX() + (double)(this.random.nextInt(-8,8));
             double d1 = this.getSearchArea().getY();
             double d2 = this.getSearchArea().getZ() + (double)(this.random.nextInt(-8,8));

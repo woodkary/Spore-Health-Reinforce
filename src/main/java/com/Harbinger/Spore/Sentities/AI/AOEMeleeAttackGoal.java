@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import net.minecraft.world.InteractionHand;
@@ -61,7 +62,7 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
             LivingEntity livingentity = this.mob.getTarget();
             if (livingentity == null) {
                 return false;
-            } else if (!livingentity.isAlive()) {
+            } else if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(livingentity)) {
                 return false;
             } else {
                 if (canPenalize) {
@@ -87,7 +88,7 @@ public class AOEMeleeAttackGoal extends Goal implements ASMSetHealthMeleeAttackG
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity == null) {
             return false;
-        } else if (!livingentity.isAlive()) {
+        } else if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(livingentity)) {
             return false;
         } else if (!this.followingTargetEvenIfNotSeen) {
             return !this.mob.getNavigation().isDone();

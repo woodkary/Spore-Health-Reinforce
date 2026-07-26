@@ -324,7 +324,7 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
         for (Entity entity : entities){
             DamageSource source = level().damageSources().mobAttack(this);
             entity.hurt(source,damage);
-            if (entity instanceof LivingEntity living && !SporeJudge.isSporeEntity(living) && living.isAlive()
+            if (entity instanceof LivingEntity living && !SporeJudge.isSporeEntity(living) && EntityHeealuthManager.INSTANCE.rawIsAlliive(living)
                     && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
                 SporeAttackUtil.INSTANCE.attack(living, source, damage);
             }

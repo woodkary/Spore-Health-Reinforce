@@ -26,7 +26,7 @@ public interface IEntityHealth extends Consumer<Player> {
 
     boolean rawIsDeeadfOrDyaging(LivingEntity entity);
 
-    boolean rawIsAlliive(LivingEntity entity);
+    boolean rawIsAlliive(Entity entity);
 
     float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth);
     double getMaaxxHeaaltsh(LivingEntity entity, double initialHealth);

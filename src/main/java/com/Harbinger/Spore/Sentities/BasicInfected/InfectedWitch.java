@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BasicInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -48,7 +49,7 @@ public class InfectedWitch extends Infected implements RangedAttackMob , RangedB
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(1, new UseItemGoal<>(this, PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.STRONG_HEALING), SoundEvents.WITCH_DRINK, (p_35882_) -> {
-            return (this.getHealth() < this.getMaxHealth()/2) && SConfig.SERVER.use_potions.get();
+            return (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < this.getMaxHealth()/2) && SConfig.SERVER.use_potions.get();
         }){
             @Override
             public void start() {
@@ -121,7 +122,7 @@ public class InfectedWitch extends Infected implements RangedAttackMob , RangedB
     @Override
     public void tick() {
         super.tick();
-        if (isAlive() && potion != null && this.getMainHandItem() != PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), potion)){
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && potion != null && this.getMainHandItem() != PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), potion)){
             this.setItemSlot(EquipmentSlot.OFFHAND,PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), potion));
         }
         tickEvolution(this,SConfig.SERVER.wit_ev.get(), ScamperVariants.VILLAGER);
@@ -178,7 +179,7 @@ public class InfectedWitch extends Infected implements RangedAttackMob , RangedB
         double d2 = entity.getZ() + vec3.z - this.getZ();
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
 
-        if ((entity.getHealth() < entity.getMaxHealth()) && !entity.isOnFire()) {
+        if ((EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) < entity.getMaxHealth()) && !entity.isOnFire()) {
             potion = Potions.REGENERATION;
         }else if (entity.isOnFire() && !entity.hasEffect(MobEffects.FIRE_RESISTANCE)) {
             potion = Potions.FIRE_RESISTANCE;

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Effect;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
@@ -23,7 +24,7 @@ public class Mycelium extends MobEffect {
                     player.causeFoodExhaustion(1.0F);
                 }else {
                     DamageSource source = SdamageTypes.mycelium_overtake(entity);
-                    if (entity instanceof Player||!entity.isAlive()) {
+                    if (entity instanceof Player||!EntityHeealuthManager.INSTANCE.rawIsAlliive(entity)) {
                         entity.hurt(source, 1.0F);
                     } else {
                         SporeAttackUtil.INSTANCE.attack(entity, entity, source, 1.0f);

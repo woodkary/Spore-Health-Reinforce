@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -72,7 +73,7 @@ public class Scavenger extends EvolvedInfected implements FlyingInfected {
         if (living == null){
             return false;
         }
-        if (living.getHealth() <= living.getMaxHealth()/2){
+        if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living) <= living.getMaxHealth()/2){
             return true;
         }
         List<Entity> infected = level().getEntities(this,living.getBoundingBox().inflate(3),entity -> {return entity instanceof Infected || entity instanceof UtilityEntity;

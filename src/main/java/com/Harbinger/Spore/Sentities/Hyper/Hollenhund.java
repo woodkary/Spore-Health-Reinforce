@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Sentities.Hyper;
 
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sentities.BaseEntities.Hyper;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
@@ -438,7 +439,7 @@ public class Hollenhund extends Hyper implements RangedAttackMob {
 
             LivingEntity target = mob.getTarget();
 
-            if (target == null || !target.isAlive()) {
+            if (target == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) {
                 return false;
             }
 
@@ -458,7 +459,7 @@ public class Hollenhund extends Hyper implements RangedAttackMob {
 
             LivingEntity target = mob.getTarget();
 
-            if (target == null || !target.isAlive()) {
+            if (target == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) {
                 return false;
             }
 

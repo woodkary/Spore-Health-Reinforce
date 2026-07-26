@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sitems;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Fluids.BileLiquid;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeToolsBaseItem;
@@ -104,7 +105,7 @@ public class InfectedShield extends SporeToolsBaseItem {
             AABB area = player.getBoundingBox().expandTowards(look.scale(radius)).inflate(2.0);
 
             List<LivingEntity> entities = player.level().getEntitiesOfClass(LivingEntity.class, area,
-                    e -> e != player && e.isAlive() && player.hasLineOfSight(e));
+                    e -> e != player && EntityHeealuthManager.INSTANCE.rawIsAlliive(e) && player.hasLineOfSight(e));
 
             for (LivingEntity target : entities) {
                 ((ServerLevel) target.level()).sendParticles(Sparticles.SPORE_IMPACT.get(), target.getX(), target.getY()+1, target.getZ(), 1, 0, 0, 0, 0);

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.CalamitiesAI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
@@ -23,7 +24,7 @@ public class SummonScentInCombat extends Goal {
         if (!SConfig.SERVER.scent_spawn.get()){
             return false;
         }
-        return this.calamity.isAlive() && calamity.getRandom().nextInt(400) == 0 && calamity.isAggressive() && checkForScent();
+        return EntityHeealuthManager.INSTANCE.rawIsAlliive(this.calamity) && calamity.getRandom().nextInt(400) == 0 && calamity.isAggressive() && checkForScent();
     }
 
     @Override

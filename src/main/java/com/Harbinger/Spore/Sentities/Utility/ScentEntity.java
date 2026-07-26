@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.ExtremelySusThings.CustomJsonReader.SporeMobConversionData;
@@ -55,7 +56,7 @@ public class ScentEntity extends UtilityEntity {
 
     @Override
     public void tick() {
-        if (this.isAlive()){
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this)){
             if (!this.level().isClientSide && getDissipate() == 1){
                 addToTheList(this);
             }

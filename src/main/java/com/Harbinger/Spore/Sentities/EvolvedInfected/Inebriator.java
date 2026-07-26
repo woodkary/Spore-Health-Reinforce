@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
@@ -103,11 +104,11 @@ public class Inebriator extends EvolvedInfected {
         if (tickCount % 40 == 0){
             checkForPatients();
             LivingEntity livingEntity = getPatient();
-            if (getPatient() != null && (!getPatient().isAlive())) {
+            if (getPatient() != null && (!EntityHeealuthManager.INSTANCE.rawIsAlliive(getPatient()))) {
                 setPatient(null);
             }
             if (livingEntity != null){
-                if (!livingEntity.isAlive()){
+                if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(livingEntity)){
                     setPatient(null);
                 }else {
                     if (livingEntity.distanceTo(this) < 4){
@@ -175,12 +176,12 @@ public class Inebriator extends EvolvedInfected {
         @Override
         public boolean canUse() {
             target = mob.getPatient();
-            return target != null && target.isAlive() && mob.distanceTo(target) > startDistance;
+            return target != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(target) && mob.distanceTo(target) > startDistance;
         }
 
         @Override
         public boolean canContinueToUse() {
-            return target != null && target.isAlive() && mob.distanceTo(target) > stopDistance;
+            return target != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(target) && mob.distanceTo(target) > stopDistance;
         }
 
         @Override

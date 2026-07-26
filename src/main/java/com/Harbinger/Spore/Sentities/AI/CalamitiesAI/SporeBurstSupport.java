@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.CalamitiesAI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -32,7 +33,7 @@ public class SporeBurstSupport extends Goal {
 
     @Override
     public boolean canUse() {
-        return this.calamity.isAlive() && this.calamity.getRandom().nextInt(300) == 0  && calamity.getTarget() != null && this.calamity.distanceToSqr(this.calamity.getTarget())<200.0D;
+        return EntityHeealuthManager.INSTANCE.rawIsAlliive(this.calamity) && this.calamity.getRandom().nextInt(300) == 0  && calamity.getTarget() != null && this.calamity.distanceToSqr(this.calamity.getTarget())<200.0D;
     }
 
     @Override

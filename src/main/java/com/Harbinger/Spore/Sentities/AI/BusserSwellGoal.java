@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.EvolvedInfected.Busser;
 import com.Harbinger.Spore.Sentities.Variants.BusserVariants;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +22,7 @@ public class BusserSwellGoal extends Goal {
     public boolean canUse() {
         LivingEntity livingentity = this.busser.getTarget();
         return this.busser.getVariant() == BusserVariants.BOMBER && (this.busser.getSwellDir() > 0 || livingentity != null && this.busser.distanceToSqr(livingentity) < 9.0D
-                && this.busser.getHealth() <= this.busser.getMaxHealth()/2);
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this.busser) <= this.busser.getMaxHealth()/2);
     }
 
     public void start() {

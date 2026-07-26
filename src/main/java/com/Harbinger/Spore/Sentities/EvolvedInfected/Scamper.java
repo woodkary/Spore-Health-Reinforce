@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.HybridPathNavigation;
@@ -133,9 +134,9 @@ public class Scamper extends EvolvedInfected implements WaterInfected, VariantKe
     }
     @Override
     public void tick() {
-        if (this.isAlive() && deployClock > 0) {deployClock--;}
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && deployClock > 0) {deployClock--;}
         if (this.deployClock == 0){deploying = false;}
-        if (this.isAlive() && this.tickCount % 20 == 0){
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && this.tickCount % 20 == 0){
             this.setAge(this.getAge()+1);
             if (this.getAge() >= SConfig.SERVER.scamper_age.get()) {
                 if (!level().isClientSide){

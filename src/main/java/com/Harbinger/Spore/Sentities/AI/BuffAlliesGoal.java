@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -59,7 +60,7 @@ public class BuffAlliesGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
-        return this.partner != null && (this.partner.isAlive() || this.getFreePartner() != null);}
+        return this.partner != null && (EntityHeealuthManager.INSTANCE.rawIsAlliive(this.partner) || this.getFreePartner() != null);}
 
     public void stop() {
         this.partner = null;

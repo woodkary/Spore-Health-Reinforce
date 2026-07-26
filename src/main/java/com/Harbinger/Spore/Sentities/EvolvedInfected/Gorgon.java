@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Ssounds;
@@ -222,7 +223,7 @@ public class Gorgon extends EvolvedInfected {
                 LivingEntity target = this.gorgon.getTarget();
                 if (target == null) {
                     return false;
-                } else if (!target.isAlive()) {
+                } else if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) {
                     return false;
                 } else {
                     // Can use if we have ranged attack charged OR we can melee
@@ -255,7 +256,7 @@ public class Gorgon extends EvolvedInfected {
             LivingEntity target = this.gorgon.getTarget();
             if (target == null) {
                 return false;
-            } else if (!target.isAlive()) {
+            } else if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) {
                 return false;
             } else if (!this.followingTargetEvenIfNotSeen) {
                 return !this.gorgon.getNavigation().isDone();

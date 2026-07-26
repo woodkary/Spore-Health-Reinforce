@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Projectile;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.CalamityMultipart;
@@ -114,7 +115,7 @@ public abstract class AbstractGunProjectile extends AbstractArrow implements Spo
             victim.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 1));
             addHealingInhibitRandom(victim);
         }
-        if (mutations == SporeToolsMutations.VAMPIRIC && owner.getHealth() < owner.getMaxHealth()) {
+        if (mutations == SporeToolsMutations.VAMPIRIC && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(owner) < owner.getMaxHealth()) {
             owner.heal(2f);
         }
         if (mutations == SporeToolsMutations.CALCIFIED) {

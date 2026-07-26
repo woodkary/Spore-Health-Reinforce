@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.CalamitiesAI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.Organoids.Vigil;
@@ -15,7 +16,7 @@ public class CalamityVigilCall extends Goal {
 
     @Override
     public boolean canUse() {
-        return this.calamity.isAlive() && calamity.getHealth() < calamity.getMaxHealth()/2 &&
+        return EntityHeealuthManager.INSTANCE.rawIsAlliive(this.calamity) && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(calamity) < calamity.getMaxHealth()/2 &&
                 this.calamity.getRandom().nextInt(200) == 0 && this.calamity.getTarget() != null;
     }
 

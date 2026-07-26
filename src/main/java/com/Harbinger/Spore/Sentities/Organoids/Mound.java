@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
@@ -78,7 +79,7 @@ public class Mound extends Organoid implements FoliageSpread {
     public void tick() {
         super.tick();
         if (this.tickCount % 20 == 0){
-            if (this.isAlive() && entityData.get(AGE) < entityData.get(MAX_AGE)){
+            if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && entityData.get(AGE) < entityData.get(MAX_AGE)){
                 this.getPersistentData().putInt("age", 1 + this.getPersistentData().getInt("age"));
                 if (this.getPersistentData().getInt("age") >= SConfig.SERVER.mound_age.get()) {
                     this.getPersistentData().putInt("age",0);
@@ -88,7 +89,7 @@ public class Mound extends Organoid implements FoliageSpread {
             if (entityData.get(COUNTER) < maxCounter){
                 this.setCounter(this.getCounter() + 1);
             }
-            if (this.isAlive() && this.getCounter() >= maxCounter && !level().isClientSide){
+            if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && this.getCounter() >= maxCounter && !level().isClientSide){
                 double range = switch (entityData.get(AGE)) {
                     case 2 -> SConfig.SERVER.mound_range_age2.get();
                     case 3 -> SConfig.SERVER.mound_range_age3.get();
@@ -111,7 +112,7 @@ public class Mound extends Organoid implements FoliageSpread {
                 this.playSound(Ssounds.PUFF.get());
             }
         }
-        if (this.isAlive() && attack_counter > 0){
+        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(this) && attack_counter > 0){
             attack_counter = attack_counter - 1;
         }
 

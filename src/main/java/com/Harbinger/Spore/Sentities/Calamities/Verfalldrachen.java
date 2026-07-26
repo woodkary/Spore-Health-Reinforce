@@ -514,7 +514,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
             updateFlying();
             regenerateHeadCharges();
         }
-        if (this.tickCount % 40 == 0 && this.getHealth() >= this.getMaxHealth()){
+        if (this.tickCount % 40 == 0 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) >= this.getMaxHealth()){
             if (getRightWing() < wingsMaxHp){
                 this.setRightWing(this.getRightWing() +1);
             }
@@ -704,7 +704,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
 
         List<LivingEntity> validTargets = level().getEntitiesOfClass(LivingEntity.class, aabb, entity ->
                 entity != this &&
-                        entity.isAlive() &&
+                        EntityHeealuthManager.INSTANCE.rawIsAlliive(entity) &&
                         !(entity instanceof Player player && (player.getAbilities().instabuild || player.isSpectator())) &&
                         TARGET_SELECTOR.test(entity) && this.hasLineOfSight(entity)
         );
@@ -962,7 +962,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
                 return false;
             }
             target = mob.getTarget();
-            return target != null && target.isAlive() && isNoGravity();
+            return target != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(target) && isNoGravity();
         }
 
         @Override
@@ -973,7 +973,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
             if (mob.getDragonFireCharge() || (getTarHead() <= 0 && getElectricalHead() <= 0 && getSonicHead() <= 0)){
                 return false;
             }
-            return target != null && target.isAlive() && isNoGravity();
+            return target != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(target) && isNoGravity();
         }
 
         @Override
@@ -1051,7 +1051,7 @@ public class Verfalldrachen extends Calamity implements TrueCalamity, RangedAtta
 
             LivingEntity target = dragon.getTarget();
 
-            if (target == null || !target.isAlive()) {
+            if (target == null || !EntityHeealuthManager.INSTANCE.rawIsAlliive(target)) {
                 return false;
             }
 

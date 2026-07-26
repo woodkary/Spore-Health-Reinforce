@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.Sparticles;
@@ -193,7 +194,7 @@ public class GastGeber extends EvolvedInfected implements FoliageSpread {
         if (isRooted() && this.onGround()){
             this.makeStuckInBlock(Blocks.AIR.defaultBlockState(), new Vec3(0, 1, 0));
         }
-        if (this.tickCount % 20 == 0 && isAlive()){
+        if (this.tickCount % 20 == 0 && EntityHeealuthManager.INSTANCE.rawIsAlliive(this)){
             if (getAggression() > 0){
                 setAggression(getAggression()-1);
             }
@@ -213,8 +214,8 @@ public class GastGeber extends EvolvedInfected implements FoliageSpread {
                     }
                     setSpreadInterval(0);
                 }
-                if (getHealth() < getMaxHealth()){
-                    setHealth(getHealth()+1);
+                if (EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) < getMaxHealth()){
+                    setHealth(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this)+1);
                 }
             }
         }

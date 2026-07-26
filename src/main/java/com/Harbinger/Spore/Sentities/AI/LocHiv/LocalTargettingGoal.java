@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI.LocHiv;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import net.minecraft.world.entity.Entity;
@@ -42,7 +43,7 @@ public class LocalTargettingGoal extends Goal {
         AABB boundingBox = entity.getBoundingBox().inflate(range);
         List<Infected> entities = entity.level().getEntitiesOfClass(Infected.class, boundingBox , EntitySelector.NO_CREATIVE_OR_SPECTATOR);
         for (Infected livingEntity : entities) {
-            if (livingEntity.getTarget() == null && this.mob.getTarget() != null && this.mob.getTarget().isAlive() && !this.mob.getTarget().isInvulnerable()){
+            if (livingEntity.getTarget() == null && this.mob.getTarget() != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(this.mob.getTarget()) && !this.mob.getTarget().isInvulnerable()){
                 livingEntity.setTarget(mob.getTarget());
             }else if (livingEntity.getSearchPos() == null && this.mob.getSearchPos() != null){
                 livingEntity.setSearchPos(this.mob.getSearchPos());
