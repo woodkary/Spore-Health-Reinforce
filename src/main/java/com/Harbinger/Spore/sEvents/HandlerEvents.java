@@ -1119,10 +1119,4 @@ public class HandlerEvents {
     public static void onMobEffectAdded(MobEffectEvent.Added addEffectEvent){
         SporeEffectsUtil.INSTANCE.tryApplyHealInhibit(addEffectEvent.getEntity());
     }
-    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent respawnEvent){
-        Optional.ofNullable(respawnEvent.getEntity()).ifPresent(setPlayerAlive);
-    }
-    public static void onPlayerClone(PlayerEvent.Clone playerClone){
-        Optional.ofNullable(playerClone.getEntity()).ifPresent(setPlayerAlive);
-    }
 }
