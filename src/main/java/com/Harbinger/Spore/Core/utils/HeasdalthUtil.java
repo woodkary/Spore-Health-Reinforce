@@ -156,18 +156,35 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             return;
         }
         //必然失败的路径，一般不用invokeAll确保一定执行
+        //先重转换子类
         Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
-        for (Class<?> livingClass=entityClass;livingClass!=null&&livingClass!=Entity.class;livingClass=livingClass.getSuperclass()) {
-            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
-                    livingClass);
-            if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
-                return;
-            }
-            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(livingClass);
-            if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
-                return;
-            }
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
+                entityClass);
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+            return;
         }
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass);
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+            return;
+        }
+        //再批量重转换所有父类
+        Class<?>[] superClasses=livingSuperClasses(entityClass);
+        if(superClasses==null) {
+            return;
+        }
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
+                superClasses);
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+            return;
+        }
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(superClasses);
+    }
+    private Class<?>[] livingSuperClasses(Class<?> entityClass){
+        List<Class<?>> classes=new ArrayList<>();
+        for(Class<?> current=entityClass.getSuperclass();current!=null&&current!=Entity.class;current=current.getSuperclass()){
+            classes.add(current);
+        }
+        return !classes.isEmpty()?classes.toArray(new Class<?>[0]):null;
     }
 
     private void setAllHeeaatth(Object entity, float health, int depth) {
