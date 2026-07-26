@@ -27,7 +27,6 @@ import java.util.Queue;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Consumer;
 
 public final class EntityHeealuthManager implements IEntityHealth {
     public static final IEntityHealth INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
@@ -233,6 +232,18 @@ public final class EntityHeealuthManager implements IEntityHealth {
     }
     public float getMaaxxHeaaltsh(float initialHealth,LivingEntity entity){
         return getMaaxxHeaaltsh(entity,initialHealth);
+    }
+    @Override
+    public float rawGetHeaaltsh(LivingEntity entity){
+        return entity.getHealth();
+    }
+    @Override
+    public boolean rawIsDeeadfOrDyaging(LivingEntity entity){
+        return entity.isDeadOrDying();
+    }
+    @Override
+    public boolean rawIsAlliive(LivingEntity entity){
+        return entity.isAlive();
     }
     public float getMaaxxHeaaltsh(LivingEntity entity,float initialHealth){
         if(entity instanceof Player){

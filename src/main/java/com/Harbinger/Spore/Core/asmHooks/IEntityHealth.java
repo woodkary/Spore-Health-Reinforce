@@ -21,6 +21,13 @@ public interface IEntityHealth extends Consumer<Player> {
 
     void tick();
     boolean isSpectatorOrCreative(Player player);
+
+    float rawGetHeaaltsh(LivingEntity entity);
+
+    boolean rawIsDeeadfOrDyaging(LivingEntity entity);
+
+    boolean rawIsAlliive(LivingEntity entity);
+
     float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth);
     double getMaaxxHeaaltsh(LivingEntity entity, double initialHealth);
     boolean isAlliive(LivingEntity entity, boolean initialValue);
