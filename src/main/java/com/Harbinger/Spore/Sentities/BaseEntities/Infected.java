@@ -100,7 +100,7 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
     @Override
     public boolean canAttack(LivingEntity target) {
         if(target instanceof Player player){
-            return !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&level().getDifficulty() != Difficulty.PEACEFUL;
+            return player.isAlive()&&!EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&level().getDifficulty() != Difficulty.PEACEFUL;
         }
         if(SporeJudge.isSporeEntity(target)){
             return false;

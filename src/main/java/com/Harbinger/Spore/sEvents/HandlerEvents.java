@@ -239,24 +239,24 @@ public class HandlerEvents {
             }
             if (event.getEntity() instanceof PathfinderMob mob){
 
-            for (String string : SConfig.SERVER.attack.get()){
-                if (string.endsWith(":")){
-                    String[] mod = string.split(":");
-                    String[] iterations = mob.getEncodeId().split(":");
-                    if (Objects.equals(mod[0], iterations[0])){
-                        mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Infected.class, false));
-                        mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Calamity.class, false));
-                        mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Organoid.class, false));
-                    }
-                }else{
-                    if (SConfig.SERVER.attack.get().contains(mob.getEncodeId())){
-                        mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Infected.class, false));
-                        mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Calamity.class, false));
-                        mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Organoid.class, false));
+                for (String string : SConfig.SERVER.attack.get()){
+                    if (string.endsWith(":")){
+                        String[] mod = string.split(":");
+                        String[] iterations = mob.getEncodeId().split(":");
+                        if (Objects.equals(mod[0], iterations[0])){
+                            mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Infected.class, false));
+                            mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Calamity.class, false));
+                            mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Organoid.class, false));
+                        }
+                    }else{
+                        if (SConfig.SERVER.attack.get().contains(mob.getEncodeId())){
+                            mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Infected.class, false));
+                            mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Calamity.class, false));
+                            mob.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(mob, Organoid.class, false));
+                        }
                     }
                 }
-            }
-            for (String string : SConfig.SERVER.flee.get()){
+                for (String string : SConfig.SERVER.flee.get()){
                     if (string.endsWith(":")){
                         String[] mod = string.split(":");
                         String[] iterations = mob.getEncodeId().split(":");
@@ -271,7 +271,7 @@ public class HandlerEvents {
 
                         }
                     }
-            }
+                }
             }
         }
     }
@@ -382,41 +382,41 @@ public class HandlerEvents {
                         }))
         );
         dispatcher.register(Commands.literal(Spore.MODID+":set_area")
-        .executes(arguments -> {
-            ServerLevel world = arguments.getSource().getLevel();
-            int x = (int) arguments.getSource().getPosition().x();
-            int y = (int) arguments.getSource().getPosition().y();
-            int z = (int) arguments.getSource().getPosition().z();
-            BlockPos pos = new BlockPos(x, y, z);
-            boolean incomingMessage = false;
-            for (var entityAccess : SimpleRemoveUtil.INSTANCE.getAllEntities(world, e -> !(e instanceof Infected) && !(e instanceof Calamity))) {
-                if (!(entityAccess instanceof Entity entity1)) {
-                    continue;
-                }
-                if(entity1 instanceof Infected infected) {
-                    infected.setSearchPos(pos);
-                } else if (entity1 instanceof Calamity calamity) {
-                    incomingMessage = true;
-                    calamity.setSearchArea(pos);
-                }else if(entity1 instanceof Proto proto){
-                    Signal signal = proto.getSignal();
-                    if(signal!=null&&signal.active()){
-                        continue;
+                .executes(arguments -> {
+                    ServerLevel world = arguments.getSource().getLevel();
+                    int x = (int) arguments.getSource().getPosition().x();
+                    int y = (int) arguments.getSource().getPosition().y();
+                    int z = (int) arguments.getSource().getPosition().z();
+                    BlockPos pos = new BlockPos(x, y, z);
+                    boolean incomingMessage = false;
+                    for (var entityAccess : SimpleRemoveUtil.INSTANCE.getAllEntities(world, e -> !(e instanceof Infected) && !(e instanceof Calamity))) {
+                        if (!(entityAccess instanceof Entity entity1)) {
+                            continue;
+                        }
+                        if(entity1 instanceof Infected infected) {
+                            infected.setSearchPos(pos);
+                        } else if (entity1 instanceof Calamity calamity) {
+                            incomingMessage = true;
+                            calamity.setSearchArea(pos);
+                        }else if(entity1 instanceof Proto proto){
+                            Signal signal = proto.getSignal();
+                            if(signal!=null&&signal.active()){
+                                continue;
+                            }
+                            proto.setSignal(new Signal(true,pos));
+                        }
                     }
-                    proto.setSignal(new Signal(true,pos));
-                }
-            }
 
-            for (ServerPlayer player : world.getServer().getPlayerList().getPlayers()) {
-                if (incomingMessage) {
-                    player.playNotifySound(Ssounds.CALAMITY_INCOMING.get(), SoundSource.AMBIENT, 1.0F, 1.0F);
-                    player.displayClientMessage(Component.translatable("calamity_coming_message"), false);
-                }
-                player.displayClientMessage(Component.literal("set search position ("+x+","+y+","+z+") via command."),false);
-            }
+                    for (ServerPlayer player : world.getServer().getPlayerList().getPlayers()) {
+                        if (incomingMessage) {
+                            player.playNotifySound(Ssounds.CALAMITY_INCOMING.get(), SoundSource.AMBIENT, 1.0F, 1.0F);
+                            player.displayClientMessage(Component.translatable("calamity_coming_message"), false);
+                        }
+                        player.displayClientMessage(Component.literal("set search position ("+x+","+y+","+z+") via command."),false);
+                    }
 
-            return 1;
-        }).requires(s -> s.hasPermission(1)));
+                    return 1;
+                }).requires(s -> s.hasPermission(1)));
         dispatcher.register(Commands.literal(Spore.MODID+":nuke_the_land")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
@@ -497,7 +497,7 @@ public class HandlerEvents {
                                 }else if (infected instanceof EvolvedInfected evolvedInfected){
                                     evolvedInfected.setEvoPoints(SConfig.SERVER.min_kills_hyper.get());
                                 }else
-                                infected.setEvoPoints(SConfig.SERVER.min_kills.get());
+                                    infected.setEvoPoints(SConfig.SERVER.min_kills.get());
                             }else if (entity1 instanceof Mound mound){
                                 mound.setAge(mound.getAge()+1);
                             }else if (entity1 instanceof Calamity calamity){
@@ -568,114 +568,114 @@ public class HandlerEvents {
                                     player.displayClientMessage(Component.literal("get nest location ? " + scamper.getTerritory()),false);
                                 }
                                 if (infected instanceof GastGeber geber){
-                                        player.displayClientMessage(Component.literal("RootTimer ? " + geber.getTimeRooted()),false);
-                                        player.displayClientMessage(Component.literal("Aggression ? " + geber.getAggression()),false);
-                                        player.displayClientMessage(Component.literal("Spread ? " + geber.getSpreadInterval()),false);
+                                    player.displayClientMessage(Component.literal("RootTimer ? " + geber.getTimeRooted()),false);
+                                    player.displayClientMessage(Component.literal("Aggression ? " + geber.getAggression()),false);
+                                    player.displayClientMessage(Component.literal("Spread ? " + geber.getSpreadInterval()),false);
                                 }
                                 player.displayClientMessage(Component.literal("-------------------------"),false);
 
                             }else if (entity1 instanceof Calamity calamity){
-                                    player.displayClientMessage(Component.literal("Entity "+ calamity.getEncodeId() + " " + calamity.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(calamity) + "/" + calamity.getMaxHealth()),false);
-                                    player.displayClientMessage(Component.literal("Kills " + calamity.getKills()),false);
-                                    player.displayClientMessage(Component.literal("Position to be Searched " + calamity.getSearchArea()),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + calamity.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("Target ? " + calamity.getTarget()),false);
-                                    player.displayClientMessage(Component.literal("Mutation Color ? " + calamity.getMutationColor()),false);
-                                    if (calamity instanceof Sieger sieger){
-                                        player.displayClientMessage(Component.literal("Tail health "+ sieger.getTail()+"/"+sieger.getMaxTail()),false);
-                                    }
-                                    if (calamity instanceof Gazenbrecher sieger){
-                                        player.displayClientMessage(Component.literal("Tongue health "+ sieger.getTongue()+"/"+sieger.getMaxTongue()),false);
-                                        player.displayClientMessage(Component.literal("Is adapted to fire "+ sieger.isAdaptedToFire() + " fire points" + sieger.getAdaptationCount()),false);
-                                    }
-                                    if (calamity instanceof Hinderburg sieger){
-                                        player.displayClientMessage(Component.literal("Is armed "+ sieger.isArmed()),false);
-                                    }
-                                    if (calamity instanceof Hohlfresser sieger){
-                                       player.displayClientMessage(Component.literal("Underground "+ sieger.isUnderground()),false);
-                                       player.displayClientMessage(Component.literal("Ores ? "+ sieger.getOres()),false);
-                                    }
+                                player.displayClientMessage(Component.literal("Entity "+ calamity.getEncodeId() + " " + calamity.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(calamity) + "/" + calamity.getMaxHealth()),false);
+                                player.displayClientMessage(Component.literal("Kills " + calamity.getKills()),false);
+                                player.displayClientMessage(Component.literal("Position to be Searched " + calamity.getSearchArea()),false);
+                                player.displayClientMessage(Component.literal("Buffs " + calamity.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("Target ? " + calamity.getTarget()),false);
+                                player.displayClientMessage(Component.literal("Mutation Color ? " + calamity.getMutationColor()),false);
+                                if (calamity instanceof Sieger sieger){
+                                    player.displayClientMessage(Component.literal("Tail health "+ sieger.getTail()+"/"+sieger.getMaxTail()),false);
+                                }
+                                if (calamity instanceof Gazenbrecher sieger){
+                                    player.displayClientMessage(Component.literal("Tongue health "+ sieger.getTongue()+"/"+sieger.getMaxTongue()),false);
+                                    player.displayClientMessage(Component.literal("Is adapted to fire "+ sieger.isAdaptedToFire() + " fire points" + sieger.getAdaptationCount()),false);
+                                }
+                                if (calamity instanceof Hinderburg sieger){
+                                    player.displayClientMessage(Component.literal("Is armed "+ sieger.isArmed()),false);
+                                }
+                                if (calamity instanceof Hohlfresser sieger){
+                                    player.displayClientMessage(Component.literal("Underground "+ sieger.isUnderground()),false);
+                                    player.displayClientMessage(Component.literal("Ores ? "+ sieger.getOres()),false);
+                                }
 
 
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if (entity1 instanceof Mound mound){
-                                    player.displayClientMessage(Component.literal("Entity "+ mound.getEncodeId() + " " + mound.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(mound) + "/" + mound.getMaxHealth()),false);
-                                    player.displayClientMessage(Component.literal("Is Linked ? " + mound.getLinked()),false);
-                                    player.displayClientMessage(Component.literal("Age " + mound.getAge()),false);
-                                    player.displayClientMessage(Component.literal("Seconds until growth " + mound.getAgeCounter() + "/" + SConfig.SERVER.mound_age.get()),false);
-                                    player.displayClientMessage(Component.literal("Seconds until puff " + mound.getCounter() + "/" + mound.getMaxCounter()),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + mound.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                player.displayClientMessage(Component.literal("Entity "+ mound.getEncodeId() + " " + mound.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(mound) + "/" + mound.getMaxHealth()),false);
+                                player.displayClientMessage(Component.literal("Is Linked ? " + mound.getLinked()),false);
+                                player.displayClientMessage(Component.literal("Age " + mound.getAge()),false);
+                                player.displayClientMessage(Component.literal("Seconds until growth " + mound.getAgeCounter() + "/" + SConfig.SERVER.mound_age.get()),false);
+                                player.displayClientMessage(Component.literal("Seconds until puff " + mound.getCounter() + "/" + mound.getMaxCounter()),false);
+                                player.displayClientMessage(Component.literal("Buffs " + mound.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
 
                             }else if(entity1 instanceof Proto proto) {
-                                    player.displayClientMessage(Component.literal("Entity "+ proto.getEncodeId() + " " + proto.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(proto) + "/" + proto.getMaxHealth()),false);
-                                    player.displayClientMessage(Component.literal("Current Target " + proto.getTarget()),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + proto.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("Mobs under control " + proto.getHosts()),false);
-                                    player.displayClientMessage(Component.literal("Biomass " + proto.getBiomass()),false);
-                                    for (int i = 0;i<proto.getWeights().length;i++){
-                                        player.displayClientMessage(Component.literal("Neuron_"+i+" " + proto.getWeightsValue(i)),false);
-                                    }
-                                    for (String s : proto.team_1){
+                                player.displayClientMessage(Component.literal("Entity "+ proto.getEncodeId() + " " + proto.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(proto) + "/" + proto.getMaxHealth()),false);
+                                player.displayClientMessage(Component.literal("Current Target " + proto.getTarget()),false);
+                                player.displayClientMessage(Component.literal("Buffs " + proto.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("Mobs under control " + proto.getHosts()),false);
+                                player.displayClientMessage(Component.literal("Biomass " + proto.getBiomass()),false);
+                                for (int i = 0;i<proto.getWeights().length;i++){
+                                    player.displayClientMessage(Component.literal("Neuron_"+i+" " + proto.getWeightsValue(i)),false);
+                                }
+                                for (String s : proto.team_1){
                                     player.displayClientMessage(Component.literal("TEAM_1 "+ s),false);
-                                    }
-                                    for (String s : proto.team_2){
+                                }
+                                for (String s : proto.team_2){
                                     player.displayClientMessage(Component.literal("TEAM_2 "+ s),false);
-                                    }
-                                    for (String s : proto.team_3){
+                                }
+                                for (String s : proto.team_3){
                                     player.displayClientMessage(Component.literal("TEAM_3 "+ s),false);
-                                    }
-                                    for (String s : proto.team_4){
+                                }
+                                for (String s : proto.team_4){
                                     player.displayClientMessage(Component.literal("TEAM_4 "+ s),false);
-                                    }
-                                    for (String s : proto.team_5){
+                                }
+                                for (String s : proto.team_5){
                                     player.displayClientMessage(Component.literal("Beloved mobs "+ s),false);
-                                    }
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                }
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
                             }
                             else if(entity1 instanceof Womb reformator) {
-                                    player.displayClientMessage(Component.literal("Entity "+ reformator.getEncodeId() + " " + reformator.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(reformator)),false);
-                                    player.displayClientMessage(Component.literal("Stored Location " + reformator.getLocation()),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + reformator.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("Biomass " + reformator.getBiomass()),false);
-                                    player.displayClientMessage(Component.literal("State " + reformator.getVariant().getValue()),false);
-                                    for (String s : reformator.getAttributeIDs()){
-                                        player.displayClientMessage(Component.translatable(s),false);
-                                    }
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                player.displayClientMessage(Component.literal("Entity "+ reformator.getEncodeId() + " " + reformator.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(reformator)),false);
+                                player.displayClientMessage(Component.literal("Stored Location " + reformator.getLocation()),false);
+                                player.displayClientMessage(Component.literal("Buffs " + reformator.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("Biomass " + reformator.getBiomass()),false);
+                                player.displayClientMessage(Component.literal("State " + reformator.getVariant().getValue()),false);
+                                for (String s : reformator.getAttributeIDs()){
+                                    player.displayClientMessage(Component.translatable(s),false);
+                                }
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if(entity1 instanceof Vigil vigil) {
-                                    player.displayClientMessage(Component.literal("Entity "+ vigil.getEncodeId() + " " + vigil.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(vigil)),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + vigil.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("State " + vigil.getTrigger()),false);
-                                    player.displayClientMessage(Component.literal("Horde size " + vigil.getWaveSize()),false);
-                                    player.displayClientMessage(Component.literal("Time until it leaves " + vigil.getTimer()+"/6000"),false);
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                player.displayClientMessage(Component.literal("Entity "+ vigil.getEncodeId() + " " + vigil.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(vigil)),false);
+                                player.displayClientMessage(Component.literal("Buffs " + vigil.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("State " + vigil.getTrigger()),false);
+                                player.displayClientMessage(Component.literal("Horde size " + vigil.getWaveSize()),false);
+                                player.displayClientMessage(Component.literal("Time until it leaves " + vigil.getTimer()+"/6000"),false);
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
 
                             }else if(entity1 instanceof Umarmer umarmer) {
-                                    player.displayClientMessage(Component.literal("Entity "+ umarmer.getEncodeId() + " " + umarmer.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(umarmer)),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + umarmer.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("Shielded? " + umarmer.isShielding()),false);
-                                    player.displayClientMessage(Component.literal("Pins? " + umarmer.isPinned()),false);
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                player.displayClientMessage(Component.literal("Entity "+ umarmer.getEncodeId() + " " + umarmer.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(umarmer)),false);
+                                player.displayClientMessage(Component.literal("Buffs " + umarmer.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("Shielded? " + umarmer.isShielding()),false);
+                                player.displayClientMessage(Component.literal("Pins? " + umarmer.isPinned()),false);
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if(entity1 instanceof Brauerei brauerei) {
-                                    player.displayClientMessage(Component.literal("Entity "+ brauerei.getEncodeId() + " " + brauerei.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(brauerei)),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + brauerei.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                player.displayClientMessage(Component.literal("Entity "+ brauerei.getEncodeId() + " " + brauerei.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(brauerei)),false);
+                                player.displayClientMessage(Component.literal("Buffs " + brauerei.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
                             }
                             else if(entity1 instanceof Delusionare delusionare) {
-                                    player.displayClientMessage(Component.literal("Entity "+ delusionare.getEncodeId() + " " + delusionare.getCustomName()),false);
-                                    player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(delusionare)),false);
-                                    player.displayClientMessage(Component.literal("Buffs " + delusionare.getActiveEffects()),false);
-                                    player.displayClientMessage(Component.literal("Target ? " + delusionare.getTarget()),false);
-                                    player.displayClientMessage(Component.literal("Magic state " + delusionare.getSpellById() + " casting "+delusionare.isCasting()),false);
-                                    player.displayClientMessage(Component.literal("-------------------------"),false);
+                                player.displayClientMessage(Component.literal("Entity "+ delusionare.getEncodeId() + " " + delusionare.getCustomName()),false);
+                                player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(delusionare)),false);
+                                player.displayClientMessage(Component.literal("Buffs " + delusionare.getActiveEffects()),false);
+                                player.displayClientMessage(Component.literal("Target ? " + delusionare.getTarget()),false);
+                                player.displayClientMessage(Component.literal("Magic state " + delusionare.getSpellById() + " casting "+delusionare.isCasting()),false);
+                                player.displayClientMessage(Component.literal("-------------------------"),false);
                             }else if(entity1 instanceof Specter specter) {
                                 player.displayClientMessage(Component.literal("Entity "+ specter.getEncodeId() + " " + specter.getCustomName()),false);
                                 player.displayClientMessage(Component.literal("Current Health " + EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(specter)),false);
@@ -718,7 +718,7 @@ public class HandlerEvents {
                             }
 
                         }
-                        }
+                    }
                     return 1;
                 }).requires(s -> s.hasPermission(1)));
 
@@ -960,19 +960,19 @@ public class HandlerEvents {
             }
         }
         if(target instanceof Infected victim && !(victim instanceof Protector)) {
-                LivingEntity attacker = living instanceof LivingEntity e ? e : null;
-                List<Protector> protectorList = attacker != null && attacker.level() instanceof ServerLevel serverLevel
-                        ? SporeSavedData.protectorList(serverLevel)
-                        : List.of();
-                if (!protectorList.isEmpty() && attacker != null){
-                    for (Protector protector1 : protectorList){
-                        double d0 = protector1.distanceTo(attacker);
-                        if (EntityHeealuthManager.INSTANCE.rawIsAlliive(protector1) && d0 < 64f && !attacker.isSpectator() && Utilities.TARGET_SELECTOR.Test(attacker)){
-                            protector1.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED,100,0));
-                            protector1.setTarget(attacker);
-                        }
+            LivingEntity attacker = living instanceof LivingEntity e ? e : null;
+            List<Protector> protectorList = attacker != null && attacker.level() instanceof ServerLevel serverLevel
+                    ? SporeSavedData.protectorList(serverLevel)
+                    : List.of();
+            if (!protectorList.isEmpty() && attacker != null){
+                for (Protector protector1 : protectorList){
+                    double d0 = protector1.distanceTo(attacker);
+                    if (EntityHeealuthManager.INSTANCE.rawIsAlliive(protector1) && d0 < 64f && !attacker.isSpectator() && Utilities.TARGET_SELECTOR.Test(attacker)){
+                        protector1.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED,100,0));
+                        protector1.setTarget(attacker);
                     }
                 }
+            }
         }
         if (living instanceof ArmorPersentageBypass bypass){
             float original_damage = event.getAmount();
@@ -1118,5 +1118,8 @@ public class HandlerEvents {
     }
     public static void onMobEffectAdded(MobEffectEvent.Added addEffectEvent){
         SporeEffectsUtil.INSTANCE.tryApplyHealInhibit(addEffectEvent.getEntity());
+    }
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent respawnEvent){
+        Optional.ofNullable(respawnEvent.getEntity()).ifPresent(setPlayerAlive);
     }
 }
