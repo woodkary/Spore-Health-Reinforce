@@ -275,10 +275,11 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
             ClassWriter cw = new ClassWriter(3);
             cn.accept(cw);
             byte[] bytes = cw.toByteArray();
+            Class<?> oldClass=handlerClass;
             handlerClass=ClassUtil.deffineneClazz(classLoader, cn.name.replace('/', '.'), bytes);
             if(handlerClass!=null) {
                 KlassPointerUtil.INSTANCE.replaceClass(handler, handlerClass,"",0,0.0f);
-                LogUtil.log("[Spore CoreMod] SporeHandlerWrapper class generated and loaded.");
+                LogUtil.logf("[Spore CoreMod] SporeHandlerWrapper class for old handlerClass %s generated and loaded.",oldClass.getName());
             }else {
                 LogUtil.error("[Spore CoreMod] ERROR: Failed to generate SporeHandlerWrapper class!");
             }
