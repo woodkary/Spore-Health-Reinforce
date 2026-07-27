@@ -6,8 +6,7 @@ import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.transformation.pluginMap.SporePluginHashMap;
 import com.Harbinger.Spore.Core.utils.transformation.plugins.SporePluginPackageHost;
-import cpw.mods.modlauncher.LaunchPluginHandler;
-import cpw.mods.modlauncher.Launcher;
+import cpw.mods.modlauncher.*;
 import cpw.mods.modlauncher.api.NamedPath;
 import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
 import net.minecraftforge.fml.loading.ModDirTransformerDiscoverer;
@@ -39,6 +38,7 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
     public static final ITransformationBootStrap INSTANCE=new SporeTransformationBootStrap();
     private final Map<String, ILaunchPluginService> protectedPluginsMap;
     private final Map<String,Class<?>> protectedPluginsClasses;
+    private final Class<?> classLoaderClass;
     public SporeTransformationBootStrap() {
         List<Class<?>> pluginClasses = resolveHiddenPlugins(
                 "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeLifeCycleCallSitePlugin"
@@ -76,6 +76,9 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
         }
         protectedPluginsMap=Map.copyOf(t1);
         protectedPluginsClasses=Map.copyOf(t2);
+
+        classLoaderClass=BytecodeUtil.resolveHiddenClassByName("com.Harbinger.Spore.Core.utils.transformation.transBootStrap.SporeTransformingClassLoader",
+                TransformStore.class,LaunchPluginHandler.class, ModuleLayerHandler.class);
     }
     private List<Class<?>> resolveHiddenPlugins(String n1) {
         List<Class<?>> pluginClasses = new ArrayList<>();
@@ -132,7 +135,21 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
             return null;
         }
     }
-
+    private void replaceTransformingClassLoader(){
+        if(classLoaderClass==null){
+            return;
+        }
+        Launcher launcher = Launcher.INSTANCE;
+        if (launcher == null) {
+            return;
+        }
+        Object cl = ClassUtil.getFieldValue(Launcher.class, launcher, "classLoader");
+        if(!(cl instanceof TransformingClassLoader classLoader)||classLoader.getClass()==classLoaderClass){
+            return;
+        }
+        KlassPointerUtil.INSTANCE.replaceClass(classLoader,classLoaderClass,"",0,0.0f);
+        LogUtil.logf("replaced TransformingClassLoader with class %s.",classLoaderClass.getName());
+    }
     @Override
     public void initPluginsMap(LaunchPluginHandler handler) {
         Map<String, ILaunchPluginService> plugins =
@@ -159,6 +176,8 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
         newMap.putAll(protectedPluginsMap);
 
         ClassUtil.setFieldValue(LaunchPluginHandler.class,"plugins",handler, newMap);
+        //除了初始化Map，还要替换ClassLoader.
+        replaceTransformingClassLoader();
     }
     @Override
     public void handleComputeReturn(EnumMap<ILaunchPluginService.Phase, List<ILaunchPluginService>> res){

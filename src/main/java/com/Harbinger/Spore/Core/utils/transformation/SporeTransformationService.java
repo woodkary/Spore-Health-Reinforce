@@ -105,14 +105,6 @@ public final class SporeTransformationService implements ISporeTransformationSer
         bootstrap.initPluginsMap(handler);
         bootstrap.coexistenceCoreAndMod();
         bootstrap.wrapLaunchPluginHandler(handler);
-
-        Object cl = ClassUtil.getFieldValue(Launcher.class, launcher, "classLoader");
-        if(!(cl instanceof TransformingClassLoader classLoader)){
-            return;
-        }
-        Class<?> classLoaderClass=BytecodeUtil.resolveHiddenClassByName("com.Harbinger.Spore.Core.utils.transformation.transBootStrap.SporeTransformingClassLoader",
-                TransformStore.class,LaunchPluginHandler.class, ModuleLayerHandler.class);
-        KlassPointerUtil.INSTANCE.replaceClass(classLoader,classLoaderClass,"",0,0.0f);
     }
     static{
         LogUtil.log("Initializing SporeTransformationService");

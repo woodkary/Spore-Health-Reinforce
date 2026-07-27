@@ -19,7 +19,6 @@ public final class SporeTransformingClassLoader extends TransformingClassLoader 
             return super.maybeTransformClassBytes(bytes, name, context);
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
-        bootstrap.initPluginsMap(handler);
         bootstrap.wrapLaunchPluginHandler(handler);
         return super.maybeTransformClassBytes(bytes, name, context);
     }
@@ -35,7 +34,6 @@ public final class SporeTransformingClassLoader extends TransformingClassLoader 
             return findLoadedClass(name);
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
-        bootstrap.initPluginsMap(handler);
         bootstrap.wrapLaunchPluginHandler(handler);
         return findLoadedClass(name);
     }
