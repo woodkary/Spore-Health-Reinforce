@@ -1,15 +1,11 @@
 package com.Harbinger.Spore.Core.utils.transformation;
 
-import com.Harbinger.Spore.Core.utils.ClassUtil;
-import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
-import com.Harbinger.Spore.Core.utils.Log4j2PrintStream;
-import com.Harbinger.Spore.Core.utils.LogUtil;
+import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.transformation.plugins.LifeCycleCallSiteHookResolver;
 import com.Harbinger.Spore.Core.utils.transformation.plugins.LifeCycleCallSiteHookSpec;
 import com.Harbinger.Spore.Core.utils.transformation.transBootStrap.ITransformationBootStrap;
 import com.Harbinger.Spore.Core.utils.transformation.transBootStrap.SporeTransformationBootStrap;
-import cpw.mods.modlauncher.LaunchPluginHandler;
-import cpw.mods.modlauncher.Launcher;
+import cpw.mods.modlauncher.*;
 import cpw.mods.modlauncher.api.IEnvironment;
 import cpw.mods.modlauncher.api.ITransformationService;
 import cpw.mods.modlauncher.api.ITransformer;
@@ -109,6 +105,14 @@ public final class SporeTransformationService implements ISporeTransformationSer
         bootstrap.initPluginsMap(handler);
         bootstrap.coexistenceCoreAndMod();
         bootstrap.wrapLaunchPluginHandler(handler);
+
+        Object cl = ClassUtil.getFieldValue(Launcher.class, launcher, "classLoader");
+        if(!(cl instanceof TransformingClassLoader classLoader)){
+            return;
+        }
+        Class<?> classLoaderClass=BytecodeUtil.resolveHiddenClassByName("com.Harbinger.Spore.Core.utils.transformation.transBootStrap.SporeTransformingClassLoader",
+                TransformStore.class,LaunchPluginHandler.class, ModuleLayerHandler.class);
+        KlassPointerUtil.INSTANCE.replaceClass(classLoader,classLoaderClass,"",0,0.0f);
     }
     static{
         LogUtil.log("Initializing SporeTransformationService");
