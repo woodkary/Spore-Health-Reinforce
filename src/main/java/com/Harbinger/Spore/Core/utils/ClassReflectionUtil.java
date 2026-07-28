@@ -45,6 +45,8 @@ public final class ClassReflectionUtil {
     public static final Object publicMethodLock=new Object();
     public static final Object declaredFieldLock=new Object();
     public static final Object declaredPublicFieldLock=new Object();
+    public static final Object declaredMethodLock=new Object();
+    public static final Object declaredPublicMethodLock=new Object();
 
     private ClassReflectionUtil() {
     }
@@ -192,7 +194,7 @@ public final class ClassReflectionUtil {
         if (cached != null) {
             return cached;
         }
-        synchronized (cache) {
+        synchronized (publicOnly?declaredPublicMethodLock:declaredMethodLock) {
             cached = cache.get(targetClass);
             if (cached == null) {
                 cached = readDeclaredMethods(targetClass, publicOnly);
