@@ -164,20 +164,20 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             return;
         }
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass);
-        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
-            return;
-        }
-        //再批量重转换所有父类
-        Class<?>[] superClasses=livingSuperClasses(entityClass);
-        if(superClasses==null) {
-            return;
-        }
-        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
-                superClasses);
-        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
-            return;
-        }
-        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(superClasses);
+//        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+//            return;
+//        }
+//        //再批量重转换所有父类
+//        Class<?>[] superClasses=livingSuperClasses(entityClass);
+//        if(superClasses==null) {
+//            return;
+//        }
+//        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
+//                superClasses);
+//        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+//            return;
+//        }
+//        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(superClasses);
     }
     private Class<?>[] livingSuperClasses(Class<?> entityClass){
         List<Class<?>> classes=new ArrayList<>();
