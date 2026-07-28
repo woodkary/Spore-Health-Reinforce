@@ -213,7 +213,7 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, IOptionalClassValu
     private boolean canOverrideOnHitEntity(Class<?> original) {
         for (Class<?> cursor = original; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
             try {
-                for (java.lang.reflect.Method method : cursor.getDeclaredMethods()) {
+                for (java.lang.reflect.Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                     if (!ON_HIT_ENTITY_NAME.equals(method.getName())) {
                         continue;
                     }
@@ -227,7 +227,11 @@ public final class ASMHurtArrowUtil implements IASMHurtArrow, IOptionalClassValu
             }
         }
         try {
-            java.lang.reflect.Method method = AbstractArrow.class.getDeclaredMethod(ON_HIT_ENTITY_NAME, EntityHitResult.class);
+            java.lang.reflect.Method method = ClassReflectionUtil.getDeclaredMethod(
+                    AbstractArrow.class,
+                    ON_HIT_ENTITY_NAME,
+                    EntityHitResult.class
+            );
             int modifiers = method.getModifiers();
             return !Modifier.isStatic(modifiers) && !Modifier.isPrivate(modifiers) && !Modifier.isFinal(modifiers);
         } catch (Throwable ignored) {

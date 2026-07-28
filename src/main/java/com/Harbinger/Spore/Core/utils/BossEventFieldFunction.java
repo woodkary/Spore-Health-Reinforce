@@ -10,7 +10,7 @@ final class BossEventFieldFunction implements Function<Class<?>, Optional<Field>
     @Override
     public Optional<Field> apply(Class<?> type) {
         for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
-            for (Field field : current.getDeclaredFields()) {
+            for (Field field : ClassReflectionUtil.getDeclaredFields(current)) {
                 if (BossEvent.class.isAssignableFrom(field.getType())) {
                     return Optional.of(field);
                 }

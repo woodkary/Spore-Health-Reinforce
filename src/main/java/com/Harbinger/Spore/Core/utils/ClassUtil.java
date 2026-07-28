@@ -67,7 +67,7 @@ public class ClassUtil {
         try {
             Unsafe unsafe = getUnsafe();
             if (unsafe != null) {
-                Field f = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
+                Field f = ClassReflectionUtil.getDeclaredField(MethodHandles.Lookup.class, "IMPL_LOOKUP");
                 Object base = unsafe.staticFieldBase(f);
                 long off = unsafe.staticFieldOffset(f);
                 Object v = unsafe.getObject(base, off);
@@ -81,7 +81,7 @@ public class ClassUtil {
         }
         // fallback 2: reflective access
         try {
-            Field f = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
+            Field f = ClassReflectionUtil.getDeclaredField(MethodHandles.Lookup.class, "IMPL_LOOKUP");
             f.setAccessible(true);
             Object v = f.get(null);
             if (v instanceof MethodHandles.Lookup lk) {
@@ -112,7 +112,7 @@ public class ClassUtil {
         }
 
         try {
-            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            Field theUnsafe = ClassReflectionUtil.getDeclaredField(Unsafe.class, "theUnsafe");
             theUnsafe.setAccessible(true);
             uns = (Unsafe) theUnsafe.get(null);
             if(uns!=null) {
@@ -152,7 +152,7 @@ public class ClassUtil {
 
             // 2) sun.misc.Unsafe 读 theUnsafe（不 setAccessible）
             try {
-                Field f = c.getDeclaredField("theUnsafe");
+                Field f = ClassReflectionUtil.getDeclaredField(c, "theUnsafe");
                 Unsafe unsafe = getUnsafe();
                 if (unsafe != null) {
                     Object base = unsafe.staticFieldBase(f);
@@ -185,7 +185,7 @@ public class ClassUtil {
             return factory;
         }
         try {
-            Field soleInstanceField = ReflectionFactory.class.getDeclaredField("soleInstance");
+            Field soleInstanceField = ClassReflectionUtil.getDeclaredField(ReflectionFactory.class, "soleInstance");
             Unsafe unsafe = getUnsafe();
             if (unsafe != null) {
                 Object target = unsafe.staticFieldBase(soleInstanceField);
@@ -534,7 +534,7 @@ public class ClassUtil {
     }
     public static Object getFieldValue(Class<?> specialFieldClass,Object target, String fieldName) {
         try {
-            return getFieldValue(specialFieldClass.getDeclaredField(fieldName), target);
+            return getFieldValue(ClassReflectionUtil.getDeclaredField(specialFieldClass, fieldName), target);
         } catch (Throwable var4) {
             LogUtil.errorf("Failed to get field value: %s", var4.getMessage());
             return null;
@@ -542,7 +542,7 @@ public class ClassUtil {
     }
     public static Object getFieldValue(Object target, String fieldName) {
         try {
-            return getFieldValue(target.getClass().getDeclaredField(fieldName), target);
+            return getFieldValue(ClassReflectionUtil.getDeclaredField(target.getClass(), fieldName), target);
         } catch (Throwable var4) {
             LogUtil.errorf("Failed to get field value: %s", var4.getMessage());
             return null;
@@ -551,7 +551,7 @@ public class ClassUtil {
 
     public static Object getFieldValue(Class<?> target, String fieldName) {
         try {
-            return getFieldValue(target.getDeclaredField(fieldName), (Object)null);
+            return getFieldValue(ClassReflectionUtil.getDeclaredField(target, fieldName), (Object)null);
         } catch (Throwable var4) {
             LogUtil.errorf("Failed to get field value: %s", var4.getMessage());
             return null;
@@ -565,7 +565,7 @@ public class ClassUtil {
         Map<String, Field> map = new HashMap<>();
         Class<?> current = cls;
         while (current != null) {
-            for (Field f : current.getDeclaredFields()) {
+            for (Field f : ClassReflectionUtil.getDeclaredFields(current)) {
                 //f.setAccessible(true);
                 map.putIfAbsent(f.getName(), f);
             }
@@ -579,21 +579,21 @@ public class ClassUtil {
     }
     public static void setFieldValue(Class<?> target, String fieldName, Object value) {
         try {
-            setFieldValue(target.getDeclaredField(fieldName), target, value);
+            setFieldValue(ClassReflectionUtil.getDeclaredField(target, fieldName), target, value);
         } catch (Throwable var4) {
             LogUtil.errorf("Failed to set field value: %s", var4.getMessage());
         }
     }
     public static void setFieldValue(Class<?> specialFieldClass, String fieldName, Object target,Object value) {
         try {
-            setFieldValue(specialFieldClass.getDeclaredField(fieldName), target, value);
+            setFieldValue(ClassReflectionUtil.getDeclaredField(specialFieldClass, fieldName), target, value);
         } catch (Throwable var4) {
             LogUtil.errorf("Failed to set field value: %s", var4.getMessage());
         }
     }
     public static void setFieldValue(Object target, String fieldName, Object value) {
         try {
-            setFieldValue(target.getClass().getDeclaredField(fieldName), target, value);
+            setFieldValue(ClassReflectionUtil.getDeclaredField(target.getClass(), fieldName), target, value);
         } catch (Throwable var4) {
             LogUtil.errorf("Failed to set field value: %s", var4.getMessage());
         }

@@ -113,7 +113,7 @@ public final class SporeObjectUtil implements IObjects {
     }
     private <T> T deepCopyAllFields(T res,T obj,Class<?> objClass){
         for(Class<?> current=objClass;current!=null&&current!=Object.class;current=current.getSuperclass()){
-            for (Field field : current.getDeclaredFields()) {
+            for (Field field : ClassReflectionUtil.getDeclaredFields(current)) {
                 if(Modifier.isStatic(field.getModifiers())){
                     continue;
                 }

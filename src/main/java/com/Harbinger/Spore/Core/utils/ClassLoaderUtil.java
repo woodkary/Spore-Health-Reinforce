@@ -8,6 +8,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.transformers.MixinClassWriter;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -43,12 +44,23 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader, 
         if (original != clazz) {
             return original;
         }
-        for (Field field : clazz.getDeclaredFields()) {
+        for (Field field : ClassReflectionUtil.getDeclaredFields(clazz)) {
+            //有新增属性，内存结构不一致，不能替换klass指针
             if(!Modifier.isStatic(field.getModifiers())){
                 return clazz;
             }
         }
-        return clazz.getSuperclass();
+        Class<?> superClass = clazz.getSuperclass();
+        if (superClass == null || Modifier.isAbstract(superClass.getModifiers())) {
+            return clazz;
+        }
+        for (Method method : ClassReflectionUtil.getDeclaredMethods(superClass)) {
+            //有实现抽象方法，不能替换klass指针
+            if(Modifier.isAbstract(method.getModifiers())){
+                return clazz;
+            }
+        }
+        return superClass;
     }
     @Override
     public Class<?> getOriginalClass(Class<?> clazz){

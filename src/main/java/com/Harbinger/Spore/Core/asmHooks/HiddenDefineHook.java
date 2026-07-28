@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Core.agents.transformers.SporeHiddenDefineHookTransfo
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityEffectApplicationTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformer;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import org.objectweb.asm.ClassReader;
 
@@ -322,8 +323,8 @@ public final class HiddenDefineHook implements SelfTransformer {
             return false;
         }
         try {
-            Field[] hiddenFields = hidden.getDeclaredFields();
-            Field[] candidateFields = candidate.getDeclaredFields();
+            Field[] hiddenFields = ClassReflectionUtil.getDeclaredFields(hidden);
+            Field[] candidateFields = ClassReflectionUtil.getDeclaredFields(candidate);
             if (hiddenFields.length != candidateFields.length) {
                 return false;
             }

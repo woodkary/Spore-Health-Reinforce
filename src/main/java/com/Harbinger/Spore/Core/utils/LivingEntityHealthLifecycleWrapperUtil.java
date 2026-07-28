@@ -151,7 +151,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         if (callback.getName().contains(WRAPPER_SUFFIX)) {
             return callback;
         }
-        if (Modifier.isFinal(callback.getModifiers())) {
+        if (Modifier.isFinal(callback.getModifiers()) || Modifier.isAbstract(callback.getModifiers())) {
             return null;
         }
 
@@ -168,7 +168,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         if (callback.getName().contains(DEATH_WRAPPER_SUFFIX)) {
             return callback;
         }
-        if (Modifier.isFinal(callback.getModifiers())) {
+        if (Modifier.isFinal(callback.getModifiers()) || Modifier.isAbstract(callback.getModifiers())) {
             return null;
         }
 
@@ -185,7 +185,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         if (callback.getName().contains(DEATH_WRAPPER_SUFFIX)) {
             return callback;
         }
-        if (Modifier.isFinal(callback.getModifiers())) {
+        if (Modifier.isFinal(callback.getModifiers()) || Modifier.isAbstract(callback.getModifiers())) {
             return null;
         }
 
@@ -335,7 +335,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     private void emitHookedMethods(ClassNode node, Class<?> callback, String superName) {
         Set<String> visited = new HashSet<>();
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
-            for (Method method : cursor.getDeclaredMethods()) {
+            for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
                 if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
                     continue;
@@ -403,7 +403,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     private void emitDeathStateMethods(ClassNode node, Class<?> callback) {
         Set<String> visited = new HashSet<>();
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
-            for (Method method : cursor.getDeclaredMethods()) {
+            for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
                 if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
                     continue;
@@ -505,7 +505,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
 
     private boolean emitNoopOverrideIfFound(ClassNode node, Class<?> callback, Set<String> emitted, String targetName) {
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
-            for (Method method : cursor.getDeclaredMethods()) {
+            for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
                 if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
                     continue;
@@ -549,7 +549,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
 
     private boolean canDeclarePlayerNoopMethod(Class<?> callback, String methodName, String desc) {
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
-            for (Method method : cursor.getDeclaredMethods()) {
+            for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 if (!methodName.equals(method.getName())) {
                     continue;
                 }
@@ -587,7 +587,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
 
     private boolean emitInventoryOverrideIfFound(ClassNode node, Class<?> callback, Set<String> emitted, String targetName) {
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
-            for (Method method : cursor.getDeclaredMethods()) {
+            for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
                 if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
                     continue;

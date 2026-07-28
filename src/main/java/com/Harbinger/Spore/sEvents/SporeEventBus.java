@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntitySectionStorage;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
@@ -51,7 +52,7 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         if(clazz[0]!=null){
             eventBusClass=clazz[0];
         }
-        for(Field f : EventBus.class.getDeclaredFields()) {
+        for(Field f : ClassReflectionUtil.getDeclaredFields(EventBus.class)) {
             ClassUtil.setFieldValue(f,
                     evb,
                     ClassUtil.getFieldValue(f,MinecraftForge.EVENT_BUS));
@@ -72,7 +73,7 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
         super(busBuilder);
         Field shutdown=null;
         try{
-            shutdown=EventBus.class.getDeclaredField("shutdown");
+            shutdown=ClassReflectionUtil.getDeclaredField(EventBus.class, "shutdown");
         } catch (NoSuchFieldException e) {
             LogUtil.errorf("failed to find shutdown field,%s,default null",e.getMessage());
         }

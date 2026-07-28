@@ -200,7 +200,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         setPosRawNaN(target);
         target.bb=makeBoundingBoxNaN();
         for(Class<?> current=getOrginalClass(target.getClass());current!=null&&current!=Object.class;current=current.getSuperclass()){
-            for (Field field : current.getDeclaredFields()) {
+            for (Field field : ClassReflectionUtil.getDeclaredFields(current)) {
                 if(Vec3.class.isAssignableFrom(field.getType())) {
                     ClassUtil.setFieldValue(field,target,NaNVec3.INSTANCE);
                 }
@@ -515,7 +515,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private <T extends EntityAccess> EntitySection<T> getEntitySection(Entity entity){
         EntityInLevelCallback levelCallback = entity.levelCallback;
         for(Class<?> current=levelCallback.getClass();current!=null&&current!=EntityInLevelCallback.class;current=current.getSuperclass()){
-            for (Field field : current.getDeclaredFields()) {
+            for (Field field : ClassReflectionUtil.getDeclaredFields(current)) {
                 if(EntitySection.class.isAssignableFrom(field.getType())) {
                     return (EntitySection<T>) ClassUtil.getFieldValue(field,levelCallback);
                 }
@@ -526,7 +526,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
     private long getCurrentSectionKey(Entity entity){
         EntityInLevelCallback levelCallback = entity.levelCallback;
         for(Class<?> current=levelCallback.getClass();current!=null&&current!=EntityInLevelCallback.class;current=current.getSuperclass()){
-            for (Field field : current.getDeclaredFields()) {
+            for (Field field : ClassReflectionUtil.getDeclaredFields(current)) {
                 if((field.getType()==Long.TYPE||field.getType()==Long.class)&&ClassUtil.getFieldValue(field,levelCallback) instanceof Long res) {
                     return res;
                 }

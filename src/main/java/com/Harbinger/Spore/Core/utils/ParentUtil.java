@@ -44,7 +44,7 @@ public final class ParentUtil implements IParents,Function<Class<?>, List<Method
         }
 
         // 1. 查找当前类声明的方法
-        for (Method m : current.getDeclaredMethods()) {
+        for (Method m : ClassReflectionUtil.getDeclaredMethods(current)) {
             if (m.getParameterCount() == 0 &&
                     !Modifier.isStatic(m.getModifiers()) && // 排除静态方法
                     !m.isBridge() &&                        // 排除编译器生成的桥接方法，避免协变返回类型导致的重复

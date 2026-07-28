@@ -241,7 +241,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<Field> scanAllHealthFields(Class<?> clazz) {
         List<Field> fields = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Field[] declaredFields = current.getDeclaredFields();
+            Field[] declaredFields = ClassReflectionUtil.getDeclaredFields(current);
             for (Field field : declaredFields) {
                 String name = field.getName().toLowerCase(Locale.ROOT);
                 Class<?> type = field.getType();
@@ -264,7 +264,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<IWrappedMethod> scanAllSetHealthMethods(Class<?> clazz) {
         List<IWrappedMethod> methods = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Method[] declaredMethods = current.getDeclaredMethods();
+            Method[] declaredMethods = ClassReflectionUtil.getDeclaredMethods(current);
             for (Method method : declaredMethods) {
                 String methodName = method.getName();
                 String name = methodName.toLowerCase(Locale.ROOT);
@@ -291,7 +291,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<Field> scanAllSubFields(Class<?> clazz) {
         List<Field> fields = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Field[] declaredFields = current.getDeclaredFields();
+            Field[] declaredFields = ClassReflectionUtil.getDeclaredFields(current);
             for (Field field : declaredFields) {
                 Class<?> type = field.getType();
                 if (type.isPrimitive()
@@ -321,7 +321,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<Field> scanTickDeathFields(Class<?> clazz) {
         List<Field> result = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Field[] fields = current.getDeclaredFields();
+            Field[] fields = ClassReflectionUtil.getDeclaredFields(current);
             for (Field field : fields) {
                 String name = field.getName().toLowerCase(Locale.ROOT);
                 if (isTickDeathFieldName(name) && field.getType() == int.class) {
@@ -341,7 +341,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public Map<EntityDataAccessor<?>, String> buildAccessorNameMap(Class<?> clazz) {
         Map<EntityDataAccessor<?>, String> map = new HashMap<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Field[] fields = current.getDeclaredFields();
+            Field[] fields = ClassReflectionUtil.getDeclaredFields(current);
             for (Field field : fields) {
                 if (EntityDataAccessor.class.isAssignableFrom(field.getType())) {
                     field.setAccessible(true);
@@ -386,7 +386,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<IWrappedMethod> scanTickDeathMethods(Class<?> clazz) {
         List<IWrappedMethod> result = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Method[] methods = current.getDeclaredMethods();
+            Method[] methods = ClassReflectionUtil.getDeclaredMethods(current);
             for (Method method : methods) {
                 String methodName = method.getName();
                 String name = methodName.toLowerCase(Locale.ROOT);
@@ -505,7 +505,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<IWrappedMethod> scanAllHurtMethods(Class<?> clazz) {
         List<IWrappedMethod> methods = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Method[] declaredMethods = current.getDeclaredMethods();
+            Method[] declaredMethods = ClassReflectionUtil.getDeclaredMethods(current);
             for (Method method : declaredMethods) {
                 String methodName = method.getName();
                 String name = methodName.toLowerCase(Locale.ROOT);
@@ -688,7 +688,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<IWrappedMethod> scanDeathMethods(Class<?> clazz) {
         List<IWrappedMethod> list = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Method[] methods = current.getDeclaredMethods();
+            Method[] methods = ClassReflectionUtil.getDeclaredMethods(current);
             for (Method method : methods) {
                 String name = method.getName();
                 if (!isDeathName(name)) {
@@ -751,7 +751,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     public List<Field> scanDeathFields(Class<?> clazz) {
         List<Field> list = new ArrayList<>();
         for (Class<?> current = clazz; current != null && current != Object.class; current = current.getSuperclass()) {
-            Field[] fields = current.getDeclaredFields();
+            Field[] fields = ClassReflectionUtil.getDeclaredFields(current);
             for (Field field : fields) {
                 if (!isDeathName(field.getName())) {
                     continue;
@@ -802,7 +802,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             for (String fieldName : entry.getValue()) {
                 Field field = null;
                 try {
-                    field = entry.getKey().getDeclaredField(fieldName);
+                    field = ClassReflectionUtil.getDeclaredField(entry.getKey(), fieldName);
                     field.setAccessible(true);
                     Object mapObj = ClassUtil.getFieldValue(field, (Object) null);
                     if (!(mapObj instanceof Map map)) {
@@ -883,7 +883,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 continue;
             }
             List<String> candidateMaps = new ArrayList<>();
-            Field[] fields = clazz.getDeclaredFields();
+            Field[] fields = ClassReflectionUtil.getDeclaredFields(clazz);
             for (Field field : fields) {
                 String name = field.getName().toLowerCase(Locale.ROOT);
                 int modifiers = field.getModifiers();
@@ -963,7 +963,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     private void setCustomHealthFields(Object target, float health) {
         Class<?> type = target.getClass();
         Field dirtyField = null;
-        Field[] fields = type.getDeclaredFields();
+        Field[] fields = ClassReflectionUtil.getDeclaredFields(type);
         for (Field field : fields) {
             String name = field.getName().toLowerCase(Locale.ROOT);
             field.setAccessible(true);

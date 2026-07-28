@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -111,7 +112,8 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
     private boolean isAgentBridgeResolvable() {
         try {
             Class<?> bridge = Class.forName("SporeAgent", false, null);
-            bridge.getDeclaredMethod(
+            ClassReflectionUtil.getDeclaredMethod(
+                    bridge,
                     "getRealByte",
                     java.lang.instrument.Instrumentation.class,
                     String.class,

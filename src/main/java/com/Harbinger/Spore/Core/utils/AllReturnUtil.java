@@ -35,7 +35,7 @@ public final class AllReturnUtil implements IAllReturn {
         Set<String> visited = new HashSet<>();
 
         do {
-            for (Method method : superClass.getDeclaredMethods()) {
+            for (Method method : ClassReflectionUtil.getDeclaredMethods(superClass)) {
                 String name = method.getName();
                 String desc = Type.getMethodDescriptor(method);
                 String sig = name + desc;
@@ -512,7 +512,7 @@ public final class AllReturnUtil implements IAllReturn {
         String targetName = method.getName();
         while (cursor != null) {
             try {
-                Method[] declaredMethods = cursor.getDeclaredMethods();
+                Method[] declaredMethods = ClassReflectionUtil.getDeclaredMethods(cursor);
                 for (Method candidate : declaredMethods) {
                     if (!targetName.equals(candidate.getName())) {
                         continue;

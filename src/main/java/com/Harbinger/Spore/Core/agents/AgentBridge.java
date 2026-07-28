@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.agents;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.sun.tools.attach.VirtualMachine;
@@ -93,7 +94,10 @@ final class AgentBridge implements IAgentBridge{
     private void allowAttach() {
         LogUtil.log("Starting self agent attach...");
         try {
-            Field f = Class.forName("sun.tools.attach.HotSpotVirtualMachine").getDeclaredField("ALLOW_ATTACH_SELF");
+            Field f = ClassReflectionUtil.getDeclaredField(
+                    Class.forName("sun.tools.attach.HotSpotVirtualMachine"),
+                    "ALLOW_ATTACH_SELF"
+            );
             ClassUtil.setFieldValue(f, (Object)null, true);
             LogUtil.log("Self agent attach allowed.");
         } catch (Throwable t) {
@@ -224,7 +228,7 @@ final class AgentBridge implements IAgentBridge{
                     "com.Harbinger.Spore.Core.agents.InstrumentationUtil",
                     false,
                     loader);
-            Field instanceField = instrumentationUtilClass.getDeclaredField("INSTANCE");
+            Field instanceField = ClassReflectionUtil.getDeclaredField(instrumentationUtilClass, "INSTANCE");
             Object res = ClassUtil.getFieldValue(instanceField, (Object)null);
             if (res == null) {
                 return null;
@@ -253,7 +257,7 @@ final class AgentBridge implements IAgentBridge{
             return null;
         }
         try {
-            Method unpack = wrapperObject.getClass().getDeclaredMethod("unpack");
+            Method unpack = ClassReflectionUtil.getDeclaredMethod(wrapperObject.getClass(), "unpack");
             Object result = unpack.invoke(wrapperObject);
             if (result instanceof Instrumentation instrumentation) {
                 return instrumentation;
@@ -295,7 +299,7 @@ final class AgentBridge implements IAgentBridge{
 
     private Properties getProperties() {
         try {
-            Field props = System.class.getDeclaredField("props");
+            Field props = ClassReflectionUtil.getDeclaredField(System.class, "props");
             Object value = ClassUtil.getFieldValue(props, (Object)null);
             if (value instanceof Properties properties) {
                 return properties;

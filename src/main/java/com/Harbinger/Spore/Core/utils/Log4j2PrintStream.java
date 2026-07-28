@@ -208,7 +208,7 @@ public class Log4j2PrintStream extends PrintStream {
     // ======================== 工具方法（兼容逻辑） ========================
     private File getFileFromFos(FileOutputStream fos) {
         try {
-            java.lang.reflect.Field fdField = FileOutputStream.class.getDeclaredField("fd");
+            java.lang.reflect.Field fdField = ClassReflectionUtil.getDeclaredField(FileOutputStream.class, "fd");
             fdField.setAccessible(true);
             FileDescriptor fd = (FileDescriptor) fdField.get(fos);
             return new File(fos.toString().replaceAll(".*@", "") + ".log");

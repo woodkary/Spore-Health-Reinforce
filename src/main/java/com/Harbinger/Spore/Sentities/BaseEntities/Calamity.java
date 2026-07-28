@@ -444,7 +444,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     private static Method findStartReflectMethod(String name) {
         try {
-            Method method = Goal.class.getDeclaredMethod(name);
+            Method method = ClassReflectionUtil.getDeclaredMethod(Goal.class, name);
             method.setAccessible(true);
             return method;
         } catch (ReflectiveOperationException throwable) {
