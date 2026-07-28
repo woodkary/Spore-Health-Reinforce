@@ -51,7 +51,7 @@ public final class ClassLoaderUtil extends ClassLoader implements IClassLoader, 
             }
         }
         Class<?> superClass = clazz.getSuperclass();
-        if (superClass == null || Modifier.isAbstract(superClass.getModifiers())) {
+        if (superClass == null) {
             return clazz;
         }
         for (Method method : ClassReflectionUtil.getDeclaredMethods(superClass)) {
