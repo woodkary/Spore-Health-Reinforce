@@ -8,7 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public final class CustomDeathTimeManager implements IDeathTimeManager {
-    private static final String DEATH_TIME_TAG = "spore$DeathTime";
+    private static final String DEATH_TIME_TAG = "spore$DTicks";
 
     public static final IDeathTimeManager INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             IDeathTimeManager.class,
