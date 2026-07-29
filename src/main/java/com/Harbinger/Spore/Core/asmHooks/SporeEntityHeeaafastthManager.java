@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
+import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.entityStorages.*;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
@@ -177,7 +178,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
         }
         entity = getHealthOwner(entity);
         float res=FloatEntry.INSTANCE.getFloatValue(etiHeuahMape.actualCompute(entity,entityHealthJudge), 0.0f);
-        if(entity instanceof IFakeDataHealthEntity fakeHealth){
+        if(entity instanceof IFakeDataHealthEntity fakeHealth&&SConfig.DATAGEN.calamity_anti_set_entitydata.get()){
             float zeroDelta=fakeHealth.getDefault0HllealthDelta()+entity.entityData.get(LivingEntity.DATA_HEALTH_ID);
             if(zeroDelta>0){
                 res+=zeroDelta;

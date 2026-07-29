@@ -1862,6 +1862,8 @@ public class SConfig {
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> raid_level_3;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> special;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> drops;
+
+        public final ForgeConfigSpec.ConfigValue<Boolean> calamity_anti_set_entitydata;
         public DataGen(ForgeConfigSpec.Builder builder){
             builder.push("Loot Tables");
             builder.comment("item|chance to drop(1-100)|minimum amount|maximum amount. Only values above 0 will be taken in consideration.");
@@ -2146,6 +2148,10 @@ public class SConfig {
             this.drops= builder.defineList("Items that may drop at the end of the raid",
                     Lists.newArrayList("spore:fleshy_bone","spore:hardened_bind","spore:fleshy_claw" ,"spore:living_core" , "spore:spine","spore:armor_plate","spore:plated_muscle","spore:altered_spleen","spore:corrosive_sack","spore:sickle_fragment","spore:vigil_eye","spore:symbiotic_reagent"
                             ,"spore:cryogenic_reagent","spore:flesh_horse_armor","spore:plated_horse_armor","spore:living_horse_armor","spore:gastric_reagent","spore:corrosive_reagent","spore:serrated_reagent","spore:voracious_reagent","spore:calcified_tumor","spore:frozen_tumor","spore:sicken_tumor","spore:bile_tumor") , o -> o instanceof String);
+            builder.pop();
+
+            builder.push("calamity's health calculation");
+            this.calamity_anti_set_entitydata=builder.comment("Default false").define("calamities heal when attacked by entityData-based set health?",false);
             builder.pop();
         }
     }
