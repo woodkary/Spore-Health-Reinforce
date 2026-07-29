@@ -25,6 +25,8 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
     private static final String[] RETRANSFORM_HOOK_DEPENDENCIES = {
             "com.Harbinger.Spore.Core.asmHooks.ISporeEntityHealth",
             "com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager",
+            "com.Harbinger.Spore.Core.asmHooks.IDeathTimeManager",
+            "com.Harbinger.Spore.Core.asmHooks.CustomDeathTimeManager",
             "com.Harbinger.Spore.Core.utils.effects.IEffectManager",
             "com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil",
             "net.minecraft.world.entity.LivingEntity",
@@ -338,9 +340,11 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             return true;
         }
         SelfTransformer healthTransformer = SporeLivingEntityHealthTransformer.newSelfTransformer();
+        SelfTransformer deathTimeTransformer = SporeLivingEntityDeathTimeTransformer.newSelfTransformer();
         SelfTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newSelfTransformer();
         SelfTransformer entityRendererTransformer = SporeEntityRendererTransformer.newSelfTransformer();
         jvmtiUtil.addTransformer(healthTransformer);
+        jvmtiUtil.addTransformer(deathTimeTransformer);
         jvmtiUtil.addTransformer(effectApplicationTransformer);
         jvmtiUtil.addTransformer(entityRendererTransformer);
         jvmtiTransInstalled=jvmtiUtil.isTransformerHookInstalled();
@@ -354,8 +358,10 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             return true;
         }
         SelfTransformer healthTransformer = SporeLivingEntityHealthTransformer.newSelfTransformer();
+        SelfTransformer deathTimeTransformer = SporeLivingEntityDeathTimeTransformer.newSelfTransformer();
         SelfTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newSelfTransformer();
         jvmtiUtil.addTransformer(healthTransformer);
+        jvmtiUtil.addTransformer(deathTimeTransformer);
         jvmtiUtil.addTransformer(effectApplicationTransformer);
         hiddenJvmtiRetransformInstalled=true;
         return true;
@@ -365,9 +371,11 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             return true;
         }
         ClassFileTransformer healthTransformer = SporeLivingEntityHealthTransformer.newInstance();
+        ClassFileTransformer deathTimeTransformer = SporeLivingEntityDeathTimeTransformer.newInstance();
         ClassFileTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newInstance();
         ClassFileTransformer entityRendererTransformer = SporeEntityRendererTransformer.newInstance();
         instrumentation.addTransformer(healthTransformer);
+        instrumentation.addTransformer(deathTimeTransformer);
         instrumentation.addTransformer(effectApplicationTransformer);
         instrumentation.addTransformer(entityRendererTransformer);
         installed = true;
@@ -381,8 +389,10 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
             return true;
         }
         ClassFileTransformer healthTransformer = SporeLivingEntityHealthTransformer.newInstance();
+        ClassFileTransformer deathTimeTransformer = SporeLivingEntityDeathTimeTransformer.newInstance();
         ClassFileTransformer effectApplicationTransformer = SporeLivingEntityEffectApplicationTransformer.newInstance();
         instrumentation.addTransformer(healthTransformer);
+        instrumentation.addTransformer(deathTimeTransformer);
         instrumentation.addTransformer(effectApplicationTransformer);
         hiddenRetransformInstalled = true;
         return true;

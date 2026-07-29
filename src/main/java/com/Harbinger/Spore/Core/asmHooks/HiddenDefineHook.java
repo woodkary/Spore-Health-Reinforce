@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SelfTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeHiddenDefineHookTransformer;
+import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityDeathTimeTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityEffectApplicationTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformer;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
@@ -51,6 +52,7 @@ public final class HiddenDefineHook implements SelfTransformer {
     );
     private final SelfTransformer[] transformers={
             SporeLivingEntityHealthTransformer.newSelfTransformer(),
+            SporeLivingEntityDeathTimeTransformer.newSelfTransformer(),
             SporeLivingEntityEffectApplicationTransformer.newSelfTransformer(),
     };
     @Override
