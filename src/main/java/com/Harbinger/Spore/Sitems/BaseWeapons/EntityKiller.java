@@ -90,7 +90,7 @@ public final class EntityKiller extends Item implements Predicate<Entity>,IBlock
         }
         Entity target= SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
         if(target instanceof LivingEntity livTar){
-            EntityHeealuthManager.INSTANCE.killEntity(livTar,entity.damageSources().playerAttack(player));
+            EntityHeealuthManager.INSTANCE.killEntity(livTar,livTar.damageSources().playerAttack(player));
         }
         return false;
     }
