@@ -477,7 +477,7 @@ public class Sitems {
     public  static final RegistryObject<Item> TERRORISER = ITEMS.register("terroriser",
             () -> hiddenItem("com.Harbinger.Spore.Sitems.Guns.ToxicTerroriser"));
     public  static final RegistryObject<Item> VIGIL_EYE = ITEMS.register("vigil_eye",
-            VigilEye::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.VigilEye"));
     public  static final RegistryObject<Item> SYMBIOTIC_REAGENT = ITEMS.register("symbiotic_reagent",
             () -> new BiologicalReagent(BiologicalReagent.AcceptedTypes.ALL_TYPES){
                 @Override

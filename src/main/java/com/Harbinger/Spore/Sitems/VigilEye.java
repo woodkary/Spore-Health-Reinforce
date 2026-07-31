@@ -18,8 +18,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-public class VigilEye extends BaseItem{
+public final class VigilEye extends BaseItem implements Consumer<LivingEntity> {
     public VigilEye() {
         super(new Properties().stacksTo(1).durability(1).rarity(Rarity.RARE));
     }
@@ -53,8 +54,12 @@ public class VigilEye extends BaseItem{
                 living.addEffect(new MobEffectInstance(MobEffects.GLOWING,600,0));
             }
         }
-        stack.hurtAndBreak(1, livingEntity, (ss) -> {
-            ss.broadcastBreakEvent(livingEntity.getUsedItemHand());});
+        stack.hurtAndBreak(1, livingEntity, this);
         }
+    }
+
+    @Override
+    public void accept(LivingEntity entity) {
+        entity.broadcastBreakEvent(entity.getUsedItemHand());
     }
 }
