@@ -13,9 +13,9 @@ public final class FrostBite extends MobEffect {
     public FrostBite() {
         super(MobEffectCategory.BENEFICIAL, 8991416);
     }
-    public static final TagKey<EntityType<?>> coldWeakness = EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES;
+    private final TagKey<EntityType<?>> coldWeaknessTag = EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES;
     public void applyEffectTick(LivingEntity entity, int intense) {
-        if (entity.getType().is(coldWeakness)){
+        if (entity.getType().is(coldWeaknessTag)){
             int level = 0;
             double modifier = 0.1;
             if (entity instanceof ColdWeakness coldWeakness){
