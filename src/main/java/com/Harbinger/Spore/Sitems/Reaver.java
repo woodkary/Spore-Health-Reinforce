@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sitems;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Sentities.BaseEntities.*;
 import com.Harbinger.Spore.Sitems.BaseWeapons.LootModifierWeapon;
 import net.minecraft.core.BlockPos;
@@ -18,44 +19,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Reaver extends SwordItem implements LootModifierWeapon {
+public final class Reaver extends AbstractReaver {
     private final List<ComboValues> basicInfectedList;
     private final List<ComboValues> evolvedList;
     private final List<ComboValues> hyperList;
     private final List<ComboValues> organoidList;
     private final List<ComboValues> calamityList;
     public Reaver() {
-        super(new Tier() {
-            @Override
-            public int getUses() {
-                return SConfig.SERVER.reaver_durability.get();
-            }
-
-            @Override
-            public float getSpeed() {
-                return -2;
-            }
-
-            @Override
-            public float getAttackDamageBonus() {
-                return SConfig.SERVER.reaver_damage.get() -1;
-            }
-
-            @Override
-            public int getLevel() {
-                return 3;
-            }
-
-            @Override
-            public int getEnchantmentValue() {
-                return 3;
-            }
-
-            @Override
-            public Ingredient getRepairIngredient() {
-                return Ingredient.of(Sitems.COMPOUND_PLATE.get());
-            }
-        }, 0, -1, new Properties());
+        super(BytecodeUtil.createInstanceByName("com.Harbinger.Spore.Sitems.ReaverTier",new Class<?>[0]), 0, -1, new Properties());
         Sitems.TECHNOLOGICAL_ITEMS.add(this);
         basicInfectedList = calculateMap(SConfig.SERVER.reaver_loot.get());
         evolvedList = calculateMap(SConfig.SERVER.reaver_loot1.get());

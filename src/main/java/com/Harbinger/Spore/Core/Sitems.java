@@ -642,7 +642,7 @@ public class Sitems {
             () -> hiddenItem("com.Harbinger.Spore.Sitems.Agents.ArmorSyringe",
                     new Class<?>[]{SporeArmorMutations.class}, SporeArmorMutations.CHARRED));
     public  static final RegistryObject<Item> REAVER = ITEMS.register("reaver",
-            Reaver::new);
+            ()->hiddenItem("com.Harbinger.Spore.Sitems.Reaver"));
     public  static final RegistryObject<Item> PCI = ITEMS.register("pci",
             PCI::new);
     public  static final RegistryObject<Item> SYRINGE_GUN = ITEMS.register("syringe_gun",

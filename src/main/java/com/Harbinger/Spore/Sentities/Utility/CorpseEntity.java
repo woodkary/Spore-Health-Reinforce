@@ -5,7 +5,7 @@ import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Sentities.HitboxesForParts;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
-import com.Harbinger.Spore.Sitems.Reaver;
+import com.Harbinger.Spore.Sitems.AbstractReaver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -114,7 +114,7 @@ public class CorpseEntity extends Entity {
     }
     @Override
     public InteractionResult interactAt(Player player, Vec3 hitVec, InteractionHand hand) {
-        if (!level().isClientSide && player.getItemInHand(hand).getItem() instanceof Reaver && Math.random() < 0.3f){
+        if (!level().isClientSide && player.getItemInHand(hand).getItem() instanceof AbstractReaver && Math.random() < 0.3f){
             summonItem(new ItemStack(HitboxesForParts.byId(getCorpseType()).getCalamityType().getStack()));
             this.playSound(Ssounds.REAVER_REAVE.get());
         }
