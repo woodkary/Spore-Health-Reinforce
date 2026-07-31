@@ -49,7 +49,6 @@ public final class Reaver extends AbstractReaver {
         }
         return values;
     }
-    public record ComboValues(ItemStack stack,Integer value){}
 
     @Override
     public int getLootingLevel() {
@@ -84,8 +83,8 @@ public final class Reaver extends AbstractReaver {
     public boolean shaveLoot(ItemStack stack, LivingEntity livingEntity, LivingEntity victim,ComboValues values){
         Level level = livingEntity.level();
         BlockPos pos = livingEntity.getOnPos();
-        if (!level.isClientSide && values != null && Math.random() < (values.value * 0.01)){
-        ItemEntity item = new ItemEntity(level,pos.getX(),pos.getY(),pos.getZ(),values.stack);
+        if (!level.isClientSide && values != null && Math.random() < (values.value() * 0.01)){
+        ItemEntity item = new ItemEntity(level,pos.getX(),pos.getY(),pos.getZ(), values.stack());
         level.addFreshEntity(item);
         livingEntity.playSound(Ssounds.REAVER_REAVE.get());
         }
