@@ -1,9 +1,8 @@
 package com.Harbinger.Spore.Core;
 
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Effect.*;
 import com.Harbinger.Spore.Spore;
-import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -19,46 +18,51 @@ public class Seffects {
         MOB_EFFECTS.register(eventBus);
     }
 
-
+    private static MobEffect hiddenEffect(String className){
+        return hiddenEffect(className,new Class<?>[0]);
+    }
+    private static MobEffect hiddenEffect(String className, Class<?>[] constructorTypes, Object... constructorArgs){
+        return BytecodeUtil.createInstanceByName(className, constructorTypes, constructorArgs);
+    }
 
     public static final RegistryObject<MobEffect> MYCELIUM = MOB_EFFECTS.register("mycelium_ef",
-            Mycelium::new);
+            ()->hiddenEffect("com.Harbinger.Spore.Effect.Mycelium"));
 
     public static final RegistryObject<MobEffect> MADNESS = MOB_EFFECTS.register("madness",
-            Madness::new);
+            ()->hiddenEffect("com.Harbinger.Spore.Effect.Madness"));
 
     public static final RegistryObject<MobEffect> STARVATION = MOB_EFFECTS.register("starvation",
-            Starvation::new);
+            ()->hiddenEffect("com.Harbinger.Spore.Effect.Starvation"));
 
     public static final RegistryObject<MobEffect> UNEASY = MOB_EFFECTS.register("uneasy",
-            Uneasy::new);
+            ()->hiddenEffect("com.Harbinger.Spore.Effect.Uneasy"));
 
     public static final RegistryObject<MobEffect> IGNITABLE = MOB_EFFECTS.register("ignitable",
-            Ignitable::new);
+            ()->hiddenEffect("com.Harbinger.Spore.Effect.Ignitable"));
 
     public static final RegistryObject<MobEffect> HEALING_INHIBITION = MOB_EFFECTS.register("healing_inhibition",
-            HealingInhibition::new);
+            ()->hiddenEffect("com.Harbinger.Spore.Effect.HealingInhibition"));
 
     public static final RegistryObject<MobEffect> MARKER = MOB_EFFECTS.register("marker",
-            () -> new Marker().addAttributeModifier(Attributes.FOLLOW_RANGE,
+            () -> hiddenEffect("com.Harbinger.Spore.Effect.Marker").addAttributeModifier(Attributes.FOLLOW_RANGE,
                     "91AEAA56-376B-4498-935B-2F7F68070635",0.5F ,AttributeModifier.Operation.MULTIPLY_TOTAL));
 
     public static final RegistryObject<MobEffect> CORROSION = MOB_EFFECTS.register("corrosion",
-            () -> new Corrosion().addAttributeModifier(Attributes.ARMOR,
+            () -> hiddenEffect("com.Harbinger.Spore.Effect.Corrosion").addAttributeModifier(Attributes.ARMOR,
                     "91AEAA56-376B-4498-935B-2F7F68070635",-0.1F ,AttributeModifier.Operation.MULTIPLY_TOTAL));
 
     public static final RegistryObject<MobEffect> FROSTBITE = MOB_EFFECTS.register("frostbite",
-            () -> new FrostBite().addAttributeModifier(Attributes.MOVEMENT_SPEED,
+            () -> hiddenEffect("com.Harbinger.Spore.Effect.FrostBite").addAttributeModifier(Attributes.MOVEMENT_SPEED,
                     "6ee43a05-b6c8-4abf-8c1d-6e36007724e0",-0.1F ,AttributeModifier.Operation.MULTIPLY_TOTAL));
 
     public static final RegistryObject<MobEffect> BILED = MOB_EFFECTS.register("biled",
-            () -> new Biled().addAttributeModifier(Attributes.MOVEMENT_SPEED,
+            () -> hiddenEffect("com.Harbinger.Spore.Effect.Biled").addAttributeModifier(Attributes.MOVEMENT_SPEED,
                     "4be9c86d-ff59-4eed-b3e4-a07d72a241af",-0.2f ,AttributeModifier.Operation.MULTIPLY_TOTAL).addAttributeModifier(Attributes.ATTACK_SPEED,
                     "325ec79e-11cc-499b-9557-9f168c4e7ce6",-0.2f ,AttributeModifier.Operation.MULTIPLY_TOTAL).addAttributeModifier(Attributes.ATTACK_DAMAGE,
                     "8bd4f8a7-3677-42bc-8e63-129ab2330906",-0.2f ,AttributeModifier.Operation.MULTIPLY_TOTAL));
 
     public static final RegistryObject<MobEffect> SYMBIOSIS = MOB_EFFECTS.register("symbiosis",
-            () -> new Symbiosis().addAttributeModifier(Attributes.MOVEMENT_SPEED,
+            () -> hiddenEffect("com.Harbinger.Spore.Effect.Symbiosis").addAttributeModifier(Attributes.MOVEMENT_SPEED,
                     "91AEAA56-376B-4498-935B-2F7F68070635", 0.2F, AttributeModifier.Operation.MULTIPLY_TOTAL)
                     .addAttributeModifier(Attributes.ATTACK_SPEED,
                             "91AEAA56-376B-4498-935B-2F7F68070635", 0.2F, AttributeModifier.Operation.MULTIPLY_TOTAL)

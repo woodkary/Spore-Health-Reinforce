@@ -15,7 +15,7 @@ import net.minecraftforge.common.extensions.IForgeMobEffect;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Marker extends MobEffect implements IForgeMobEffect {
+public final class Marker extends MobEffect implements IForgeMobEffect {
     public Marker() {
         super(MobEffectCategory.NEUTRAL, 8412043);
     }

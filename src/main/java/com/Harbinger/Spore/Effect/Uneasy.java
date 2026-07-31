@@ -12,7 +12,7 @@ import net.minecraft.world.item.Items;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Uneasy extends MobEffect {
+public final class Uneasy extends MobEffect {
     public Uneasy() {
         super(MobEffectCategory.NEUTRAL, -13434778);
     }

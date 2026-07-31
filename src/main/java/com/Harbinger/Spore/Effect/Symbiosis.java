@@ -11,7 +11,7 @@ import net.minecraftforge.common.extensions.IForgeMobEffect;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Symbiosis extends MobEffect implements IForgeMobEffect {
+public final class Symbiosis extends MobEffect implements IForgeMobEffect {
     public Symbiosis() {
         super(MobEffectCategory.BENEFICIAL, 8412043);
     }

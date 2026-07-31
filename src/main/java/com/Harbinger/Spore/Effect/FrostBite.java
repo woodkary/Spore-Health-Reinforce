@@ -9,7 +9,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
-public class FrostBite extends MobEffect {
+public final class FrostBite extends MobEffect {
     public FrostBite() {
         super(MobEffectCategory.BENEFICIAL, 8991416);
     }

@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Madness extends MobEffect {
+public final class Madness extends MobEffect {
     public Madness() {
         super(MobEffectCategory.HARMFUL, 419435);
     }

@@ -8,7 +8,7 @@ import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
-import com.Harbinger.Spore.Effect.Ignitable;
+import com.Harbinger.Spore.Effect.SetAblazeChances;
 import com.Harbinger.Spore.ExtremelySusThings.*;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SongInitializingPacket;
 import com.Harbinger.Spore.SBlockEntities.CDUBlockEntity;
@@ -928,7 +928,7 @@ public class HandlerEvents {
         }
         if (target.hasEffect(Seffects.IGNITABLE.get())){
             float chance = 0.01f;
-            for (Ignitable.SetAblazeChances chances : Ignitable.SetAblazeChances.values()){
+            for (SetAblazeChances chances : SetAblazeChances.values()){
                 if (event.getSource().is(chances.getDamageType())){
                     chance = chances.getChance();
                     break;
