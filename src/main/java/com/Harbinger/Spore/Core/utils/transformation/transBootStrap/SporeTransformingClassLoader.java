@@ -24,7 +24,9 @@ public final class SporeTransformingClassLoader extends TransformingClassLoader 
     }
     private byte[] classBytes(byte[] bytes, final String name,final String context) {
         if(name.startsWith("com.Harbinger.Spore.Core.")||
-            name.startsWith("com/Harbinger/Spore/Core/")) {
+            name.startsWith("com/Harbinger/Spore/Core/")||
+            name.startsWith("com.Harbinger.Spore.mixin.")||
+            name.startsWith("com/Harbinger/Spore/Core/mixin/")) {
             return bytes;
         }
         return super.maybeTransformClassBytes(bytes, name, context);
