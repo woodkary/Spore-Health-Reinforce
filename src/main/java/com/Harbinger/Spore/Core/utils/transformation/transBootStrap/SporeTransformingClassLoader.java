@@ -12,14 +12,21 @@ public final class SporeTransformingClassLoader extends TransformingClassLoader 
     protected byte[] maybeTransformClassBytes(byte[] bytes, String name, String context) {
         Launcher launcher = Launcher.INSTANCE;
         if (launcher == null) {
-            return super.maybeTransformClassBytes(bytes, name, context);
+            return this.classBytes(bytes, name, context);
         }
         Object value = ClassUtil.getFieldValue(Launcher.class, launcher, "launchPlugins");
         if (!(value instanceof LaunchPluginHandler handler)) {
-            return super.maybeTransformClassBytes(bytes, name, context);
+            return this.classBytes(bytes, name, context);
         }
         ITransformationBootStrap bootstrap = SporeTransformationBootStrap.INSTANCE;
         bootstrap.wrapLaunchPluginHandler(handler);
+        return this.classBytes(bytes, name, context);
+    }
+    private byte[] classBytes(byte[] bytes, final String name,final String context) {
+        if(name.startsWith("com.Harbinger.Spore.Core.")||
+            name.startsWith("com/Harbinger/Spore/Core/")) {
+            return bytes;
+        }
         return super.maybeTransformClassBytes(bytes, name, context);
     }
 
