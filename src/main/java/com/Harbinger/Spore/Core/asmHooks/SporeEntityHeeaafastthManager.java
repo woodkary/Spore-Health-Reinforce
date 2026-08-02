@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.asmHooks;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.entityStorages.*;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeIterator;
@@ -40,7 +41,7 @@ import java.util.function.Function;
  * @author karywoodOyo
  */
 public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, Function<ICalamityMultipart,LivingEntity> {
-    public static final ISporeEntityHealth INSTANCE = BytecodeUtil.createHiddenSingletonInstance(ISporeEntityHealth.class, SporeEntityHeeaafastthManager.class);
+    public static final ISporeEntityHealth INSTANCE;
     private final ISporeMap<LivingEntity, IFloatEntry> entityMaxHeeaafastth = SporeMapProxy.newInstance(new ConcurrentHashMap<>());
     private final ISporeMap<LivingEntity, IFloatEntry> etiHeuahMape = SporeMapProxy.newInstance(new ConcurrentHashMap<>());
     private final Map<ICalamityMultipart,LivingEntity> partToHead=new ConcurrentHashMap<>();
@@ -387,5 +388,19 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
             }
             return mapValue;
         }
+    }
+
+    static{
+        Class<? extends ISporeEntityHealth>[] managerClass=new Class[1];
+        INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
+                managerClass,
+                ISporeEntityHealth.class,
+                SporeEntityHeeaafastthManager.class,
+                new Class<?>[0]
+        );
+        if(managerClass[0]!=null){
+            ClassReflectionUtil.removeCachedReflectionData(managerClass[0]);
+        }
+        ClassReflectionUtil.removeCachedReflectionData(SporeEntityHeeaafastthManager.class);
     }
 }

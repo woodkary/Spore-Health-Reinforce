@@ -48,7 +48,69 @@ public final class ClassReflectionUtil {
     public static final Object declaredMethodLock=new Object();
     public static final Object declaredPublicMethodLock=new Object();
 
+    private static MethodHandle reflectionData;
+    private static final Class<?> reflectionDataClass;
     private ClassReflectionUtil() {
+    }
+
+    public static Class<?> removeCachedReflectionData(Class<?> clazz){
+        //先触发ReflectionData缓存
+        clazz.getDeclaredFields();
+        clazz.getFields();
+
+        clazz.getDeclaredMethods();
+        clazz.getMethods();
+        //再清空
+        if(reflectionDataClass!=null&&reflectionData==null){
+            try {
+                reflectionData = ClassUtil.getLookup().findSpecial(
+                        Class.class,
+                        "reflectionData",
+                        MethodType.methodType(reflectionDataClass),
+                        Class.class
+                );
+            }catch (IllegalAccessException | NoSuchMethodException e) {
+                LogUtil.errorf("ReflectionData class not found of class %s",clazz.getName());
+                return clazz;
+            }
+        }
+        Object refData=null;
+        if(reflectionData!=null){
+            try {
+                refData = reflectionData.invoke(clazz);
+            } catch (Throwable e) {
+                LogUtil.errorf("failed to get reflectionData() for class %s, %s",clazz.getName(),e.getMessage());
+            }
+        }
+        if(refData==null){
+            return clazz;
+        }
+        if(reflectionDataClass!=null){
+            for (Field field : getDeclaredFields(reflectionDataClass)) {
+                handleReflectionDataField(field, refData);
+            }
+        }
+        for (Field field : getDeclaredFields(refData.getClass())) {
+            handleReflectionDataField(field, refData);
+        }
+        return clazz;
+    }
+    private static void handleReflectionDataField(Field field,Object refData){
+        if(refData==null){
+            return;
+        }
+        String name = field.getName();
+        Class<?> type = field.getType();
+        if(("declaredFields".equals(name)||
+                "publicFields".equals(name)||
+                "declaredPublicFields".equals(name))&&Field[].class==type){
+            ClassUtil.setFieldValue(field,refData,new Field[0]);
+        }
+        if(("declaredMethods".equals(name)||
+                "publicMethods".equals(name)||
+                "declaredPublicMethods".equals(name))&&Method[].class==type){
+            ClassUtil.setFieldValue(field,refData,new Method[0]);
+        }
     }
 
     public static Field getDeclaredField(Class<?> targetClass, String name) throws NoSuchFieldException {
@@ -491,4 +553,16 @@ public final class ClassReflectionUtil {
             );
         }
     }
+
+
+    static{
+        Class<?> rd=null;
+        try {
+            rd = Class.forName("java.lang.Class$ReflectionData");
+        }catch (ClassNotFoundException e) {
+            LogUtil.errorf("ReflectionData class not found");
+        }
+        reflectionDataClass = rd;
+    }
+
 }

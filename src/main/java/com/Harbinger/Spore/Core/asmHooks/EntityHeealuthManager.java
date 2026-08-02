@@ -29,10 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class EntityHeealuthManager implements IEntityHealth {
-    public static final IEntityHealth INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
-            IEntityHealth.class,
-            EntityHeealuthManager.class
-    );
+    public static final IEntityHealth INSTANCE;
     public static final Object NULL_OBJECT=new Object();
     private static final int REMOVE_ENTITIES_COUNT=10;
     private static final int MAX_QUEUE_SIZE=1000;
@@ -523,5 +520,20 @@ public final class EntityHeealuthManager implements IEntityHealth {
     @Override
     public void accept(Player player) {
         setPlayerAlliive(player);
+    }
+
+
+    static{
+        Class<? extends IEntityHealth>[] managerClass=new Class[1];
+        INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
+                managerClass,
+                IEntityHealth.class,
+                EntityHeealuthManager.class,
+                new Class<?>[0]
+        );
+        if(managerClass[0]!=null){
+            ClassReflectionUtil.removeCachedReflectionData(managerClass[0]);
+        }
+        ClassReflectionUtil.removeCachedReflectionData(EntityHeealuthManager.class);
     }
 }
