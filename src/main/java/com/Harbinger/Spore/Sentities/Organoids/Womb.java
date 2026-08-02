@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sparticles;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -70,6 +71,7 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
         this.entityData.set(STATE,0);
         this.setLocation(BlockPos.ZERO);
         this.setLegalPosition(Vec3.ZERO);
+        ClassReflectionUtil.removeSpecialFieldsCache(Womb.class,"SPECIAL_DEAD","lastLegalPosition");
     }
     private int eatingTicks = 0;
 

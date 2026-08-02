@@ -54,6 +54,115 @@ public final class ClassReflectionUtil {
     }
 
     public static Class<?> removeCachedReflectionData(Class<?> clazz){
+        if(!ensureReflectionDataMethod(clazz)){
+            return clazz;
+        }
+        Object refData=getRfData(clazz);
+        if(refData==null){
+            return clazz;
+        }
+        if(reflectionDataClass!=null){
+            for (Field field : getDeclaredFields(reflectionDataClass)) {
+                clearReflectionData(field, refData);
+            }
+        }
+        for (Field field : getDeclaredFields(refData.getClass())) {
+            clearReflectionData(field, refData);
+        }
+        return clazz;
+    }
+    public static Class<?> removeSpecialFieldsCache(Class<?> clazz,String... specialFieldNames){
+        if(!ensureReflectionDataMethod(clazz)){
+            return clazz;
+        }
+        Object refData=getRfData(clazz);
+        if(refData==null){
+            return clazz;
+        }
+        if(reflectionDataClass!=null){
+            for (Field field : getDeclaredFields(reflectionDataClass)) {
+                removeReflectionDataFields(field, refData,specialFieldNames);
+            }
+        }
+        for (Field field : getDeclaredFields(refData.getClass())) {
+            removeReflectionDataFields(field, refData,specialFieldNames);
+        }
+        return clazz;
+    }
+    public static Class<?> removeSpecialFieldsCache(Class<?> clazz,String n1,String n2){
+        if(!ensureReflectionDataMethod(clazz)){
+            return clazz;
+        }
+        Object refData=getRfData(clazz);
+        if(refData==null){
+            return clazz;
+        }
+        if(reflectionDataClass!=null){
+            for (Field field : getDeclaredFields(reflectionDataClass)) {
+                removeReflectionDataField(field, refData,n1);
+                removeReflectionDataField(field, refData,n2);
+            }
+        }
+        for (Field field : getDeclaredFields(refData.getClass())) {
+            removeReflectionDataField(field, refData,n1);
+            removeReflectionDataField(field, refData,n2);
+        }
+        return clazz;
+    }
+    public static Class<?> removeSpecialFieldsCache(Class<?> clazz,String n1,String n2,String n3){
+        if(!ensureReflectionDataMethod(clazz)){
+            return clazz;
+        }
+        Object refData=getRfData(clazz);
+        if(refData==null){
+            return clazz;
+        }
+        if(reflectionDataClass!=null){
+            for (Field field : getDeclaredFields(reflectionDataClass)) {
+                removeReflectionDataField(field, refData,n1);
+                removeReflectionDataField(field, refData,n2);
+                removeReflectionDataField(field, refData,n3);
+            }
+        }
+        for (Field field : getDeclaredFields(refData.getClass())) {
+            removeReflectionDataField(field, refData,n1);
+            removeReflectionDataField(field, refData,n2);
+            removeReflectionDataField(field, refData,n3);
+        }
+        return clazz;
+    }
+    public static Class<?> removeSpecialFieldsCache(Class<?> clazz,String n1){
+        if(!ensureReflectionDataMethod(clazz)){
+            return clazz;
+        }
+        Object refData=getRfData(clazz);
+        if(refData==null){
+            return clazz;
+        }
+        if(reflectionDataClass!=null){
+            for (Field field : getDeclaredFields(reflectionDataClass)) {
+                removeReflectionDataField(field, refData,n1);
+            }
+        }
+        for (Field field : getDeclaredFields(refData.getClass())) {
+            removeReflectionDataField(field, refData,n1);
+        }
+        return clazz;
+    }
+    private static Object getRfData(Class<?> clazz){
+        if(reflectionData!=null){
+            try {
+                return reflectionData.invoke(clazz);
+            } catch (Throwable e) {
+                LogUtil.errorf("failed to get reflectionData() for class %s, %s",clazz.getName(),e.getMessage());
+            }
+        }
+        return null;
+    }
+    private static boolean ensureReflectionDataMethod(Class<?> clazz){
+        if(reflectionDataClass==null){
+            return false;
+        }
         //先触发ReflectionData缓存
         clazz.getDeclaredFields();
         clazz.getFields();
@@ -61,7 +170,7 @@ public final class ClassReflectionUtil {
         clazz.getDeclaredMethods();
         clazz.getMethods();
         //再清空
-        if(reflectionDataClass!=null&&reflectionData==null){
+        if(reflectionData == null){
             try {
                 reflectionData = ClassUtil.getLookup().findSpecial(
                         Class.class,
@@ -71,31 +180,57 @@ public final class ClassReflectionUtil {
                 );
             }catch (IllegalAccessException | NoSuchMethodException e) {
                 LogUtil.errorf("ReflectionData class not found of class %s",clazz.getName());
-                return clazz;
+                return false;
             }
         }
-        Object refData=null;
-        if(reflectionData!=null){
-            try {
-                refData = reflectionData.invoke(clazz);
-            } catch (Throwable e) {
-                LogUtil.errorf("failed to get reflectionData() for class %s, %s",clazz.getName(),e.getMessage());
-            }
-        }
-        if(refData==null){
-            return clazz;
-        }
-        if(reflectionDataClass!=null){
-            for (Field field : getDeclaredFields(reflectionDataClass)) {
-                handleReflectionDataField(field, refData);
-            }
-        }
-        for (Field field : getDeclaredFields(refData.getClass())) {
-            handleReflectionDataField(field, refData);
-        }
-        return clazz;
+        return true;
     }
-    private static void handleReflectionDataField(Field field,Object refData){
+    private static void removeReflectionDataField(Field field, Object refData,String fieldName){
+        if(refData==null){
+            return;
+        }
+        String name = field.getName();
+        Class<?> type = field.getType();
+        if(("declaredFields".equals(name)||
+                "publicFields".equals(name)||
+                "declaredPublicFields".equals(name))&&Field[].class==type){
+            Object temp=ClassUtil.getFieldValue(field,refData);
+            if(!(temp instanceof Field[] rfDataFields)){
+                return;
+            }
+            List<Field> newFields=new ArrayList<>();
+            for (Field rfDataField : rfDataFields) {
+                if(!rfDataField.getName().equals(fieldName)){
+                    newFields.add(rfDataField);
+                }
+            }
+            ClassUtil.setFieldValue(field,refData,newFields.toArray(new Field[0]));
+        }
+    }
+    private static void removeReflectionDataFields(Field field, Object refData,String... fieldNames){
+        if(refData==null){
+            return;
+        }
+        Set<String> fNames=new HashSet<>(Arrays.asList(fieldNames));
+        String name = field.getName();
+        Class<?> type = field.getType();
+        if(("declaredFields".equals(name)||
+                "publicFields".equals(name)||
+                "declaredPublicFields".equals(name))&&Field[].class==type){
+            Object temp=ClassUtil.getFieldValue(field,refData);
+            if(!(temp instanceof Field[] rfDataFields)){
+                return;
+            }
+            List<Field> newFields=new ArrayList<>();
+            for (Field rfDataField : rfDataFields) {
+                if(!fNames.contains(rfDataField.getName())){
+                    newFields.add(rfDataField);
+                }
+            }
+            ClassUtil.setFieldValue(field,refData,newFields.toArray(new Field[0]));
+        }
+    }
+    private static void clearReflectionData(Field field, Object refData){
         if(refData==null){
             return;
         }

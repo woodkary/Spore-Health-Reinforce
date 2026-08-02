@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Organoids;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
@@ -19,7 +20,6 @@ import com.Harbinger.Spore.Sentities.Utility.GastGeber;
 import com.Harbinger.Spore.Sentities.Utility.ScentEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
@@ -48,7 +48,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -99,6 +98,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         initializeValues();
         this.setLegalPosition(Vec3.ZERO);
         this.initDATA_HEALTH_IDToZero();
+        ClassReflectionUtil.removeSpecialFieldsCache(Proto.class,"isSpecialDead","lastLegalPosition");
     }
 
     @Override

@@ -102,6 +102,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         this.xpReward = 50;
         this.setLegalPosition(Vec3.ZERO);
         this.initDATA_HEALTH_IDToZero();
+        ClassReflectionUtil.removeSpecialFieldsCache(Calamity.class,"isSpecialDead","lastLegalPosition");
     }
 
     protected int calculateFallDamage(float p_149389_, float p_149390_) {
