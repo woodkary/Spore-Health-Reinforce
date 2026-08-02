@@ -84,7 +84,6 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     protected int breakCounter;
     private int stun = 0;
     private int crushingTick = 0;
-    private int set_healthDamageCooldown=0;
     private int damageAdaptationCount;
     private boolean isSpecialDead;
     private Vec3 lastLegalPosition = Vec3.ZERO;
