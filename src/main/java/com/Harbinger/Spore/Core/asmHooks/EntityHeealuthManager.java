@@ -353,7 +353,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }
         return initialValue;
     }
-    public float getHeealth(float initialHealth,Object entity){
+    @Override
+    public float getHeealth(float initialHealth, Object entity){
         if(entity instanceof LivingEntity liv){
             return getHeealth(liv,initialHealth);
         }
@@ -401,7 +402,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
             setTrueDeeauthCalled(entity,false);
         }
     }
-    public double getHeealth(double initialHealth,Object entity){
+    @Override
+    public double getHeealth(double initialHealth, Object entity){
         if(entity instanceof LivingEntity liv){
             return getHeealth(liv,initialHealth);
         }

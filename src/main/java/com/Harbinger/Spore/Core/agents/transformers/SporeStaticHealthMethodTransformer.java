@@ -3,7 +3,6 @@ package com.Harbinger.Spore.Core.agents.transformers;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
-import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -12,11 +11,8 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.JumpInsnNode;
-import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -26,10 +22,11 @@ import java.util.List;
 import java.util.Map;
 
 public final class SporeStaticHealthMethodTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
-    private static final String LIVING_ENTITY_INTERNAL = "net/minecraft/world/entity/LivingEntity";
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/EntityHeealuthManager";
     private static final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/asmHooks/IEntityHealth";
     private static final String HOOK_METHOD = "getHeealth";
+    private static final String FLOAT_OBJECT_HOOK_DESC = "(FLjava/lang/Object;)F";
+    private static final String DOUBLE_OBJECT_HOOK_DESC = "(DLjava/lang/Object;)D";
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
             resolveTransformerClass();
     private static MethodHandle constructor;
@@ -86,7 +83,7 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
             ClassReader reader = new ClassReader(classfileBuffer);
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, ClassReader.EXPAND_FRAMES);
-            if (classNode.name == null || !StackTraceUtil.isBadModName(classNode.name)) {
+            if (classNode.name == null) {
                 return null;
             }
             Map<String, int[]> targets = SporeStaticHealthMethodRegistry.targetsForOwner(classNode.name);
@@ -145,32 +142,24 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         int returnOpcode = isFloat ? Opcodes.FRETURN : Opcodes.DRETURN;
         int storeOpcode = isFloat ? Opcodes.FSTORE : Opcodes.DSTORE;
         int loadOpcode = isFloat ? Opcodes.FLOAD : Opcodes.DLOAD;
-        String hookDescriptor = isFloat
-                ? "(L" + LIVING_ENTITY_INTERNAL + ";F)F"
-                : "(L" + LIVING_ENTITY_INTERNAL + ";D)D";
+        String hookDescriptor = isFloat ? FLOAT_OBJECT_HOOK_DESC : DOUBLE_OBJECT_HOOK_DESC;
         boolean modified = false;
 
         for (AbstractInsnNode instruction = method.instructions.getFirst(); instruction != null; ) {
             AbstractInsnNode next = instruction.getNext();
             if (instruction.getOpcode() == returnOpcode) {
                 InsnList inject = new InsnList();
-                LabelNode returnValueReady = new LabelNode();
                 inject.add(new VarInsnNode(storeOpcode, resultLocal));
                 for (int argumentIndex : usableIndexes) {
-                    LabelNode tryNextArgument = new LabelNode();
                     int argumentSlot = argumentSlots[argumentIndex];
-                    inject.add(new VarInsnNode(Opcodes.ALOAD, argumentSlot));
-                    inject.add(new TypeInsnNode(Opcodes.INSTANCEOF, LIVING_ENTITY_INTERNAL));
-                    inject.add(new JumpInsnNode(Opcodes.IFEQ, tryNextArgument));
                     inject.add(new FieldInsnNode(
                             Opcodes.GETSTATIC,
                             HOOK_OWNER,
                             "INSTANCE",
                             "L" + HOOK_INTERFACE + ";"
                     ));
-                    inject.add(new VarInsnNode(Opcodes.ALOAD, argumentSlot));
-                    inject.add(new TypeInsnNode(Opcodes.CHECKCAST, LIVING_ENTITY_INTERNAL));
                     inject.add(new VarInsnNode(loadOpcode, resultLocal));
+                    inject.add(new VarInsnNode(Opcodes.ALOAD, argumentSlot));
                     inject.add(new MethodInsnNode(
                             Opcodes.INVOKEINTERFACE,
                             HOOK_INTERFACE,
@@ -178,11 +167,9 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
                             hookDescriptor,
                             true
                     ));
-                    inject.add(new JumpInsnNode(Opcodes.GOTO, returnValueReady));
-                    inject.add(tryNextArgument);
+                    inject.add(new VarInsnNode(storeOpcode, resultLocal));
                 }
                 inject.add(new VarInsnNode(loadOpcode, resultLocal));
-                inject.add(returnValueReady);
                 method.instructions.insertBefore(instruction, inject);
                 modified = true;
             }
@@ -196,7 +183,7 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         for (int index : requestedIndexes) {
             if (index >= 0
                     && index < argumentTypes.length
-                    && argumentTypes[index].getSort() == Type.OBJECT) {
+                    && isReferenceType(argumentTypes[index])) {
                 usable.add(index);
             }
         }
@@ -205,6 +192,11 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
             result[i] = usable.get(i);
         }
         return result;
+    }
+
+    private boolean isReferenceType(Type type) {
+        int sort = type.getSort();
+        return sort == Type.OBJECT || sort == Type.ARRAY;
     }
 
     private int[] argumentSlots(Type[] argumentTypes) {
@@ -234,8 +226,8 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
                     || !HOOK_METHOD.equals(call.name)) {
                 continue;
             }
-            if (("(L" + LIVING_ENTITY_INTERNAL + ";F)F").equals(call.desc)
-                    || ("(L" + LIVING_ENTITY_INTERNAL + ";D)D").equals(call.desc)) {
+            if (FLOAT_OBJECT_HOOK_DESC.equals(call.desc)
+                    || DOUBLE_OBJECT_HOOK_DESC.equals(call.desc)) {
                 return true;
             }
         }

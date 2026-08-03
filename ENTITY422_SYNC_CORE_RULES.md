@@ -111,7 +111,7 @@
 - `LivingEntityHealthLifecycleWrapperUtil` 的死亡 tick 包装逻辑应保留 `forceDeathTimeIncreasing` 语义：不是粗暴把 tick 改成只调用 death tick，而是在原 tick 后强制死亡时间继续增长。
 - `LifeCycleStaticMethodInspector.inspectAndCacheLifeCycleStaticMethods(...)` 必须独立扫描 raw 原类的完整 `LivingEntity` 父链，不依赖 wrapper 是否能构建，也不能因 final 类或 final 方法跳过分析。`LivingEntityHealthLifecycleWrapperUtil` 不持有 inspector 的方法或证据缓存。
 - `LifeCycleStaticMethodInspector` 只应接受返回 `float`/`double`、以 ASM 数据流确认同一参数位置来自生命周期实例 `this`，且该静态签名至少跨 health/max-health/dead-or-dying/alive 两类出现的调用。生命周期名称分类逻辑由 inspector 自己持有，不能依赖 wrapper util，也不能只按静态方法名称、调用次数或参数描述符推测。
-- `SporeStaticHealthMethodTransformer` 仅允许修改 `StackTraceUtil.isBadModName(classNode.name)` 为 true 的类，白名单/原版/Spore 自身类即使被 registry 注册也必须跳过。对允许的目标，它必须覆盖静态方法的全部 `FRETURN`/`DRETURN`，在目标参数运行时为 `LivingEntity` 时调用 `EntityHeealuthManager.getHeealth(LivingEntity,float/double)`，并保留幂等检查、`SporeFrameClassWriter` 和 `SporeTransformerDebugDump`。
+- `SporeStaticHealthMethodTransformer` 的具体方法选择只依赖 registry 的 owner + method key，不得再额外按 owner 白名单或参数声明类型拒绝已注册方法；它必须覆盖目标静态方法的全部 `FRETURN`/`DRETURN`，把每个已注册的合法引用参数依次作为 `Object` 传给 `EntityHeealuthManager.getHeealth(float/double,Object)`，不得注入 `LivingEntity` 的 `INSTANCEOF`/`CHECKCAST`，并保留幂等检查、`SporeFrameClassWriter` 和 `SporeTransformerDebugDump`。
 - 静态生命周期方法重转换必须保留 Instrumentation 优先、JVMTI 回退、二分失败隔离、hidden Klass flag 临时清除和 `finally` 恢复。`HiddenDefineHook` 的定义前 transformer 链也必须包含 `SporeStaticHealthMethodTransformer`，避免后定义 hidden 静态工具类漏转换。
 - `LivingEntityMixin` 的 heal redirect 必须保留：常规 `setHealth` 后补调用 `EntityHeealuthManager.INSTANCE.heal(...)`，但存在 `Seffects.HEALING_INHIBITION` 时跳过。
 - `LocalPlayerMixin` 必须继续把本地玩家重新标记为 alive，以配合本地死亡包装实体。
