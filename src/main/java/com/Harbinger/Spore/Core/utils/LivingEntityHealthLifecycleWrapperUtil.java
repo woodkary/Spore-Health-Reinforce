@@ -335,7 +335,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
             for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
-                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
+                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod)) {
                     continue;
                 }
                 if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
@@ -352,6 +352,10 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
 
                 String desc = Type.getMethodDescriptor(method);
                 String sig = method.getName() + desc;
+                if(Modifier.isFinal(mod)){
+                    visited.add(sig);
+                    continue;
+                }
                 if (!visited.add(sig)) {
                     continue;
                 }
@@ -402,7 +406,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
             for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
-                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
+                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod)) {
                     continue;
                 }
                 if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
@@ -414,6 +418,10 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
 
                 String desc = Type.getMethodDescriptor(method);
                 String sig = method.getName() + desc;
+                if(Modifier.isFinal(mod)){
+                    visited.add(sig);
+                    continue;
+                }
                 if (!visited.add(sig)) {
                     continue;
                 }
@@ -503,7 +511,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
             for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
-                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
+                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod)) {
                     continue;
                 }
                 if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
@@ -520,6 +528,10 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
                     continue;
                 }
                 String sig = method.getName() + desc;
+                if(Modifier.isFinal(mod)){
+                    emitted.add(sig);
+                    continue;
+                }
                 if (!emitted.add(sig)) {
                     return true;
                 }
@@ -585,7 +597,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         for (Class<?> cursor = callback; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
             for (Method method : ClassReflectionUtil.getDeclaredMethods(cursor)) {
                 int mod = method.getModifiers();
-                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod) || Modifier.isFinal(mod)) {
+                if (Modifier.isStatic(mod) || Modifier.isPrivate(mod)) {
                     continue;
                 }
                 if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
@@ -602,6 +614,10 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
                     continue;
                 }
                 String sig = method.getName() + desc;
+                if(Modifier.isFinal(mod)){
+                    emitted.add(sig);
+                    continue;
+                }
                 if (!emitted.add(sig)) {
                     return true;
                 }
