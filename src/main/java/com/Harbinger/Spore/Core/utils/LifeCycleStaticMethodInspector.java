@@ -24,8 +24,9 @@ import sun.misc.Unsafe;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.util.*;
+import java.util.function.Function;
 
-public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMethodInspect {
+public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMethodInspect, Function<Class<?>,Set<LifeCycleMethod>> {
     private static final long CLASS_KLASS_OFFSET = 16L;
     private static final long KLASS_ACCESS_FLAGS_OFFSET = 164L;
     private static final int JVM_ACC_IS_HIDDEN_CLASS = 0x04000000;
@@ -83,7 +84,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         }
         Set<LifeCycleMethod> inspected = inspectedLifeCycleMethods.computeIfAbsent(
                 entityClass,
-                ignored -> new HashSet<>()
+                this
         );
         for (MethodNode method : classNode.methods) {
             if ((method.access & (Opcodes.ACC_STATIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE)) != 0
@@ -694,6 +695,11 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
     private boolean isHiddenLikeClass(Class<?> clazz) {
         String name = clazz == null ? null : clazz.getName();
         return name != null && (name.contains("/0x") || name.contains("+0x"));
+    }
+
+    @Override
+    public Set<LifeCycleMethod> apply(Class<?> aClass) {
+        return new HashSet<>();
     }
 
     private enum LifeCycleKind {
