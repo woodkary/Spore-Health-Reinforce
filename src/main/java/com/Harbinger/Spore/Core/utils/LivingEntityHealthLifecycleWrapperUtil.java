@@ -69,7 +69,6 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             new LoadingClassValue<>(new OptionalClassFunction(BUILD_WARPPER_FUNC));
     private final ClassValue<Optional<Class<?>>> deathWrapperCache =
             new LoadingClassValue<>(new OptionalClassFunction(BUILD_DEATH_WARPPER_FUNC));
-
     public LivingEntityHealthLifecycleWrapperUtil() {
     }
     @Override
@@ -83,7 +82,6 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         }
         return wrapperValue;
     }
-
     @Override
     public Class<?> getOrginalClass(Class<?> wrapperValue){
         //通过value找回第一个key
@@ -357,7 +355,6 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
                 if (!visited.add(sig)) {
                     continue;
                 }
-
                 int access = Modifier.isPublic(mod) ? Opcodes.ACC_PUBLIC : Opcodes.ACC_PROTECTED;
                 MethodVisitor mv = node.visitMethod(access, method.getName(), desc, null, null);
                 mv.visitCode();
@@ -435,7 +432,6 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
                 if (!isHealth && !isMaxHealth && !isDeadOrDying && !isAlive) {
                     continue;
                 }
-
                 int valueOpcode;
                 int returnOpcode;
                 if (sort == Type.BOOLEAN) {

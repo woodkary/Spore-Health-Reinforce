@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Core.agents.transformers.SporeHiddenDefineHookTransfo
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityDeathTimeTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityEffectApplicationTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformer;
+import com.Harbinger.Spore.Core.agents.transformers.SporeStaticHealthMethodTransformer;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
@@ -54,6 +55,7 @@ public final class HiddenDefineHook implements SelfTransformer {
             SporeLivingEntityHealthTransformer.newSelfTransformer(),
             SporeLivingEntityDeathTimeTransformer.newSelfTransformer(),
             SporeLivingEntityEffectApplicationTransformer.newSelfTransformer(),
+            SporeStaticHealthMethodTransformer.newSelfTransformer(),
     };
     @Override
     public byte[] transformClassByte(ClassLoader loader, String className, byte[] classfileBuffer) {
