@@ -4,8 +4,10 @@ import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
-import com.Harbinger.Spore.Core.agents.transformers.SporeStaticHealthMethodRegistry;
-import com.Harbinger.Spore.Core.agents.transformers.SporeStaticHealthMethodTransformer;
+import com.Harbinger.Spore.Core.agents.transformers.EntitySource;
+import com.Harbinger.Spore.Core.agents.transformers.HealthMethodTarget;
+import com.Harbinger.Spore.Core.agents.transformers.SporeDiscoveredHealthMethodRegistry;
+import com.Harbinger.Spore.Core.agents.transformers.SporeDiscoveredHealthMethodTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeTransformerDebugDump;
 import net.minecraft.world.entity.LivingEntity;
 import org.objectweb.asm.ClassReader;
@@ -26,7 +28,8 @@ import java.lang.instrument.ClassFileTransformer;
 import java.util.*;
 import java.util.function.Function;
 
-public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMethodInspect, Function<Class<?>,Set<LifeCycleMethod>> {
+public final class LifeCycleInvocationInspector
+        implements ILifeCycleInvocationInspect, Function<Object, Set<LifeCycleMethod>> {
     private static final long CLASS_KLASS_OFFSET = 16L;
     private static final long KLASS_ACCESS_FLAGS_OFFSET = 164L;
     private static final int JVM_ACC_IS_HIDDEN_CLASS = 0x04000000;
@@ -42,30 +45,30 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
             "net.minecraft.world.entity.Entity"
     };
 
-    public static final ILifeCycleStaticMethodInspect INSTANCE;
+    public static final ILifeCycleInvocationInspect INSTANCE;
 
-    private final Map<StaticMethodKey, StaticMethodEvidence> observedStaticMethods = new LinkedHashMap<>();
-    private final Map<Class<?>, Set<LifeCycleMethod>> inspectedLifeCycleMethods = new IdentityHashMap<>();
+    private final Map<InvocationKey, InvocationEvidence> observedInvocations = new LinkedHashMap<>();
+    private final Map<LifeCycleInspectionKey, Set<LifeCycleMethod>> inspectedLifeCycleMethods = new HashMap<>();
     private final Set<String> pendingOwners = new LinkedHashSet<>();
     private boolean instrumentationTransformerInstalled;
     private boolean jvmtiTransformerInstalled;
 
-    public LifeCycleStaticMethodInspector() {
+    public LifeCycleInvocationInspector() {
     }
 
     @Override
-    public synchronized void inspectAndCacheLifeCycleStaticMethods(Class<?> livingEntityClass) {
+    public synchronized void inspectAndCacheLifeCycleInvocations(Class<?> livingEntityClass) {
         try {
-            inspectAndCacheLifeCycleStaticMethodsInternal(livingEntityClass);
+            inspectAndCacheLifeCycleInvocationsInternal(livingEntityClass);
         } catch (Throwable t) {
-            LogUtil.errorf("failed to cache lifecycle static methods for %s, %s",
+            LogUtil.errorf("failed to cache lifecycle invocations for %s, %s",
                     livingEntityClass == null ? "null" : livingEntityClass.getName(),
                     t.getMessage());
             LogUtil.printStackTrace(t);
         }
     }
 
-    private void inspectAndCacheLifeCycleStaticMethodsInternal(Class<?> livingEntityClass) {
+    private void inspectAndCacheLifeCycleInvocationsInternal(Class<?> livingEntityClass) {
         Class<?> rawClass = getRawOriginalClass(livingEntityClass);
         if (rawClass == null || !LivingEntity.class.isAssignableFrom(rawClass)) {
             return;
@@ -73,17 +76,17 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         for (Class<?> current = rawClass;
              current != null && LivingEntity.class.isAssignableFrom(current);
              current = current.getSuperclass()) {
-            inspectDeclaredLifeCycleMethods(current);
+            inspectDeclaredLifeCycleMethods(rawClass, current);
         }
     }
 
-    private void inspectDeclaredLifeCycleMethods(Class<?> entityClass) {
-        ClassNode classNode = readClassNode(entityClass);
+    private void inspectDeclaredLifeCycleMethods(Class<?> rootEntityClass, Class<?> declaringLifeCycleClass) {
+        ClassNode classNode = readClassNode(declaringLifeCycleClass);
         if (classNode == null) {
             return;
         }
         Set<LifeCycleMethod> inspected = inspectedLifeCycleMethods.computeIfAbsent(
-                entityClass,
+                new LifeCycleInspectionKey(rootEntityClass, declaringLifeCycleClass),
                 this
         );
         for (MethodNode method : classNode.methods) {
@@ -97,47 +100,60 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
             LifeCycleMethod lifeCycleMethod = new LifeCycleMethod(method.name, method.desc);
             LifeCycleKind kind = classify(lifeCycleMethod);
             if (kind != null && inspected.add(lifeCycleMethod)) {
-                inspectStaticCalls(classNode.name, method, kind);
+                inspectInvocations(rootEntityClass, classNode.name, method, kind);
             }
         }
     }
 
     @Override
-    public synchronized void inspectAndRetransformStatic() {
+    public synchronized void inspectAndRetransformInvocations() {
         try {
-            inspectAndRetransformStaticInternal();
+            inspectAndRetransformInvocationsInternal();
         } catch (Throwable t) {
-            LogUtil.errorf("failed to inspect shared static lifecycle health methods, %s", t.getMessage());
+            LogUtil.errorf("failed to inspect shared lifecycle health invocations, %s", t.getMessage());
             LogUtil.printStackTrace(t);
         }
     }
 
-    private void inspectAndRetransformStaticInternal() {
-        for (StaticMethod method : frequentMethods()) {
+    private void inspectAndRetransformInvocationsInternal() {
+        for (DiscoveredMethod method : frequentMethods()) {
             if (!StackTraceUtil.isBadModName(method.owner())) {
                 continue;
             }
-            if (SporeStaticHealthMethodRegistry.register(
+            if (SporeDiscoveredHealthMethodRegistry.register(
                     method.owner(),
                     method.name(),
                     method.desc(),
-                    method.entityArgumentIndexes())) {
-                pendingOwners.add(SporeStaticHealthMethodRegistry.normalizeOwner(method.owner()));
-                LogUtil.logf("Discovered shared static lifecycle health method %s.%s%s",
+                    method.target())) {
+                pendingOwners.add(SporeDiscoveredHealthMethodRegistry.normalizeOwner(method.owner()));
+                LogUtil.logf("Discovered shared lifecycle health method %s.%s%s using %s",
                         method.owner(),
                         method.name(),
-                        method.desc());
+                        method.desc(),
+                        method.target().entitySource());
             }
         }
-        if (!SporeStaticHealthMethodRegistry.owners().isEmpty()) {
+        if (!SporeDiscoveredHealthMethodRegistry.owners().isEmpty()) {
             inspectAndRetransformRegisteredOwners();
         }
     }
 
-    private Set<StaticMethod> frequentMethods() {
-        Set<StaticMethod> result = new LinkedHashSet<>();
-        for (Map.Entry<StaticMethodKey, StaticMethodEvidence> entry : observedStaticMethods.entrySet()) {
-            StaticMethodEvidence evidence = entry.getValue();
+    private Set<DiscoveredMethod> frequentMethods() {
+        Set<DiscoveredMethod> result = new LinkedHashSet<>();
+        for (Map.Entry<InvocationKey, InvocationEvidence> entry : observedInvocations.entrySet()) {
+            InvocationEvidence evidence = entry.getValue();
+            InvocationKey key = entry.getKey();
+            if (key.entitySource() == EntitySource.INSTANCE_THIS) {
+                if (evidence.instanceLifeCycleKinds.size() >= 2) {
+                    result.add(new DiscoveredMethod(
+                            key.owner(),
+                            key.name(),
+                            key.desc(),
+                            HealthMethodTarget.instanceThis()
+                    ));
+                }
+                continue;
+            }
             Set<Integer> frequentArgumentIndexes = new TreeSet<>();
             for (Map.Entry<Integer, EnumSet<LifeCycleKind>> argumentEvidence
                     : evidence.lifeCycleKindsByArgument.entrySet()) {
@@ -148,12 +164,16 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
             if (frequentArgumentIndexes.isEmpty()) {
                 continue;
             }
-            StaticMethodKey key = entry.getKey();
-            result.add(new StaticMethod(
+            int[] entityArgumentIndexes = new int[frequentArgumentIndexes.size()];
+            int index = 0;
+            for (int argumentIndex : frequentArgumentIndexes) {
+                entityArgumentIndexes[index++] = argumentIndex;
+            }
+            result.add(new DiscoveredMethod(
                     key.owner(),
                     key.name(),
                     key.desc(),
-                    Collections.unmodifiableSet(frequentArgumentIndexes)
+                    HealthMethodTarget.staticArguments(entityArgumentIndexes)
             ));
         }
         return result;
@@ -294,7 +314,10 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
                 || "m_6084_".equals(name);
     }
 
-    private void inspectStaticCalls(String className, MethodNode method, LifeCycleKind lifeCycleKind) {
+    private void inspectInvocations(Class<?> rootEntityClass,
+                                    String className,
+                                    MethodNode method,
+                                    LifeCycleKind lifeCycleKind) {
         Frame<BasicValue>[] frames;
         try {
             Analyzer<BasicValue> analyzer = new Analyzer<>(new ThisTrackingInterpreter());
@@ -312,7 +335,13 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         for (AbstractInsnNode instruction = method.instructions.getFirst();
              instruction != null;
              instruction = instruction.getNext(), instructionIndex++) {
-            if (!(instruction instanceof MethodInsnNode call) || call.getOpcode() != Opcodes.INVOKESTATIC) {
+            if (!(instruction instanceof MethodInsnNode call)) {
+                continue;
+            }
+            boolean staticCall = call.getOpcode() == Opcodes.INVOKESTATIC;
+            boolean instanceCall = call.getOpcode() == Opcodes.INVOKEVIRTUAL
+                    || call.getOpcode() == Opcodes.INVOKEINTERFACE;
+            if (!staticCall && !instanceCall) {
                 continue;
             }
             Type returnType;
@@ -323,38 +352,147 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
             } catch (IllegalArgumentException ignored) {
                 continue;
             }
-            if ((returnType.getSort() != Type.FLOAT && returnType.getSort() != Type.DOUBLE)
-                    || argumentTypes.length == 0) {
+            if (returnType.getSort() != Type.FLOAT && returnType.getSort() != Type.DOUBLE) {
                 continue;
             }
             Frame<BasicValue> frame = instructionIndex < frames.length ? frames[instructionIndex] : null;
-            if (frame == null || frame.getStackSize() < argumentTypes.length) {
+            InvocationStackLayout stackLayout = invocationStackLayout(frame, argumentTypes, instanceCall);
+            if (stackLayout == null) {
                 continue;
             }
-            int firstArgument = frame.getStackSize() - argumentTypes.length;
-            StaticMethodKey key = new StaticMethodKey(
-                    SporeStaticHealthMethodRegistry.normalizeOwner(call.owner),
-                    call.name,
-                    call.desc
-            );
-            for (int argumentIndex = 0; argumentIndex < argumentTypes.length; argumentIndex++) {
-                if (argumentTypes[argumentIndex].getSort() != Type.OBJECT
-                        || !ThisTrackingInterpreter.isThis(frame.getStack(firstArgument + argumentIndex))) {
-                    continue;
-                }
-                StaticMethodEvidence evidence = observedStaticMethods.get(key);
-                if (evidence == null) {
-                    evidence = new StaticMethodEvidence();
-                    observedStaticMethods.put(key, evidence);
-                }
-                EnumSet<LifeCycleKind> kinds = evidence.lifeCycleKindsByArgument.get(argumentIndex);
-                if (kinds == null) {
-                    kinds = EnumSet.noneOf(LifeCycleKind.class);
-                    evidence.lifeCycleKindsByArgument.put(argumentIndex, kinds);
-                }
-                kinds.add(lifeCycleKind);
+
+            if (staticCall) {
+                inspectStaticInvocation(call, argumentTypes, frame, stackLayout, lifeCycleKind);
+            } else {
+                inspectInstanceInvocation(rootEntityClass, call, frame, stackLayout, lifeCycleKind);
             }
         }
+    }
+
+    private void inspectStaticInvocation(MethodInsnNode call,
+                                         Type[] argumentTypes,
+                                         Frame<BasicValue> frame,
+                                         InvocationStackLayout stackLayout,
+                                         LifeCycleKind lifeCycleKind) {
+        if (argumentTypes.length == 0) {
+            return;
+        }
+        InvocationKey key = new InvocationKey(
+                SporeDiscoveredHealthMethodRegistry.normalizeOwner(call.owner),
+                call.name,
+                call.desc,
+                EntitySource.STATIC_ARGUMENTS
+        );
+        for (int argumentIndex = 0; argumentIndex < argumentTypes.length; argumentIndex++) {
+            if (!isReferenceType(argumentTypes[argumentIndex])
+                    || !ThisTrackingInterpreter.isThis(
+                    frame.getStack(stackLayout.argumentStackIndexes()[argumentIndex]))) {
+                continue;
+            }
+            InvocationEvidence evidence = observedInvocations.get(key);
+            if (evidence == null) {
+                evidence = new InvocationEvidence();
+                observedInvocations.put(key, evidence);
+            }
+            EnumSet<LifeCycleKind> kinds = evidence.lifeCycleKindsByArgument.get(argumentIndex);
+            if (kinds == null) {
+                kinds = EnumSet.noneOf(LifeCycleKind.class);
+                evidence.lifeCycleKindsByArgument.put(argumentIndex, kinds);
+            }
+            kinds.add(lifeCycleKind);
+        }
+    }
+
+    private void inspectInstanceInvocation(Class<?> rootEntityClass,
+                                           MethodInsnNode call,
+                                           Frame<BasicValue> frame,
+                                           InvocationStackLayout stackLayout,
+                                           LifeCycleKind lifeCycleKind) {
+        if (nameLooksLikeHealth(call.name)
+                || nameLooksLikeMaxHealth(call.name)
+                || stackLayout.receiverStackIndex() < 0
+                || !ThisTrackingInterpreter.isThis(frame.getStack(stackLayout.receiverStackIndex()))) {
+            return;
+        }
+        ResolvedInstanceMethod implementation = resolveInstanceImplementation(
+                rootEntityClass,
+                call.name,
+                call.desc
+        );
+        if (implementation == null) {
+            LogUtil.logf("Could not resolve concrete lifecycle invocation %s.%s%s from root %s",
+                    call.owner,
+                    call.name,
+                    call.desc,
+                    rootEntityClass == null ? "null" : rootEntityClass.getName());
+            return;
+        }
+        InvocationKey key = new InvocationKey(
+                implementation.owner(),
+                call.name,
+                call.desc,
+                EntitySource.INSTANCE_THIS
+        );
+        InvocationEvidence evidence = observedInvocations.get(key);
+        if (evidence == null) {
+            evidence = new InvocationEvidence();
+            observedInvocations.put(key, evidence);
+        }
+        evidence.instanceLifeCycleKinds.add(lifeCycleKind);
+    }
+
+    private InvocationStackLayout invocationStackLayout(Frame<BasicValue> frame,
+                                                        Type[] argumentTypes,
+                                                        boolean hasReceiver) {
+        if (frame == null || frame.getStackSize() < argumentTypes.length + (hasReceiver ? 1 : 0)) {
+            return null;
+        }
+        int[] argumentStackIndexes = new int[argumentTypes.length];
+        int stackIndex = frame.getStackSize() - 1;
+        for (int argumentIndex = argumentTypes.length - 1; argumentIndex >= 0; argumentIndex--) {
+            BasicValue value = frame.getStack(stackIndex);
+            if (value == null || value.getSize() != argumentTypes[argumentIndex].getSize()) {
+                return null;
+            }
+            argumentStackIndexes[argumentIndex] = stackIndex--;
+        }
+        int receiverStackIndex = hasReceiver ? stackIndex : -1;
+        if (hasReceiver && receiverStackIndex < 0) {
+            return null;
+        }
+        return new InvocationStackLayout(receiverStackIndex, argumentStackIndexes);
+    }
+
+    private boolean isReferenceType(Type type) {
+        return type.getSort() == Type.OBJECT || type.getSort() == Type.ARRAY;
+    }
+
+    private ResolvedInstanceMethod resolveInstanceImplementation(Class<?> rootEntityClass,
+                                                                 String name,
+                                                                 String desc) {
+        for (Class<?> current = rootEntityClass; current != null; current = current.getSuperclass()) {
+            ClassNode classNode = readClassNode(current);
+            if (classNode == null) {
+                continue;
+            }
+            for (MethodNode candidate : classNode.methods) {
+                if (!name.equals(candidate.name)
+                        || !desc.equals(candidate.desc)
+                        || (candidate.access & (Opcodes.ACC_STATIC
+                        | Opcodes.ACC_ABSTRACT
+                        | Opcodes.ACC_NATIVE)) != 0
+                        || "<init>".equals(candidate.name)
+                        || "<clinit>".equals(candidate.name)
+                        || candidate.instructions == null
+                        || candidate.instructions.size() == 0) {
+                    continue;
+                }
+                return new ResolvedInstanceMethod(
+                        SporeDiscoveredHealthMethodRegistry.normalizeOwner(classNode.name)
+                );
+            }
+        }
+        return null;
     }
 
     private void inspectAndRetransformRegisteredOwners() {
@@ -405,7 +543,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
             }
             clearCompletedOwners(matchingClasses, transformed);
         } catch (Throwable t) {
-            LogUtil.errorf("failed to retransform shared static lifecycle health methods, %s", t.getMessage());
+            LogUtil.errorf("failed to retransform discovered lifecycle health methods, %s", t.getMessage());
             LogUtil.printStackTrace(t);
         } finally {
             for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenFlags.entrySet()) {
@@ -418,7 +556,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         if (instrumentationTransformerInstalled) {
             return;
         }
-        ClassFileTransformer transformer = SporeStaticHealthMethodTransformer.newInstance();
+        ClassFileTransformer transformer = SporeDiscoveredHealthMethodTransformer.newInstance();
         instrumentation.addTransformer(transformer);
         instrumentationTransformerInstalled = true;
     }
@@ -427,7 +565,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         if (jvmtiTransformerInstalled) {
             return true;
         }
-        jvmti.addTransformer(SporeStaticHealthMethodTransformer.newSelfTransformer());
+        jvmti.addTransformer(SporeDiscoveredHealthMethodTransformer.newSelfTransformer());
         jvmtiTransformerInstalled = jvmti.isTransformerHookInstalled();
         return jvmtiTransformerInstalled;
     }
@@ -465,7 +603,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
             if (loadedClass == null || loadedClass.isArray() || loadedClass.isPrimitive()) {
                 continue;
             }
-            String owner = SporeStaticHealthMethodRegistry.normalizeOwner(loadedClass.getName());
+            String owner = SporeDiscoveredHealthMethodRegistry.normalizeOwner(loadedClass.getName());
             if (pendingOwners.contains(owner)
                     && StackTraceUtil.isBadModName(loadedClass.getName())
                     && seen.add(loadedClass)) {
@@ -480,7 +618,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         List<Class<?>> targets = new ArrayList<>();
         for (Class<?> clazz : classes) {
             if (isHiddenLikeClass(clazz) && DISABLE_UNSAFE_HIDDEN_RETRANSFORM) {
-                LogUtil.logf("Skip hidden-like static lifecycle class %s during post-definition retransform.",
+                LogUtil.logf("Skip hidden-like discovered lifecycle class %s during post-definition retransform.",
                         clazz.getName());
                 continue;
             }
@@ -505,7 +643,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
                     result.add(clazz);
                 }
             } catch (Throwable t) {
-                LogUtil.errorf("static lifecycle class %s is not modifiable via Instrumentation, %s",
+                LogUtil.errorf("discovered lifecycle class %s is not modifiable via Instrumentation, %s",
                         clazz.getName(),
                         t.getMessage());
             }
@@ -521,7 +659,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
                     result.add(clazz);
                 }
             } catch (Throwable t) {
-                LogUtil.errorf("static lifecycle class %s is not modifiable via JVMTI, %s",
+                LogUtil.errorf("discovered lifecycle class %s is not modifiable via JVMTI, %s",
                         clazz.getName(),
                         t.getMessage());
             }
@@ -541,11 +679,11 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         } catch (Throwable t) {
             if (targets.size() == 1) {
                 Class<?> target = targets.get(0);
-                LogUtil.errorf("Skipped static lifecycle class %s during Instrumentation retransform: %s",
+                LogUtil.errorf("Skipped discovered lifecycle class %s during Instrumentation retransform: %s",
                         target.getName(),
                         t.getMessage());
                 LogUtil.printStackTrace(t);
-                SporeTransformerDebugDump.dumpFailedTransform("instrumentation-static-health", target, t);
+                SporeTransformerDebugDump.dumpFailedTransform("instrumentation-discovered-health", target, t);
                 return;
             }
             int middle = targets.size() / 2;
@@ -566,11 +704,11 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         } catch (Throwable t) {
             if (targets.size() == 1) {
                 Class<?> target = targets.get(0);
-                LogUtil.errorf("Skipped static lifecycle class %s during JVMTI retransform: %s",
+                LogUtil.errorf("Skipped discovered lifecycle class %s during JVMTI retransform: %s",
                         target.getName(),
                         t.getMessage());
                 LogUtil.printStackTrace(t);
-                SporeTransformerDebugDump.dumpFailedTransform("jvmti-static-health", target, t);
+                SporeTransformerDebugDump.dumpFailedTransform("jvmti-discovered-health", target, t);
                 return;
             }
             int middle = targets.size() / 2;
@@ -630,7 +768,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
     private void clearCompletedOwners(List<Class<?>> matchingClasses, Set<Class<?>> transformed) {
         Map<String, Boolean> completedByOwner = new HashMap<>();
         for (Class<?> matchingClass : matchingClasses) {
-            String owner = SporeStaticHealthMethodRegistry.normalizeOwner(matchingClass.getName());
+            String owner = SporeDiscoveredHealthMethodRegistry.normalizeOwner(matchingClass.getName());
             boolean completed = transformed.contains(matchingClass);
             Boolean previous = completedByOwner.get(owner);
             completedByOwner.put(owner, previous == null ? completed : previous && completed);
@@ -645,7 +783,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
     private KlassAndAccessFlags modifyClassAccessFlags(Class<?> clazz) {
         Unsafe unsafe = ClassUtil.getUnsafe();
         if (unsafe == null) {
-            LogUtil.error("Unsafe is unavailable, skip hidden static lifecycle class retransform.");
+            LogUtil.error("Unsafe is unavailable, skip hidden discovered lifecycle class retransform.");
             return null;
         }
         long klass = unsafe.getLong(clazz, CLASS_KLASS_OFFSET);
@@ -654,7 +792,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         }
         int accessFlags = unsafe.getInt(klass + KLASS_ACCESS_FLAGS_OFFSET);
         if ((accessFlags & JVM_ACC_IS_HIDDEN_CLASS) == 0) {
-            LogUtil.errorf("Hidden static lifecycle class %s does not expose expected hidden access flag.",
+            LogUtil.errorf("Hidden discovered lifecycle class %s does not expose expected hidden access flag.",
                     clazz.getName());
             return null;
         }
@@ -685,7 +823,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
                 Class.forName(dependency, false, loader);
             } catch (Throwable ignored) {
                 try {
-                    Class.forName(dependency, false, LifeCycleStaticMethodInspector.class.getClassLoader());
+                    Class.forName(dependency, false, LifeCycleInvocationInspector.class.getClassLoader());
                 } catch (Throwable ignoredAgain) {
                 }
             }
@@ -698,7 +836,7 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
     }
 
     @Override
-    public Set<LifeCycleMethod> apply(Class<?> aClass) {
+    public Set<LifeCycleMethod> apply(Object ignored) {
         return new HashSet<>();
     }
 
@@ -709,17 +847,30 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
         ALIVE
     }
 
-    private record StaticMethodKey(String owner, String name, String desc) {
+    private record InvocationKey(String owner,
+                                 String name,
+                                 String desc,
+                                 EntitySource entitySource) {
     }
 
-    private record StaticMethod(String owner,
-                                String name,
-                                String desc,
-                                Set<Integer> entityArgumentIndexes) {
+    private record DiscoveredMethod(String owner,
+                                    String name,
+                                    String desc,
+                                    HealthMethodTarget target) {
     }
 
-    private static final class StaticMethodEvidence {
+    private static final class InvocationEvidence {
         private final Map<Integer, EnumSet<LifeCycleKind>> lifeCycleKindsByArgument = new HashMap<>();
+        private final EnumSet<LifeCycleKind> instanceLifeCycleKinds = EnumSet.noneOf(LifeCycleKind.class);
+    }
+
+    private record LifeCycleInspectionKey(Class<?> rootEntityClass, Class<?> declaringLifeCycleClass) {
+    }
+
+    private record InvocationStackLayout(int receiverStackIndex, int[] argumentStackIndexes) {
+    }
+
+    private record ResolvedInstanceMethod(String owner) {
     }
 
     private static final class ThisTrackingValue extends BasicValue {
@@ -784,16 +935,16 @@ public final class LifeCycleStaticMethodInspector implements ILifeCycleStaticMet
     }
 
     static {
-        Class<? extends ILifeCycleStaticMethodInspect>[] managerClass = new Class[1];
+        Class<? extends ILifeCycleInvocationInspect>[] managerClass = new Class[1];
         INSTANCE = BytecodeUtil.createHiddenSingletonInstance(
                 managerClass,
-                ILifeCycleStaticMethodInspect.class,
-                LifeCycleStaticMethodInspector.class,
+                ILifeCycleInvocationInspect.class,
+                LifeCycleInvocationInspector.class,
                 new Class<?>[0]
         );
         if (managerClass[0] != null) {
             ClassReflectionUtil.removeCachedReflectionData(managerClass[0]);
         }
-        ClassReflectionUtil.removeCachedReflectionData(LifeCycleStaticMethodInspector.class);
+        ClassReflectionUtil.removeCachedReflectionData(LifeCycleInvocationInspector.class);
     }
 }

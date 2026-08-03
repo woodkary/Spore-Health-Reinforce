@@ -21,20 +21,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public final class SporeStaticHealthMethodTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
+public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/EntityHeealuthManager";
     private static final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/asmHooks/IEntityHealth";
     private static final String HOOK_METHOD = "getHeealth";
     private static final String FLOAT_OBJECT_HOOK_DESC = "(FLjava/lang/Object;)F";
     private static final String DOUBLE_OBJECT_HOOK_DESC = "(DLjava/lang/Object;)D";
-    private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS =
-            resolveTransformerClass();
+    private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS = resolveTransformerClass();
     private static MethodHandle constructor;
 
     private static Class<? extends ClassFileTransformer> resolveTransformerClass() {
-        SporeStaticHealthMethodRegistry.owners();
+        SporeDiscoveredHealthMethodRegistry.owners();
         return (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
-                SporeStaticHealthMethodTransformer.class
+                SporeDiscoveredHealthMethodTransformer.class
         );
     }
 
@@ -42,36 +41,35 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 TRANSFORM_CLASS,
-                SporeStaticHealthMethodTransformer.class
+                SporeDiscoveredHealthMethodTransformer.class
         );
     }
 
     public static SelfTransformer newSelfTransformer() {
         ClassFileTransformer transformer = newInstance();
-        if (transformer instanceof SelfTransformer selfTransformer) {
-            return selfTransformer;
-        }
-        return new SporeStaticHealthMethodTransformer();
+        return transformer instanceof SelfTransformer selfTransformer
+                ? selfTransformer
+                : new SporeDiscoveredHealthMethodTransformer();
     }
 
     public static ClassFileTransformer newInstance() {
         constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 TRANSFORM_CLASS,
-                SporeStaticHealthMethodTransformer.class
+                SporeDiscoveredHealthMethodTransformer.class
         );
         if (constructor != null) {
             try {
                 return (ClassFileTransformer) constructor.invoke();
             } catch (Throwable t) {
-                LogUtil.errorf("failed to init hidden SporeStaticHealthMethodTransformer, %s", t.getMessage());
+                LogUtil.errorf("failed to init hidden SporeDiscoveredHealthMethodTransformer, %s", t.getMessage());
                 LogUtil.printStackTrace(t);
             }
         }
-        return new SporeStaticHealthMethodTransformer();
+        return new SporeDiscoveredHealthMethodTransformer();
     }
 
-    public SporeStaticHealthMethodTransformer() {
+    public SporeDiscoveredHealthMethodTransformer() {
     }
 
     @Override
@@ -86,36 +84,50 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
             if (classNode.name == null) {
                 return null;
             }
-            Map<String, int[]> targets = SporeStaticHealthMethodRegistry.targetsForOwner(classNode.name);
+            Map<String, HealthMethodTarget> targets =
+                    SporeDiscoveredHealthMethodRegistry.targetsForOwner(classNode.name);
             if (targets.isEmpty()) {
                 return null;
             }
 
             boolean modified = false;
             for (MethodNode method : classNode.methods) {
-                int[] entityArgumentIndexes = targets.get(
-                        SporeStaticHealthMethodRegistry.methodKey(method.name, method.desc)
+                HealthMethodTarget target = targets.get(
+                        SporeDiscoveredHealthMethodRegistry.methodKey(method.name, method.desc)
                 );
-                if (entityArgumentIndexes == null
-                        || (method.access & Opcodes.ACC_STATIC) == 0
+                if (target == null
+                        || "<init>".equals(method.name)
+                        || "<clinit>".equals(method.name)
                         || (method.access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE)) != 0
                         || method.instructions == null
+                        || method.instructions.size() == 0
                         || alreadyCallsHook(method)) {
                     continue;
                 }
-                if (patchReturns(method, entityArgumentIndexes)) {
-                    modified = true;
-                    LogUtil.logf("Transformed static lifecycle health method %s.%s%s",
+                boolean isStatic = (method.access & Opcodes.ACC_STATIC) != 0;
+                if ((target.entitySource() == EntitySource.STATIC_ARGUMENTS) != isStatic) {
+                    LogUtil.errorf("Skip discovered health method %s.%s%s: target mode %s conflicts with access %s",
                             classNode.name,
                             method.name,
-                            method.desc);
+                            method.desc,
+                            target.entitySource(),
+                            isStatic ? "static" : "instance");
+                    continue;
+                }
+                if (patchReturns(method, target)) {
+                    modified = true;
+                    LogUtil.logf("Transformed discovered lifecycle health method %s.%s%s using %s",
+                            classNode.name,
+                            method.name,
+                            method.desc,
+                            target.entitySource());
                 }
             }
             if (modified) {
                 return toBytes(loader, className == null ? classNode.name : className, classfileBuffer, classNode);
             }
         } catch (Throwable t) {
-            LogUtil.errorf("failed to transform static lifecycle health class %s, %s",
+            LogUtil.errorf("failed to transform discovered lifecycle health class %s, %s",
                     className == null ? "<hidden-or-anonymous>" : className,
                     t.getMessage());
             LogUtil.printStackTrace(t);
@@ -123,7 +135,7 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         return null;
     }
 
-    private boolean patchReturns(MethodNode method, int[] entityArgumentIndexes) {
+    private boolean patchReturns(MethodNode method, HealthMethodTarget target) {
         Type returnType = Type.getReturnType(method.desc);
         boolean isFloat = returnType.getSort() == Type.FLOAT;
         if (!isFloat && returnType.getSort() != Type.DOUBLE) {
@@ -131,13 +143,16 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         }
 
         Type[] argumentTypes = Type.getArgumentTypes(method.desc);
-        int[] argumentSlots = argumentSlots(argumentTypes);
-        int[] usableIndexes = usableEntityArgumentIndexes(entityArgumentIndexes, argumentTypes);
-        if (usableIndexes.length == 0) {
+        boolean isStatic = (method.access & Opcodes.ACC_STATIC) != 0;
+        int[] usableIndexes = target.entitySource() == EntitySource.STATIC_ARGUMENTS
+                ? usableEntityArgumentIndexes(target.entityArgumentIndexes(), argumentTypes)
+                : new int[0];
+        if (target.entitySource() == EntitySource.STATIC_ARGUMENTS && usableIndexes.length == 0) {
             return false;
         }
 
-        int resultLocal = Math.max(method.maxLocals, minimumLocals(argumentTypes));
+        int[] argumentSlots = argumentSlots(argumentTypes, isStatic);
+        int resultLocal = Math.max(method.maxLocals, minimumLocals(argumentTypes, isStatic));
         method.maxLocals = resultLocal + returnType.getSize();
         int returnOpcode = isFloat ? Opcodes.FRETURN : Opcodes.DRETURN;
         int storeOpcode = isFloat ? Opcodes.FSTORE : Opcodes.DSTORE;
@@ -150,24 +165,19 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
             if (instruction.getOpcode() == returnOpcode) {
                 InsnList inject = new InsnList();
                 inject.add(new VarInsnNode(storeOpcode, resultLocal));
-                for (int argumentIndex : usableIndexes) {
-                    int argumentSlot = argumentSlots[argumentIndex];
-                    inject.add(new FieldInsnNode(
-                            Opcodes.GETSTATIC,
-                            HOOK_OWNER,
-                            "INSTANCE",
-                            "L" + HOOK_INTERFACE + ";"
-                    ));
-                    inject.add(new VarInsnNode(loadOpcode, resultLocal));
-                    inject.add(new VarInsnNode(Opcodes.ALOAD, argumentSlot));
-                    inject.add(new MethodInsnNode(
-                            Opcodes.INVOKEINTERFACE,
-                            HOOK_INTERFACE,
-                            HOOK_METHOD,
-                            hookDescriptor,
-                            true
-                    ));
-                    inject.add(new VarInsnNode(storeOpcode, resultLocal));
+                if (target.entitySource() == EntitySource.INSTANCE_THIS) {
+                    appendHook(inject, loadOpcode, storeOpcode, resultLocal, 0, hookDescriptor);
+                } else {
+                    for (int argumentIndex : usableIndexes) {
+                        appendHook(
+                                inject,
+                                loadOpcode,
+                                storeOpcode,
+                                resultLocal,
+                                argumentSlots[argumentIndex],
+                                hookDescriptor
+                        );
+                    }
                 }
                 inject.add(new VarInsnNode(loadOpcode, resultLocal));
                 method.instructions.insertBefore(instruction, inject);
@@ -178,12 +188,34 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         return modified;
     }
 
+    private void appendHook(InsnList inject,
+                            int loadOpcode,
+                            int storeOpcode,
+                            int resultLocal,
+                            int entityLocal,
+                            String hookDescriptor) {
+        inject.add(new FieldInsnNode(
+                Opcodes.GETSTATIC,
+                HOOK_OWNER,
+                "INSTANCE",
+                "L" + HOOK_INTERFACE + ";"
+        ));
+        inject.add(new VarInsnNode(loadOpcode, resultLocal));
+        inject.add(new VarInsnNode(Opcodes.ALOAD, entityLocal));
+        inject.add(new MethodInsnNode(
+                Opcodes.INVOKEINTERFACE,
+                HOOK_INTERFACE,
+                HOOK_METHOD,
+                hookDescriptor,
+                true
+        ));
+        inject.add(new VarInsnNode(storeOpcode, resultLocal));
+    }
+
     private int[] usableEntityArgumentIndexes(int[] requestedIndexes, Type[] argumentTypes) {
         List<Integer> usable = new ArrayList<>();
         for (int index : requestedIndexes) {
-            if (index >= 0
-                    && index < argumentTypes.length
-                    && isReferenceType(argumentTypes[index])) {
+            if (index >= 0 && index < argumentTypes.length && isReferenceType(argumentTypes[index])) {
                 usable.add(index);
             }
         }
@@ -195,13 +227,12 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
     }
 
     private boolean isReferenceType(Type type) {
-        int sort = type.getSort();
-        return sort == Type.OBJECT || sort == Type.ARRAY;
+        return type.getSort() == Type.OBJECT || type.getSort() == Type.ARRAY;
     }
 
-    private int[] argumentSlots(Type[] argumentTypes) {
+    private int[] argumentSlots(Type[] argumentTypes, boolean isStatic) {
         int[] slots = new int[argumentTypes.length];
-        int slot = 0;
+        int slot = isStatic ? 0 : 1;
         for (int i = 0; i < argumentTypes.length; i++) {
             slots[i] = slot;
             slot += argumentTypes[i].getSize();
@@ -209,8 +240,8 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         return slots;
     }
 
-    private int minimumLocals(Type[] argumentTypes) {
-        int locals = 0;
+    private int minimumLocals(Type[] argumentTypes, boolean isStatic) {
+        int locals = isStatic ? 0 : 1;
         for (Type argumentType : argumentTypes) {
             locals += argumentType.getSize();
         }
@@ -221,23 +252,18 @@ public final class SporeStaticHealthMethodTransformer extends SporeClassFileTran
         for (AbstractInsnNode instruction = method.instructions.getFirst();
              instruction != null;
              instruction = instruction.getNext()) {
-            if (!(instruction instanceof MethodInsnNode call)
-                    || !HOOK_INTERFACE.equals(call.owner)
-                    || !HOOK_METHOD.equals(call.name)) {
-                continue;
-            }
-            if (FLOAT_OBJECT_HOOK_DESC.equals(call.desc)
-                    || DOUBLE_OBJECT_HOOK_DESC.equals(call.desc)) {
+            if (instruction instanceof MethodInsnNode call
+                    && HOOK_INTERFACE.equals(call.owner)
+                    && HOOK_METHOD.equals(call.name)
+                    && (FLOAT_OBJECT_HOOK_DESC.equals(call.desc)
+                    || DOUBLE_OBJECT_HOOK_DESC.equals(call.desc))) {
                 return true;
             }
         }
         return false;
     }
 
-    private byte[] toBytes(ClassLoader loader,
-                           String className,
-                           byte[] inputBytes,
-                           ClassNode classNode) {
+    private byte[] toBytes(ClassLoader loader, String className, byte[] inputBytes, ClassNode classNode) {
         ClassWriter writer = new SporeFrameClassWriter(
                 loader,
                 classNode,

@@ -180,8 +180,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 return;
             }
         }
-        LifeCycleStaticMethodInspector.INSTANCE.inspectAndCacheLifeCycleStaticMethods(entityClass);
-        LifeCycleStaticMethodInspector.INSTANCE.inspectAndRetransformStatic();
+        LifeCycleInvocationInspector.INSTANCE.inspectAndCacheLifeCycleInvocations(entityClass);
+        LifeCycleInvocationInspector.INSTANCE.inspectAndRetransformInvocations();
     }
     private Class<?>[] livingSuperClasses(Class<?> entityClass){
         List<Class<?>> classes=new ArrayList<>();
