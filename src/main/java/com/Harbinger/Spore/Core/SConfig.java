@@ -1864,6 +1864,7 @@ public class SConfig {
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> drops;
 
         public final ForgeConfigSpec.ConfigValue<Boolean> calamity_anti_set_entitydata;
+        public final ForgeConfigSpec.ConfigValue<Boolean> invoke_all_set_health_strategy;
         public DataGen(ForgeConfigSpec.Builder builder){
             builder.push("Loot Tables");
             builder.comment("item|chance to drop(1-100)|minimum amount|maximum amount. Only values above 0 will be taken in consideration.");
@@ -2152,6 +2153,10 @@ public class SConfig {
 
             builder.push("calamity's health calculation");
             this.calamity_anti_set_entitydata=builder.comment("Default false").define("calamities heal when attacked by entityData-based set health?",false);
+            builder.pop();
+
+            builder.push("try invoke all setHealths");
+            this.invoke_all_set_health_strategy =builder.comment("Default false").define("force invoke all setHealth methods when trying to kill entity",false);
             builder.pop();
         }
     }

@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.utils;
 
+import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
@@ -152,7 +153,10 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }else{
             LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createDeathWrapppper(entity);
         }
-        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+        boolean invokeAllRetransformStrategies = invokeAll
+                && SConfig.DATAGEN.invoke_all_set_health_strategy.get();
+        if(!invokeAllRetransformStrategies
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         //必然失败的路径，一般不用invokeAll确保一定执行
@@ -160,11 +164,13 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
                 entityClass);
-        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+        if(!invokeAllRetransformStrategies
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass);
-        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+        if(!invokeAllRetransformStrategies
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         //再批量重转换所有父类
@@ -172,12 +178,14 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         if(superClasses!=null) {
             SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
                     superClasses);
-            if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+            if(!invokeAllRetransformStrategies
+                    && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
                 return;
             }
             SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(superClasses);
         }
-        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+        if(!invokeAllRetransformStrategies
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
         LifeCycleInvocationInspector.INSTANCE.inspectAndCacheLifeCycleInvocations(entityClass);
