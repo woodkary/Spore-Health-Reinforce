@@ -68,8 +68,8 @@
 - `Core/agents/transformers/INativeBridge.java`
 - `Core/agents/transformers/SporeNativeBridge.java`
 - `Core/agents/transformers/SporeLivingEntityHealthTransformer.java`
-- `Core/agents/transformers/SporeDiscoveredHealthMethodTransformer.java`
-- `Core/agents/transformers/SporeDiscoveredHealthMethodRegistry.java`
+- `Core/agents/transformers/SporeDiscoveredLifeCycleMethodTransformer.java`
+- `Core/agents/transformers/SporeDiscoveredLifeCycleMethodRegistry.java`
 - `Core/agents/transformers/SporeLivingEntityEffectApplicationTransformer.java`
 - `Core/agents/transformers/SporeLivingEntityHealthTransformerBootstrap.java`
 - `Core/agents/transformers/SporeHiddenDefineHookTransformer.java`
@@ -111,10 +111,11 @@
 - `LivingEntityHealthLifecycleWrapperUtil` 的死亡 tick 包装逻辑应保留 `forceDeathTimeIncreasing` 语义：不是粗暴把 tick 改成只调用 death tick，而是在原 tick 后强制死亡时间继续增长。
 - `LifeCycleInvocationInspector.inspectAndCacheLifeCycleInvocations(...)` 必须独立扫描 raw 原类的完整 `LivingEntity` 父链，不依赖 wrapper 是否能构建，也不能因 final 类或 final 方法跳过分析。检查缓存必须由实际 root 实体类和生命周期声明类共同确定，避免不同子类覆盖实现被父类缓存吞掉。`LivingEntityHealthLifecycleWrapperUtil` 不持有 inspector 的方法或证据缓存。
 - `LifeCycleInvocationInspector.INSTANCE` 是隐藏副本；Inspector 必须保留一个显式 `Function` 实现供 `computeIfAbsent` 使用，不能在该类中用 lambda 或方法引用创建缓存工厂。其他缓存应使用显式 `get/put` 或定义在普通 util 类中的具名 `Function` 实现，避免隐藏类的 lambda 辅助类绑定回原类。
-- `LifeCycleInvocationInspector` 只应接受返回 `float`/`double`、以 ASM 数据流确认实体来源明确来自生命周期实例 `this`，且同一静态参数位置或同一实例实现至少跨 health/max-health/dead-or-dying/alive 两类出现的调用。实例调用必须排除名称已经符合 health/max-health 的方法，并从实际 root 实体类向父类解析第一个具有方法体的具体实现 owner。生命周期名称分类逻辑由 inspector 自己持有。
-- `SporeDiscoveredHealthMethodRegistry` 必须以 `HealthMethodTarget(EntitySource, int[])` 区分 `STATIC_ARGUMENTS` 与 `INSTANCE_THIS`，同一 owner + method key 的冲突模式必须记录日志并确定性解决。
-- `SporeDiscoveredHealthMethodTransformer` 的具体方法选择只依赖 registry 的 owner + method key，不得再额外按 owner 白名单或参数声明类型拒绝已注册方法；它必须覆盖目标方法的全部 `FRETURN`/`DRETURN`。静态目标把每个已注册合法引用参数依次作为 `Object` 传给 hook，实例目标把 `ALOAD 0` 作为实体来源；两种模式都调用 `EntityHeealuthManager.getHeealth(float/double,Object)`，并保留访问标志校验、幂等检查、`SporeFrameClassWriter` 和 `SporeTransformerDebugDump`。
-- 发现方法重转换必须保留 Instrumentation 优先、JVMTI 回退、二分失败隔离、hidden Klass flag 临时清除和 `finally` 恢复。`HiddenDefineHook` 的定义前 transformer 链也必须包含 `SporeDiscoveredHealthMethodTransformer`，避免后定义 hidden 工具类漏转换。
+- `LifeCycleInvocationInspector` 对 `float`/`double` 调用保留跨至少两个 `LifeCycleKind` 的阈值，并登记为 `HEALTH`。boolean 调用只能使用精确 `m_6084_()Z` 与 `m_21224_()Z` 的证据；静态参数或实例 receiver 必须由 ASM 数据流证明来自 `this`，实例调用还必须排除名称已经符合 alive/dead-or-dying 的方法，并从实际 root 实体类向父类解析第一个具有方法体的具体实现 owner。
+- boolean 极性必须由保守控制流分析证明，至少覆盖直接 `IRETURN`、`ISTORE/ILOAD`、`ICONST_1 + IXOR`、javac 的 `IFEQ/IFNE + ICONST_0/1 + GOTO` 物化形式及多个正常返回路径；混合或无法证明的路径必须产生 `UNKNOWN`。`m_6084_` DIRECT + `m_21224_` NEGATED 登记为 `ALIVE`，反向登记为 `DEAD_OR_DYING`，其余组合不得登记。
+- `SporeDiscoveredLifeCycleMethodRegistry` 必须以 `LifeCycleMethodTarget(EntitySource, int[], LifeCycleMethodCategory)` 区分实体来源与 `HEALTH`/`ALIVE`/`DEAD_OR_DYING`。同一 owner + method key 的来源或类别冲突必须输出明确日志并使目标失效，不能依赖注册顺序静默选择。
+- `SporeDiscoveredLifeCycleMethodTransformer` 的具体方法选择只依赖 registry 的 owner + method key，不得再额外按 owner 白名单或参数声明类型拒绝已注册方法。`HEALTH` 只匹配 `float`/`double` 的 `getHeealth` Object Hook；`ALIVE`/`DEAD_OR_DYING` 只匹配 boolean 的 `isAlliive`/`isDeeadfOrDyaging` Object Hook。静态目标使用已登记的引用参数，实例目标使用 `ALOAD 0`；必须保留访问标志、类别/返回值组合、幂等检查、`SporeFrameClassWriter` 和 `SporeTransformerDebugDump`。
+- 发现方法重转换必须保留 Instrumentation 优先、JVMTI 回退、二分失败隔离、hidden Klass flag 临时清除和 `finally` 恢复。`HiddenDefineHook` 的定义前 transformer 链也必须包含 `SporeDiscoveredLifeCycleMethodTransformer`，避免后定义 hidden 工具类漏转换。
 - `LivingEntityMixin` 的 heal redirect 必须保留：常规 `setHealth` 后补调用 `EntityHeealuthManager.INSTANCE.heal(...)`，但存在 `Seffects.HEALING_INHIBITION` 时跳过。
 - `LocalPlayerMixin` 必须继续把本地玩家重新标记为 alive，以配合本地死亡包装实体。
 
@@ -362,7 +363,7 @@ rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_
 - 旧灾难的 `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 部位弱点额外直接扣血逻辑有代码证据：Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 均保留 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 调用；Verfalldrachen 不属于这条必保规则。
 - `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.attack(...)`。
 - 血量、最大血量、heal redirect、禁止回血效果、fake data health、multipart owner、IDieWithDiscardEntity 特殊死亡全部有代码证据。
-- 无关键词静态或实例健康计算的发现和重转换链有代码证据：`LifeCycleInvocationInspector` 独立扫描并缓存跨类别数据流证据 -> `SporeDiscoveredHealthMethodRegistry` -> `SporeDiscoveredHealthMethodTransformer` -> Instrumentation/JVMTI/hidden-definition 三条转换路径。
+- 无关键词静态或实例生命周期计算的发现和重转换链有代码证据：`LifeCycleInvocationInspector` 独立扫描并缓存数值频率或 boolean 极性证据 -> `SporeDiscoveredLifeCycleMethodRegistry` -> `SporeDiscoveredLifeCycleMethodTransformer` -> Instrumentation/JVMTI/hidden-definition 三条转换路径。
 - `unremovableCollections` 代理集合、`ISporeEntry.actualSetValue`、`ISporeMap.actualPut/actualRemove`、iterator `actualRemove()` 等封锁/可信写入入口全部有代码证据。
 - 禁疗效果管理链路全部有代码证据：`SporeEffectsUtil`/`IEffectManager`、`SporeLivingEntityEffectApplicationTransformer`、bootstrap transformer 注册、`SporeEventBus` 添加/移除事件处理、`Spore` 注册 tick listener、过期效果 `actualRemove()` 清理、`SporeWeaponData.addHealingInhibitRandom` 强制 `forceAddEffect`。
 - 运行期最大生命值变更有配对证据：每个 `Attributes.MAX_HEALTH` 的 `setBaseValue(...)` 或等价 helper 都有同路径 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)`，且同步不依赖原版属性非空。

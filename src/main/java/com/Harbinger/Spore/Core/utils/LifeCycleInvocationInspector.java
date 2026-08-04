@@ -5,9 +5,10 @@ import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.agents.transformers.EntitySource;
-import com.Harbinger.Spore.Core.agents.transformers.HealthMethodTarget;
-import com.Harbinger.Spore.Core.agents.transformers.SporeDiscoveredHealthMethodRegistry;
-import com.Harbinger.Spore.Core.agents.transformers.SporeDiscoveredHealthMethodTransformer;
+import com.Harbinger.Spore.Core.agents.transformers.LifeCycleMethodCategory;
+import com.Harbinger.Spore.Core.agents.transformers.LifeCycleMethodTarget;
+import com.Harbinger.Spore.Core.agents.transformers.SporeDiscoveredLifeCycleMethodRegistry;
+import com.Harbinger.Spore.Core.agents.transformers.SporeDiscoveredLifeCycleMethodTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeTransformerDebugDump;
 import net.minecraft.world.entity.LivingEntity;
 import org.objectweb.asm.ClassReader;
@@ -36,6 +37,8 @@ public final class LifeCycleInvocationInspector
     private static final int JVM_ACC_IS_BEING_REDEFINED = 0x00100000;
     private static final String HEALTH_WRAPPER_SUFFIX = "SporeHealthLifecycleWrapper";
     private static final String DEATH_WRAPPER_SUFFIX = "SporeDeathLifecycleWrapper";
+    private static final LifeCycleMethod EXACT_ALIVE_METHOD = new LifeCycleMethod("m_6084_", "()Z");
+    private static final LifeCycleMethod EXACT_DEAD_OR_DYING_METHOD = new LifeCycleMethod("m_21224_", "()Z");
     private static final boolean DISABLE_UNSAFE_HIDDEN_RETRANSFORM =
             Boolean.getBoolean("spore.transformer.disableUnsafeHiddenRetransform");
     private static final String[] RETRANSFORM_HOOK_DEPENDENCIES = {
@@ -100,7 +103,7 @@ public final class LifeCycleInvocationInspector
             LifeCycleMethod lifeCycleMethod = new LifeCycleMethod(method.name, method.desc);
             LifeCycleKind kind = classify(lifeCycleMethod);
             if (kind != null && inspected.add(lifeCycleMethod)) {
-                inspectInvocations(rootEntityClass, classNode.name, method, kind);
+                inspectInvocations(rootEntityClass, classNode.name, method, lifeCycleMethod);
             }
         }
     }
@@ -110,7 +113,7 @@ public final class LifeCycleInvocationInspector
         try {
             inspectAndRetransformInvocationsInternal();
         } catch (Throwable t) {
-            LogUtil.errorf("failed to inspect shared lifecycle health invocations, %s", t.getMessage());
+            LogUtil.errorf("failed to inspect shared lifecycle invocations, %s", t.getMessage());
             LogUtil.printStackTrace(t);
         }
     }
@@ -120,20 +123,21 @@ public final class LifeCycleInvocationInspector
             if (!StackTraceUtil.isBadModName(method.owner())) {
                 continue;
             }
-            if (SporeDiscoveredHealthMethodRegistry.register(
+            if (SporeDiscoveredLifeCycleMethodRegistry.register(
                     method.owner(),
                     method.name(),
                     method.desc(),
                     method.target())) {
-                pendingOwners.add(SporeDiscoveredHealthMethodRegistry.normalizeOwner(method.owner()));
-                LogUtil.logf("Discovered shared lifecycle health method %s.%s%s using %s",
+                pendingOwners.add(SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(method.owner()));
+                LogUtil.logf("Discovered shared lifecycle method %s.%s%s using %s/%s",
                         method.owner(),
                         method.name(),
                         method.desc(),
-                        method.target().entitySource());
+                        method.target().entitySource(),
+                        method.target().category());
             }
         }
-        if (!SporeDiscoveredHealthMethodRegistry.owners().isEmpty()) {
+        if (!SporeDiscoveredLifeCycleMethodRegistry.owners().isEmpty()) {
             inspectAndRetransformRegisteredOwners();
         }
     }
@@ -143,38 +147,123 @@ public final class LifeCycleInvocationInspector
         for (Map.Entry<InvocationKey, InvocationEvidence> entry : observedInvocations.entrySet()) {
             InvocationEvidence evidence = entry.getValue();
             InvocationKey key = entry.getKey();
-            if (key.entitySource() == EntitySource.INSTANCE_THIS) {
-                if (evidence.instanceLifeCycleKinds.size() >= 2) {
-                    result.add(new DiscoveredMethod(
-                            key.owner(),
-                            key.name(),
-                            key.desc(),
-                            HealthMethodTarget.instanceThis()
-                    ));
-                }
+            Type returnType;
+            try {
+                returnType = Type.getReturnType(key.desc());
+            } catch (IllegalArgumentException ignored) {
                 continue;
             }
-            Set<Integer> frequentArgumentIndexes = new TreeSet<>();
-            for (Map.Entry<Integer, EnumSet<LifeCycleKind>> argumentEvidence
-                    : evidence.lifeCycleKindsByArgument.entrySet()) {
-                if (argumentEvidence.getValue().size() >= 2) {
-                    frequentArgumentIndexes.add(argumentEvidence.getKey());
-                }
+            if (returnType.getSort() == Type.BOOLEAN) {
+                addFrequentBooleanMethod(result, key, evidence);
+            } else if (returnType.getSort() == Type.FLOAT || returnType.getSort() == Type.DOUBLE) {
+                addFrequentHealthMethod(result, key, evidence);
             }
-            if (frequentArgumentIndexes.isEmpty()) {
-                continue;
+        }
+        return result;
+    }
+
+    private void addFrequentHealthMethod(Set<DiscoveredMethod> result,
+                                         InvocationKey key,
+                                         InvocationEvidence evidence) {
+        if (key.entitySource() == EntitySource.INSTANCE_THIS) {
+            if (evidence.healthInstanceLifeCycleKinds.size() >= 2) {
+                result.add(new DiscoveredMethod(
+                        key.owner(),
+                        key.name(),
+                        key.desc(),
+                        LifeCycleMethodTarget.instanceThis(LifeCycleMethodCategory.HEALTH)
+                ));
             }
-            int[] entityArgumentIndexes = new int[frequentArgumentIndexes.size()];
-            int index = 0;
-            for (int argumentIndex : frequentArgumentIndexes) {
-                entityArgumentIndexes[index++] = argumentIndex;
+            return;
+        }
+        Set<Integer> frequentArgumentIndexes = new TreeSet<>();
+        for (Map.Entry<Integer, EnumSet<LifeCycleKind>> argumentEvidence
+                : evidence.healthLifeCycleKindsByArgument.entrySet()) {
+            if (argumentEvidence.getValue().size() >= 2) {
+                frequentArgumentIndexes.add(argumentEvidence.getKey());
             }
+        }
+        if (!frequentArgumentIndexes.isEmpty()) {
             result.add(new DiscoveredMethod(
                     key.owner(),
                     key.name(),
                     key.desc(),
-                    HealthMethodTarget.staticArguments(entityArgumentIndexes)
+                    LifeCycleMethodTarget.staticArguments(
+                            LifeCycleMethodCategory.HEALTH,
+                            toIntArray(frequentArgumentIndexes)
+                    )
             ));
+        }
+    }
+
+    private void addFrequentBooleanMethod(Set<DiscoveredMethod> result,
+                                          InvocationKey key,
+                                          InvocationEvidence evidence) {
+        if (key.entitySource() == EntitySource.INSTANCE_THIS) {
+            LifeCycleMethodCategory category = booleanCategory(evidence.instanceBooleanPolarities);
+            if (category != null) {
+                result.add(new DiscoveredMethod(
+                        key.owner(),
+                        key.name(),
+                        key.desc(),
+                        LifeCycleMethodTarget.instanceThis(category)
+                ));
+            }
+            return;
+        }
+
+        LifeCycleMethodCategory commonCategory = null;
+        Set<Integer> entityArgumentIndexes = new TreeSet<>();
+        for (Map.Entry<Integer, EnumMap<BooleanLifeCycleMethod, BooleanPolarity>> argumentEvidence
+                : evidence.booleanPolaritiesByArgument.entrySet()) {
+            LifeCycleMethodCategory category = booleanCategory(argumentEvidence.getValue());
+            if (category == null) {
+                continue;
+            }
+            if (commonCategory != null && commonCategory != category) {
+                LogUtil.logf("Skip boolean lifecycle method %s.%s%s: entity arguments imply conflicting categories",
+                        key.owner(), key.name(), key.desc());
+                if (SporeDiscoveredLifeCycleMethodRegistry.invalidate(
+                        key.owner(),
+                        key.name(),
+                        key.desc(),
+                        "entity arguments imply conflicting boolean categories"
+                )) {
+                    pendingOwners.add(SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(key.owner()));
+                }
+                return;
+            }
+            commonCategory = category;
+            entityArgumentIndexes.add(argumentEvidence.getKey());
+        }
+        if (commonCategory != null && !entityArgumentIndexes.isEmpty()) {
+            result.add(new DiscoveredMethod(
+                    key.owner(),
+                    key.name(),
+                    key.desc(),
+                    LifeCycleMethodTarget.staticArguments(commonCategory, toIntArray(entityArgumentIndexes))
+            ));
+        }
+    }
+
+    private LifeCycleMethodCategory booleanCategory(
+            EnumMap<BooleanLifeCycleMethod, BooleanPolarity> polarities) {
+        BooleanPolarity alive = polarities.get(BooleanLifeCycleMethod.ALIVE);
+        BooleanPolarity deadOrDying = polarities.get(BooleanLifeCycleMethod.DEAD_OR_DYING);
+        if (alive == BooleanPolarity.DIRECT && deadOrDying == BooleanPolarity.NEGATED) {
+            return LifeCycleMethodCategory.ALIVE;
+        }
+        if (alive == BooleanPolarity.NEGATED && deadOrDying == BooleanPolarity.DIRECT) {
+            return LifeCycleMethodCategory.DEAD_OR_DYING;
+        }
+        return null;
+    }
+
+    private int[] toIntArray(Set<Integer> indexes) {
+        int[] result = new int[indexes.size()];
+        int targetIndex = 0;
+        for (int index : indexes) {
+            result[targetIndex++] = index;
         }
         return result;
     }
@@ -317,7 +406,12 @@ public final class LifeCycleInvocationInspector
     private void inspectInvocations(Class<?> rootEntityClass,
                                     String className,
                                     MethodNode method,
-                                    LifeCycleKind lifeCycleKind) {
+                                    LifeCycleMethod lifeCycleMethod) {
+        LifeCycleKind lifeCycleKind = classify(lifeCycleMethod);
+        if (lifeCycleKind == null) {
+            return;
+        }
+        BooleanLifeCycleMethod booleanLifeCycleMethod = exactBooleanLifeCycleMethod(lifeCycleMethod);
         Frame<BasicValue>[] frames;
         try {
             Analyzer<BasicValue> analyzer = new Analyzer<>(new ThisTrackingInterpreter());
@@ -352,7 +446,13 @@ public final class LifeCycleInvocationInspector
             } catch (IllegalArgumentException ignored) {
                 continue;
             }
-            if (returnType.getSort() != Type.FLOAT && returnType.getSort() != Type.DOUBLE) {
+            boolean booleanReturn = returnType.getSort() == Type.BOOLEAN;
+            if (!booleanReturn
+                    && returnType.getSort() != Type.FLOAT
+                    && returnType.getSort() != Type.DOUBLE) {
+                continue;
+            }
+            if (booleanReturn && booleanLifeCycleMethod == null) {
                 continue;
             }
             Frame<BasicValue> frame = instructionIndex < frames.length ? frames[instructionIndex] : null;
@@ -361,10 +461,30 @@ public final class LifeCycleInvocationInspector
                 continue;
             }
 
+            BooleanPolarity polarity = booleanReturn
+                    ? BooleanPolarityAnalyzer.analyze(method, call, frame)
+                    : null;
             if (staticCall) {
-                inspectStaticInvocation(call, argumentTypes, frame, stackLayout, lifeCycleKind);
+                inspectStaticInvocation(
+                        call,
+                        argumentTypes,
+                        frame,
+                        stackLayout,
+                        lifeCycleKind,
+                        booleanLifeCycleMethod,
+                        polarity
+                );
             } else {
-                inspectInstanceInvocation(rootEntityClass, call, frame, stackLayout, lifeCycleKind);
+                inspectInstanceInvocation(
+                        rootEntityClass,
+                        call,
+                        frame,
+                        stackLayout,
+                        lifeCycleKind,
+                        booleanLifeCycleMethod,
+                        polarity,
+                        booleanReturn
+                );
             }
         }
     }
@@ -373,12 +493,14 @@ public final class LifeCycleInvocationInspector
                                          Type[] argumentTypes,
                                          Frame<BasicValue> frame,
                                          InvocationStackLayout stackLayout,
-                                         LifeCycleKind lifeCycleKind) {
+                                         LifeCycleKind lifeCycleKind,
+                                         BooleanLifeCycleMethod booleanLifeCycleMethod,
+                                         BooleanPolarity polarity) {
         if (argumentTypes.length == 0) {
             return;
         }
         InvocationKey key = new InvocationKey(
-                SporeDiscoveredHealthMethodRegistry.normalizeOwner(call.owner),
+                SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(call.owner),
                 call.name,
                 call.desc,
                 EntitySource.STATIC_ARGUMENTS
@@ -394,12 +516,22 @@ public final class LifeCycleInvocationInspector
                 evidence = new InvocationEvidence();
                 observedInvocations.put(key, evidence);
             }
-            EnumSet<LifeCycleKind> kinds = evidence.lifeCycleKindsByArgument.get(argumentIndex);
-            if (kinds == null) {
-                kinds = EnumSet.noneOf(LifeCycleKind.class);
-                evidence.lifeCycleKindsByArgument.put(argumentIndex, kinds);
+            if (booleanLifeCycleMethod != null) {
+                EnumMap<BooleanLifeCycleMethod, BooleanPolarity> polarities =
+                        evidence.booleanPolaritiesByArgument.get(argumentIndex);
+                if (polarities == null) {
+                    polarities = new EnumMap<>(BooleanLifeCycleMethod.class);
+                    evidence.booleanPolaritiesByArgument.put(argumentIndex, polarities);
+                }
+                mergeBooleanPolarity(key, polarities, booleanLifeCycleMethod, polarity);
+            } else {
+                EnumSet<LifeCycleKind> kinds = evidence.healthLifeCycleKindsByArgument.get(argumentIndex);
+                if (kinds == null) {
+                    kinds = EnumSet.noneOf(LifeCycleKind.class);
+                    evidence.healthLifeCycleKindsByArgument.put(argumentIndex, kinds);
+                }
+                kinds.add(lifeCycleKind);
             }
-            kinds.add(lifeCycleKind);
         }
     }
 
@@ -407,11 +539,19 @@ public final class LifeCycleInvocationInspector
                                            MethodInsnNode call,
                                            Frame<BasicValue> frame,
                                            InvocationStackLayout stackLayout,
-                                           LifeCycleKind lifeCycleKind) {
-        if (nameLooksLikeHealth(call.name)
-                || nameLooksLikeMaxHealth(call.name)
-                || stackLayout.receiverStackIndex() < 0
+                                           LifeCycleKind lifeCycleKind,
+                                           BooleanLifeCycleMethod booleanLifeCycleMethod,
+                                           BooleanPolarity polarity,
+                                           boolean booleanReturn) {
+        if (stackLayout.receiverStackIndex() < 0
                 || !ThisTrackingInterpreter.isThis(frame.getStack(stackLayout.receiverStackIndex()))) {
+            return;
+        }
+        if (booleanReturn) {
+            if (nameLooksLikeIsAlive(call.name) || nameLooksLikeIsDeadOrDying(call.name)) {
+                return;
+            }
+        } else if (nameLooksLikeHealth(call.name) || nameLooksLikeMaxHealth(call.name)) {
             return;
         }
         ResolvedInstanceMethod implementation = resolveInstanceImplementation(
@@ -438,7 +578,42 @@ public final class LifeCycleInvocationInspector
             evidence = new InvocationEvidence();
             observedInvocations.put(key, evidence);
         }
-        evidence.instanceLifeCycleKinds.add(lifeCycleKind);
+        if (booleanLifeCycleMethod != null) {
+            mergeBooleanPolarity(key, evidence.instanceBooleanPolarities, booleanLifeCycleMethod, polarity);
+        } else {
+            evidence.healthInstanceLifeCycleKinds.add(lifeCycleKind);
+        }
+    }
+
+    private void mergeBooleanPolarity(InvocationKey key,
+                                      EnumMap<BooleanLifeCycleMethod, BooleanPolarity> polarities,
+                                      BooleanLifeCycleMethod lifeCycleMethod,
+                                      BooleanPolarity polarity) {
+        BooleanPolarity observed = polarity == null ? BooleanPolarity.UNKNOWN : polarity;
+        BooleanPolarity existing = polarities.get(lifeCycleMethod);
+        if (existing == null) {
+            polarities.put(lifeCycleMethod, observed);
+        } else if (existing != observed) {
+            polarities.put(lifeCycleMethod, BooleanPolarity.UNKNOWN);
+            if (SporeDiscoveredLifeCycleMethodRegistry.invalidate(
+                    key.owner(),
+                    key.name(),
+                    key.desc(),
+                    "mixed boolean polarity evidence"
+            )) {
+                pendingOwners.add(SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(key.owner()));
+            }
+        }
+    }
+
+    private BooleanLifeCycleMethod exactBooleanLifeCycleMethod(LifeCycleMethod method) {
+        if (EXACT_ALIVE_METHOD.equals(method)) {
+            return BooleanLifeCycleMethod.ALIVE;
+        }
+        if (EXACT_DEAD_OR_DYING_METHOD.equals(method)) {
+            return BooleanLifeCycleMethod.DEAD_OR_DYING;
+        }
+        return null;
     }
 
     private InvocationStackLayout invocationStackLayout(Frame<BasicValue> frame,
@@ -488,7 +663,7 @@ public final class LifeCycleInvocationInspector
                     continue;
                 }
                 return new ResolvedInstanceMethod(
-                        SporeDiscoveredHealthMethodRegistry.normalizeOwner(classNode.name)
+                        SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(classNode.name)
                 );
             }
         }
@@ -543,7 +718,7 @@ public final class LifeCycleInvocationInspector
             }
             clearCompletedOwners(matchingClasses, transformed);
         } catch (Throwable t) {
-            LogUtil.errorf("failed to retransform discovered lifecycle health methods, %s", t.getMessage());
+            LogUtil.errorf("failed to retransform discovered lifecycle methods, %s", t.getMessage());
             LogUtil.printStackTrace(t);
         } finally {
             for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenFlags.entrySet()) {
@@ -556,7 +731,7 @@ public final class LifeCycleInvocationInspector
         if (instrumentationTransformerInstalled) {
             return;
         }
-        ClassFileTransformer transformer = SporeDiscoveredHealthMethodTransformer.newInstance();
+        ClassFileTransformer transformer = SporeDiscoveredLifeCycleMethodTransformer.newInstance();
         instrumentation.addTransformer(transformer);
         instrumentationTransformerInstalled = true;
     }
@@ -565,7 +740,7 @@ public final class LifeCycleInvocationInspector
         if (jvmtiTransformerInstalled) {
             return true;
         }
-        jvmti.addTransformer(SporeDiscoveredHealthMethodTransformer.newSelfTransformer());
+        jvmti.addTransformer(SporeDiscoveredLifeCycleMethodTransformer.newSelfTransformer());
         jvmtiTransformerInstalled = jvmti.isTransformerHookInstalled();
         return jvmtiTransformerInstalled;
     }
@@ -603,7 +778,7 @@ public final class LifeCycleInvocationInspector
             if (loadedClass == null || loadedClass.isArray() || loadedClass.isPrimitive()) {
                 continue;
             }
-            String owner = SporeDiscoveredHealthMethodRegistry.normalizeOwner(loadedClass.getName());
+            String owner = SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(loadedClass.getName());
             if (pendingOwners.contains(owner)
                     && StackTraceUtil.isBadModName(loadedClass.getName())
                     && seen.add(loadedClass)) {
@@ -683,7 +858,7 @@ public final class LifeCycleInvocationInspector
                         target.getName(),
                         t.getMessage());
                 LogUtil.printStackTrace(t);
-                SporeTransformerDebugDump.dumpFailedTransform("instrumentation-discovered-health", target, t);
+                SporeTransformerDebugDump.dumpFailedTransform("instrumentation-discovered-lifecycle", target, t);
                 return;
             }
             int middle = targets.size() / 2;
@@ -708,7 +883,7 @@ public final class LifeCycleInvocationInspector
                         target.getName(),
                         t.getMessage());
                 LogUtil.printStackTrace(t);
-                SporeTransformerDebugDump.dumpFailedTransform("jvmti-discovered-health", target, t);
+                SporeTransformerDebugDump.dumpFailedTransform("jvmti-discovered-lifecycle", target, t);
                 return;
             }
             int middle = targets.size() / 2;
@@ -768,7 +943,7 @@ public final class LifeCycleInvocationInspector
     private void clearCompletedOwners(List<Class<?>> matchingClasses, Set<Class<?>> transformed) {
         Map<String, Boolean> completedByOwner = new HashMap<>();
         for (Class<?> matchingClass : matchingClasses) {
-            String owner = SporeDiscoveredHealthMethodRegistry.normalizeOwner(matchingClass.getName());
+            String owner = SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(matchingClass.getName());
             boolean completed = transformed.contains(matchingClass);
             Boolean previous = completedByOwner.get(owner);
             completedByOwner.put(owner, previous == null ? completed : previous && completed);
@@ -847,6 +1022,11 @@ public final class LifeCycleInvocationInspector
         ALIVE
     }
 
+    private enum BooleanLifeCycleMethod {
+        ALIVE,
+        DEAD_OR_DYING
+    }
+
     private record InvocationKey(String owner,
                                  String name,
                                  String desc,
@@ -856,12 +1036,16 @@ public final class LifeCycleInvocationInspector
     private record DiscoveredMethod(String owner,
                                     String name,
                                     String desc,
-                                    HealthMethodTarget target) {
+                                    LifeCycleMethodTarget target) {
     }
 
     private static final class InvocationEvidence {
-        private final Map<Integer, EnumSet<LifeCycleKind>> lifeCycleKindsByArgument = new HashMap<>();
-        private final EnumSet<LifeCycleKind> instanceLifeCycleKinds = EnumSet.noneOf(LifeCycleKind.class);
+        private final Map<Integer, EnumSet<LifeCycleKind>> healthLifeCycleKindsByArgument = new HashMap<>();
+        private final EnumSet<LifeCycleKind> healthInstanceLifeCycleKinds = EnumSet.noneOf(LifeCycleKind.class);
+        private final Map<Integer, EnumMap<BooleanLifeCycleMethod, BooleanPolarity>>
+                booleanPolaritiesByArgument = new HashMap<>();
+        private final EnumMap<BooleanLifeCycleMethod, BooleanPolarity> instanceBooleanPolarities =
+                new EnumMap<>(BooleanLifeCycleMethod.class);
     }
 
     private record LifeCycleInspectionKey(Class<?> rootEntityClass, Class<?> declaringLifeCycleClass) {

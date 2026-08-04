@@ -57,8 +57,9 @@ class BooleanPolarityAnalyzerTest {
 
     @Test
     void provesJavacBooleanMaterializationForBothPolarities() throws Exception {
-        assertEquals(BooleanPolarity.DIRECT, analyze(materialized("materializedDirect", false)));
-        assertEquals(BooleanPolarity.NEGATED, analyze(materialized("materializedNegated", true)));
+        assertEquals(BooleanPolarity.DIRECT, analyze(materialized("materializedDirect", false, false)));
+        assertEquals(BooleanPolarity.NEGATED, analyze(materialized("materializedNegated", true, false)));
+        assertEquals(BooleanPolarity.DIRECT, analyze(materialized("materializedIfne", false, true)));
     }
 
     @Test
@@ -105,16 +106,20 @@ class BooleanPolarityAnalyzerTest {
         assertEquals(BooleanPolarity.UNKNOWN, analyze(mixed));
     }
 
-    private MethodNode materialized(String name, boolean negated) {
+    private MethodNode materialized(String name, boolean negated, boolean useIfne) {
         MethodNode method = method(name);
         appendHelperCall(method);
-        Label falseInput = new Label();
+        Label branch = new Label();
         Label result = new Label();
-        method.visitJumpInsn(Opcodes.IFEQ, falseInput);
-        method.visitInsn(negated ? Opcodes.ICONST_0 : Opcodes.ICONST_1);
+        method.visitJumpInsn(useIfne ? Opcodes.IFNE : Opcodes.IFEQ, branch);
+        boolean fallthroughInput = !useIfne;
+        boolean fallthroughResult = negated ? !fallthroughInput : fallthroughInput;
+        method.visitInsn(fallthroughResult ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
         method.visitJumpInsn(Opcodes.GOTO, result);
-        method.visitLabel(falseInput);
-        method.visitInsn(negated ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
+        method.visitLabel(branch);
+        boolean branchInput = useIfne;
+        boolean branchResult = negated ? !branchInput : branchInput;
+        method.visitInsn(branchResult ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
         method.visitLabel(result);
         method.visitInsn(Opcodes.IRETURN);
         finish(method, 1, 1);

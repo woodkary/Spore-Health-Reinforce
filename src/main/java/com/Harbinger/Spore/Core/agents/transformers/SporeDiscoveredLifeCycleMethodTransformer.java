@@ -21,19 +21,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
+public final class SporeDiscoveredLifeCycleMethodTransformer
+        extends SporeClassFileTransformer0 implements SelfTransformer {
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/EntityHeealuthManager";
     private static final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/asmHooks/IEntityHealth";
-    private static final String HOOK_METHOD = "getHeealth";
-    private static final String FLOAT_OBJECT_HOOK_DESC = "(FLjava/lang/Object;)F";
-    private static final String DOUBLE_OBJECT_HOOK_DESC = "(DLjava/lang/Object;)D";
+    private static final String FLOAT_OBJECT_HEALTH_DESC = "(FLjava/lang/Object;)F";
+    private static final String DOUBLE_OBJECT_HEALTH_DESC = "(DLjava/lang/Object;)D";
+    private static final String BOOLEAN_OBJECT_DESC = "(ZLjava/lang/Object;)Z";
     private static final Class<? extends ClassFileTransformer> TRANSFORM_CLASS = resolveTransformerClass();
     private static MethodHandle constructor;
 
     private static Class<? extends ClassFileTransformer> resolveTransformerClass() {
-        SporeDiscoveredHealthMethodRegistry.owners();
+        SporeDiscoveredLifeCycleMethodRegistry.owners();
         return (Class<? extends ClassFileTransformer>) BytecodeUtil.resolveHiddenClassOrSelf(
-                SporeDiscoveredHealthMethodTransformer.class
+                SporeDiscoveredLifeCycleMethodTransformer.class
         );
     }
 
@@ -41,7 +42,7 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
         constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 TRANSFORM_CLASS,
-                SporeDiscoveredHealthMethodTransformer.class
+                SporeDiscoveredLifeCycleMethodTransformer.class
         );
     }
 
@@ -49,27 +50,28 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
         ClassFileTransformer transformer = newInstance();
         return transformer instanceof SelfTransformer selfTransformer
                 ? selfTransformer
-                : new SporeDiscoveredHealthMethodTransformer();
+                : new SporeDiscoveredLifeCycleMethodTransformer();
     }
 
     public static ClassFileTransformer newInstance() {
         constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 TRANSFORM_CLASS,
-                SporeDiscoveredHealthMethodTransformer.class
+                SporeDiscoveredLifeCycleMethodTransformer.class
         );
         if (constructor != null) {
             try {
                 return (ClassFileTransformer) constructor.invoke();
             } catch (Throwable t) {
-                LogUtil.errorf("failed to init hidden SporeDiscoveredHealthMethodTransformer, %s", t.getMessage());
+                LogUtil.errorf("failed to init hidden SporeDiscoveredLifeCycleMethodTransformer, %s",
+                        t.getMessage());
                 LogUtil.printStackTrace(t);
             }
         }
-        return new SporeDiscoveredHealthMethodTransformer();
+        return new SporeDiscoveredLifeCycleMethodTransformer();
     }
 
-    public SporeDiscoveredHealthMethodTransformer() {
+    public SporeDiscoveredLifeCycleMethodTransformer() {
     }
 
     @Override
@@ -84,50 +86,56 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
             if (classNode.name == null) {
                 return null;
             }
-            Map<String, HealthMethodTarget> targets =
-                    SporeDiscoveredHealthMethodRegistry.targetsForOwner(classNode.name);
+            Map<String, LifeCycleMethodTarget> targets =
+                    SporeDiscoveredLifeCycleMethodRegistry.targetsForOwner(classNode.name);
             if (targets.isEmpty()) {
                 return null;
             }
 
             boolean modified = false;
             for (MethodNode method : classNode.methods) {
-                HealthMethodTarget target = targets.get(
-                        SporeDiscoveredHealthMethodRegistry.methodKey(method.name, method.desc)
+                LifeCycleMethodTarget target = targets.get(
+                        SporeDiscoveredLifeCycleMethodRegistry.methodKey(method.name, method.desc)
                 );
                 if (target == null
                         || "<init>".equals(method.name)
                         || "<clinit>".equals(method.name)
                         || (method.access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE)) != 0
                         || method.instructions == null
-                        || method.instructions.size() == 0
-                        || alreadyCallsHook(method)) {
+                        || method.instructions.size() == 0) {
                     continue;
                 }
                 boolean isStatic = (method.access & Opcodes.ACC_STATIC) != 0;
                 if ((target.entitySource() == EntitySource.STATIC_ARGUMENTS) != isStatic) {
-                    LogUtil.errorf("Skip discovered health method %s.%s%s: target mode %s conflicts with access %s",
+                    LogUtil.errorf(
+                            "Skip discovered lifecycle method %s.%s%s: target mode %s conflicts with access %s",
                             classNode.name,
                             method.name,
                             method.desc,
                             target.entitySource(),
-                            isStatic ? "static" : "instance");
+                            isStatic ? "static" : "instance"
+                    );
                     continue;
                 }
-                if (patchReturns(method, target)) {
+                HookSpec hookSpec = resolveHookSpec(method, target);
+                if (hookSpec == null || alreadyCallsHook(method, hookSpec)) {
+                    continue;
+                }
+                if (patchReturns(method, target, hookSpec)) {
                     modified = true;
-                    LogUtil.logf("Transformed discovered lifecycle health method %s.%s%s using %s",
+                    LogUtil.logf("Transformed discovered lifecycle method %s.%s%s using %s/%s",
                             classNode.name,
                             method.name,
                             method.desc,
-                            target.entitySource());
+                            target.entitySource(),
+                            target.category());
                 }
             }
             if (modified) {
                 return toBytes(loader, className == null ? classNode.name : className, classfileBuffer, classNode);
             }
         } catch (Throwable t) {
-            LogUtil.errorf("failed to transform discovered lifecycle health class %s, %s",
+            LogUtil.errorf("failed to transform discovered lifecycle class %s, %s",
                     className == null ? "<hidden-or-anonymous>" : className,
                     t.getMessage());
             LogUtil.printStackTrace(t);
@@ -135,13 +143,43 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
         return null;
     }
 
-    private boolean patchReturns(MethodNode method, HealthMethodTarget target) {
-        Type returnType = Type.getReturnType(method.desc);
-        boolean isFloat = returnType.getSort() == Type.FLOAT;
-        if (!isFloat && returnType.getSort() != Type.DOUBLE) {
-            return false;
+    private HookSpec resolveHookSpec(MethodNode method, LifeCycleMethodTarget target) {
+        Type returnType;
+        try {
+            returnType = Type.getReturnType(method.desc);
+        } catch (IllegalArgumentException e) {
+            return null;
         }
+        if (target.category() == LifeCycleMethodCategory.HEALTH) {
+            if (returnType.getSort() == Type.FLOAT) {
+                return new HookSpec("getHeealth", FLOAT_OBJECT_HEALTH_DESC,
+                        Opcodes.FRETURN, Opcodes.FSTORE, Opcodes.FLOAD);
+            }
+            if (returnType.getSort() == Type.DOUBLE) {
+                return new HookSpec("getHeealth", DOUBLE_OBJECT_HEALTH_DESC,
+                        Opcodes.DRETURN, Opcodes.DSTORE, Opcodes.DLOAD);
+            }
+        } else if (returnType.getSort() == Type.BOOLEAN) {
+            if (target.category() == LifeCycleMethodCategory.ALIVE) {
+                return new HookSpec("isAlliive", BOOLEAN_OBJECT_DESC,
+                        Opcodes.IRETURN, Opcodes.ISTORE, Opcodes.ILOAD);
+            }
+            if (target.category() == LifeCycleMethodCategory.DEAD_OR_DYING) {
+                return new HookSpec("isDeeadfOrDyaging", BOOLEAN_OBJECT_DESC,
+                        Opcodes.IRETURN, Opcodes.ISTORE, Opcodes.ILOAD);
+            }
+        }
+        LogUtil.errorf("Skip discovered lifecycle method %s%s: category %s is incompatible with return %s",
+                method.name,
+                method.desc,
+                target.category(),
+                returnType.getDescriptor());
+        return null;
+    }
 
+    private boolean patchReturns(MethodNode method,
+                                 LifeCycleMethodTarget target,
+                                 HookSpec hookSpec) {
         Type[] argumentTypes = Type.getArgumentTypes(method.desc);
         boolean isStatic = (method.access & Opcodes.ACC_STATIC) != 0;
         int[] usableIndexes = target.entitySource() == EntitySource.STATIC_ARGUMENTS
@@ -151,35 +189,25 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
             return false;
         }
 
+        Type returnType = Type.getReturnType(method.desc);
         int[] argumentSlots = argumentSlots(argumentTypes, isStatic);
         int resultLocal = Math.max(method.maxLocals, minimumLocals(argumentTypes, isStatic));
         method.maxLocals = resultLocal + returnType.getSize();
-        int returnOpcode = isFloat ? Opcodes.FRETURN : Opcodes.DRETURN;
-        int storeOpcode = isFloat ? Opcodes.FSTORE : Opcodes.DSTORE;
-        int loadOpcode = isFloat ? Opcodes.FLOAD : Opcodes.DLOAD;
-        String hookDescriptor = isFloat ? FLOAT_OBJECT_HOOK_DESC : DOUBLE_OBJECT_HOOK_DESC;
         boolean modified = false;
 
         for (AbstractInsnNode instruction = method.instructions.getFirst(); instruction != null; ) {
             AbstractInsnNode next = instruction.getNext();
-            if (instruction.getOpcode() == returnOpcode) {
+            if (instruction.getOpcode() == hookSpec.returnOpcode()) {
                 InsnList inject = new InsnList();
-                inject.add(new VarInsnNode(storeOpcode, resultLocal));
+                inject.add(new VarInsnNode(hookSpec.storeOpcode(), resultLocal));
                 if (target.entitySource() == EntitySource.INSTANCE_THIS) {
-                    appendHook(inject, loadOpcode, storeOpcode, resultLocal, 0, hookDescriptor);
+                    appendHook(inject, hookSpec, resultLocal, 0);
                 } else {
                     for (int argumentIndex : usableIndexes) {
-                        appendHook(
-                                inject,
-                                loadOpcode,
-                                storeOpcode,
-                                resultLocal,
-                                argumentSlots[argumentIndex],
-                                hookDescriptor
-                        );
+                        appendHook(inject, hookSpec, resultLocal, argumentSlots[argumentIndex]);
                     }
                 }
-                inject.add(new VarInsnNode(loadOpcode, resultLocal));
+                inject.add(new VarInsnNode(hookSpec.loadOpcode(), resultLocal));
                 method.instructions.insertBefore(instruction, inject);
                 modified = true;
             }
@@ -188,28 +216,23 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
         return modified;
     }
 
-    private void appendHook(InsnList inject,
-                            int loadOpcode,
-                            int storeOpcode,
-                            int resultLocal,
-                            int entityLocal,
-                            String hookDescriptor) {
+    private void appendHook(InsnList inject, HookSpec hookSpec, int resultLocal, int entityLocal) {
         inject.add(new FieldInsnNode(
                 Opcodes.GETSTATIC,
                 HOOK_OWNER,
                 "INSTANCE",
                 "L" + HOOK_INTERFACE + ";"
         ));
-        inject.add(new VarInsnNode(loadOpcode, resultLocal));
+        inject.add(new VarInsnNode(hookSpec.loadOpcode(), resultLocal));
         inject.add(new VarInsnNode(Opcodes.ALOAD, entityLocal));
         inject.add(new MethodInsnNode(
                 Opcodes.INVOKEINTERFACE,
                 HOOK_INTERFACE,
-                HOOK_METHOD,
-                hookDescriptor,
+                hookSpec.methodName(),
+                hookSpec.descriptor(),
                 true
         ));
-        inject.add(new VarInsnNode(storeOpcode, resultLocal));
+        inject.add(new VarInsnNode(hookSpec.storeOpcode(), resultLocal));
     }
 
     private int[] usableEntityArgumentIndexes(int[] requestedIndexes, Type[] argumentTypes) {
@@ -248,15 +271,14 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
         return locals;
     }
 
-    private boolean alreadyCallsHook(MethodNode method) {
+    private boolean alreadyCallsHook(MethodNode method, HookSpec hookSpec) {
         for (AbstractInsnNode instruction = method.instructions.getFirst();
              instruction != null;
              instruction = instruction.getNext()) {
             if (instruction instanceof MethodInsnNode call
                     && HOOK_INTERFACE.equals(call.owner)
-                    && HOOK_METHOD.equals(call.name)
-                    && (FLOAT_OBJECT_HOOK_DESC.equals(call.desc)
-                    || DOUBLE_OBJECT_HOOK_DESC.equals(call.desc))) {
+                    && hookSpec.methodName().equals(call.name)
+                    && hookSpec.descriptor().equals(call.desc)) {
                 return true;
             }
         }
@@ -284,5 +306,12 @@ public final class SporeDiscoveredHealthMethodTransformer extends SporeClassFile
     @Override
     public byte[] transformClassByte(ClassLoader loader, String className, byte[] classfileBuffer) {
         return transformInternal(loader, className, classfileBuffer);
+    }
+
+    private record HookSpec(String methodName,
+                            String descriptor,
+                            int returnOpcode,
+                            int storeOpcode,
+                            int loadOpcode) {
     }
 }
