@@ -26,6 +26,8 @@ import org.objectweb.asm.tree.analysis.Frame;
 import sun.misc.Unsafe;
 
 import java.lang.instrument.ClassFileTransformer;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
 
@@ -119,8 +121,15 @@ public final class LifeCycleInvocationInspector
     }
 
     private void inspectAndRetransformInvocationsInternal() {
+        registerFrequentMethods();
+        if (!SporeDiscoveredLifeCycleMethodRegistry.owners().isEmpty()) {
+            inspectAndRetransformRegisteredOwners();
+        }
+    }
+
+    private void registerFrequentMethods() {
         for (DiscoveredMethod method : frequentMethods()) {
-            if (!StackTraceUtil.isBadModName(method.owner())) {
+            if (isOwnSporeClass(method.owner())) {
                 continue;
             }
             if (SporeDiscoveredLifeCycleMethodRegistry.register(
@@ -136,9 +145,6 @@ public final class LifeCycleInvocationInspector
                         method.target().entitySource(),
                         method.target().category());
             }
-        }
-        if (!SporeDiscoveredLifeCycleMethodRegistry.owners().isEmpty()) {
-            inspectAndRetransformRegisteredOwners();
         }
     }
 
@@ -472,7 +478,8 @@ public final class LifeCycleInvocationInspector
                         stackLayout,
                         lifeCycleKind,
                         booleanLifeCycleMethod,
-                        polarity
+                        polarity,
+                        booleanReturn
                 );
             } else {
                 inspectInstanceInvocation(
@@ -495,7 +502,8 @@ public final class LifeCycleInvocationInspector
                                          InvocationStackLayout stackLayout,
                                          LifeCycleKind lifeCycleKind,
                                          BooleanLifeCycleMethod booleanLifeCycleMethod,
-                                         BooleanPolarity polarity) {
+                                         BooleanPolarity polarity,
+                                         boolean booleanReturn) {
         if (argumentTypes.length == 0) {
             return;
         }
@@ -516,7 +524,10 @@ public final class LifeCycleInvocationInspector
                 evidence = new InvocationEvidence();
                 observedInvocations.put(key, evidence);
             }
-            if (booleanLifeCycleMethod != null) {
+            if (booleanReturn) {
+                if (booleanLifeCycleMethod == null) {
+                    continue;
+                }
                 EnumMap<BooleanLifeCycleMethod, BooleanPolarity> polarities =
                         evidence.booleanPolaritiesByArgument.get(argumentIndex);
                 if (polarities == null) {
@@ -578,7 +589,10 @@ public final class LifeCycleInvocationInspector
             evidence = new InvocationEvidence();
             observedInvocations.put(key, evidence);
         }
-        if (booleanLifeCycleMethod != null) {
+        if (booleanReturn) {
+            if (booleanLifeCycleMethod == null) {
+                return;
+            }
             mergeBooleanPolarity(key, evidence.instanceBooleanPolarities, booleanLifeCycleMethod, polarity);
         } else {
             evidence.healthInstanceLifeCycleKinds.add(lifeCycleKind);
@@ -645,6 +659,64 @@ public final class LifeCycleInvocationInspector
     private ResolvedInstanceMethod resolveInstanceImplementation(Class<?> rootEntityClass,
                                                                  String name,
                                                                  String desc) {
+        ResolvedInstanceMethod runtimeImplementation = resolveRuntimeInstanceImplementation(
+                rootEntityClass,
+                name,
+                desc
+        );
+        return runtimeImplementation != null
+                ? runtimeImplementation
+                : resolveBytecodeInstanceImplementation(rootEntityClass, name, desc);
+    }
+
+    private ResolvedInstanceMethod resolveRuntimeInstanceImplementation(Class<?> rootEntityClass,
+                                                                        String name,
+                                                                        String desc) {
+        for (Class<?> current = rootEntityClass; current != null; ) {
+            Class<?> parent = null;
+            try {
+                parent = current.getSuperclass();
+            } catch (Throwable ignored) {
+            }
+
+            Method[] methods = null;
+            try {
+                methods = ClassReflectionUtil.getDeclaredMethods(current);
+            } catch (Throwable ignored) {
+            }
+            if (methods != null) {
+                for (Method method : methods) {
+                    if (method == null) {
+                        continue;
+                    }
+                    try {
+                        int modifiers = method.getModifiers();
+                        if (!method.getName().equals(name)
+                                || !Type.getMethodDescriptor(method).equals(desc)
+                                || Modifier.isStatic(modifiers)
+                                || Modifier.isAbstract(modifiers)
+                                || Modifier.isNative(modifiers)
+                                || method.isBridge()
+                                || method.isSynthetic()) {
+                            continue;
+                        }
+                        return new ResolvedInstanceMethod(
+                                SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(
+                                        method.getDeclaringClass().getName()
+                                )
+                        );
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+            current = parent;
+        }
+        return null;
+    }
+
+    private ResolvedInstanceMethod resolveBytecodeInstanceImplementation(Class<?> rootEntityClass,
+                                                                         String name,
+                                                                         String desc) {
         for (Class<?> current = rootEntityClass; current != null; current = current.getSuperclass()) {
             ClassNode classNode = readClassNode(current);
             if (classNode == null) {
@@ -780,7 +852,7 @@ public final class LifeCycleInvocationInspector
             }
             String owner = SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(loadedClass.getName());
             if (pendingOwners.contains(owner)
-                    && StackTraceUtil.isBadModName(loadedClass.getName())
+                    && !isOwnSporeClass(loadedClass.getName())
                     && seen.add(loadedClass)) {
                 result.add(loadedClass);
             }
@@ -1008,6 +1080,10 @@ public final class LifeCycleInvocationInspector
     private boolean isHiddenLikeClass(Class<?> clazz) {
         String name = clazz == null ? null : clazz.getName();
         return name != null && (name.contains("/0x") || name.contains("+0x"));
+    }
+
+    private boolean isOwnSporeClass(String name) {
+        return name != null && name.replace('.', '/').startsWith("com/Harbinger/Spore/");
     }
 
     @Override
