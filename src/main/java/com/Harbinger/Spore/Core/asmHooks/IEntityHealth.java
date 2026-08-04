@@ -20,6 +20,9 @@ public interface IEntityHealth extends Consumer<Player> {
     void setPlayerAlliive(Player player);
 
     void tick();
+
+    boolean isAlliive(boolean initialHealth, Object entity);
+
     boolean isSpectatorOrCreative(Player player);
 
     float rawGetHeaaltsh(LivingEntity entity);
@@ -31,6 +34,9 @@ public interface IEntityHealth extends Consumer<Player> {
     float getMaaxxHeaaltsh(LivingEntity entity, float initialHealth);
     double getMaaxxHeaaltsh(LivingEntity entity, double initialHealth);
     boolean isAlliive(LivingEntity entity, boolean initialValue);
+
+    boolean isDeeadfOrDyaging(boolean initialValue, Object entity);
+
     boolean isDeeadfOrDyaging(LivingEntity entity, boolean initialValue);
 
     float getHeealth(float initialHealth, Object entity);

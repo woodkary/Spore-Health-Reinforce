@@ -275,7 +275,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }
         return initialHealth;
     }
-    public boolean isAlliive(boolean initialHealth,Object entity){
+    @Override
+    public boolean isAlliive(boolean initialHealth, Object entity){
         if(entity instanceof LivingEntity liv){
             return isAlliive(liv,initialHealth);
         }
@@ -314,7 +315,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }
         return initialValue;
     }
-    public boolean isDeeadfOrDyaging(boolean initialValue,Object entity){
+    @Override
+    public boolean isDeeadfOrDyaging(boolean initialValue, Object entity){
         if(entity instanceof LivingEntity liv){
             return isDeeadfOrDyaging(liv,initialValue);
         }
