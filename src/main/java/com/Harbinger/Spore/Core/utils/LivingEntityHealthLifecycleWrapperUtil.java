@@ -734,6 +734,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         return n.contains("dead")
                 || n.contains("die")
                 || n.contains("death")
+                || n.contains("dying")
                 || n.contains("away")
                 || n.contains("died")
                 || (n.contains("kill") && !n.contains("skill"))

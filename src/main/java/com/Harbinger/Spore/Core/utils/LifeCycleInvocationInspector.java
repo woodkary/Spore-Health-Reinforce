@@ -423,6 +423,7 @@ public final class LifeCycleInvocationInspector
         return normalized.contains("dead")
                 || normalized.contains("die")
                 || normalized.contains("death")
+                || normalized.contains("dying")
                 || normalized.contains("away")
                 || normalized.contains("died")
                 || (normalized.contains("kill") && !normalized.contains("skill"))
