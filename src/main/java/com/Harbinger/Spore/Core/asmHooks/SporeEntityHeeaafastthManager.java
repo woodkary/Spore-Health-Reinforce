@@ -224,8 +224,7 @@ public final class SporeEntityHeeaafastthManager implements ISporeEntityHealth, 
         if (entity == null) {
             return false;
         }
-        Package pkg = entity.getClass().getPackage();
-        return pkg != null && pkg.getName().toLowerCase(Locale.ROOT).contains("spore");
+        return entity.getClass().getName().startsWith("com.Harbinger.Spore");
     }
 
     private LivingEntity getHealthOwner(LivingEntity entity) {
