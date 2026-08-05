@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -407,6 +408,191 @@ class LifeCycleInvocationInspectorTest {
     }
 
     @Test
+    void directlyDiscoversSingleNamedStaticBooleanHelpersWithoutPolarity() throws Exception {
+        LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
+        String owner = "test/NamedBooleanLifecycleUtil";
+
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "m_6084_",
+                owner,
+                "isAliveState",
+                BOOLEAN_STATIC_DESC,
+                0,
+                BooleanPolarity.UNKNOWN
+        ));
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "m_21224_",
+                owner,
+                "isDeadOrDyingState",
+                BOOLEAN_STATIC_DESC,
+                0,
+                BooleanPolarity.UNKNOWN
+        ));
+
+        assertTrue(hasDiscoveredTarget(
+                inspector,
+                owner,
+                "isAliveState",
+                EntitySource.STATIC_ARGUMENTS,
+                LifeCycleMethodCategory.ALIVE
+        ));
+        assertTrue(hasDiscoveredTarget(
+                inspector,
+                owner,
+                "isDeadOrDyingState",
+                EntitySource.STATIC_ARGUMENTS,
+                LifeCycleMethodCategory.DEAD_OR_DYING
+        ));
+    }
+
+    @Test
+    void directlyDiscoversNamedStaticBooleanHelpersFromCustomLifecycleMethods() throws Exception {
+        LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
+        String owner = "test/CustomNamedBooleanLifecycleUtil";
+
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "isAliveCustom",
+                owner,
+                "hasLivingState",
+                BOOLEAN_STATIC_DESC,
+                0,
+                BooleanPolarity.UNKNOWN
+        ));
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "isDeadCustom",
+                owner,
+                "hasDiedState",
+                BOOLEAN_STATIC_DESC,
+                0,
+                BooleanPolarity.UNKNOWN
+        ));
+
+        assertTrue(hasDiscoveredTarget(
+                inspector,
+                owner,
+                "hasLivingState",
+                EntitySource.STATIC_ARGUMENTS,
+                LifeCycleMethodCategory.ALIVE
+        ));
+        assertTrue(hasDiscoveredTarget(
+                inspector,
+                owner,
+                "hasDiedState",
+                EntitySource.STATIC_ARGUMENTS,
+                LifeCycleMethodCategory.DEAD_OR_DYING
+        ));
+    }
+
+    @Test
+    void directlyDiscoversHealthAndMaxHealthStaticNamesAcrossBothOuterKinds() throws Exception {
+        LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
+        String owner = "test/NamedHealthLifecycleUtil";
+
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                numericStaticMethod("getHealth", "()F", owner, "readHealth", "(Ljava/lang/Object;)F", 0));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                numericStaticMethod("getHealth", "()D", owner, "readMaxHealth", "(Ljava/lang/Object;)D", 0));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                numericStaticMethod("getMaxHealth", "()F", owner, "currentHealth", "(Ljava/lang/Object;)F", 0));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                numericStaticMethod("getMaxHealth", "()D", owner, "currentMaxHealth", "(Ljava/lang/Object;)D", 0));
+
+        assertTrue(hasDiscoveredTarget(inspector, owner, "readHealth",
+                EntitySource.STATIC_ARGUMENTS, LifeCycleMethodCategory.HEALTH));
+        assertTrue(hasDiscoveredTarget(inspector, owner, "readMaxHealth",
+                EntitySource.STATIC_ARGUMENTS, LifeCycleMethodCategory.HEALTH));
+        assertTrue(hasDiscoveredTarget(inspector, owner, "currentHealth",
+                EntitySource.STATIC_ARGUMENTS, LifeCycleMethodCategory.HEALTH));
+        assertTrue(hasDiscoveredTarget(inspector, owner, "currentMaxHealth",
+                EntitySource.STATIC_ARGUMENTS, LifeCycleMethodCategory.HEALTH));
+    }
+
+    @Test
+    void unionsDirectHealthArgumentsWithFrequencyBasedArguments() throws Exception {
+        LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
+        String owner = "test/CombinedNamedHealthLifecycleUtil";
+        String name = "readHealth";
+        String descriptor = "(Ljava/lang/Object;Ljava/lang/Object;)F";
+
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                numericStaticMethod("getHealth", "()F", owner, name, descriptor, 0));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                exactBooleanStaticFloatMethod("m_6084_", owner, name, descriptor, 1));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                exactBooleanStaticFloatMethod("m_21224_", owner, name, descriptor, 1));
+
+        LifeCycleMethodTarget target = discoveredTarget(
+                inspector,
+                owner,
+                name,
+                EntitySource.STATIC_ARGUMENTS,
+                LifeCycleMethodCategory.HEALTH
+        );
+        assertTrue(target != null);
+        assertArrayEquals(new int[]{0, 1}, target.entityArgumentIndexes());
+    }
+
+    @Test
+    void directStaticDiscoveryStillRequiresNameTypeAndDefiniteThis() throws Exception {
+        LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
+        String owner = "test/RejectedNamedLifecycleUtil";
+
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                numericStaticMethod("getHealth", "()F", owner, "calculateValue", STATIC_DESC, 0));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                maybeThisMethod(owner, "readHealth"));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                healthMethodCallingBoolean(owner, "isAliveState"));
+        inspectMethod(inspector, FinalLifecycleEntity.class,
+                aliveMethodCallingFloat(owner, "readHealth"));
+
+        assertEquals(0, frequentMethods(inspector).size());
+    }
+
+    @Test
+    void invalidatesConflictingDirectStaticCategories() throws Exception {
+        LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
+        String owner = "test/ConflictingNamedBooleanLifecycleUtil";
+        String name = "isAliveOrDeadState";
+        String descriptor = "(Ljava/lang/Object;Ljava/lang/Object;)Z";
+
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "isAliveCustom", owner, name, descriptor, 0, BooleanPolarity.UNKNOWN));
+        LifeCycleMethodTarget initialTarget = discoveredTarget(
+                inspector,
+                owner,
+                name,
+                EntitySource.STATIC_ARGUMENTS,
+                LifeCycleMethodCategory.ALIVE
+        );
+        assertTrue(initialTarget != null);
+        assertTrue(SporeDiscoveredLifeCycleMethodRegistry.register(
+                owner, name, descriptor, initialTarget));
+
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "isDeadCustom", owner, name, descriptor, 1, BooleanPolarity.UNKNOWN));
+
+        assertEquals(0, frequentMethods(inspector).size());
+        assertTrue(SporeDiscoveredLifeCycleMethodRegistry.isInvalid(
+                owner, name, descriptor));
+        assertFalse(SporeDiscoveredLifeCycleMethodRegistry.targetsForOwner(owner)
+                .containsKey(name + descriptor));
+    }
+
+    @Test
+    void invalidatesDirectCategoryThatConflictsWithPolarityCategory() throws Exception {
+        LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
+        String owner = "test/DirectPolarityConflictUtil";
+        String name = "calculateConflict";
+
+        addDirectAndPolarityConflictEvidence(inspector, owner, name, BOOLEAN_STATIC_DESC);
+
+        assertEquals(0, frequentMethods(inspector).size());
+        assertTrue(SporeDiscoveredLifeCycleMethodRegistry.isInvalid(
+                owner, name, BOOLEAN_STATIC_DESC));
+    }
+
+    @Test
     void classifiesInstanceBooleanNegatedAliveDirectDeadAsDeadOrDying() throws Exception {
         LifeCycleInvocationInspector inspector = new LifeCycleInvocationInspector();
 
@@ -637,6 +823,10 @@ class LifeCycleInvocationInspectorTest {
     }
 
     private MethodNode maybeThisMethod() {
+        return maybeThisMethod(STATIC_OWNER, STATIC_NAME);
+    }
+
+    private MethodNode maybeThisMethod(String owner, String methodName) {
         MethodNode method = new MethodNode(Opcodes.ACC_PUBLIC, "maybeHealth", "(ZLjava/lang/Object;)F", null, null);
         method.visitCode();
         Label useOther = new Label();
@@ -651,7 +841,7 @@ class LifeCycleInvocationInspectorTest {
         method.visitVarInsn(Opcodes.ASTORE, 3);
         method.visitLabel(merged);
         method.visitVarInsn(Opcodes.ALOAD, 3);
-        method.visitMethodInsn(Opcodes.INVOKESTATIC, STATIC_OWNER, STATIC_NAME, STATIC_DESC, false);
+        method.visitMethodInsn(Opcodes.INVOKESTATIC, owner, methodName, STATIC_DESC, false);
         method.visitInsn(Opcodes.FRETURN);
         method.visitMaxs(1, 4);
         method.visitEnd();
@@ -659,6 +849,22 @@ class LifeCycleInvocationInspectorTest {
     }
 
     private MethodNode booleanStaticMethod(String lifecycleName,
+                                           String helperDescriptor,
+                                           int thisArgumentIndex,
+                                           BooleanPolarity polarity) {
+        return booleanStaticMethod(
+                lifecycleName,
+                BOOLEAN_STATIC_OWNER,
+                BOOLEAN_STATIC_NAME,
+                helperDescriptor,
+                thisArgumentIndex,
+                polarity
+        );
+    }
+
+    private MethodNode booleanStaticMethod(String lifecycleName,
+                                           String helperOwner,
+                                           String helperName,
                                            String helperDescriptor,
                                            int thisArgumentIndex,
                                            BooleanPolarity polarity) {
@@ -674,8 +880,8 @@ class LifeCycleInvocationInspectorTest {
         }
         method.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
-                BOOLEAN_STATIC_OWNER,
-                BOOLEAN_STATIC_NAME,
+                helperOwner,
+                helperName,
                 helperDescriptor,
                 false
         );
@@ -689,12 +895,107 @@ class LifeCycleInvocationInspectorTest {
     private MethodNode exactBooleanStaticFloatMethod(String lifecycleName,
                                                      String helperOwner,
                                                      String helperName) {
+        return exactBooleanStaticFloatMethod(
+                lifecycleName,
+                helperOwner,
+                helperName,
+                STATIC_DESC,
+                0
+        );
+    }
+
+    private MethodNode exactBooleanStaticFloatMethod(String lifecycleName,
+                                                     String helperOwner,
+                                                     String helperName,
+                                                     String helperDescriptor,
+                                                     int thisArgumentIndex) {
         MethodNode method = new MethodNode(Opcodes.ACC_PUBLIC, lifecycleName, "()Z", null, null);
         method.visitCode();
-        method.visitVarInsn(Opcodes.ALOAD, 0);
-        method.visitMethodInsn(Opcodes.INVOKESTATIC, helperOwner, helperName, STATIC_DESC, false);
+        int argumentCount = org.objectweb.asm.Type.getArgumentTypes(helperDescriptor).length;
+        for (int argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++) {
+            if (argumentIndex == thisArgumentIndex) {
+                method.visitVarInsn(Opcodes.ALOAD, 0);
+            } else {
+                method.visitInsn(Opcodes.ACONST_NULL);
+            }
+        }
+        method.visitMethodInsn(Opcodes.INVOKESTATIC, helperOwner, helperName, helperDescriptor, false);
         appendFloatLifecycleResult(method, lifecycleName);
-        method.visitMaxs(2, 1);
+        method.visitMaxs(Math.max(2, argumentCount), 1);
+        method.visitEnd();
+        return method;
+    }
+
+    private MethodNode numericStaticMethod(String lifecycleName,
+                                           String lifecycleDescriptor,
+                                           String helperOwner,
+                                           String helperName,
+                                           String helperDescriptor,
+                                           int thisArgumentIndex) {
+        MethodNode method = new MethodNode(
+                Opcodes.ACC_PUBLIC,
+                lifecycleName,
+                lifecycleDescriptor,
+                null,
+                null
+        );
+        method.visitCode();
+        org.objectweb.asm.Type[] argumentTypes =
+                org.objectweb.asm.Type.getArgumentTypes(helperDescriptor);
+        for (int argumentIndex = 0; argumentIndex < argumentTypes.length; argumentIndex++) {
+            if (argumentIndex == thisArgumentIndex) {
+                method.visitVarInsn(Opcodes.ALOAD, 0);
+            } else {
+                method.visitInsn(Opcodes.ACONST_NULL);
+            }
+        }
+        method.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                helperOwner,
+                helperName,
+                helperDescriptor,
+                false
+        );
+        method.visitInsn(org.objectweb.asm.Type.getReturnType(lifecycleDescriptor).getOpcode(Opcodes.IRETURN));
+        method.visitMaxs(Math.max(2, argumentTypes.length), 1);
+        method.visitEnd();
+        return method;
+    }
+
+    private MethodNode healthMethodCallingBoolean(String helperOwner, String helperName) {
+        MethodNode method = new MethodNode(Opcodes.ACC_PUBLIC, "getHealth", "()F", null, null);
+        method.visitCode();
+        method.visitVarInsn(Opcodes.ALOAD, 0);
+        method.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                helperOwner,
+                helperName,
+                BOOLEAN_STATIC_DESC,
+                false
+        );
+        method.visitInsn(Opcodes.POP);
+        method.visitInsn(Opcodes.FCONST_0);
+        method.visitInsn(Opcodes.FRETURN);
+        method.visitMaxs(1, 1);
+        method.visitEnd();
+        return method;
+    }
+
+    private MethodNode aliveMethodCallingFloat(String helperOwner, String helperName) {
+        MethodNode method = new MethodNode(Opcodes.ACC_PUBLIC, "isAliveCustom", "()Z", null, null);
+        method.visitCode();
+        method.visitVarInsn(Opcodes.ALOAD, 0);
+        method.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                helperOwner,
+                helperName,
+                STATIC_DESC,
+                false
+        );
+        method.visitInsn(Opcodes.POP);
+        method.visitInsn(Opcodes.ICONST_1);
+        method.visitInsn(Opcodes.IRETURN);
+        method.visitMaxs(1, 1);
         method.visitEnd();
         return method;
     }
@@ -847,16 +1148,24 @@ class LifeCycleInvocationInspectorTest {
                                         String name,
                                         EntitySource source,
                                         LifeCycleMethodCategory category) throws Exception {
+        return discoveredTarget(inspector, owner, name, source, category) != null;
+    }
+
+    private LifeCycleMethodTarget discoveredTarget(Object inspector,
+                                                   String owner,
+                                                   String name,
+                                                   EntitySource source,
+                                                   LifeCycleMethodCategory category) throws Exception {
         for (Object method : frequentMethods(inspector)) {
             LifeCycleMethodTarget target = (LifeCycleMethodTarget) invokeAccessor(method, "target");
             if (owner.equals(invokeAccessor(method, "owner"))
                     && name.equals(invokeAccessor(method, "name"))
                     && source == target.entitySource()
                     && target.category() == category) {
-                return true;
+                return target;
             }
         }
-        return false;
+        return null;
     }
 
     private Set<?> frequentMethods(Object inspector) throws Exception {
@@ -880,6 +1189,45 @@ class LifeCycleInvocationInspectorTest {
                                              String methodName) throws Exception {
         inspectMethod(inspector, FinalLifecycleEntity.class, healthMethod(owner, methodName));
         inspectMethod(inspector, FinalLifecycleEntity.class, deadMethod(owner, methodName));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addDirectAndPolarityConflictEvidence(LifeCycleInvocationInspector inspector,
+                                                      String owner,
+                                                      String methodName,
+                                                      String descriptor) throws Exception {
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "m_6084_", owner, methodName, descriptor, 0, BooleanPolarity.NEGATED));
+        inspectMethod(inspector, FinalLifecycleEntity.class, booleanStaticMethod(
+                "m_21224_", owner, methodName, descriptor, 0, BooleanPolarity.DIRECT));
+
+        Field observedInvocationsField = declaredField(
+                LifeCycleInvocationInspector.class,
+                "observedInvocations"
+        );
+        observedInvocationsField.setAccessible(true);
+        Map<Object, Object> observedInvocations =
+                (Map<Object, Object>) observedInvocationsField.get(inspector);
+        for (Map.Entry<Object, Object> entry : observedInvocations.entrySet()) {
+            Object key = entry.getKey();
+            if (!owner.equals(invokeAccessor(key, "owner"))
+                    || !methodName.equals(invokeAccessor(key, "name"))
+                    || !descriptor.equals(invokeAccessor(key, "desc"))
+                    || invokeAccessor(key, "entitySource") != EntitySource.STATIC_ARGUMENTS) {
+                continue;
+            }
+            Object evidence = entry.getValue();
+            Field directCategoriesField = declaredField(
+                    evidence.getClass(),
+                    "directStaticCategoriesByArgument"
+            );
+            directCategoriesField.setAccessible(true);
+            Map<Integer, EnumSet<LifeCycleMethodCategory>> directCategories =
+                    (Map<Integer, EnumSet<LifeCycleMethodCategory>>) directCategoriesField.get(evidence);
+            directCategories.put(0, EnumSet.of(LifeCycleMethodCategory.ALIVE));
+            return;
+        }
+        throw new IllegalStateException("Missing boolean polarity evidence for " + owner + "." + methodName);
     }
 
     private void invokeNoArg(LifeCycleInvocationInspector inspector, String methodName) throws Exception {
@@ -923,6 +1271,15 @@ class LifeCycleInvocationInspectorTest {
             }
         }
         throw new IllegalStateException("Missing method " + name);
+    }
+
+    private Field declaredField(Class<?> type, String name) {
+        for (Field field : ClassReflectionUtil.getDeclaredFields(type)) {
+            if (name.equals(field.getName())) {
+                return field;
+            }
+        }
+        throw new IllegalStateException("Missing field " + name);
     }
 
     private LifeCycleMethod lifeCycleMethod(MethodNode method) {

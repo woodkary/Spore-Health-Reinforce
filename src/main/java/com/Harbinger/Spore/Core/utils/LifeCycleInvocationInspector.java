@@ -183,6 +183,22 @@ public final class LifeCycleInvocationInspector
             return;
         }
         Set<Integer> frequentArgumentIndexes = new TreeSet<>();
+        LifeCycleMethodCategory directCategory = null;
+        for (Map.Entry<Integer, EnumSet<LifeCycleMethodCategory>> argumentEvidence
+                : evidence.directStaticCategoriesByArgument.entrySet()) {
+            for (LifeCycleMethodCategory category : argumentEvidence.getValue()) {
+                if (directCategory != null && directCategory != category) {
+                    invalidateConflictingStaticCategories(key);
+                    return;
+                }
+                directCategory = category;
+                frequentArgumentIndexes.add(argumentEvidence.getKey());
+            }
+        }
+        if (directCategory != null && directCategory != LifeCycleMethodCategory.HEALTH) {
+            invalidateConflictingStaticCategories(key);
+            return;
+        }
         for (Map.Entry<Integer, EnumSet<LifeCycleKind>> argumentEvidence
                 : evidence.healthLifeCycleKindsByArgument.entrySet()) {
             if (argumentEvidence.getValue().size() >= 2) {
@@ -220,6 +236,17 @@ public final class LifeCycleInvocationInspector
 
         LifeCycleMethodCategory commonCategory = null;
         Set<Integer> entityArgumentIndexes = new TreeSet<>();
+        for (Map.Entry<Integer, EnumSet<LifeCycleMethodCategory>> argumentEvidence
+                : evidence.directStaticCategoriesByArgument.entrySet()) {
+            for (LifeCycleMethodCategory category : argumentEvidence.getValue()) {
+                if (commonCategory != null && commonCategory != category) {
+                    invalidateConflictingStaticCategories(key);
+                    return;
+                }
+                commonCategory = category;
+                entityArgumentIndexes.add(argumentEvidence.getKey());
+            }
+        }
         for (Map.Entry<Integer, EnumMap<BooleanLifeCycleMethod, BooleanPolarity>> argumentEvidence
                 : evidence.booleanPolaritiesByArgument.entrySet()) {
             LifeCycleMethodCategory category = booleanCategory(argumentEvidence.getValue());
@@ -227,16 +254,7 @@ public final class LifeCycleInvocationInspector
                 continue;
             }
             if (commonCategory != null && commonCategory != category) {
-                LogUtil.logf("Skip boolean lifecycle method %s.%s%s: entity arguments imply conflicting categories",
-                        key.owner(), key.name(), key.desc());
-                if (SporeDiscoveredLifeCycleMethodRegistry.invalidate(
-                        key.owner(),
-                        key.name(),
-                        key.desc(),
-                        "entity arguments imply conflicting boolean categories"
-                )) {
-                    pendingOwners.add(SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(key.owner()));
-                }
+                invalidateConflictingStaticCategories(key);
                 return;
             }
             commonCategory = category;
@@ -249,6 +267,19 @@ public final class LifeCycleInvocationInspector
                     key.desc(),
                     LifeCycleMethodTarget.staticArguments(commonCategory, toIntArray(entityArgumentIndexes))
             ));
+        }
+    }
+
+    private void invalidateConflictingStaticCategories(InvocationKey key) {
+        LogUtil.logf("Skip lifecycle method %s.%s%s: entity arguments imply conflicting categories",
+                key.owner(), key.name(), key.desc());
+        if (SporeDiscoveredLifeCycleMethodRegistry.invalidate(
+                key.owner(),
+                key.name(),
+                key.desc(),
+                "entity arguments imply conflicting lifecycle categories"
+        )) {
+            pendingOwners.add(SporeDiscoveredLifeCycleMethodRegistry.normalizeOwner(key.owner()));
         }
     }
 
@@ -409,6 +440,27 @@ public final class LifeCycleInvocationInspector
                 || "m_6084_".equals(name);
     }
 
+    private LifeCycleMethodCategory directStaticCategory(LifeCycleKind lifeCycleKind,
+                                                         String targetName,
+                                                         Type returnType) {
+        int returnSort = returnType.getSort();
+        if ((returnSort == Type.FLOAT || returnSort == Type.DOUBLE)
+                && (lifeCycleKind == LifeCycleKind.HEALTH || lifeCycleKind == LifeCycleKind.MAX_HEALTH)
+                && (nameLooksLikeHealth(targetName) || nameLooksLikeMaxHealth(targetName))) {
+            return LifeCycleMethodCategory.HEALTH;
+        }
+        if (returnSort != Type.BOOLEAN) {
+            return null;
+        }
+        if (lifeCycleKind == LifeCycleKind.ALIVE && nameLooksLikeIsAlive(targetName)) {
+            return LifeCycleMethodCategory.ALIVE;
+        }
+        if (lifeCycleKind == LifeCycleKind.DEAD_OR_DYING && nameLooksLikeIsDeadOrDying(targetName)) {
+            return LifeCycleMethodCategory.DEAD_OR_DYING;
+        }
+        return null;
+    }
+
     private void inspectInvocations(Class<?> rootEntityClass,
                                     String className,
                                     MethodNode method,
@@ -458,7 +510,12 @@ public final class LifeCycleInvocationInspector
                     && returnType.getSort() != Type.DOUBLE) {
                 continue;
             }
-            if (booleanReturn && booleanLifeCycleMethod == null) {
+            LifeCycleMethodCategory directStaticCategory = staticCall
+                    ? directStaticCategory(lifeCycleKind, call.name, returnType)
+                    : null;
+            if (booleanReturn
+                    && booleanLifeCycleMethod == null
+                    && directStaticCategory == null) {
                 continue;
             }
             Frame<BasicValue> frame = instructionIndex < frames.length ? frames[instructionIndex] : null;
@@ -467,7 +524,7 @@ public final class LifeCycleInvocationInspector
                 continue;
             }
 
-            BooleanPolarity polarity = booleanReturn
+            BooleanPolarity polarity = booleanReturn && directStaticCategory == null
                     ? BooleanPolarityAnalyzer.analyze(method, call, frame)
                     : null;
             if (staticCall) {
@@ -477,6 +534,7 @@ public final class LifeCycleInvocationInspector
                         frame,
                         stackLayout,
                         lifeCycleKind,
+                        directStaticCategory,
                         booleanLifeCycleMethod,
                         polarity,
                         booleanReturn
@@ -501,6 +559,7 @@ public final class LifeCycleInvocationInspector
                                          Frame<BasicValue> frame,
                                          InvocationStackLayout stackLayout,
                                          LifeCycleKind lifeCycleKind,
+                                         LifeCycleMethodCategory directStaticCategory,
                                          BooleanLifeCycleMethod booleanLifeCycleMethod,
                                          BooleanPolarity polarity,
                                          boolean booleanReturn) {
@@ -524,8 +583,17 @@ public final class LifeCycleInvocationInspector
                 evidence = new InvocationEvidence();
                 observedInvocations.put(key, evidence);
             }
+            if (directStaticCategory != null) {
+                EnumSet<LifeCycleMethodCategory> categories =
+                        evidence.directStaticCategoriesByArgument.get(argumentIndex);
+                if (categories == null) {
+                    categories = EnumSet.noneOf(LifeCycleMethodCategory.class);
+                    evidence.directStaticCategoriesByArgument.put(argumentIndex, categories);
+                }
+                categories.add(directStaticCategory);
+            }
             if (booleanReturn) {
-                if (booleanLifeCycleMethod == null) {
+                if (directStaticCategory != null || booleanLifeCycleMethod == null) {
                     continue;
                 }
                 EnumMap<BooleanLifeCycleMethod, BooleanPolarity> polarities =
@@ -1118,6 +1186,8 @@ public final class LifeCycleInvocationInspector
     private static final class InvocationEvidence {
         private final Map<Integer, EnumSet<LifeCycleKind>> healthLifeCycleKindsByArgument = new HashMap<>();
         private final EnumSet<LifeCycleKind> healthInstanceLifeCycleKinds = EnumSet.noneOf(LifeCycleKind.class);
+        private final Map<Integer, EnumSet<LifeCycleMethodCategory>> directStaticCategoriesByArgument =
+                new HashMap<>();
         private final Map<Integer, EnumMap<BooleanLifeCycleMethod, BooleanPolarity>>
                 booleanPolaritiesByArgument = new HashMap<>();
         private final EnumMap<BooleanLifeCycleMethod, BooleanPolarity> instanceBooleanPolarities =
