@@ -8,6 +8,7 @@ import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.entityStorages.ICustomEntityData;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.WrappedMethod;
@@ -93,13 +94,17 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             entity.setHealth(health);
         }
         SynchedEntityData data = entity.entityData;
-        SynchedEntityData.DataItem dataItem = data.itemsById.get(LivingEntity.DATA_HEALTH_ID.getId());
+        SynchedEntityData.DataItem dataItem = getDataItemsById(data).get(LivingEntity.DATA_HEALTH_ID.getId());
         if (dataItem != null && !Objects.equals(health, dataItem.getValue())) {
             dataItem.value = health;
             entity.onSyncedDataUpdated(LivingEntity.DATA_HEALTH_ID);
             dataItem.dirty = true;
             data.isDirty = true;
         }
+    }
+
+    private Int2ObjectMap<SynchedEntityData.DataItem<?>> getDataItemsById(SynchedEntityData data) {
+        return data instanceof ICustomEntityData custom ? custom.itemsById() : data.itemsById;
     }
 
     @Override
@@ -376,7 +381,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     private List<SynchedEntityData.DataItem<?>> getTickDeathDataItems(Entity entity) {
         List<SynchedEntityData.DataItem<?>> result = new ArrayList<>();
         Map<EntityDataAccessor<?>, String> nameMap = getAccessorNameMap(entity.getClass());
-        ObjectSet<Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>>> entries = entity.entityData.itemsById.int2ObjectEntrySet();
+        ObjectSet<Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>>> entries =
+                getDataItemsById(entity.entityData).int2ObjectEntrySet();
         for (Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>> entry : entries) {
             SynchedEntityData.DataItem<?> dataItem = entry.getValue();
             EntityDataAccessor<?> accessor = dataItem.getAccessor();
@@ -416,7 +422,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
     }
 
     private void oneRound(LivingEntity entity, float health, SynchedEntityData data) {
-        ObjectSet<Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>>> entries = data.itemsById.int2ObjectEntrySet();
+        ObjectSet<Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>>> entries =
+                getDataItemsById(data).int2ObjectEntrySet();
         for (Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>> entry : entries) {
             SynchedEntityData.DataItem dataItem = entry.getValue();
             EntityDataAccessor<?> accessor = dataItem.getAccessor();
@@ -464,7 +471,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
 
     private void setPoseDying(Entity entity) {
         SynchedEntityData data = entity.entityData;
-        SynchedEntityData.DataItem dataItem = data.itemsById.get(Entity.DATA_POSE.getId());
+        SynchedEntityData.DataItem dataItem = getDataItemsById(data).get(Entity.DATA_POSE.getId());
         if (dataItem != null && !Objects.equals(Pose.DYING, dataItem.getValue())) {
             dataItem.value = Pose.DYING;
             entity.onSyncedDataUpdated(Entity.DATA_POSE);
@@ -604,7 +611,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         } else {
             setHeeaatth(target, 0.0f, true, true);
         }
-        ObjectSet<Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>>> entries = target.entityData.itemsById.int2ObjectEntrySet();
+        ObjectSet<Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>>> entries =
+                getDataItemsById(target.entityData).int2ObjectEntrySet();
         for (Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>> entry : entries) {
             SynchedEntityData.DataItem dataItem = entry.getValue();
             if (dataItem.getAccessor().getSerializer() == EntityDataSerializers.BOOLEAN) {

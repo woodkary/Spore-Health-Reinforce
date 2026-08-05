@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntityData;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;
@@ -428,6 +429,7 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
     }
     protected void defineSynchedData() {
         super.defineSynchedData();
+        this.entityData= SporeEntityData.newInstance(this,this.entityData);
         this.entityData.define(HUNGER, 0);
         this.entityData.define(KILLS, 0);
         this.entityData.define(EVOLUTION_POINTS, 0);

@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.entityStorages.SporeEntityData;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -61,6 +62,11 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
             return;
         }
         this.sporeTarget = target;
+    }
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData= SporeEntityData.newInstance(this,this.entityData);
     }
 
     @Override
