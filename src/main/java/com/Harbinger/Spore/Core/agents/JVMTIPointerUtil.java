@@ -347,7 +347,7 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
             newClassDataLen.setValue(current.length);
             newClassData.setValue(output);
         } catch (Throwable t) {
-            LogUtil.errorf("failed to transform class by JVMTI ClassFileLoadHook, %s", t.getMessage());
+            LogUtil.errorf("failed to transform class %s by JVMTI ClassFileLoadHook, %s",name, t.getMessage());
             LogUtil.printStackTrace(t);
         }
     }
@@ -369,7 +369,7 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
             }
             return modified ? current : null;
         } catch (Throwable t) {
-            LogUtil.errorf("failed to transform class by native JVMTI ClassFileLoadHook, %s", t.getMessage());
+            LogUtil.errorf("failed to transform class %s by native JVMTI ClassFileLoadHook, %s",className, t.getMessage());
             LogUtil.printStackTrace(t);
             return null;
         }
