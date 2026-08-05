@@ -87,7 +87,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     public List<String> team_4 = new ArrayList<>();
     public List<String> team_5 = new ArrayList<>();
     private final Random random = new Random();
-    private boolean isSpecialDead;
+    private boolean isSpecialDeaf;
     private int signalRetryCooldown;
     private int signalSummonAttempts;
     private static final int SIGNAL_RETRY_INTERVAL = 20;
@@ -98,7 +98,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         initializeValues();
         this.setLegalPosition(Vec3.ZERO);
         this.initDATA_HEALTH_IDToZero();
-        ClassReflectionUtil.removeSpecialFieldsCache(Proto.class,"isSpecialDead","lastLegalPosition");
+        ClassReflectionUtil.removeSpecialFieldsCache(Proto.class,"isSpecialDeaf","lastLegalPosition");
     }
 
     @Override
@@ -613,7 +613,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
 
     @Override
     public boolean isSpecialDefasd() {
-        return isSpecialDead;
+        return isSpecialDeaf;
     }
 
     @Override
@@ -644,7 +644,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     }
     @Override
     public void specialDie(DamageSource source) {
-        isSpecialDead = true;
+        isSpecialDeaf = true;
         super.die(source);
         if (this.level() instanceof ServerLevel serverLevel) {
             spawnDeathParticles(serverLevel);

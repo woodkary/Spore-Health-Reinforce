@@ -13,7 +13,6 @@ import com.Harbinger.Spore.Sentities.*;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.CalamityVigilCall;
 import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.SporeBurstSupport;
 import com.Harbinger.Spore.Sentities.AI.CalamityPathNavigation;
-import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
 import com.Harbinger.Spore.Sentities.Calamities.Howitzer;
 import com.Harbinger.Spore.Sentities.Calamities.Stahlmorder;
 import com.Harbinger.Spore.Sentities.Calamities.Verfalldrachen;
@@ -22,7 +21,6 @@ import com.Harbinger.Spore.Sentities.MovementControls.SmoothLookControl;
 import com.Harbinger.Spore.Sentities.Organoids.Mound;
 import com.Harbinger.Spore.Sentities.Utility.CorpseEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -44,22 +42,18 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.item.FallingBlockEntity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -85,7 +79,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     private int stun = 0;
     private int crushingTick = 0;
     private int damageAdaptationCount;
-    private boolean isSpecialDead;
+    private boolean isSpecialDeaf;
     private Vec3 lastLegalPosition = Vec3.ZERO;
 
     public Calamity(EntityType<? extends PathfinderMob> type, Level level) {
@@ -102,7 +96,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         this.xpReward = 50;
         this.setLegalPosition(Vec3.ZERO);
         this.initDATA_HEALTH_IDToZero();
-        ClassReflectionUtil.removeSpecialFieldsCache(Calamity.class,"isSpecialDead","lastLegalPosition");
+        ClassReflectionUtil.removeSpecialFieldsCache(Calamity.class,"isSpecialDeaf","lastLegalPosition");
     }
 
     protected int calculateFallDamage(float p_149389_, float p_149390_) {
@@ -708,7 +702,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public boolean isSpecialDefasd() {
-        return isSpecialDead;
+        return isSpecialDeaf;
     }
 
     @Override
@@ -731,7 +725,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public void specialDie(DamageSource source) {
-        isSpecialDead = true;
+        isSpecialDeaf = true;
         if (this.level() instanceof ServerLevel serverLevel){
             double x0 = this.getX() - (random.nextFloat() - 0.1) * 3.2D;
             double y0 = this.getY() + (random.nextFloat() - 0.25) * 3.25D * 5;
