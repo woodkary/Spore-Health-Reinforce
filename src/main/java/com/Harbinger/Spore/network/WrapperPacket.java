@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 public final class WrapperPacket {
     public static final int HEALTH_WRAPPER=0;
     public static final int DEATH_WRAPPER=1;
+    public static final int DEATH_PLAYER_WRAPPER=2;
     private static final Map<Integer, Consumer<Entity>> operations=Map.of(
             HEALTH_WRAPPER, LivingEntityHealthLifecycleWrapperUtil.INSTANCE::createWrapppperLocal,
             DEATH_WRAPPER, LivingEntityHealthLifecycleWrapperUtil.INSTANCE::createDeathWrapppperLocal
@@ -36,6 +37,10 @@ public final class WrapperPacket {
     public static void handle(WrapperPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             Minecraft mc = Minecraft.getInstance();
+            if(msg.option==DEATH_PLAYER_WRAPPER&&mc.player!=null){
+                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayerLocal(mc.player);
+                return;
+            }
             if (mc.level != null) {
                 Entity entity = mc.level.getEntity(msg.entityId);
                 if(entity!=null){

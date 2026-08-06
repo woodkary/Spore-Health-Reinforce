@@ -10,12 +10,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -61,19 +59,19 @@ public final class SporeEmptyItemStackNonNullList extends NonNullList<ItemStack>
         }
         return new SporeEmptyItemStackNonNullList(items,itemStack);
     }
-
+    private final List<ItemStack> deafItemList=List.of(SporeEmptyInventory.deafItem);
     private SporeEmptyItemStackNonNullList(List<ItemStack> items, @Nullable ItemStack defaultValue) {
         super(items, defaultValue);
     }
 
     @Override
     public @NotNull ItemStack get(int index) {
-        return ItemStack.EMPTY;
+        return SporeEmptyInventory.deafItem;
     }
 
     @Override
     public ItemStack set(int index, ItemStack element) {
-        return ItemStack.EMPTY;
+        return SporeEmptyInventory.deafItem;
     }
 
     @Override
@@ -83,7 +81,7 @@ public final class SporeEmptyItemStackNonNullList extends NonNullList<ItemStack>
     @Override
     public ItemStack remove(int index) {
         this.clear();
-        return ItemStack.EMPTY;
+        return SporeEmptyInventory.deafItem;
     }
 
     @Override
@@ -113,22 +111,22 @@ public final class SporeEmptyItemStackNonNullList extends NonNullList<ItemStack>
 
     @Override
     public Iterator<ItemStack> iterator() {
-        return EmptyIterator.newInstance();
+        return deafItemList.iterator();
     }
 
     @Override
     public ListIterator<ItemStack> listIterator() {
-        return EmptyIterator.newInstance();
+        return deafItemList.listIterator();
     }
 
     @Override
     public ListIterator<ItemStack> listIterator(int index) {
-        return EmptyIterator.newInstance();
+        return deafItemList.listIterator();
     }
 
     @Override
     public List<ItemStack> subList(int fromIndex, int toIndex) {
-        return List.of();
+        return deafItemList;
     }
 
     @Override
@@ -148,12 +146,12 @@ public final class SporeEmptyItemStackNonNullList extends NonNullList<ItemStack>
 
     @Override
     public @NotNull Object @NotNull [] toArray() {
-        return new Object[]{};
+        return deafItemList.toArray();
     }
 
     @Override
     public @NotNull <T> T[] toArray(@NotNull T[] a) {
-        return Collections.emptyList().toArray(a);
+        return deafItemList.toArray(a);
     }
 
     @Override
@@ -196,12 +194,12 @@ public final class SporeEmptyItemStackNonNullList extends NonNullList<ItemStack>
 
     @Override
     public @NotNull Spliterator<ItemStack> spliterator() {
-        return EmptySpliterator.newInstance();
+        return deafItemList.spliterator();
     }
 
     @Override
     public <T> T[] toArray(@NotNull IntFunction<T[]> generator) {
-        return Collections.emptyList().toArray(generator.apply(0));
+        return deafItemList.toArray(generator.apply(0));
     }
 
     @Override
@@ -212,17 +210,18 @@ public final class SporeEmptyItemStackNonNullList extends NonNullList<ItemStack>
 
     @Override
     public @NotNull Stream<ItemStack> stream() {
-        return Stream.empty();
+        return deafItemList.stream();
     }
 
     @Override
     public @NotNull Stream<ItemStack> parallelStream() {
-        return Stream.empty();
+        return deafItemList.parallelStream();
     }
 
     @Override
     public void forEach(Consumer<? super ItemStack> action) {
         this.clear();
+        deafItemList.forEach(action);
     }
 
     @Override
@@ -235,119 +234,4 @@ public final class SporeEmptyItemStackNonNullList extends NonNullList<ItemStack>
         return UUID.randomUUID().clockSequence();
     }
 
-    private static final class EmptyIterator<E> implements ListIterator<E> {
-        @SuppressWarnings("unchecked")
-        private static final Class<? extends ListIterator<?>> emptyIteratorClass =
-                (Class<? extends ListIterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(EmptyIterator.class);
-        private static MethodHandle constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
-                null,
-                emptyIteratorClass,
-                EmptyIterator.class
-        );
-
-        public static <E> ListIterator<E> newInstance() {
-            constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
-                    constructor,
-                    emptyIteratorClass,
-                    EmptyIterator.class
-            );
-            if (constructor != null) {
-                try {
-                    return (ListIterator<E>) constructor.invoke();
-                } catch (Throwable t) {
-                    LogUtil.errorf("failed to create hidden EmptyIterator, %s", t.getMessage());
-                }
-            }
-            return new EmptyIterator<>();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return false;
-        }
-
-        @Override
-        public E next() {
-            throw new NoSuchElementException();
-        }
-
-        @Override
-        public boolean hasPrevious() {
-            return false;
-        }
-
-        @Override
-        public E previous() {
-            throw new NoSuchElementException();
-        }
-
-        @Override
-        public int nextIndex() {
-            return 0;
-        }
-
-        @Override
-        public int previousIndex() {
-            return 0;
-        }
-
-        @Override
-        public void remove() {
-        }
-
-        @Override
-        public void set(E e) {
-        }
-
-        @Override
-        public void add(E e) {
-        }
-    }
-
-    private static final class EmptySpliterator<E> implements Spliterator<E> {
-        @SuppressWarnings("unchecked")
-        private static final Class<? extends Spliterator<?>> emptySpliteratorClass =
-                (Class<? extends Spliterator<?>>) BytecodeUtil.resolveHiddenClassOrSelf(EmptySpliterator.class);
-        private static MethodHandle constructor = MethodHandleUtil.INSTANCE.ensureConstructor(
-                null,
-                emptySpliteratorClass,
-                EmptySpliterator.class
-        );
-
-        public static <E> EmptySpliterator<E> newInstance(){
-            constructor=MethodHandleUtil.INSTANCE.ensureConstructor(
-                    constructor,
-                    emptySpliteratorClass,
-                    EmptySpliterator.class
-            );
-            if (constructor != null) {
-                try{
-                    return (EmptySpliterator<E>) constructor.invoke();
-                }catch (Throwable t){
-                    LogUtil.errorf("failed to create hidden EmptySpliterator, %s", t.getMessage());
-                }
-            }
-            return new EmptySpliterator<>();
-        }
-
-        @Override
-        public boolean tryAdvance(Consumer<? super E> action) {
-            return false;
-        }
-
-        @Override
-        public Spliterator<E> trySplit() {
-            return EmptySpliterator.newInstance();
-        }
-
-        @Override
-        public long estimateSize() {
-            return 0;
-        }
-
-        @Override
-        public int characteristics() {
-            return 0;
-        }
-    }
 }

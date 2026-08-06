@@ -12,7 +12,12 @@ public interface ILivingEntityLifeCycle {
     void createDeathWrapppperLocal(Object entity);
     void createDeathWrapppper(Object entity);
 
+
     void slayPlayer(Player player);
+
+    boolean isPlayerTrueDeeafd(Player player);
+
+    void slayPlayerLocal(Player player);
 
     Class<?> buildWrapperClass(Class<?> callback);
     Class<?> buildDeathWrapperClass(Class<?> callback);

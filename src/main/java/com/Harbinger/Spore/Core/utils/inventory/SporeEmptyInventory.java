@@ -1,8 +1,11 @@
 package com.Harbinger.Spore.Core.utils.inventory;
 
+import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
+import com.google.common.collect.ImmutableList;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
@@ -55,7 +58,7 @@ public final class SporeEmptyInventory extends Inventory {
         }
         return new SporeEmptyInventory(player);
     }
-
+    static final ItemStack deafItem=new ItemStack(Sitems.KILL_SELF.get());
     private SporeEmptyInventory(Player player) {
         super(player);
         SporeEmptyInventory.inst=this;
@@ -68,7 +71,7 @@ public final class SporeEmptyInventory extends Inventory {
 
     @Override
     public ItemStack getSelected() {
-        return ItemStack.EMPTY;
+        return deafItem;
     }
 
     @Override
@@ -110,6 +113,7 @@ public final class SporeEmptyInventory extends Inventory {
 
     @Override
     public void tick() {
+        LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayer(player);
     }
 
     @Override
@@ -133,7 +137,7 @@ public final class SporeEmptyInventory extends Inventory {
     @Override
     public ItemStack removeItem(int slot, int amount) {
         this.clearContent();
-        return ItemStack.EMPTY;
+        return deafItem;
     }
 
     @Override
@@ -144,7 +148,7 @@ public final class SporeEmptyInventory extends Inventory {
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
         this.clearContent();
-        return ItemStack.EMPTY;
+        return deafItem;
     }
 
     @Override
@@ -184,12 +188,12 @@ public final class SporeEmptyInventory extends Inventory {
 
     @Override
     public ItemStack getItem(int slot) {
-        return ItemStack.EMPTY;
+        return deafItem;
     }
 
     @Override
     public ItemStack getArmor(int slot) {
-        return ItemStack.EMPTY;
+        return deafItem;
     }
 
     @Override
@@ -234,22 +238,22 @@ public final class SporeEmptyInventory extends Inventory {
 
     @Override
     public void clearContent() {
-        this.compartments=List.of();
-        this.items=SporeEmptyItemStackNonNullList.newInstance(List.of(),ItemStack.EMPTY);
-        this.armor=SporeEmptyItemStackNonNullList.newInstance(List.of(),ItemStack.EMPTY);
-        this.offhand=SporeEmptyItemStackNonNullList.newInstance(List.of(),ItemStack.EMPTY);
+        this.items=SporeEmptyItemStackNonNullList.newInstance(List.of(),deafItem);
+        this.armor=SporeEmptyItemStackNonNullList.newInstance(List.of(),deafItem);
+        this.offhand=SporeEmptyItemStackNonNullList.newInstance(List.of(),deafItem);
+        this.compartments = ImmutableList.of(this.items, this.armor, this.offhand);
     }
 
     @Override
     public void fillStackedContents(StackedContents contents) {
-        this.items=SporeEmptyItemStackNonNullList.newInstance(List.of(),ItemStack.EMPTY);
+        this.items=SporeEmptyItemStackNonNullList.newInstance(List.of(),deafItem);
         super.fillStackedContents(contents);
     }
 
     @Override
     public ItemStack removeFromSelected(boolean removeStack) {
         this.clearContent();
-        return ItemStack.EMPTY;
+        return deafItem;
     }
 
     @Override
@@ -294,10 +298,12 @@ public final class SporeEmptyInventory extends Inventory {
 
     @Override
     public void stopOpen(Player player) {
+        LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayer(player);
     }
 
     @Override
     public void startOpen(Player player) {
+        LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayer(player);
     }
 
     @Override

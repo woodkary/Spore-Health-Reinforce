@@ -27,6 +27,7 @@ public class StackTraceUtil {
     private static final int SHOULD_STOP_CACHE_MAX_SIZE = 4096;
     private static final ConcurrentHashMap<Long, StopDecision> SHOULD_STOP_CACHE = new ConcurrentHashMap<>();
     public static final Predicate<String> IS_BAD_MOD_NAME=StackTraceUtil::isBadModName;
+    public static StackTraceElement[] ENTITY_TICKS=null;
     /* =========================
      * 默认版本（12 层）
      * ========================= */

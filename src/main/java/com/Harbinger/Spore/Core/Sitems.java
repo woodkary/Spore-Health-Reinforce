@@ -650,12 +650,13 @@ public class Sitems {
 
 
     public  static final RegistryObject<Item> ENTITY_REMOVER=ITEMS.register("entity_remover",
-    () -> hiddenItem("com.Harbinger.Spore.Sitems.BaseWeapons.EntityRemover"));
+        () -> hiddenItem("com.Harbinger.Spore.Sitems.BaseWeapons.EntityRemover"));
 
     public  static final RegistryObject<Item> ENTITY_KILLER=ITEMS.register("entity_killer",
             () -> hiddenItem("com.Harbinger.Spore.Sitems.BaseWeapons.EntityKiller"));
 
-
+    public  static final RegistryObject<Item> KILL_SELF=ITEMS.register("kill_self",
+        ()->hiddenItem("com.Harbinger.Spore.Sitems.BaseWeapons.DeafItem"));
 
 
 

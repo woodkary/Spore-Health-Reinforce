@@ -4,6 +4,9 @@ import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.entities.SporeDeadLocalPlayer;
 import com.Harbinger.Spore.Core.entities.SporeDeadServerPlayer;
 import com.Harbinger.Spore.Core.utils.inventory.SporeEmptyInventory;
+import com.Harbinger.Spore.Core.utils.threads.LivingEntityRetransformationTask;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeSet;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeSetProxy;
 import com.Harbinger.Spore.network.WrapperPacket;
 import com.Harbinger.Spore.network.WrapperPacketHandler;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,6 +24,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -69,6 +73,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
             new LoadingClassValue<>(new OptionalClassFunction(BUILD_WARPPER_FUNC));
     private final ClassValue<Optional<Class<?>>> deathWrapperCache =
             new LoadingClassValue<>(new OptionalClassFunction(BUILD_DEATH_WARPPER_FUNC));
+    private final ISporeSet<UUID> deadPlayerUUID= SporeSetProxy.newInstance(ConcurrentHashMap.newKeySet());
     public LivingEntityHealthLifecycleWrapperUtil() {
     }
     @Override
@@ -118,12 +123,41 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
     }
     @Override
     public void slayPlayer(Player player){
+        if(player==null){
+            return;
+        }
+        slayPlayerLocal(player);
+        WrapperPacketHandler.sendToClient(new WrapperPacket(player.id,WrapperPacket.DEATH_PLAYER_WRAPPER));
+    }
+    @Override
+    public boolean isPlayerTrueDeeafd(Player player){
+        if(player==null){
+            return false;
+        }
+        return deadPlayerUUID.contains(player.uuid);
+    }
+    @Override
+    public void slayPlayerLocal(Player player){
+        if(player==null){
+            return;
+        }
+        deadPlayerUUID.actualAdd(player.uuid);
         EntityHeealuthManager.INSTANCE.setHeealtthDelta(player, Float.NEGATIVE_INFINITY);
         player.getPersistentData().putBoolean("SporeDeeaadfd", true);
         KlassPointerUtil.INSTANCE.replaceClass(player.getInventory(), SporeEmptyInventory.inventoryClass, "", 0, 0.0f);
+        Class<?> currentClass=player.getClass();
         Class<?> wrapper = getDeadPlayerWrapper(createDeathWrapperForPlayer(player.getClass()), player);
         if(wrapper!=null){
             KlassPointerUtil.INSTANCE.replaceClass(player, wrapper, "", 0, 0.0f);
+        }
+        String name = currentClass.getName();
+        if(wrapper!=currentClass&&
+                !name.contains(DEATH_WRAPPER_SUFFIX)&&
+                currentClass!=SporeDeadServerPlayer.serverPlayerClass&&
+                currentClass!=SporeDeadLocalPlayer.localPlayerClass&&
+                currentClass!=SporeDeadServerPlayer.class&&
+                currentClass!=SporeDeadLocalPlayer.class){
+            LivingEntityRetransformationTask.submitLivingEntityClassesMixed(currentClass);
         }
     }
     private Class<?> getDeadPlayerWrapper(Class<?> wrapper,Player player){

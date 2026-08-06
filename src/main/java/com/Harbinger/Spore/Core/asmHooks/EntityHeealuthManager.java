@@ -63,6 +63,9 @@ public final class EntityHeealuthManager implements IEntityHealth {
     }
     @Override
     public void setPlayerAlliive(Player player){
+        if(LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)){
+            return;
+        }
         player.getPersistentData().remove(SPORE_DEAD_FLAG);
         if(!player.level.isClientSide){
             setHeealtthDelta(player,0.0f);

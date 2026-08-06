@@ -4,11 +4,7 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.entityStorages.SporeEntitySectionStorage;
-import com.Harbinger.Spore.Core.utils.BytecodeUtil;
-import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
-import com.Harbinger.Spore.Core.utils.ClassUtil;
-import com.Harbinger.Spore.Core.utils.KlassPointerUtil;
-import com.Harbinger.Spore.Core.utils.LogUtil;
+import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.Core.utils.invulCheck.EntityInvulCheckTaskManager;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
@@ -25,6 +21,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.BusBuilderImpl;
 import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.api.Event;
@@ -103,6 +100,10 @@ public final class SporeEventBus extends EventBus implements ISporeEventBus,IEve
             ClassUtil.setFieldValue(shutdownField,this,false);
         }
         if(event instanceof EntityEvent entityEvent&&!(entityEvent instanceof ItemTooltipEvent)&&entityEvent.getEntity()!=null&&SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entityEvent.getEntity())){
+            return true;
+        }
+        if(event instanceof PlayerEvent playerEvent&& LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(playerEvent.getEntity())){
+            LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayer(playerEvent.getEntity());
             return true;
         }
         if(event instanceof MobEffectEvent.Applicable applicable){
