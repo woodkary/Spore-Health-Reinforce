@@ -50,6 +50,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.*;
 
 public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValueLoader {
@@ -228,8 +229,19 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             Class<?> type = field.getType();
             if (type == double.class || type == Double.class) {
                 ClassUtil.setFieldValue(field, entity, (double) health);
-            } else {
+            } else if(type == float.class || type == Float.class) {
                 ClassUtil.setFieldValue(field, entity, health);
+            }else{
+                //这是接口类型的属性
+                Object invokeTarget=ClassUtil.getFieldValue(field, entity);
+                if(invokeTarget == null) {
+                    continue;
+                }
+                Object proxy= Proxy.newProxyInstance(
+                    invokeTarget.getClass().getClassLoader(),
+                        new Class<?>[]{field.getType()},
+                        HealthTargetInvocationHandler.newInstance(invokeTarget,entity));
+                ClassUtil.setFieldValue(field, entity, proxy);
             }
         }
     }
@@ -262,7 +274,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             for (Field field : declaredFields) {
                 String name = field.getName().toLowerCase(Locale.ROOT);
                 Class<?> type = field.getType();
-                if ((type == float.class || type == double.class || type == Float.class || type == Double.class)
+                if ((type == float.class || type == double.class || type == Float.class || type == Double.class||type.isInterface())
                         && (name.contains("hp") || name.contains("heal"))
                         && !name.contains("target")) {
                     field.setAccessible(true);
