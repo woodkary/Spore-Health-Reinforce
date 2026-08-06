@@ -6,7 +6,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-final class HealthTargetInvocationHandler implements InvocationHandler {
+final class HealthTargetInvocationHandler implements InvocationHandler,IHealthInvocationHandler {
     private static final Class<? extends InvocationHandler> handlerClass= (Class<? extends InvocationHandler>) BytecodeUtil.resolveHiddenClassOrSelf(
             HealthTargetInvocationHandler.class,
             Object.class,

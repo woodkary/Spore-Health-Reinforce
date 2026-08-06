@@ -234,7 +234,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             }else{
                 //这是接口类型的属性
                 Object invokeTarget=ClassUtil.getFieldValue(field, entity);
-                if(invokeTarget == null) {
+                if(invokeTarget == null||isHealthProxy(invokeTarget)) {
                     continue;
                 }
                 Object proxy= Proxy.newProxyInstance(
@@ -244,6 +244,16 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 ClassUtil.setFieldValue(field, entity, proxy);
             }
         }
+    }
+    private boolean isHealthProxy(Object value) {
+        if (value == null) {
+            return false;
+        }
+        try{
+            return Proxy.getInvocationHandler(value)
+                    instanceof IHealthInvocationHandler;
+        } catch (IllegalArgumentException | SecurityException ignored) {}
+        return false;
     }
 
     private void setAllSetHeeaatthMethods(Object entity, float health) {
