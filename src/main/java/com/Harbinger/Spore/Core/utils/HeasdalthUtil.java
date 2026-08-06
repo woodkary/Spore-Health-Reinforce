@@ -246,7 +246,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }
     }
     private boolean isHealthProxy(Object value) {
-        if (value == null) {
+        if (value == null||!Proxy.isProxyClass(value.getClass())) {
             return false;
         }
         try{
