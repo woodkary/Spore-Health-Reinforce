@@ -54,6 +54,7 @@ public final class SporeEntityData extends SynchedEntityData implements ICustomE
     public SporeEntityData(Entity entity,SynchedEntityData oldData) {
         super(entity);
         this.dataItemsById = new Int2ObjectOpenHashMap<>(oldData.itemsById);
+        this.itemsById.putAll(oldData.itemsById);
         this.isDirty=oldData.isDirty;
     }
     public <T> void define(EntityDataAccessor<T> p_135373_, T p_135374_) {
