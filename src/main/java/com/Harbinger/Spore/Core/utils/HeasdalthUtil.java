@@ -239,7 +239,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 }
                 Object proxy= Proxy.newProxyInstance(
                     invokeTarget.getClass().getClassLoader(),
-                        new Class<?>[]{field.getType()},
+                        new Class<?>[]{type},
                         HealthTargetInvocationHandler.newInstance(invokeTarget,entity));
                 ClassUtil.setFieldValue(field, entity, proxy);
             }
