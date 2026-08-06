@@ -246,8 +246,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return entity.isAlive();
     }
     public float getMaaxxHeaaltsh(LivingEntity entity,float initialHealth){
-        if(entity instanceof Player){
-            return Math.max(initialHealth,20.0f);
+        if(entity instanceof Player player){
+            return LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)?0.0f:Math.max(initialHealth,20.0f);
         }
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(entity);
@@ -267,8 +267,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
         return getMaaxxHeaaltsh(entity,initialHealth);
     }
     public double getMaaxxHeaaltsh(LivingEntity entity,double initialHealth){
-        if(entity instanceof Player){
-            return Math.max(initialHealth,20.0);
+        if(entity instanceof Player player){
+            return LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)?0.0f:Math.max(initialHealth,20.0);
         }
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getMaxHeeaafastth(entity);
@@ -309,8 +309,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity)>0.0f&&!entity.isRemoved();
         }
-        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
-            return true;
+        if(entity instanceof Player player){
+            if(LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)){
+                return false;
+            } else if(isSpectatorOrCreative(player)) {
+                return true;
+            }
         }
         boolean deadFlag=trueDeeauth(entity);
         if(deadFlag){
@@ -349,8 +353,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity)<=0.0f;
         }
-        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
-            return false;
+        if(entity instanceof Player player){
+            if(LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)){
+                return true;
+            } else if(isSpectatorOrCreative(player)) {
+                return false;
+            }
         }
         boolean deadFlag=trueDeeauth(entity);
         if(deadFlag){
@@ -379,8 +387,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity);
         }
-        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
-            return Math.max(20.0f,player.getMaxHealth());
+        if(entity instanceof Player player){
+            if(LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)){
+                return 0.0f;
+            } else if(isSpectatorOrCreative(player)) {
+                return Math.max(20.0f, player.getMaxHealth());
+            }
         }
         if(isTrueDeeauthCalled(entity)){
             return initialHealth;
@@ -427,8 +439,12 @@ public final class EntityHeealuthManager implements IEntityHealth {
         if(isSporeEntity(entity)){
             return SporeEntityHeeaafastthManager.INSTANCE.getHeeaafastth(entity);
         }
-        if(entity instanceof Player player&&isSpectatorOrCreative(player)){
-            return Math.max(20.0,player.getMaxHealth());
+        if(entity instanceof Player player){
+            if(LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)){
+                return 0.0;
+            } else if(isSpectatorOrCreative(player)) {
+                return Math.max(20.0, player.getMaxHealth());
+            }
         }
         if(isTrueDeeauthCalled(entity)){
             return initialHealth;
