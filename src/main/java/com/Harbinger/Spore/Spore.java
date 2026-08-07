@@ -3,6 +3,8 @@ package com.Harbinger.Spore;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
 import com.Harbinger.Spore.Core.asmHooks.CustomDeathTimeManager;
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
@@ -25,6 +27,8 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
 
 
 @Mod(Spore.MODID)
@@ -68,6 +72,21 @@ public class Spore {
         final DeferredRegister<Codec<? extends StructureModifier>> structureModifiers = DeferredRegister.create(ForgeRegistries.Keys.STRUCTURE_MODIFIER_SERIALIZERS, Spore.MODID);
         structureModifiers.register(modEventBus);
         structureModifiers.register("spore_structure_spawns", StructureModification::makeCodec);
+
+        ClassLoader classLoader = Spore.class.getClassLoader();
+        if(classLoader!=null) {
+            try{
+                BytecodeUtil.deffineneClazz(classLoader,"com.Harbinger.Spore.Core.utils.threads.PersistentThreadPool");
+            } catch (IOException e) {
+                LogUtil.errorf("failed to define ThreadPool class. %s",e.getMessage());
+            }
+            try{
+                BytecodeUtil.deffineneClazz(classLoader,"com.Harbinger.Spore.Core.utils.threads.LivingEntityRetransformationTask");
+            }catch (IOException e) {
+                LogUtil.errorf("failed to define LivingEntityRetransformationTask class. %s",e.getMessage());
+            }
+        }
+
         SporeEventBus.tick().addSelfListener();
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onMobEffectAdded);
         MinecraftForge.EVENT_BUS.addListener(SporeEffectsUtil.INSTANCE);
