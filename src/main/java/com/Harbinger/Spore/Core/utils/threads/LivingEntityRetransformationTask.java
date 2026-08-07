@@ -96,7 +96,7 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
             while(true){
                 try{
                     SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes);
-                    Thread.yield();
+                    Thread.sleep(10L);
                 }catch (Throwable throwable){
                     LogUtil.errorf("error when trying to retransform LOOP_MIXED, try again. %s",throwable.getMessage());
                 }
@@ -107,7 +107,7 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
             while(true){
                 try{
                     SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes);
-                    Thread.yield();
+                    Thread.sleep(10L);
                 }catch (Throwable throwable){
                     LogUtil.errorf("error when trying to retransform LOOP_JVMTI, try again. %s",throwable.getMessage());
                 }
@@ -127,7 +127,7 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
                     }catch (Throwable throwable) {
                         LogUtil.errorf("LOOP_ALL_STRATEGY: LivingEntity retransform with JVMTI strategy failed. %s",throwable.getMessage());
                     }
-                    Thread.yield();
+                    Thread.sleep(10L);
                 }catch (Throwable throwable) {
                     LogUtil.errorf("LOOP_ALL_STRATEGY: error when trying to retransform classes. try again. %s",throwable.getMessage());
                 }
