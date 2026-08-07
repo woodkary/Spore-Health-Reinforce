@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.utils.threads;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +20,7 @@ public final class SporeThreadFactory implements ThreadFactory {
         Class<?> sporeThreadClass = BytecodeUtil.resolveHiddenClassByName(
                 "com.Harbinger.Spore.Core.utils.threads.SporeThread",
                 Runnable.class, String.class, int.class, float.class, double.class);
+        ClassReflectionUtil.removeCachedReflectionData(sporeThreadClass);
         Constructor<?> ctor=null;
         try {
             ctor = sporeThreadClass.getDeclaredConstructor(Runnable.class, String.class, int.class, float.class, double.class);
