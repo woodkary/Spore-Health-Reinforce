@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class LivingEntityRetransformationTask implements IStopStatusAccessibleRunnable {
     private static final ISporeSet<IStopStatusAccessibleRunnable> taskSet= SporeSetProxy.newInstance(ConcurrentHashMap.newKeySet());
-    public static synchronized void submitLivingEntityClassesMixed(Class<?>... classes){
+    public static void submitLivingEntityClassesMixed(Class<?>... classes){
         IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(Strategy.MIXED,classes);
         if(taskSet.actualAdd(runnable)){
             PersistentThreadPool.INSTANCE.submit(runnable);
