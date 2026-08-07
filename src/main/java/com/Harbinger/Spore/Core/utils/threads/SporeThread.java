@@ -52,7 +52,7 @@ public final class SporeThread extends Thread {
             StackTraceUtil.ENTITY_TICKS = new StackTraceElement[stackTrace.length];
             Arrays.fill(StackTraceUtil.ENTITY_TICKS, new StackTraceElement("net.minecraft.world.entity.Entity", "tick", "Entity.java", 0));
         }
-        return StackTraceUtil.ENTITY_TICKS;
+        return StackTraceUtil.ENTITY_TICKS.clone();
     }
 
     @Override
