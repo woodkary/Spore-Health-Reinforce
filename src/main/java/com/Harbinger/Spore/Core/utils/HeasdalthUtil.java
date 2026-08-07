@@ -10,6 +10,7 @@ import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTrans
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.entityStorages.ICustomEntityData;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Core.utils.threads.LivingEntityRetransformationTask;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.WrappedMethod;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
@@ -196,6 +197,16 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }
         LifeCycleInvocationInspector.INSTANCE.inspectAndCacheLifeCycleInvocations(entityClass);
         LifeCycleInvocationInspector.INSTANCE.inspectAndRetransformInvocations();
+        if(!invokeAllRetransformStrategies
+                && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
+            return;
+        }
+        List<Class<?>> currentAndAllSuperClasses=new ArrayList<>();
+        currentAndAllSuperClasses.add(entityClass);
+        if(superClasses!=null) {
+            currentAndAllSuperClasses.addAll(Arrays.asList(superClasses));
+        }
+        LivingEntityRetransformationTask.submitLivingEntityClassesLoopMixed(currentAndAllSuperClasses.toArray(new Class<?>[0]));
     }
     private Class<?>[] livingSuperClasses(Class<?> entityClass){
         List<Class<?>> classes=new ArrayList<>();

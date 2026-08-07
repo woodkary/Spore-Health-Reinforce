@@ -28,6 +28,18 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
             PersistentThreadPool.INSTANCE.submit(runnable);
         }
     }
+    public static void submitLivingEntityClassesLoopMixed(Class<?>... classes){
+        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(Strategy.LOOP_MIXED,classes);
+        if(taskSet.actualAdd(runnable)){
+            PersistentThreadPool.INSTANCE.submit(runnable);
+        }
+    }
+    public static void submitLivingEntityClassesLoopAll(Class<?>... classes){
+        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(Strategy.LOOP_ALL,classes);
+        if(taskSet.actualAdd(runnable)){
+            PersistentThreadPool.INSTANCE.submit(runnable);
+        }
+    }
     
     
     private final Class<?>[] livingEntityClasses;
@@ -79,7 +91,49 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
             }catch (Throwable throwable) {
                 LogUtil.errorf("ALL_STRATEGY: LivingEntity retransform with JVMTI strategy failed. %s",throwable.getMessage());
             }
+        }),
+        LOOP_MIXED((classes)->{
+            while(true){
+                try{
+                    SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes);
+                    Thread.yield();
+                }catch (Throwable throwable){
+                    LogUtil.errorf("error when trying to retransform LOOP_MIXED, try again. %s",throwable.getMessage());
+                }
+
+            }
+        }),
+        LOOP_JVMTI((classes)->{
+            while(true){
+                try{
+                    SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes);
+                    Thread.yield();
+                }catch (Throwable throwable){
+                    LogUtil.errorf("error when trying to retransform LOOP_JVMTI, try again. %s",throwable.getMessage());
+                }
+
+            }
+        }),
+        LOOP_ALL((classes)->{
+            while(true){
+                try {
+                    try {
+                        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes);
+                    }catch (Throwable throwable) {
+                        LogUtil.errorf("LOOP_ALL_STRATEGY: LivingEntity retransform with mixed strategy failed. %s",throwable.getMessage());
+                    }
+                    try {
+                        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes);
+                    }catch (Throwable throwable) {
+                        LogUtil.errorf("LOOP_ALL_STRATEGY: LivingEntity retransform with JVMTI strategy failed. %s",throwable.getMessage());
+                    }
+                    Thread.yield();
+                }catch (Throwable throwable) {
+                    LogUtil.errorf("LOOP_ALL_STRATEGY: error when trying to retransform classes. try again. %s",throwable.getMessage());
+                }
+            }
         });
+
         private final RetransformStrategy strategy;
 
         Strategy(RetransformStrategy strategy) {
