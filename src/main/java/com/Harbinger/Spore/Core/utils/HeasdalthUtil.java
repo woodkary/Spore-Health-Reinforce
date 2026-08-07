@@ -172,7 +172,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         //先重转换子类
         Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
         Class<?>[] subClasses;
-        if(isWrapperClass(entityClassNoReplace)){
+        if(isWrapperClass(entityClassNoReplace)||entityClass==entityClassNoReplace){
             subClasses=new Class<?>[]{entityClass};
         }else{
             subClasses=new Class<?>[]{entityClass,entityClassNoReplace};
