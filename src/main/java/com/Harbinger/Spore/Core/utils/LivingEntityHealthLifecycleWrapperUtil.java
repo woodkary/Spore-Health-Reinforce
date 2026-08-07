@@ -146,7 +146,7 @@ public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEnti
         player.getPersistentData().putBoolean("SporeDeeaadfd", true);
         KlassPointerUtil.INSTANCE.replaceClass(player.getInventory(), SporeEmptyInventory.inventoryClass, "", 0, 0.0f);
         Class<?> currentClass=player.getClass();
-        Class<?> wrapper = getDeadPlayerWrapper(createDeathWrapperForPlayer(player.getClass()), player);
+        Class<?> wrapper = getDeadPlayerWrapper(createDeathWrapperForPlayer(currentClass), player);
         if(wrapper!=null){
             KlassPointerUtil.INSTANCE.replaceClass(player, wrapper, "", 0, 0.0f);
         }
