@@ -11,29 +11,29 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class LivingEntityRetransformationTask implements IStopStatusAccessibleRunnable {
     private static final ISporeSet<IStopStatusAccessibleRunnable> taskSet= SporeSetProxy.newInstance(ConcurrentHashMap.newKeySet());
     public static synchronized void submitLivingEntityClassesMixed(Class<?>... classes){
-        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(List.of(classes),Strategy.MIXED);
+        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(Strategy.MIXED,classes);
         if(taskSet.actualAdd(runnable)){
             PersistentThreadPool.INSTANCE.submit(runnable);
         }
     }
     public static void submitLivingEntityClassesJVMTIOnly(Class<?>... classes){
-        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(List.of(classes),Strategy.JVMTI);
+        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(Strategy.JVMTI,classes);
         if(taskSet.actualAdd(runnable)){
             PersistentThreadPool.INSTANCE.submit(runnable);
         }
     }
     public static void submitLivingEntityClassesAll(Class<?>... classes){
-        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(List.of(classes),Strategy.ALL);
+        IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(Strategy.ALL,classes);
         if(taskSet.actualAdd(runnable)){
             PersistentThreadPool.INSTANCE.submit(runnable);
         }
     }
     
     
-    private final List<Class<?>> livingEntityClasses;
+    private final Class<?>[] livingEntityClasses;
     private final Strategy strategy;
 
-    public LivingEntityRetransformationTask(List<Class<?>> livingEntityClasses,Strategy strategy) {
+    public LivingEntityRetransformationTask(Strategy strategy,Class<?>... livingEntityClasses) {
         this.livingEntityClasses = livingEntityClasses;
         this.strategy = strategy;
     }
@@ -42,12 +42,12 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         LivingEntityRetransformationTask that = (LivingEntityRetransformationTask) o;
-        return Objects.equals(livingEntityClasses, that.livingEntityClasses) && strategy == that.strategy;
+        return Arrays.equals(livingEntityClasses, that.livingEntityClasses) && strategy == that.strategy;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(livingEntityClasses, strategy);
+        return Objects.hash(Arrays.hashCode(livingEntityClasses), strategy);
     }
 
     @Override
@@ -63,15 +63,14 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
     }
 
     private interface RetransformStrategy {
-        void applyClasses(List<Class<?>> classes);
+        void applyClasses(Class<?>... classes);
     }
     public enum Strategy {
-        MIXED((classes)->SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes.toArray(new Class[0]))),
-        JVMTI((classes)->SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes.toArray(new Class[0]))),
+        MIXED(SporeLivingEntityHealthTransformerBootstrap.INSTANCE::retransformMaybeHiddenClasses),
+        JVMTI(SporeLivingEntityHealthTransformerBootstrap.INSTANCE::retransformMaybeHiddenClassesJVMTIOnly),
         ALL((classes)->{
-            Class<?>[] classList=classes.toArray(new Class[0]);
-            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classList);
-            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classList);
+            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes);
+            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes);
         });
         private final RetransformStrategy strategy;
 
