@@ -168,14 +168,15 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }
         //必然失败的路径，一般不用invokeAll确保一定执行
         //先重转换子类
-        Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
+        Class<? extends LivingEntity> entityClass1 = entity.getClass();
+        Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entityClass1);
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
-                entityClass);
+                entityClass,entityClass1);
         if(!invokeAllRetransformStrategies
                 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
-        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass);
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass,entityClass1);
         if(!invokeAllRetransformStrategies
                 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
@@ -203,6 +204,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }
         List<Class<?>> currentAndAllSuperClasses=new ArrayList<>();
         currentAndAllSuperClasses.add(entityClass);
+        currentAndAllSuperClasses.add(entityClass1);
         if(superClasses!=null) {
             currentAndAllSuperClasses.addAll(Arrays.asList(superClasses));
         }
