@@ -69,8 +69,16 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
         MIXED(SporeLivingEntityHealthTransformerBootstrap.INSTANCE::retransformMaybeHiddenClasses),
         JVMTI(SporeLivingEntityHealthTransformerBootstrap.INSTANCE::retransformMaybeHiddenClassesJVMTIOnly),
         ALL((classes)->{
-            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes);
-            SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes);
+            try {
+                SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes);
+            }catch (Throwable throwable) {
+                LogUtil.errorf("ALL_STRATEGY: LivingEntity retransform with mixed strategy failed. %s",throwable.getMessage());
+            }
+            try {
+                SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes);
+            }catch (Throwable throwable) {
+                LogUtil.errorf("ALL_STRATEGY: LivingEntity retransform with JVMTI strategy failed. %s",throwable.getMessage());
+            }
         });
         private final RetransformStrategy strategy;
 
