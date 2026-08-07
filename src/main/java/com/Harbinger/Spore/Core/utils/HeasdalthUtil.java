@@ -155,7 +155,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         if (!invokeAll&&EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
-        //没有被替换的初始实体类entityClass1
+        //没有被替换的初始实体类entityClassNoReplace
         Class<? extends LivingEntity> entityClassNoReplace = entity.getClass();
         if(!invokeAll) {
             LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createWrapppper(entity);
