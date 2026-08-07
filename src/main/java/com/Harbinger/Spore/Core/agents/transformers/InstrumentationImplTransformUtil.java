@@ -53,12 +53,10 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
         if (jvmtiRetransformed || instRetransformed) {
             return;
         }
-
-        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
-        if (instrumentation == null) {
-            LogUtil.error("Instrumentation is unavailable; skip InstrumentationImpl transformation because the bootstrap bridge is not ready.");
-            return;
-        }
+//        if (instrumentation == null) {
+//            LogUtil.error("Instrumentation is unavailable; skip InstrumentationImpl transformation because the bootstrap bridge is not ready.");
+//            return;
+//        }
         if (!isAgentBridgeResolvable()) {
             LogUtil.error("Bootstrap SporeAgent.getRealByte bridge is unavailable; skip InstrumentationImpl transformation.");
             return;
@@ -85,7 +83,7 @@ public final class InstrumentationImplTransformUtil extends SporeClassFileTransf
                 LogUtil.printStackTrace(t);
             }
         }
-
+        IInstrumentations instrumentation = InstrumentationUtil.getInstance();
         boolean instrumentationReady = canRetransform(instrumentation);
         if (instrumentationReady && !instInstalled) {
             instrumentation.addTransformer(this);
