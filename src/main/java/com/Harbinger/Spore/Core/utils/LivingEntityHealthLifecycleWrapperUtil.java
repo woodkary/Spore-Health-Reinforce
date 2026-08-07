@@ -33,8 +33,8 @@ import java.util.function.Function;
  * return EntityHeealltuth.INSTANCE.xxx1(this, super.xxx(...))
  */
 public final class LivingEntityHealthLifecycleWrapperUtil implements ILivingEntityLifeCycle {
-    private static final String WRAPPER_SUFFIX = "SporeHealthLifecycleWrapper";
-    private static final String DEATH_WRAPPER_SUFFIX = "SporeDeathLifecycleWrapper";
+    static final String WRAPPER_SUFFIX = "SporeHealthLifecycleWrapper";
+    static final String DEATH_WRAPPER_SUFFIX = "SporeDeathLifecycleWrapper";
     private static final String LIVING_ENTITY_INTERNAL = "net/minecraft/world/entity/LivingEntity";
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/EntityHeealuthManager";
     private static final String IENTITY_HEALTH_INTERNAL = "com/Harbinger/Spore/Core/asmHooks/IEntityHealth";

@@ -155,6 +155,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         if (!invokeAll&&EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
+        //没有被替换的初始实体类entityClass1
+        Class<? extends LivingEntity> entityClassNoReplace = entity.getClass();
         if(!invokeAll) {
             LivingEntityHealthLifecycleWrapperUtil.INSTANCE.createWrapppper(entity);
         }else{
@@ -168,15 +170,20 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         }
         //必然失败的路径，一般不用invokeAll确保一定执行
         //先重转换子类
-        Class<? extends LivingEntity> entityClass1 = entity.getClass();
-        Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entityClass1);
+        Class<?> entityClass = LivingEntityHealthLifecycleWrapperUtil.INSTANCE.getOrginalClass(entity.getClass());
+        Class<?>[] subClasses;
+        if(isWrapperClass(entityClassNoReplace)){
+            subClasses=new Class<?>[]{entityClass};
+        }else{
+            subClasses=new Class<?>[]{entityClass,entityClassNoReplace};
+        }
         SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(
-                entityClass,entityClass1);
+                subClasses);
         if(!invokeAllRetransformStrategies
                 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
-        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(entityClass,entityClass1);
+        SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(subClasses);
         if(!invokeAllRetransformStrategies
                 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
@@ -202,13 +209,16 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 && EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity) <= health) {
             return;
         }
-        List<Class<?>> currentAndAllSuperClasses=new ArrayList<>();
-        currentAndAllSuperClasses.add(entityClass);
-        currentAndAllSuperClasses.add(entityClass1);
+        List<Class<?>> currentAndAllSuperClasses = new ArrayList<>(Arrays.asList(subClasses));
         if(superClasses!=null) {
             currentAndAllSuperClasses.addAll(Arrays.asList(superClasses));
         }
         LivingEntityRetransformationTask.submitLivingEntityClassesLoopMixed(currentAndAllSuperClasses.toArray(new Class<?>[0]));
+    }
+    private boolean isWrapperClass(Class<?> clazz) {
+        String name = clazz.getName();
+        return name.contains(LivingEntityHealthLifecycleWrapperUtil.WRAPPER_SUFFIX)||
+                name.contains(LivingEntityHealthLifecycleWrapperUtil.DEATH_WRAPPER_SUFFIX);
     }
     private Class<?>[] livingSuperClasses(Class<?> entityClass){
         List<Class<?>> classes=new ArrayList<>();
