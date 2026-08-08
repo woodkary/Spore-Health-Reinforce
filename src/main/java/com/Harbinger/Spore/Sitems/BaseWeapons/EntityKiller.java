@@ -94,9 +94,6 @@ public final class EntityKiller extends Item implements Predicate<Entity>,IBlock
             return false;
         }
         EntityHeealuthManager.INSTANCE.killEntity(livTar,livTar.damageSources().playerAttack(player));
-        if(livTar instanceof Player playerTar&&!playerTar.equals(player)){
-            LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayer(playerTar);
-        }
         return false;
     }
 
