@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Sitems.BaseWeapons;
 
 import com.Harbinger.Spore.Core.Sitems;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.google.common.collect.ImmutableMultimap;
@@ -89,8 +90,12 @@ public final class EntityKiller extends Item implements Predicate<Entity>,IBlock
             return false;
         }
         Entity target= SporeAttackUtil.INSTANCE.getTargetedEntity(player,player.getEntityReach());
-        if(target instanceof LivingEntity livTar){
-            EntityHeealuthManager.INSTANCE.killEntity(livTar,livTar.damageSources().playerAttack(player));
+        if(!(target instanceof LivingEntity livTar)){
+            return false;
+        }
+        EntityHeealuthManager.INSTANCE.killEntity(livTar,livTar.damageSources().playerAttack(player));
+        if(livTar instanceof Player playerTar&&!playerTar.equals(player)){
+            LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayer(playerTar);
         }
         return false;
     }
