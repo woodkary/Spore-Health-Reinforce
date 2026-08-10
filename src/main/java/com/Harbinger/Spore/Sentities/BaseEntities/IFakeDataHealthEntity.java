@@ -81,7 +81,7 @@ public interface IFakeDataHealthEntity {
     default void addFakeAdditionalData(CompoundTag tag) {
         tag.putFloat("fakeDataHealth",getDefault0HllealthDelta());
         tag.putFloat("dataHealth",_this().entityData.get(LivingEntity.DATA_HEALTH_ID));
-        tag.putFloat("vanillaDataHeaalth",getVanillaDataHeaalth());
+        tag.putFloat("vanillaDataHealth",getVanillaDataHeaalth());
     }
     default void readFakeHealthData(CompoundTag tag) {
         if(tag.contains("fakeDataHealth")) {
@@ -90,7 +90,7 @@ public interface IFakeDataHealthEntity {
         if(tag.contains("dataHealth")) {
             _this().entityData.set(LivingEntity.DATA_HEALTH_ID,tag.getFloat("dataHealth"));
         }
-        if(tag.contains("vanillaDataHeaalth")) {
+        if(tag.contains("vanillaDataHealth")) {
             setVanillaDataHeaalth(tag.getFloat("VanillaDataHeaalth"));
         }
     }
