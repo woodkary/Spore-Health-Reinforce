@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.entityStorages;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -53,9 +54,33 @@ public final class SporeEntityData extends SynchedEntityData implements ICustomE
     private final Int2ObjectMap<DataItem<?>> dataItemsById;
     public SporeEntityData(Entity entity,SynchedEntityData oldData) {
         super(entity);
-        this.dataItemsById = new Int2ObjectOpenHashMap<>(oldData.itemsById);
-        this.itemsById.putAll(oldData.itemsById);
+        this.dataItemsById = new Int2ObjectOpenHashMap<>();
+        for (Int2ObjectMap.Entry<DataItem<?>> entry
+                : oldData.itemsById.int2ObjectEntrySet()) {
+            copyDataItemEntry(entry);
+        }
         this.isDirty=oldData.isDirty;
+    }
+    private <T> void copyDataItemEntry(
+            Int2ObjectMap.Entry<DataItem<?>> entry) {
+        @SuppressWarnings("unchecked")
+        DataItem<T> source = (DataItem<T>) entry.getValue();
+
+        int id = entry.getIntKey();
+        this.dataItemsById.put(id, copyDataItem(source));
+        this.itemsById.put(id, copyDataItem(source));
+    }
+    private <T> DataItem<T> copyDataItem(DataItem<T> source) {
+        EntityDataAccessor<T> accessor = source.getAccessor();
+        EntityDataSerializer<T> serializer = accessor.getSerializer();
+
+        DataItem<T> copy = new DataItem<>(
+                accessor,
+                serializer.copy(source.getValue())
+        );
+        copy.initialValue = serializer.copy(source.initialValue);
+        copy.setDirty(source.isDirty());
+        return copy;
     }
     public <T> void define(EntityDataAccessor<T> p_135373_, T p_135374_) {
         int i = p_135373_.getId();
@@ -191,5 +216,10 @@ public final class SporeEntityData extends SynchedEntityData implements ICustomE
     @Override
     public Int2ObjectMap<DataItem<?>> itemsById() {
         return this.dataItemsById;
+    }
+
+    @Override
+    public Int2ObjectMap<DataItem<?>> vanillaItemsById() {
+        return this.itemsById;
     }
 }

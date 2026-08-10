@@ -5,4 +5,5 @@ import net.minecraft.network.syncher.SynchedEntityData;
 
 public interface ICustomEntityData {
     Int2ObjectMap<SynchedEntityData.DataItem<?>> itemsById();
+    Int2ObjectMap<SynchedEntityData.DataItem<?>> vanillaItemsById();
 }
