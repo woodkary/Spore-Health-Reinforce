@@ -1,13 +1,17 @@
 package com.Harbinger.Spore.Effect;
 
 import com.Harbinger.Spore.Core.Seffects;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Sentities.ColdWeakness;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 public final class FrostBite extends MobEffect {
     public FrostBite() {
@@ -25,7 +29,11 @@ public final class FrostBite extends MobEffect {
             if (intense >= level){
                 if (this == Seffects.FROSTBITE.get() && !entity.level().isClientSide ) {
                     float damage = (float) (entity.getMaxHealth() * modifier + intense);
-                    entity.hurt(entity.damageSources().freeze(), damage);
+                    DamageSource freeze = entity.damageSources().freeze();
+                    entity.hurt(freeze, damage);
+                    if(!SporeJudge.isSporeEntity(entity)&&!(entity instanceof Player)) {
+                        SporeAttackUtil.INSTANCE.attack(entity,freeze,damage);
+                    }
                     entity.setTicksFrozen(entity.getTicksFrozen()+100);
                 }
             }
