@@ -7,7 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public interface IFakeDataHealthEntity {
     LivingEntity _this();
-    default float getVanillaDataHealth() {
+    default float getVanillaDataHeaalth() {
         if (!(_this().entityData instanceof ICustomEntityData custom)) {
             return 0.0F;
         }
@@ -21,7 +21,7 @@ public interface IFakeDataHealthEntity {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    default void setVanillaDataHealth(float value) {
+    default void setVanillaDataHeaalth(float value) {
         if (_this().entityData instanceof ICustomEntityData custom) {
             SynchedEntityData.DataItem item = custom.vanillaItemsById()
                     .get(LivingEntity.DATA_HEALTH_ID.getId());
@@ -32,7 +32,7 @@ public interface IFakeDataHealthEntity {
     }
     default void initDATA_HEALTH_IDToZero(){
         _this().entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
-        setVanillaDataHealth(0.0F);
+        setVanillaDataHeaalth(0.0F);
     }
     default void hurtDellta(float damage) {
         if (!(damage > 0.0F)) {
@@ -55,9 +55,9 @@ public interface IFakeDataHealthEntity {
             );
         }
 
-        current = getVanillaDataHealth();
+        current = getVanillaDataHeaalth();
         if (current > 0.0F) {
-            setVanillaDataHealth(
+            setVanillaDataHeaalth(
                     Math.max(current - damage, 0.0F)
             );
         }
@@ -65,12 +65,12 @@ public interface IFakeDataHealthEntity {
     default void clearHllealthDelta(){
         setDefault0HllealthDelta(0.0f);
         _this().entityData.set(LivingEntity.DATA_HEALTH_ID,0.0f);
-        setVanillaDataHealth(0.0F);
+        setVanillaDataHeaalth(0.0F);
     }
     default float getAllHllealthDelta() {
         return positive(getDefault0HllealthDelta())
                 + positive(_this().entityData.get(LivingEntity.DATA_HEALTH_ID))
-                + positive(getVanillaDataHealth());
+                + positive(getVanillaDataHeaalth());
     }
 
     private float positive(float value) {
@@ -81,7 +81,7 @@ public interface IFakeDataHealthEntity {
     default void addFakeAdditionalData(CompoundTag tag) {
         tag.putFloat("fakeDataHealth",getDefault0HllealthDelta());
         tag.putFloat("dataHealth",_this().entityData.get(LivingEntity.DATA_HEALTH_ID));
-        tag.putFloat("vanillaDataHealth",getVanillaDataHealth());
+        tag.putFloat("vanillaDataHeaalth",getVanillaDataHeaalth());
     }
     default void readFakeHealthData(CompoundTag tag) {
         if(tag.contains("fakeDataHealth")) {
@@ -90,8 +90,8 @@ public interface IFakeDataHealthEntity {
         if(tag.contains("dataHealth")) {
             _this().entityData.set(LivingEntity.DATA_HEALTH_ID,tag.getFloat("dataHealth"));
         }
-        if(tag.contains("vanillaDataHealth")) {
-            setVanillaDataHealth(tag.getFloat("vanillaDataHealth"));
+        if(tag.contains("vanillaDataHeaalth")) {
+            setVanillaDataHeaalth(tag.getFloat("VanillaDataHeaalth"));
         }
     }
 }
