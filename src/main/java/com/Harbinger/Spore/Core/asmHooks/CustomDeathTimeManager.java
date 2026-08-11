@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -21,7 +22,9 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
         if (entity == null || SporeJudge.isSporeEntity(entity)) {
             return initialDeathTime;
         }
-        if(entity instanceof Player player&&EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)){
+        if(entity instanceof Player player&&
+                EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&
+                !LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)) {
             return 0;
         }
         CompoundTag data = entity.getPersistentData();
@@ -47,7 +50,10 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
             }
             return;
         }
-        if (SporeJudge.isSporeEntity(entity)||entity instanceof Player player&&EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+        if (SporeJudge.isSporeEntity(entity)||
+                entity instanceof Player player&&
+                        EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&
+                        !LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)) {
             data.remove(DEATH_TIME_TAG);
             return;
         }
