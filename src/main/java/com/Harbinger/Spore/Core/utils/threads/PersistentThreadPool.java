@@ -55,6 +55,17 @@ public final class PersistentThreadPool extends ThreadPoolExecutor {
         return List.of();
         // do nothing
     }
+
+    @Override
+    public boolean isTerminating() {
+        return false;
+    }
+
+    @Override
+    public void purge() {
+
+    }
+
     @Override
     public boolean isShutdown() {
         return false;
