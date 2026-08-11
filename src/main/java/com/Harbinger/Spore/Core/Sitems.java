@@ -447,7 +447,7 @@ public class Sitems {
     public  static final RegistryObject<Item> COMBAT_PICKAXE = ITEMS.register("combat_pickaxe",
             () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedPickaxe"));
     public  static final RegistryObject<Item> SCYTHE = ITEMS.register("scythe",
-            InfectedScythe::new);
+            () -> hiddenItem("com.Harbinger.Spore.Sitems.InfectedScythe"));
     public  static final RegistryObject<Item> COMBAT_SHOVEL = ITEMS.register("combat_shovel",
             InfectedCombatShovel::new);
     public  static final RegistryObject<Item> INFECTED_SPEAR = ITEMS.register("infected_spear",

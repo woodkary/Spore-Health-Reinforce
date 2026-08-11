@@ -2,6 +2,9 @@ package com.Harbinger.Spore.Sitems;
 
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeDiggerTools;
+import com.Harbinger.Spore.Sitems.BaseWeapons.scytheFunctions.ChangeIntoState;
+import com.Harbinger.Spore.Sitems.BaseWeapons.scytheFunctions.ChangeIntoStateAndDropItem;
+import com.Harbinger.Spore.Sitems.BaseWeapons.scytheFunctions.TrueUseOnContextPredicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
@@ -16,24 +19,24 @@ import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.ToolActions;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class InfectedScythe extends SporeDiggerTools {
-    protected static final Map<Block, Pair<Predicate<UseOnContext>, Consumer<UseOnContext>>> TILLABLES;
+public final class InfectedScythe extends SporeDiggerTools implements Predicate<UseOnContext> {
+    private final Map<Block, Pair<Predicate<UseOnContext>, Consumer<UseOnContext>>> TILLABLES;
     public InfectedScythe() {
         super(SConfig.SERVER.scythe_damage.get(), 2.5f, 3F, SConfig.SERVER.scythe_durability.get(), 3,"scythe", BlockTags.MINEABLE_WITH_HOE);
+        TILLABLES = new HashMap<>(ImmutableMap.of(Blocks.GRASS_BLOCK, Pair.of(this, new ChangeIntoState(Blocks.FARMLAND.defaultBlockState())), Blocks.DIRT_PATH, Pair.of(this, new ChangeIntoState(Blocks.FARMLAND.defaultBlockState())), Blocks.DIRT, Pair.of(this, new ChangeIntoState(Blocks.FARMLAND.defaultBlockState())), Blocks.COARSE_DIRT, Pair.of(this, new ChangeIntoState(Blocks.DIRT.defaultBlockState())), Blocks.ROOTED_DIRT, Pair.of(TrueUseOnContextPredicate.INSTANCE, new ChangeIntoStateAndDropItem(Blocks.DIRT.defaultBlockState(), Items.HANGING_ROOTS))));
     }
 
     public InteractionResult useOn(UseOnContext context) {
@@ -41,14 +44,12 @@ public class InfectedScythe extends SporeDiggerTools {
         BlockPos blockpos = context.getClickedPos();
         Player player = context.getPlayer();
         BlockState toolModifiedState = level.getBlockState(blockpos).getToolModifiedState(context, ToolActions.HOE_TILL, false);
-        Pair<Predicate<UseOnContext>, Consumer<UseOnContext>> pair = toolModifiedState == null ? null : Pair.of((ctx) -> {
-            return true;
-        }, changeIntoState(toolModifiedState));
+        Pair<Predicate<UseOnContext>, Consumer<UseOnContext>> pair = toolModifiedState == null ? null : Pair.of(TrueUseOnContextPredicate.INSTANCE, new ChangeIntoState(toolModifiedState));
         if (pair == null) {
             return InteractionResult.PASS;
         } else {
-            Predicate<UseOnContext> predicate = (Predicate)pair.getFirst();
-            Consumer<UseOnContext> consumer = (Consumer)pair.getSecond();
+            Predicate<UseOnContext> predicate = pair.getFirst();
+           Consumer<UseOnContext> consumer = pair.getSecond();
             if (predicate.test(context)) {
                 level.playSound(player, blockpos, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (!level.isClientSide) {
@@ -57,7 +58,7 @@ public class InfectedScythe extends SporeDiggerTools {
                         hurtTool(context.getItemInHand(),player,1);
                     }
                 }
-                return InteractionResult.sidedSuccess(level.isClientSide);
+                 return InteractionResult.sidedSuccess(level.isClientSide);
             } else {
                 return InteractionResult.PASS;
             }
@@ -74,25 +75,9 @@ public class InfectedScythe extends SporeDiggerTools {
         return new AABB(target.getX()-4,target.getY(),target.getZ()-4,target.getX()+4,target.getY()+4,target.getZ()+4);
     }
 
-    public static Consumer<UseOnContext> changeIntoState(BlockState p_150859_) {
-        return (p_238241_) -> {
-            p_238241_.getLevel().setBlock(p_238241_.getClickedPos(), p_150859_, 11);
-            p_238241_.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, p_238241_.getClickedPos(), GameEvent.Context.of(p_238241_.getPlayer(), p_150859_));
-        };
-    }
-
-    public static Consumer<UseOnContext> changeIntoStateAndDropItem(BlockState p_150850_, ItemLike p_150851_) {
-        return (p_238246_) -> {
-            p_238246_.getLevel().setBlock(p_238246_.getClickedPos(), p_150850_, 11);
-            p_238246_.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, p_238246_.getClickedPos(), GameEvent.Context.of(p_238246_.getPlayer(), p_150850_));
-            Block.popResourceFromFace(p_238246_.getLevel(), p_238246_.getClickedPos(), p_238246_.getClickedFace(), new ItemStack(p_150851_));
-        };
-    }
-
-    static {
-        TILLABLES = Maps.newHashMap(ImmutableMap.of(Blocks.GRASS_BLOCK, Pair.of(HoeItem::onlyIfAirAbove, changeIntoState(Blocks.FARMLAND.defaultBlockState())), Blocks.DIRT_PATH, Pair.of(HoeItem::onlyIfAirAbove, changeIntoState(Blocks.FARMLAND.defaultBlockState())), Blocks.DIRT, Pair.of(HoeItem::onlyIfAirAbove, changeIntoState(Blocks.FARMLAND.defaultBlockState())), Blocks.COARSE_DIRT, Pair.of(HoeItem::onlyIfAirAbove, changeIntoState(Blocks.DIRT.defaultBlockState())), Blocks.ROOTED_DIRT, Pair.of((p_238242_) -> {
-            return true;
-        }, changeIntoStateAndDropItem(Blocks.DIRT.defaultBlockState(), Items.HANGING_ROOTS))));
+    @Override
+    public boolean test(UseOnContext useOnContext) {
+        return HoeItem.onlyIfAirAbove(useOnContext);
     }
 }
 
