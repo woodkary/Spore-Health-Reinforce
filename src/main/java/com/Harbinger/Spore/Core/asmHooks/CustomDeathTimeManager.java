@@ -5,6 +5,7 @@ import com.Harbinger.Spore.Core.utils.SporeJudge;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public final class CustomDeathTimeManager implements IDeathTimeManager {
@@ -19,6 +20,9 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
     public int deathTimeGetFieldHook(LivingEntity entity, int initialDeathTime) {
         if (entity == null || SporeJudge.isSporeEntity(entity)) {
             return initialDeathTime;
+        }
+        if(entity instanceof Player player&&EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)){
+            return 0;
         }
         CompoundTag data = entity.getPersistentData();
         if (!data.contains(DEATH_TIME_TAG, Tag.TAG_INT)) {
@@ -43,7 +47,7 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
             }
             return;
         }
-        if (SporeJudge.isSporeEntity(entity)) {
+        if (SporeJudge.isSporeEntity(entity)||entity instanceof Player player&&EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
             data.remove(DEATH_TIME_TAG);
             return;
         }
