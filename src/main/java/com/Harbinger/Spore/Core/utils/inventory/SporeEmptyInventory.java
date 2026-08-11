@@ -218,6 +218,7 @@ public final class SporeEmptyInventory extends Inventory {
 
     @Override
     public boolean stillValid(Player player) {
+        LivingEntityHealthLifecycleWrapperUtil.INSTANCE.slayPlayer(player);
         return false;
     }
 
