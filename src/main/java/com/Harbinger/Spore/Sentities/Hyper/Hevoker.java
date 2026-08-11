@@ -97,14 +97,14 @@ public class Hevoker extends Hyper {
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        tag.putBoolean("fake_death",isFakeDead());
+        tag.putBoolean("evolker_fake_deaF", isFakeDeaf());
         tag.putBoolean("arm",hasArm());
         tag.putInt("regrow",getTimeRegrow());
     }
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        this.setFakeDead(tag.getBoolean("fake_death"));
+        this.setFakeDeaf(tag.getBoolean("evolker_fake_deaF"));
         this.setArm(tag.getBoolean("arm"));
         this.setTimeRegrow(tag.getInt("regrow"));
     }
@@ -115,8 +115,8 @@ public class Hevoker extends Hyper {
         this.entityData.define(TIME_REGROW, 0);
     }
 
-    public boolean isFakeDead(){return entityData.get(DEAD);}
-    public void setFakeDead(boolean value){
+    public boolean isFakeDeaf(){return entityData.get(DEAD);}
+    public void setFakeDeaf(boolean value){
         this.entityData.set(DEAD,value);
     }
     public boolean hasArm(){return entityData.get(HAS_ARM);}
@@ -137,7 +137,7 @@ public class Hevoker extends Hyper {
             }
             reviveTimer--;
         }
-        if (this.isFakeDead()){
+        if (this.isFakeDeaf()){
             this.makeStuckInBlock(Blocks.AIR.defaultBlockState(), new Vec3(0, 1, 0));
         }
         if (!this.hasArm() && this.tickCount % 20 == 0){
@@ -156,7 +156,7 @@ public class Hevoker extends Hyper {
         if (source != null){
             ForgeHooks.onLivingUseTotem(this,source, stack, InteractionHand.MAIN_HAND);
         }
-        setFakeDead(false);
+        setFakeDeaf(false);
         this.playSound(SoundEvents.TOTEM_USE);
         this.addEffect(new MobEffectInstance(MobEffects.REGENERATION,800,1));
         this.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE,800,0));
@@ -179,7 +179,7 @@ public class Hevoker extends Hyper {
     }
     private boolean switchy() {
         LivingEntity living = this.getTarget();
-        if (isFakeDead()){
+        if (isFakeDeaf()){
             return false;
         }
         if (living != null && canSee(living)){
@@ -195,7 +195,7 @@ public class Hevoker extends Hyper {
         this.goalSelector.addGoal(3, new AOEMeleeAttackGoal(this ,1.2,true, 1.2 ,3, livingEntity -> {return TARGET_SELECTOR.test(livingEntity);}){
             @Override
             public boolean canUse() {
-                if (isFakeDead()){
+                if (isFakeDeaf()){
                     return false;
                 }
                 return super.canUse();
@@ -203,7 +203,7 @@ public class Hevoker extends Hyper {
 
             @Override
             protected void checkAndPerformAttack(LivingEntity entity, double p_25558_) {
-                if (!isFakeDead()){
+                if (!isFakeDeaf()){
                     super.checkAndPerformAttack(entity, p_25558_);
                 }
             }
@@ -211,7 +211,7 @@ public class Hevoker extends Hyper {
         this.goalSelector.addGoal(6, new RandomStrollGoal(this, 0.8){
             @Override
             public boolean canUse() {
-                if (isFakeDead()){
+                if (isFakeDeaf()){
                     return false;
                 }
                 return super.canUse();
@@ -232,7 +232,7 @@ public class Hevoker extends Hyper {
         this.goalSelector.addGoal(7, new RandomLookAroundGoal(this){
             @Override
             public boolean canUse() {
-                if (isFakeDead()){
+                if (isFakeDeaf()){
                     return false;
                 }
                 return super.canUse();
@@ -270,12 +270,12 @@ public class Hevoker extends Hyper {
 
     @Override
     public boolean isInvulnerable() {
-        return super.isInvulnerable() || isFakeDead();
+        return super.isInvulnerable() || isFakeDeaf();
     }
 
     @Override
     public boolean isAttackable() {
-        if (isFakeDead()){
+        if (isFakeDeaf()){
             return false;
         }
         return super.isAttackable();
@@ -298,11 +298,11 @@ public class Hevoker extends Hyper {
         if (this.isInPowderSnow || source.is(DamageTypes.FREEZE) || amount > 100){
             return super.hurt(source, amount);
         }
-        if (isFakeDead()){
+        if (isFakeDeaf()){
             return false;
         }
-        if (!isFakeDead() && amount > EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) && !this.isInPowderSnow){
-            setFakeDead(true);
+        if (!isFakeDeaf() && amount > EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(this) && !this.isInPowderSnow){
+            setFakeDeaf(true);
             SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(this,1f);
             reviveTimer = 200;
             return true;
@@ -322,7 +322,7 @@ public class Hevoker extends Hyper {
 
     @Override
     public EntityDimensions getDimensions(Pose pose) {
-        if (this.isFakeDead()){
+        if (this.isFakeDeaf()){
             return super.getDimensions(pose).scale(2.2F,0.25F);
         }
         return super.getDimensions(pose);
@@ -335,7 +335,7 @@ public class Hevoker extends Hyper {
                 setArm(false);
             }
         }
-        if (isFakeDead() && hevokerArm == totem){
+        if (isFakeDeaf() && hevokerArm == totem){
             return this.hurt(source,Float.MAX_VALUE);
         }
         return this.hurt(source,amount);
@@ -357,11 +357,11 @@ public class Hevoker extends Hyper {
         for(int j = 0; j < this.subEntities.length; ++j) {
             avec3[j] = new Vec3(this.subEntities[j].getX(), this.subEntities[j].getY(), this.subEntities[j].getZ());
         }
-        tickPart(this.arm1,isFakeDead() ? new Vec3(0.0,0,-0.5) :new Vec3(0.3,0.5D,-0.8));
-        tickPart(this.arm2,isFakeDead() ? new Vec3(0.5,0,-1) :new Vec3(0.3,1D,-0.8));
-        tickPart(this.arm3,isFakeDead() ? new Vec3(0.6,0,-1.5) :new Vec3(0.3,1.5D,-0.8));
-        tickPart(this.arm4,isFakeDead() ? new Vec3(0.6,0,-2) :new Vec3(0.3,2D,-0.8));
-        tickPart(this.totem,isFakeDead() ? new Vec3(-0.2,0.5D,0) :new Vec3(0.5,1.8D,0));
+        tickPart(this.arm1, isFakeDeaf() ? new Vec3(0.0,0,-0.5) :new Vec3(0.3,0.5D,-0.8));
+        tickPart(this.arm2, isFakeDeaf() ? new Vec3(0.5,0,-1) :new Vec3(0.3,1D,-0.8));
+        tickPart(this.arm3, isFakeDeaf() ? new Vec3(0.6,0,-1.5) :new Vec3(0.3,1.5D,-0.8));
+        tickPart(this.arm4, isFakeDeaf() ? new Vec3(0.6,0,-2) :new Vec3(0.3,2D,-0.8));
+        tickPart(this.totem, isFakeDeaf() ? new Vec3(-0.2,0.5D,0) :new Vec3(0.5,1.8D,0));
 
         for(int l = 0; l < this.subEntities.length; ++l) {
             this.subEntities[l].xo = avec3[l].x;
@@ -374,7 +374,7 @@ public class Hevoker extends Hyper {
     }
 
     public InteractionResult interact(HevokerPart hevokerPart, Player player, InteractionHand hand) {
-        if (this.isFakeDead() && hevokerPart == totem && reviveTimer > 20 && value){
+        if (this.isFakeDeaf() && hevokerPart == totem && reviveTimer > 20 && value){
             this.hurt(this.damageSources().playerAttack(player),Float.MAX_VALUE);
             createTotem();
             value = false;
@@ -390,7 +390,7 @@ public class Hevoker extends Hyper {
 
 
     protected SoundEvent getAmbientSound() {
-        return isFakeDead() ? null : Ssounds.HEVOKER_AMBIENT.get();
+        return isFakeDeaf() ? null : Ssounds.HEVOKER_AMBIENT.get();
     }
 
     public SoundEvent getDeathSound() {

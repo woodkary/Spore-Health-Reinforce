@@ -3,9 +3,7 @@ package com.Harbinger.Spore.Client.Renderers;
 import com.Harbinger.Spore.Client.Layers.SporeRenderTypes;
 import com.Harbinger.Spore.Client.Models.HevokerModel;
 import com.Harbinger.Spore.Client.Models.HevokerModelDead;
-import com.Harbinger.Spore.Client.Models.VolatileModel;
 import com.Harbinger.Spore.Client.Special.BaseInfectedRenderer;
-import com.Harbinger.Spore.Sentities.EvolvedInfected.Volatile;
 import com.Harbinger.Spore.Sentities.Hyper.Hevoker;
 import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -54,12 +52,12 @@ public class HevokerRenderer extends BaseInfectedRenderer<Hevoker, EntityModel<H
 
     @Override
     protected boolean isShaking(Hevoker type) {
-        return super.isShaking(type) || type.isFakeDead();
+        return super.isShaking(type) || type.isFakeDeaf();
     }
 
     @Override
     public void render(Hevoker hevoker, float p_115456_, float p_115457_, PoseStack p_115458_, MultiBufferSource p_115459_, int p_115460_) {
-        this.model = hevoker.isFakeDead() ? deadHevoker : normalBraio;
+        this.model = hevoker.isFakeDeaf() ? deadHevoker : normalBraio;
         super.render(hevoker, p_115456_, p_115457_, p_115458_, p_115459_, p_115460_);
     }
 
@@ -72,7 +70,7 @@ public class HevokerRenderer extends BaseInfectedRenderer<Hevoker, EntityModel<H
 
         @Override
         public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, T t, float v, float v1, float v2, float v3, float v4, float v5) {
-            if (t.isFakeDead()){
+            if (t.isFakeDeaf()){
                 ItemStack stack = new ItemStack(Items.TOTEM_OF_UNDYING);
                 poseStack.pushPose();
                 poseStack.translate(0, 1F, 0.3F);
@@ -94,7 +92,7 @@ public class HevokerRenderer extends BaseInfectedRenderer<Hevoker, EntityModel<H
 
         @Override
         public void render(PoseStack matrixStack, MultiBufferSource buffer, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-            if (!entity.isInvisible() && !entity.isFakeDead()){
+            if (!entity.isInvisible() && !entity.isFakeDeaf()){
                 float alpha = 0.5F + 0.5F * Mth.sin(ageInTicks * 0.1F);
                 VertexConsumer vertexConsumer = buffer.getBuffer(SporeRenderTypes.glowingTranslucent(TEXTURE));
                 getParentModel().renderToBuffer(matrixStack, vertexConsumer, packedLight, 15728640, 1.0F, 1.0F, 1.0F, alpha);
