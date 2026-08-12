@@ -2,24 +2,47 @@ package com.Harbinger.Spore.Core.utils.threads;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeSet;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeSetProxy;
 import net.minecraftforge.event.TickEvent;
 
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
-public final class TickableLivingRetransformManager implements ILivingRetransformManager {
+public final class TickableLivingRetransformManager implements ILivingRetransformManager, Function<LivingEntityRetransformationTask.Strategy,Set<Class<?>>> {
     public static final ILivingRetransformManager INSTANCE;
-    private final ISporeSet<IStopStatusAccessibleRunnable> livingClasses= SporeSetProxy.newInstance(ConcurrentHashMap.newKeySet());
+    private final ISporeMap<LivingEntityRetransformationTask.Strategy, Set<Class<?>>> livingClasses= SporeMapProxy.newInstance(new ConcurrentHashMap<>());
     @Override
     public void add(LivingEntityRetransformationTask.Strategy strategy, Class<?>... livingClasses) {
-        this.livingClasses.actualAdd(new LivingEntityRetransformationTask(strategy, livingClasses));
+        if(strategy==LivingEntityRetransformationTask.Strategy.LOOP_MIXED||
+            strategy==LivingEntityRetransformationTask.Strategy.LOOP_JVMTI||
+            strategy==LivingEntityRetransformationTask.Strategy.LOOP_ALL){
+            LogUtil.error("tickable retransform shouldn't accept task with dead loop");
+            return;
+        }
+        Set<Class<?>> s = this.livingClasses.computeIfAbsent(strategy, this);
+        List<Class<?>> list = Arrays.asList(livingClasses);
+        if(s instanceof ISporeSet<Class<?>> classSet) {
+            classSet.actualAddAll(list);
+        }else{
+            s.addAll(list);
+        }
     }
     @Override
     public void accept(TickEvent tickEvent) {
-        for (IStopStatusAccessibleRunnable task : livingClasses) {
-            LivingEntityRetransformationTask.submitTask(task);
+        for (Map.Entry<LivingEntityRetransformationTask.Strategy, Set<Class<?>>> entry : livingClasses.entrySet()) {
+            LivingEntityRetransformationTask.submitTask(
+                    new LivingEntityRetransformationTask(entry.getKey(),entry.getValue().toArray(new Class<?>[0]))
+            );
         }
+    }
+    @Override
+    public Set<Class<?>> apply(LivingEntityRetransformationTask.Strategy strategy) {
+        return SporeSetProxy.newInstance(new HashSet<>());
     }
     static {
         Class<? extends ILivingRetransformManager>[] clazz=new Class[1];
