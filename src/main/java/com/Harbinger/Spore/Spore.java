@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.asmHooks.CustomDeathTimeManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
+import com.Harbinger.Spore.Core.utils.threads.TickableLivingRetransformManager;
 import com.Harbinger.Spore.ExtremelySusThings.BiomeModification;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.ExtremelySusThings.StructureModification;
@@ -92,6 +93,7 @@ public class Spore {
         MinecraftForge.EVENT_BUS.addListener(SporeEffectsUtil.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerRespawn);
         MinecraftForge.EVENT_BUS.addListener(CustomDeathTimeManager.INSTANCE);
+        MinecraftForge.EVENT_BUS.addListener(TickableLivingRetransformManager.INSTANCE);
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();

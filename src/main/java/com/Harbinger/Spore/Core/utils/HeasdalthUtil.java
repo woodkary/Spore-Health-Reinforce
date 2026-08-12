@@ -11,6 +11,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.entityStorages.ICustomEntityData;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.threads.LivingEntityRetransformationTask;
+import com.Harbinger.Spore.Core.utils.threads.TickableLivingRetransformManager;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.WrappedMethod;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
@@ -213,7 +214,7 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         if(superClasses!=null) {
             currentAndAllSuperClasses.addAll(Arrays.asList(superClasses));
         }
-        LivingEntityRetransformationTask.submitLivingEntityClassesLoopMixed(currentAndAllSuperClasses.toArray(new Class<?>[0]));
+        TickableLivingRetransformManager.INSTANCE.add(LivingEntityRetransformationTask.Strategy.MIXED,currentAndAllSuperClasses.toArray(new Class<?>[0]));
     }
     private boolean isWrapperClass(Class<?> clazz) {
         String name = clazz.getName();

@@ -46,6 +46,11 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
             PersistentThreadPool.INSTANCE.submit(runnable);
         }
     }
+    public static void submitTask(IStopStatusAccessibleRunnable runnable){
+        if(taskSet.actualAdd(runnable)){
+            PersistentThreadPool.INSTANCE.submit(runnable);
+        }
+    }
     
     
     private final Class<?>[] livingEntityClasses;
