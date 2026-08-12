@@ -103,7 +103,7 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
                 try{
                     synchronized (Thread.currentThread()) {
                         try {
-                            Thread.sleep(10L);
+                            Thread.sleep(50L);
                         }catch (InterruptedException ignored){}
                     }
                     SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClasses(classes);
@@ -118,7 +118,7 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
                 try{
                     synchronized (Thread.currentThread()) {
                         try {
-                            Thread.sleep(10L);
+                            Thread.sleep(50L);
                         }catch (InterruptedException ignored){}
                     }
                     SporeLivingEntityHealthTransformerBootstrap.INSTANCE.retransformMaybeHiddenClassesJVMTIOnly(classes);
@@ -133,7 +133,7 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
                 try {
                     synchronized (Thread.currentThread()) {
                         try {
-                            Thread.sleep(10L);
+                            Thread.sleep(50L);
                         }catch (InterruptedException ignored){}
                     }
                     try {
