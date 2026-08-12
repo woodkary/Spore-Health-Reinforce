@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class LivingEntityRetransformationTask implements IStopStatusAccessibleRunnable {
+    private static final Class<?>[] EMPTY_CLASSES = new Class<?>[0];
     private static final ISporeSet<IStopStatusAccessibleRunnable> taskSet= SporeSetProxy.newInstance(ConcurrentHashMap.newKeySet());
     public static void submitLivingEntityClassesMixed(Class<?>... classes){
         IStopStatusAccessibleRunnable runnable = new LivingEntityRetransformationTask(Strategy.MIXED,classes);
@@ -54,29 +55,50 @@ public final class LivingEntityRetransformationTask implements IStopStatusAccess
     
     
     private final Class<?>[] livingEntityClasses;
+    private final Set<Class<?>> dynamicLivingEntityClasses;
     private final Strategy strategy;
 
     public LivingEntityRetransformationTask(Strategy strategy,Class<?>... livingEntityClasses) {
-        this.livingEntityClasses = livingEntityClasses;
-        this.strategy = strategy;
+        this.livingEntityClasses = livingEntityClasses == null ? EMPTY_CLASSES : livingEntityClasses.clone();
+        this.dynamicLivingEntityClasses = null;
+        this.strategy = Objects.requireNonNull(strategy);
+    }
+
+    LivingEntityRetransformationTask(Strategy strategy, Set<Class<?>> dynamicLivingEntityClasses) {
+        this.livingEntityClasses = null;
+        this.dynamicLivingEntityClasses = Objects.requireNonNull(dynamicLivingEntityClasses);
+        this.strategy = Objects.requireNonNull(strategy);
     }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LivingEntityRetransformationTask that = (LivingEntityRetransformationTask) o;
+        if (dynamicLivingEntityClasses != null || that.dynamicLivingEntityClasses != null) {
+            return strategy == that.strategy
+                    && dynamicLivingEntityClasses == that.dynamicLivingEntityClasses;
+        }
         return Arrays.equals(livingEntityClasses, that.livingEntityClasses) && strategy == that.strategy;
     }
 
     @Override
     public int hashCode() {
+        if (dynamicLivingEntityClasses != null) {
+            return 31 * strategy.hashCode() + System.identityHashCode(dynamicLivingEntityClasses);
+        }
         return Objects.hash(Arrays.hashCode(livingEntityClasses), strategy);
     }
 
     @Override
     public void run() {
         try {
-            strategy.strategy.applyClasses(livingEntityClasses);
+            Class<?>[] classes = dynamicLivingEntityClasses == null
+                    ? livingEntityClasses
+                    : dynamicLivingEntityClasses.toArray(EMPTY_CLASSES);
+            if (classes.length != 0) {
+                strategy.strategy.applyClasses(classes);
+            }
         } catch (Throwable throwable) {
             LogUtil.errorf("LivingEntity retransform task failed. %s",throwable.getMessage());
             LogUtil.printStackTrace(throwable);

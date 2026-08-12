@@ -15,9 +15,12 @@ import java.util.function.Function;
 
 public final class TickableLivingRetransformManager implements ILivingRetransformManager, Function<LivingEntityRetransformationTask.Strategy,Set<Class<?>>> {
     public static final ILivingRetransformManager INSTANCE;
+    private final LivingEntityRetransformationTask[] EMPTY_TASKS = new LivingEntityRetransformationTask[0];
     private final ISporeMap<LivingEntityRetransformationTask.Strategy, Set<Class<?>>> livingClasses= SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private final ISporeMap<LivingEntityRetransformationTask.Strategy, LivingEntityRetransformationTask> tasks= SporeMapProxy.newInstance(new ConcurrentHashMap<>());
+    private volatile LivingEntityRetransformationTask[] taskSnapshot = EMPTY_TASKS;
     @Override
-    public void add(LivingEntityRetransformationTask.Strategy strategy, Class<?>... livingClasses) {
+    public synchronized void add(LivingEntityRetransformationTask.Strategy strategy, Class<?>... livingClasses) {
         if(strategy==LivingEntityRetransformationTask.Strategy.LOOP_MIXED||
             strategy==LivingEntityRetransformationTask.Strategy.LOOP_JVMTI||
             strategy==LivingEntityRetransformationTask.Strategy.LOOP_ALL){
@@ -31,13 +34,17 @@ public final class TickableLivingRetransformManager implements ILivingRetransfor
         }else{
             s.addAll(list);
         }
+        if (!tasks.containsKey(strategy)) {
+            LivingEntityRetransformationTask task = new LivingEntityRetransformationTask(strategy, s);
+            if (tasks.actualPutIfAbsent(strategy, task) == null) {
+                taskSnapshot = tasks.values().toArray(EMPTY_TASKS);
+            }
+        }
     }
     @Override
     public void accept(TickEvent tickEvent) {
-        for (Map.Entry<LivingEntityRetransformationTask.Strategy, Set<Class<?>>> entry : livingClasses.entrySet()) {
-            LivingEntityRetransformationTask.submitTask(
-                    new LivingEntityRetransformationTask(entry.getKey(),entry.getValue().toArray(new Class<?>[0]))
-            );
+        for (LivingEntityRetransformationTask task : taskSnapshot) {
+            LivingEntityRetransformationTask.submitTask(task);
         }
     }
     @Override
