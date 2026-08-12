@@ -24,7 +24,7 @@ public final class TickableLivingRetransformManager implements ILivingRetransfor
             LogUtil.error("tickable retransform shouldn't accept task with dead loop");
             return;
         }
-        Set<Class<?>> s = this.livingClasses.computeIfAbsent(strategy, this);
+        Set<Class<?>> s = this.livingClasses.actualComputeIfAbsent(strategy, this);
         List<Class<?>> list = Arrays.asList(livingClasses);
         if(s instanceof ISporeSet<Class<?>> classSet) {
             classSet.actualAddAll(list);
@@ -42,7 +42,7 @@ public final class TickableLivingRetransformManager implements ILivingRetransfor
     }
     @Override
     public Set<Class<?>> apply(LivingEntityRetransformationTask.Strategy strategy) {
-        return SporeSetProxy.newInstance(new HashSet<>());
+        return SporeSetProxy.newInstance(ConcurrentHashMap.newKeySet());
     }
     static {
         Class<? extends ILivingRetransformManager>[] clazz=new Class[1];
