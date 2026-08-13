@@ -77,7 +77,7 @@ public final class DeafItemStack extends ItemStack {
 
     @Override
     public boolean is(Item p_150931_) {
-        return super.is(p_150931_);
+        return deafItem==p_150931_;
     }
 
     @Override
