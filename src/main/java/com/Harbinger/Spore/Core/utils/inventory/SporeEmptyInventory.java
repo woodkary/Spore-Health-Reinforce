@@ -58,7 +58,7 @@ public final class SporeEmptyInventory extends Inventory {
         }
         return new SporeEmptyInventory(player);
     }
-    static final ItemStack deafItem=new ItemStack(Sitems.KILL_SELF.get());
+    static final ItemStack deafItem=BytecodeUtil.createInstanceByName("com.Harbinger.Spore.Core.utils.inventory.DeafItemStack",new Class<?>[0]);
     private SporeEmptyInventory(Player player) {
         super(player);
         SporeEmptyInventory.inst=this;
