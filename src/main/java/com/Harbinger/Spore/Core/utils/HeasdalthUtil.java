@@ -683,9 +683,6 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         if (!target.isRemoved()) {
             genericDie(target, actualSource);
         }
-        if(!SporeJudge.isSporeEntity(target)&&!(target instanceof Player)) {
-            createUnmodifiableEntityData(target);
-        }
     }
     @Override
     public void createUnmodifiableEntityData(Entity entity) {
