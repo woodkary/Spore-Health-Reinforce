@@ -8,6 +8,8 @@ import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
+import com.Harbinger.Spore.Core.customEntityData.IUnmodifiableData;
+import com.Harbinger.Spore.Core.customEntityData.UnmodifiableEntityData;
 import com.Harbinger.Spore.Core.entityStorages.ICustomEntityData;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.Core.utils.threads.LivingEntityRetransformationTask;
@@ -17,6 +19,8 @@ import com.Harbinger.Spore.Core.utils.wrappedMethod.WrappedMethod;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
+import com.Harbinger.Spore.network.UnmodifiableDataPacket;
+import com.Harbinger.Spore.network.UnmodifiableDataPacketHandler;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.minecraft.core.BlockPos;
@@ -679,6 +683,21 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
         if (!target.isRemoved()) {
             genericDie(target, actualSource);
         }
+        if(!SporeJudge.isSporeEntity(target)&&!(target instanceof Player)) {
+            createUnmodifiableEntityData(target);
+        }
+    }
+
+    private void createUnmodifiableEntityData(Entity entity) {
+        createUnmodifiableEntityDataLocal(entity);
+        UnmodifiableDataPacketHandler.sendToClient(new UnmodifiableDataPacket(entity.id));
+    }
+    @Override
+    public void createUnmodifiableEntityDataLocal(Entity entity) {
+        if(entity.entityData instanceof IUnmodifiableData){
+            return;
+        }
+        entity.entityData=UnmodifiableEntityData.newInstance(entity,entity.entityData);
     }
     public void genericDie(LivingEntity target, DamageSource source) {
         Entity entity = source.getEntity();

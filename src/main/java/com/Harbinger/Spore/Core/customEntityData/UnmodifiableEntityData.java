@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class UnmodifiableEntityData extends SynchedEntityData {
+public final class UnmodifiableEntityData extends SynchedEntityData implements IUnmodifiableData {
     public static final Class<? extends SynchedEntityData> entityDataClass = (Class<? extends SynchedEntityData>) BytecodeUtil.resolveHiddenClassOrSelf(
             UnmodifiableEntityData.class,
             Entity.class,

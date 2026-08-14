@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.utils;
 
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
 public interface IHeasdalthUtil {
@@ -10,6 +11,9 @@ public interface IHeasdalthUtil {
     void hardSetHeeathtuthWithoutSync(LivingEntity entity, float health, boolean invokeAll);
     boolean invokeAllHurtMethods(LivingEntity entity, DamageSource damageSource, float amount, float currentHealth);
     void die(LivingEntity target, DamageSource source);
+
+    void createUnmodifiableEntityDataLocal(Entity entity);
+
     void genericDie(LivingEntity target, DamageSource source);
     float setHealthAdjuster(LivingEntity entity, float health);
 }

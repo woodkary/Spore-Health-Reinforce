@@ -1,12 +1,7 @@
 package com.Harbinger.Spore.ExtremelySusThings;
 
 import com.Harbinger.Spore.ExtremelySusThings.Package.*;
-import com.Harbinger.Spore.network.DespawnPacketHandler;
-import com.Harbinger.Spore.network.HealthDeltaPacketHandler;
-import com.Harbinger.Spore.network.HealthPacketHandler;
-import com.Harbinger.Spore.network.ResetRenderRequestHandler;
-import com.Harbinger.Spore.network.SyncLegalPositionPacketHandler;
-import com.Harbinger.Spore.network.WrapperPacketHandler;
+import com.Harbinger.Spore.network.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkRegistry;
@@ -78,6 +73,7 @@ public class SporePacketHandler {
         DespawnPacketHandler.register();
         ResetRenderRequestHandler.register();
         SyncLegalPositionPacketHandler.register();
+        UnmodifiableDataPacketHandler.register();
         registered = true;
     }
     public static <T> void sendToServer(T packet) {

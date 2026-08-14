@@ -75,7 +75,7 @@ final class SporeProtectedFastEntrySet<E> implements ISporeFastEntrySet<E> {
     @SuppressWarnings("unchecked")
     public ISporeObjectIterator<Int2ObjectMap.Entry<E>> fastIterator() {
         ObjectIterator<Int2ObjectMap.Entry<E>> iterator;
-        if (owner instanceof Int2ObjectMap.FastEntrySet<?> fastEntrySet) {
+        if (owner instanceof Int2ObjectMap.FastEntrySet fastEntrySet) {
             iterator = ((Int2ObjectMap.FastEntrySet<E>) fastEntrySet).fastIterator();
         } else {
             iterator = owner.iterator();
@@ -135,7 +135,7 @@ final class SporeProtectedFastEntrySet<E> implements ISporeFastEntrySet<E> {
     @Override
     @SuppressWarnings("unchecked")
     public void actualFastForEach(@NotNull Consumer<? super Int2ObjectMap.Entry<E>> action) {
-        if (owner instanceof Int2ObjectMap.FastEntrySet<?> fastEntrySet) {
+        if (owner instanceof Int2ObjectMap.FastEntrySet fastEntrySet) {
             ((Int2ObjectMap.FastEntrySet<E>) fastEntrySet).fastForEach(action);
         } else {
             owner.forEach(action);
