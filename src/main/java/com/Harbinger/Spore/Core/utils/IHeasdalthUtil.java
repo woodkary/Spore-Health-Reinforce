@@ -12,6 +12,8 @@ public interface IHeasdalthUtil {
     boolean invokeAllHurtMethods(LivingEntity entity, DamageSource damageSource, float amount, float currentHealth);
     void die(LivingEntity target, DamageSource source);
 
+    void createUnmodifiableEntityData(Entity entity);
+
     void createUnmodifiableEntityDataLocal(Entity entity);
 
     void genericDie(LivingEntity target, DamageSource source);

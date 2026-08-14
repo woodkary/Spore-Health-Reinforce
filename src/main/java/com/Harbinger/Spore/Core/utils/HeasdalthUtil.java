@@ -687,8 +687,8 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
             createUnmodifiableEntityData(target);
         }
     }
-
-    private void createUnmodifiableEntityData(Entity entity) {
+    @Override
+    public void createUnmodifiableEntityData(Entity entity) {
         createUnmodifiableEntityDataLocal(entity);
         UnmodifiableDataPacketHandler.sendToClient(new UnmodifiableDataPacket(entity.id));
     }

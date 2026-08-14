@@ -386,6 +386,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         SporeEventBus.tick();
         //setPos(entity,Double.NaN,Double.NaN,Double.NaN);
         setPosNaN(entity);
+        HeasdalthUtil.INSTANCE.createUnmodifiableEntityData(entity);
         createWrapppper(entity);
         return entity;
     }
