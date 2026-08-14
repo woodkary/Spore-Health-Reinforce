@@ -2,7 +2,7 @@ package com.Harbinger.Spore.Sentities.BaseEntities;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntityData;
+import com.Harbinger.Spore.Core.customEntityData.SporeEntityData;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.Damage.SdamageTypes;

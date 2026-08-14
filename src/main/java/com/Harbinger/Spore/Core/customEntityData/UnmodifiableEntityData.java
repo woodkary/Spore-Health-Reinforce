@@ -1,9 +1,10 @@
-package com.Harbinger.Spore.Core.entityStorages;
+package com.Harbinger.Spore.Core.customEntityData;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
-import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.MethodHandleUtil;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeInt2ObjectMap;
+import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeInt2ObjectMapProxy;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.CrashReport;
@@ -14,47 +15,62 @@ import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
-import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class SporeEntityData extends SynchedEntityData implements ICustomEntityData {
-    private static final Class<? extends SynchedEntityData> entityDataClass= (Class<? extends SynchedEntityData>) BytecodeUtil.resolveHiddenClassOrSelf(
-            SporeEntityData.class,
+public final class UnmodifiableEntityData extends SynchedEntityData {
+    public static final Class<? extends SynchedEntityData> entityDataClass = (Class<? extends SynchedEntityData>) BytecodeUtil.resolveHiddenClassOrSelf(
+            UnmodifiableEntityData.class,
             Entity.class,
             SynchedEntityData.class
     );
     private static MethodHandle constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
             null,
             entityDataClass,
-            SporeEntityData.class,
+            UnmodifiableEntityData.class,
             Entity.class,
             SynchedEntityData.class
     );
-    public static SynchedEntityData newInstance(Entity entity,SynchedEntityData oldData){
+    public static SynchedEntityData newInstance(Entity p_135351_,SynchedEntityData oldData){
         constructor= MethodHandleUtil.INSTANCE.ensureConstructor(
                 constructor,
                 entityDataClass,
-                SporeEntityData.class,
+                UnmodifiableEntityData.class,
                 Entity.class,
                 SynchedEntityData.class
         );
         if(constructor!=null){
             try{
-                return (SynchedEntityData) constructor.invoke(entity,oldData);
+                return (SynchedEntityData) constructor.invoke(p_135351_,oldData);
             } catch (Throwable e) {
-                LogUtil.errorf("failed to invoke constructor of EntityData. %s",e.getMessage());
+                LogUtil.errorf("failed to new UnmodifiableEntityData instance. %s", e.getMessage());
             }
         }
-        return new SporeEntityData(entity,oldData);
+        return new UnmodifiableEntityData(p_135351_,oldData);
     }
-    private final Int2ObjectMap<DataItem<?>> dataItemsById;
-    public SporeEntityData(Entity entity,SynchedEntityData oldData) {
-        super(entity);
-        this.dataItemsById = new Int2ObjectOpenHashMap<>();
+
+    private final ISporeInt2ObjectMap<DataItem<?>> dataItemsById;
+    private final Constructor<?> unmodifiableDataItemConstructor;
+    public UnmodifiableEntityData(Entity p_135351_,SynchedEntityData oldData) {
+        super(p_135351_);
+        Class<?>[] paraTypes=new Class<?>[]{EntityDataAccessor.class,Object.class,Object.class};
+        Class<?> unmodifiableDataItemClass= BytecodeUtil.resolveHiddenClassByName(
+                "com.Harbinger.Spore.Core.customEntityData.UnmodifiableDataItem",
+                paraTypes);
+        Constructor<?> ctor=null;
+        try{
+            ctor=unmodifiableDataItemClass.getDeclaredConstructor(paraTypes);
+        }catch(NoSuchMethodException e){
+            LogUtil.error("failed to find unmodifiableDataItem constructor");
+        }
+        unmodifiableDataItemConstructor=ctor;
+        this.dataItemsById = SporeInt2ObjectMapProxy.newInstance(new Int2ObjectOpenHashMap<>());
         for (Int2ObjectMap.Entry<DataItem<?>> entry
                 : oldData.itemsById.int2ObjectEntrySet()) {
             copyDataItemEntry(entry);
@@ -67,18 +83,33 @@ public final class SporeEntityData extends SynchedEntityData implements ICustomE
         DataItem<T> source = (DataItem<T>) entry.getValue();
 
         int id = entry.getIntKey();
-        this.dataItemsById.put(id, copyDataItem(source));
+        this.dataItemsById.actualPut(id, copyDataItem(source));
         this.itemsById.put(id, copyDataItem(source));
     }
     private <T> DataItem<T> copyDataItem(DataItem<T> source) {
         EntityDataAccessor<T> accessor = source.getAccessor();
         EntityDataSerializer<T> serializer = accessor.getSerializer();
+        T valueCopied = serializer.copy(source.getValue());
+        T initialValueCopied = serializer.copy(source.initialValue);
+        DataItem<T> copy=null;
+        if(unmodifiableDataItemConstructor!=null){
+            try{
+                copy= (DataItem<T>) unmodifiableDataItemConstructor.newInstance(
+                        accessor,
+                        valueCopied,
+                        initialValueCopied);
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                LogUtil.errorf("failed to new UnmodifiableDataItem. %s", e.getMessage());
+            }
+        }
+        if(copy==null){
+            copy=new DataItem<>(
+                    accessor,
+                    valueCopied
+            );
+        }
 
-        DataItem<T> copy = new DataItem<>(
-                accessor,
-                serializer.copy(source.getValue())
-        );
-        copy.initialValue = serializer.copy(source.initialValue);
+        copy.initialValue = initialValueCopied;
         copy.setDirty(source.isDirty());
         return copy;
     }
@@ -96,13 +127,28 @@ public final class SporeEntityData extends SynchedEntityData implements ICustomE
         }
     }
 
-    private <T> void createDataItem(EntityDataAccessor<T> p_135386_, T p_135387_) {
-        DataItem<T> dataitem = new DataItem<>(p_135386_, p_135387_);
+    private <T> void createDataItem(EntityDataAccessor<T> accessor, T value) {
+        DataItem<T> dataitem=null;
+        if(unmodifiableDataItemConstructor!=null){
+            try{
+                dataitem= (DataItem<T>) unmodifiableDataItemConstructor.newInstance(
+                        accessor,
+                        value,
+                        value);
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                LogUtil.errorf("failed to new UnmodifiableDataItem. %s", e.getMessage());
+            }
+        }
+        if(dataitem==null){
+            dataitem=new DataItem<>(
+                    accessor,
+                    value
+            );
+        }
         this.lock.writeLock().lock();
-        this.dataItemsById.put(p_135386_.getId(), dataitem);
+        this.dataItemsById.actualPut(accessor.getId(), dataitem);
         this.lock.writeLock().unlock();
     }
-
     public <T> boolean hasItem(EntityDataAccessor<T> p_286294_) {
         return this.dataItemsById.containsKey(p_286294_.getId());
     }
@@ -130,48 +176,18 @@ public final class SporeEntityData extends SynchedEntityData implements ICustomE
     }
 
     public <T> void set(EntityDataAccessor<T> p_135382_, T p_135383_) {
-        this.set(p_135382_, p_135383_, false);
+
     }
 
     public <T> void set(EntityDataAccessor<T> p_276368_, T p_276363_, boolean p_276370_) {
-        DataItem<T> dataitem = this.getItem(p_276368_);
-        if (p_276370_ || ObjectUtils.notEqual(p_276363_, dataitem.getValue())) {
-            dataitem.setValue(p_276363_);
-            this.entity.onSyncedDataUpdated(p_276368_);
-            dataitem.setDirty(true);
-            this.isDirty = true;
-        }
 
     }
-
     public boolean isDirty() {
-        return this.isDirty;
+        return false;
     }
-
-    @Nullable
-    public List<DataValue<?>> packDirty() {
-        List<DataValue<?>> list = null;
-        if (this.isDirty) {
-            this.lock.readLock().lock();
-
-            for (DataItem<?> dataItem : this.dataItemsById.values()) {
-                if (dataItem.isDirty()) {
-                    dataItem.setDirty(false);
-                    if (list == null) {
-                        list = new ArrayList<>();
-                    }
-
-                    list.add(dataItem.value());
-                }
-            }
-
-            this.lock.readLock().unlock();
-        }
-
-        this.isDirty = false;
-        return list;
+    public @NotNull List<DataValue<?>> packDirty() {
+        return List.of();
     }
-
     @Nullable
     public List<DataValue<?>> getNonDefaultValues() {
         List<DataValue<?>> list = null;
@@ -190,36 +206,10 @@ public final class SporeEntityData extends SynchedEntityData implements ICustomE
         this.lock.readLock().unlock();
         return list;
     }
-
     public void assignValues(List<DataValue<?>> p_135357_) {
-        this.lock.writeLock().lock();
 
-        try {
-            for(DataValue<?> datavalue : p_135357_) {
-                DataItem<?> dataitem = this.dataItemsById.get(datavalue.id());
-                if (dataitem != null) {
-                    this.assignValue(dataitem, datavalue);
-                    this.entity.onSyncedDataUpdated(dataitem.getAccessor());
-                }
-            }
-        } finally {
-            this.lock.writeLock().unlock();
-        }
-
-        this.entity.onSyncedDataUpdated(p_135357_);
     }
-
     public boolean isEmpty() {
         return this.dataItemsById.isEmpty();
-    }
-
-    @Override
-    public Int2ObjectMap<DataItem<?>> itemsById() {
-        return this.dataItemsById;
-    }
-
-    @Override
-    public Int2ObjectMap<DataItem<?>> vanillaItemsById() {
-        return this.itemsById;
     }
 }
