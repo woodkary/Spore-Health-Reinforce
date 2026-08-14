@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
+import com.Harbinger.Spore.Core.customEntityData.UnmodifiableEntityData;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
@@ -44,7 +45,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
 
     @Override
     public SynchedEntityData getEmptyEntityData(Entity entity) {
-        return new SynchedEntityData(entity);
+        return UnmodifiableEntityData.newInstance(entity,new SynchedEntityData(entity));
     }
     private boolean isTrueDeeauthCalled(Entity entity) {
         return entity.level.isClientSide?
