@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core.agents;
 
 import com.Harbinger.Spore.Core.agents.transformers.SelfTransformer;
+import com.Harbinger.Spore.Core.agents.transformers.SporeNativeBridge;
 import com.Harbinger.Spore.Core.jvmti.JvmtiMethod;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.JvmtiCapabilities;
@@ -401,22 +402,10 @@ public final class JVMTIPointerUtil implements IJVNTIPointer {
     }
 
     private static void ensureNativeBridgeLoaded() {
-        ClassLoader classLoader = JVMTIPointerUtil.class.getClassLoader();
-        String nativeClassBrigde = "com.Harbinger.Spore.Core.agents.transformers.SporeClassFileTransformer0";
         try {
-            BytecodeUtil.deffineneClazz(classLoader, nativeClassBrigde);
-            return;
-        } catch (Throwable t) {
-            LogUtil.errorf("Failed to load transformer native bridge before JVMTI use: %s", t.getMessage());
-        }
-        try{
-            Class.forName(
-                    nativeClassBrigde,
-                    true,
-                    classLoader
-            );
+            SporeNativeBridge.INSTANCE.load();
         }catch (Throwable t) {
-            LogUtil.errorf("Failed to load transformer native bridge before JVMTI use: %s", t.getMessage());
+            LogUtil.errorf("failed to load SporeNativeBridge instance, %s",t.getMessage());
         }
     }
 

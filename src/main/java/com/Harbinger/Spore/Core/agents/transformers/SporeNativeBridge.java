@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-final class SporeNativeBridge implements INativeBridge {
+public final class SporeNativeBridge implements INativeBridge {
     public static final INativeBridge INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             INativeBridge.class,
             SporeNativeBridge.class
