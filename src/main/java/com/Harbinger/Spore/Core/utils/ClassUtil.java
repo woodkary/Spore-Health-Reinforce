@@ -333,8 +333,8 @@ public class ClassUtil {
             );
         } catch (Throwable var5) {
             LogUtil.errorf("Failed to define class: %s, error: %s", name, var5.getMessage());
-            throw new RuntimeException(var5);
         }
+        return null;
     }
     private static void ensureInternalUnsafeMethodHandles() {
         if (staticFieldBaseInternal != null && staticFieldOffsetInternal != null
