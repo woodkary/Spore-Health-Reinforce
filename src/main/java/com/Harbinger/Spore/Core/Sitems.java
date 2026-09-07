@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Sitems.*;
 import com.Harbinger.Spore.Sitems.Agents.*;
 import com.Harbinger.Spore.Sitems.BaseWeapons.SporeArmorMutations;
@@ -20,6 +21,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -40,7 +42,19 @@ public class Sitems {
     }
 
     private static Item hiddenItem(String className, Class<?>[] constructorTypes, Object... constructorArgs) {
-        return BytecodeUtil.createInstanceByName(className, constructorTypes, constructorArgs);
+        if(BytecodeUtil.createInstanceByName(className, constructorTypes, constructorArgs) instanceof Item item){
+            return item;
+        }
+        try{
+            if(Class.forName(className).getDeclaredConstructor(constructorTypes).newInstance(constructorArgs) instanceof Item item){
+                return item;
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
+                 IllegalAccessException e) {
+            LogUtil.errorf("failed to instantiate %s, %s",className,e.getMessage());
+            throw new RuntimeException(e);
+        }
+        throw new RuntimeException("this should't happen: cannot instantiate " + className);
     }
 
     private static Item hiddenSpawnEgg(Supplier<? extends EntityType<? extends Mob>> type,

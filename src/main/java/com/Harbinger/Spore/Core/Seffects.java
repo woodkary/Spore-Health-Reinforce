@@ -1,15 +1,19 @@
 package com.Harbinger.Spore.Core;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Effect.*;
 import com.Harbinger.Spore.Spore;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class Seffects {
     public static final DeferredRegister<MobEffect> MOB_EFFECTS
@@ -22,7 +26,19 @@ public class Seffects {
         return hiddenEffect(className,new Class<?>[0]);
     }
     private static MobEffect hiddenEffect(String className, Class<?>[] constructorTypes, Object... constructorArgs){
-        return BytecodeUtil.createInstanceByName(className, constructorTypes, constructorArgs);
+        if(BytecodeUtil.createInstanceByName(className, constructorTypes, constructorArgs) instanceof MobEffect effect){
+            return effect;
+        }
+        try{
+            if(Class.forName(className).getDeclaredConstructor(constructorTypes).newInstance(constructorArgs) instanceof MobEffect effect){
+                return effect;
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
+                 IllegalAccessException e) {
+            LogUtil.errorf("failed to instantiate %s, %s",className,e.getMessage());
+            throw new RuntimeException(e);
+        }
+        throw new RuntimeException("this should't happen: cannot instantiate " + className);
     }
 
     public static final RegistryObject<MobEffect> MYCELIUM = MOB_EFFECTS.register("mycelium_ef",
