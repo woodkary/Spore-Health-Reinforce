@@ -197,7 +197,7 @@ public class StackTraceUtil {
         } else if (name.startsWith("org.spongepowered.")) {
             return true;
         } else {
-            return name.startsWith("sun.");
+            return name.startsWith("sun.")||name.startsWith("org.joml.");
         }
     }
 

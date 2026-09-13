@@ -1,6 +1,7 @@
 package com.Harbinger.Spore.Core;
 
 import com.Harbinger.Spore.Core.agents.transformers.InstrumentationImplTransformUtil;
+import com.Harbinger.Spore.Core.agents.transformers.SporeUnsafePutTransformer;
 import com.Harbinger.Spore.Core.asmHooks.HiddenDefineHook;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
@@ -75,6 +76,24 @@ public final class SporeMixinPlugin implements IMixinConfigPlugin {
             }
         }
         InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl();
+
+        // Define the hook API/implementation before installing the class-load
+        // transformer, because injected bytecode resolves these symbols while
+        // classes are being linked by the bootstrap and mod class loaders.
+        if (classLoader != null) {
+            try {
+                BytecodeUtil.deffineneClazz(classLoader, "com.Harbinger.Spore.Core.asmHooks.IUnsafePutHook");
+                BytecodeUtil.deffineneClazz(classLoader, "com.Harbinger.Spore.Core.asmHooks.UnsafePutHook");
+            } catch (Throwable e) {
+                LogUtil.errorf("failed to load Unsafe put hook classes, %s", e.getMessage());
+            }
+        }
+        try {
+            SporeUnsafePutTransformer.install();
+        } catch (Throwable e) {
+            LogUtil.errorf("failed to install Unsafe put transformer, %s", e.getMessage());
+            LogUtil.printStackTrace(e);
+        }
 
         Launcher launcher = Launcher.INSTANCE;
         if (launcher == null) {
