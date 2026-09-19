@@ -94,10 +94,17 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
             for (MethodNode method : node.methods) {
                 if (method == null || method.instructions == null
                         || (method.access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE)) != 0) continue;
+                // Presence anywhere in this method is sufficient, including reads after a write.
+                int wrapperReads = 0;
+                for (AbstractInsnNode insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode call) wrapperReads |= wrapperReadKind(call);
+                }
                 for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; ) {
                     AbstractInsnNode next = insn.getNext();
                     if (insn instanceof MethodInsnNode call) {
-                        if (isUnsafePut(call)) modified |= patchUnsafePut(method, call);
+                        if (isUnsafePut(call)) {
+                            modified |= patchUnsafePut(method, call, (wrapperReads & wrapperWriteKind(call)) != 0);
+                        }
                         else if (isMethodHandleInvoke(call)) modified |= patchMethodHandleInvoke(method, call);
                     }
                     insn = next;
@@ -117,15 +124,31 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
         }
     }
 
-    private boolean patchUnsafePut(MethodNode method, MethodInsnNode call) {
+    private boolean patchUnsafePut(MethodNode method, MethodInsnNode call, boolean protectWrapper) {
         Type[] args = Type.getArgumentTypes(call.desc);
         if (args.length == 0 || !isExactObject(args[0]) || Type.getReturnType(call.desc).getSort() != Type.VOID) return false;
+        if (protectWrapper && hasWrapperGuard(call, args)) return false;
         int[] locals = allocateLocals(method, args, true);
         InsnList code = new InsnList();
         storeStack(code, args, locals, locals[args.length]);
         LabelNode invoke = new LabelNode(), done = new LabelNode();
-        addTargetCheck(code, locals[0], invoke);
-        code.add(new JumpInsnNode(Opcodes.GOTO, done));
+        if (protectWrapper) {
+            // Arguments have already been evaluated; a null receiver must still throw at the call.
+            code.add(new VarInsnNode(Opcodes.ALOAD, locals[args.length]));
+            code.add(new JumpInsnNode(Opcodes.IFNULL, invoke));
+            LabelNode wrapperCheck = new LabelNode();
+            addTargetCheck(code, locals[0], wrapperCheck);
+            code.add(new JumpInsnNode(Opcodes.GOTO, done));
+            code.add(wrapperCheck);
+            code.add(new FieldInsnNode(Opcodes.GETSTATIC, UNSAFE_PUT_HOOK_OWNER, "INSTANCE", HOOK_DESC));
+            code.add(new VarInsnNode(Opcodes.ALOAD, locals[0]));
+            code.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, HOOK_OWNER,
+                    "isSporeWrapperTarget", IS_TARGET_DESC, true));
+            code.add(new JumpInsnNode(Opcodes.IFNE, done));
+        } else {
+            addTargetCheck(code, locals[0], invoke);
+            code.add(new JumpInsnNode(Opcodes.GOTO, done));
+        }
         code.add(invoke);
         loadCall(code, locals, args, locals[args.length]);
         code.add(new MethodInsnNode(call.getOpcode(), call.owner, call.name, call.desc, call.itf));
@@ -133,6 +156,65 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
         method.instructions.insertBefore(call, code);
         method.instructions.remove(call);
         return true;
+    }
+
+    private int wrapperReadKind(MethodInsnNode call) {
+        if (call.getOpcode() != Opcodes.INVOKEVIRTUAL || !"sun/misc/Unsafe".equals(call.owner)) return 0;
+        return switch (call.name + call.desc) {
+            case "getInt(Ljava/lang/Object;J)I" -> 1;
+            case "getIntVolatile(Ljava/lang/Object;J)I" -> 2;
+            case "getLong(Ljava/lang/Object;J)J" -> 4;
+            case "getLongVolatile(Ljava/lang/Object;J)J" -> 8;
+            default -> 0;
+        };
+    }
+
+    private int wrapperWriteKind(MethodInsnNode call) {
+        if (call.getOpcode() != Opcodes.INVOKEVIRTUAL || !"sun/misc/Unsafe".equals(call.owner)) return 0;
+        return switch (call.name + call.desc) {
+            case "putInt(Ljava/lang/Object;JI)V" -> 1;
+            case "putIntVolatile(Ljava/lang/Object;JI)V" -> 2;
+            case "putLong(Ljava/lang/Object;JJ)V" -> 4;
+            case "putLongVolatile(Ljava/lang/Object;JJ)V" -> 8;
+            default -> 0;
+        };
+    }
+
+    private boolean hasWrapperGuard(MethodInsnNode call, Type[] args) {
+        // Recognize this call site's guard across JVMTI/Instrumentation passes, ignoring frames/debug nodes.
+        AbstractInsnNode cursor = previousInstruction(call);
+        int targetLocal = -1;
+        for (int i = args.length - 1; i >= 0; i--) {
+            if (!(cursor instanceof VarInsnNode load) || load.getOpcode() != loadOpcode(args[i])) return false;
+            if (i == 0) targetLocal = load.var;
+            cursor = previousInstruction(cursor);
+        }
+        if (!(cursor instanceof VarInsnNode receiver) || receiver.getOpcode() != Opcodes.ALOAD) return false;
+        cursor = previousInstruction(cursor);
+        if (!(cursor instanceof JumpInsnNode branch) || branch.getOpcode() != Opcodes.IFNE) return false;
+        AbstractInsnNode afterCall = call.getNext();
+        while (afterCall != null && afterCall.getOpcode() < 0) {
+            if (afterCall == branch.label) break;
+            afterCall = afterCall.getNext();
+        }
+        if (afterCall != branch.label) return false;
+        cursor = previousInstruction(cursor);
+        if (!(cursor instanceof MethodInsnNode hook) || hook.getOpcode() != Opcodes.INVOKEINTERFACE
+                || !HOOK_OWNER.equals(hook.owner) || !"isSporeWrapperTarget".equals(hook.name)
+                || !IS_TARGET_DESC.equals(hook.desc)) return false;
+        cursor = previousInstruction(cursor);
+        if (!(cursor instanceof VarInsnNode target) || target.getOpcode() != Opcodes.ALOAD
+                || target.var != targetLocal) return false;
+        cursor = previousInstruction(cursor);
+        return cursor instanceof FieldInsnNode field && field.getOpcode() == Opcodes.GETSTATIC
+                && UNSAFE_PUT_HOOK_OWNER.equals(field.owner) && "INSTANCE".equals(field.name)
+                && HOOK_DESC.equals(field.desc);
+    }
+
+    private AbstractInsnNode previousInstruction(AbstractInsnNode insn) {
+        AbstractInsnNode previous = insn.getPrevious();
+        while (previous != null && previous.getOpcode() < 0) previous = previous.getPrevious();
+        return previous;
     }
 
     private boolean patchMethodHandleInvoke(MethodNode method, MethodInsnNode call) {

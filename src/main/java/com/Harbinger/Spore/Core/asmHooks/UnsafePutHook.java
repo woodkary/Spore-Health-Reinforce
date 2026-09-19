@@ -95,6 +95,18 @@ public final class UnsafePutHook implements IUnsafePutHook {
         Class<?> targetClass=target instanceof Class<?> clz?clz:target.getClass();
         return targetClass.getName().startsWith("com.Harbinger.Spore.");
     }
+    @Override
+    public boolean isSporeWrapperTarget(Object target) {
+        if (target == null) return false;
+        String name = target.getClass().getName();
+        int hiddenSuffix = name.indexOf("/0x");
+        if (hiddenSuffix < 0) hiddenSuffix = name.indexOf("+0x");
+        if (hiddenSuffix >= 0) name = name.substring(0, hiddenSuffix);
+        return name.endsWith("SporeAllReturnWrapper")
+                || name.endsWith("SporeHealthLifecycleWrapper")
+                || name.endsWith("SporeDeathLifecycleWrapper")
+                || name.endsWith("SporeEnhancedArrowWrapper");
+    }
     private boolean isUnsafeRelatedBoundMethodHandle(MethodHandle mh, Set<MethodHandle> seen){
         try {
             Class<?> current = mh.getClass();
