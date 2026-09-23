@@ -1,12 +1,21 @@
 # Entity422 Remote Sync Core Rules
 
-本文档是本仓库同步 Entity422/Entity442 上游后必须保留和验证的本地核心增强清单。同步完成不能只看 `compileJava` 是否通过；必须按机制检查入口、隐藏类、ASM hook、实体存储替换、网络包、命令、资源和特化寻路是否仍然连成完整链路。
+本文档记录本仓库同步 Entity422/Entity442 上游时需要保护的本地机制。项目是 Minecraft 1.20.1 / Forge 47 的 Spore 分支：`Spore` 注册内容、事件与启动转换器；`Core` 负责隐藏类、ASM/JVMTI 血量与效果、实体存储和移除；`Sentities`、`Sitems` 等实现玩法；网络包、SavedData 和资源维持客户端与服务端行为。编译通过只证明代码可以编译，不能证明这些运行时链路仍然有效。
+
+本文档是风险索引，不是每次同步都要逐项执行的固定脚本。先看下方“同步流程”，再按变更面阅读相关章节：1 隐藏类与集合；2 生命周期、转换器与 native；3 血量；4 攻击与隐藏物品；5–6 实体存储和特殊死亡；7–8 事件、网络、存档与资源；9 寻路；10 构建配置。章节中的类名和调用形式描述当前实现；若上游重构带来等价实现，按可验证的行为和调用链判断，不因名称变化直接判为回归。
+
+## 同步流程
+
+1. **确认来源和基线。** 查看工作区状态、现有 remote、分支和提交。当前 `origin` 指向本地增强仓库，不能把 `origin/master` 当成 Entity422 上游。根据用户指定的仓库、分支或提交确定上游 ref；缺少来源或无法取得目标提交时，完成本地可做的审计并明确指出所缺信息。保留已有未提交改动，记录同步前本地 HEAD 与上游目标提交；必要时在独立分支或工作树集成。
+2. **比较两边，再选择集成方式。** 用 `merge-base` 区分共同祖先、本地改动和待引入的上游改动；若已知上次同步的上游提交，再比较上游旧版与目标版。根据提交关系和任务选择 merge、cherry-pick 或逐项移植。先读行为变化及依赖，再处理冲突；不按文件名直接以任一侧整文件覆盖。
+3. **按影响面审计。** 从上游改动文件、集成差异和调用/注册入口扩展到相关章节。核心机制跨包时检查完整入口到效果的链路；未受影响的长清单无需每次逐类重查。`rg` 只定位线索，结论要由代码、差异和必要的运行验证支持。对新增或改动的物品，连同注册工厂检查类加载边界。
+4. **验证并交付。** 代码同步后先检查差异和编译，再针对受影响机制运行已有的聚焦验证；只有 native C/JNI 或签名变化时才要求重编译相应 DLL 并核对打包。需要游戏内、双端或特定模组环境才能验证的行为，说明已验证证据与未验证项。报告上游范围、集成方式、本地机制保留或等价替换的证据，以及尚未解决的冲突；不要把缺失的上游功能或只通过编译的状态称为完成。
 
 ## 基本原则
 
 - 保留本地增强优先级高于上游同名文件的简单覆盖。遇到冲突时，先确认上游真实行为，再把本地增强重新迁移到新结构中。
 - 不要把 `com.Harbinger.Spore.Core`、`com.Harbinger.Spore.mixin`、`com.Harbinger.Spore.network`、`com.Harbinger.Spore.sEvents` 当作普通业务代码处理；这些包里有运行时替换、隐藏类、ASM、保存数据和实体封锁逻辑。
-- 每次同步后至少执行 `git status --short --branch`、`git diff --name-status <base>...HEAD`、`rg` 关键字审计和 `.\gradlew --no-daemon --console=plain compileJava`。
+- 比较范围必须对应实际来源：同步前分别看本地相对共同祖先的改动与上游待引入的改动；同步后再看相对同步前 HEAD 的集成结果。`origin/master...HEAD` 不能作为本仓库的固定上游差异命令。
 - 直接 `Entity#hurt`/`LivingEntity#hurt` 不是都要替换。实体自身 `super.hurt(...)`、multipart 转发到父实体、原版主击中路径通常可以保留；额外伤害、弹射物、武器、AOE、效果 tick、绕过原版血量系统的补伤害应优先走 `SporeAttackUtil.INSTANCE.attack(...)` 或对应 manager。
 
 ## 1. 日志、隐藏类、Unsafe、MethodHandle
@@ -192,19 +201,17 @@
 
 ### 隐藏物品逐类同步规则
 
-物品同步不能只比较 `Sitems` 中的注册表字段。必须逐一检查每个物品实现类，以及它在 `Sitems.hiddenItem(...)`、隐藏 Spawn Egg 或其他隐藏实例工厂中的创建路径。
+物品同步不能只比较 `Sitems` 中的注册字段。对上游新增、修改的物品，以及注册方式或共享构造路径受到影响的本地物品，检查实现类和 `Sitems.hiddenItem(...)`、隐藏 Spawn Egg 等实例工厂；其余物品可先核对注册入口是否保持原状，再按发现的依赖扩大范围。
 
-- 先把当前本地隐藏物品版本作为基线，与上游同名物品的实现逐项比较：构造参数、`Item.Properties`、食物/装备属性、交互行为、伤害逻辑、注册名和外部可见行为都必须保持一致。
+- 以当前本地隐藏物品版本为基线，比较受影响物品在上游的构造参数、`Item.Properties`、食物/装备属性、交互与伤害、注册名和外部可见行为；区分上游有意新增的行为与无意回退。
 - 同步前必须重新确认“隐藏化改动”仍然存在，包括去掉会触发原始物品类加载的 `static` 状态、lambda、内部类、匿名类、`private record`，以及不必要的直接物品类引用。不要因为上游文件看起来更短，就把普通 `new ItemSubclass(...)` 恢复到已有隐藏物品注册中。
-- 如果上游版本与本地隐藏版本在行为上没有明显区别，直接保留并应用现有隐藏物品版本；不要仅因代码形态不同而恢复上游的普通类实现。
-- 如果已有隐藏物品的上游变化增加了逻辑，先判断新增内容是否会重新引入上述加载风险。少量 lambda、很短的匿名类或少量简单内部类可以改写成隐藏类可用的形式后迁移；复杂逻辑不要强行改写。
-- 对已有隐藏物品，若为了保持隐藏类兼容而需要进行的改写过于复杂，则保留本地隐藏版本，不应用该物品的上游修改，并在同步报告中明确指出该类因隐藏类转换复杂而未同步。不能只同步一半导致行为和隐藏结构都不完整。
-- 对新增物品，若其实现可以按现有隐藏模式安全拆解，则使用隐藏物品工厂；若其实现包含复杂的静态状态、lambda、内部/匿名类或 `private record`，不要勉强隐藏化，改用普通 `new` 注册，并记录这是新增物品的有意例外。
+- 如果上游版本与本地隐藏版本行为相同，可保留本地实现；不要仅因代码形态不同而恢复普通类构造。
+- 如果上游增加了行为，先尝试在不破坏隐藏类加载边界的前提下移植，并检查直接引用、lambda、匿名/内部类、`private record` 和静态初始化是否引入加载风险。复杂度是设计和验证成本的信号，不是放弃上游变化的自动条件。
+- 若完整保留上游新行为与现有隐藏化机制确实无法同时做到，先完成其他可独立集成的部分，列明此项未完成、具体冲突和可选实现，由用户决定取舍；不得静默丢弃上游行为或只迁移一半。
+- 新增物品是否采用隐藏工厂，应根据它是否需要相同类加载边界及可验证的实现成本决定；普通 `new` 是有依据的例外，不能只因代码复杂就自动采用。
 - “行为相同”必须同时包括注册时机和类加载边界：隐藏物品注册阶段尽量只保留类名、构造器签名和必要参数，不能为了比较方便而直接引用实现类、初始化原始物品类或让原始物品类提前加载。
 
-建议把以下经验阈值作为复杂度初筛，而不是替代人工判断：只有一处且逻辑少于五行的简单 lambda 通常可以改写；匿名类少于两个且每个内部逻辑少于五行时通常可以迁移；新增内部类少于三个且职责单一时可以评估迁移。超过这些范围，尤其是多个相互引用的匿名类/内部类、复杂静态初始化或携带状态的 `private record`，应按复杂隐藏类改动处理。
-
-每轮同步后必须能回答以下问题：所有物品类是否逐一审计；已有隐藏物品是否仍通过隐藏工厂创建；新增或修改的逻辑是否引入会加载原始类的结构；被保留或改为普通实例的类是否有明确原因。可用 `rg -n "hiddenItem|hiddenSpawnEgg|ITEMS\\.register|new .*Item|static|private record" src/main/java/com/Harbinger/Spore/Core/Sitems.java src/main/java/com/Harbinger/Spore/Sitems -g "*.java"` 进行初筛，但最终结论必须结合类实现阅读。
+同步后应能说明：受影响物品的行为和注册路径是否完整；已有隐藏物品是否仍通过隐藏工厂创建；新增结构是否触发原始类加载；普通实例的例外依据是什么。可用 `rg -n "hiddenItem|hiddenSpawnEgg|ITEMS\\.register|new .*Item|static|private record" src/main/java/com/Harbinger/Spore/Core/Sitems.java src/main/java/com/Harbinger/Spore/Sitems -g "*.java"` 定位，但最终结论必须结合变更类实现阅读。
 
 ## 5. 实体存储替换与简单移除
 
@@ -338,36 +345,25 @@
 - `assets/spore/textures/mob_effect` 中禁止回血效果图标必须保留。
 - `mods.toml` 的 `modId="spore"` 和版本信息不要被 examplemod 模板覆盖。
 
-## 推荐审计命令
+## 按需审计命令
+
+先确认实际的上游仓库与 ref，把下例中的字符串替换成取得的提交或远端分支。以下命令在同步前执行，保存输出中的本地 HEAD 和共同祖先；不要直接套用 `origin/master`。
 
 ```powershell
 git status --short --branch
+git remote -v
 git log --oneline --decorate --max-count=20
-git diff --name-status origin/master...HEAD
-rg -n "JVMTIPointerUtil|JvmtiMethod|JvmtiCapabilities|ClassFileLoadHook|retransformMaybeHiddenClasses|SporeHiddenDefineHookTransformer|HiddenDefineHook|InstrumentationImplTransformUtil|SporeFrameClassWriter|SporeTransformerDebugDump|installAndRetransform|SporeEventBus|SporePacketHandler|SimpleRemoveUtil|SporeEntityLookup|SporeTrackedEntityMap|SporeKnownUuidsHashSet|unremovableCollections|SporeMapProxy|ISporeMap|ISporeEntry|FloatEntry|ICalamityMultipart|IDieWithDiscardEntity|TrueCalamity|SporeEntityHeeaafastthManager\.INSTANCE\.hurrt|sporeTarget|SporeJudge\.isSporeEntity|ASMHurtArrowUtil|InfectedCrossbow|InfectedGreatBow|HEALING_INHIBITION|SporeEffectsUtil|IEffectManager|SporeLivingEntityEffectApplicationTransformer|addHealingInhibitRandom|enable_light|CasingLightAllowed|forceStart|m_8056_|CalamityPathNavigation|GrakensenkerPathNavigation|HowitzerRangedAttackGoal|PausableCalamityPathNavigation" src/main/java src/main/native src/main/resources -S
-git ls-files src/main/resources/sporeAgent.jar src/main/resources/sporeTransformerBridge.dll src/main/native
-rg -n "\.hurt\(|hurrt\(|setHealth\(|attack\(|ASMHurtArrowUtil\.INSTANCE\.wrap|setMaxHeeaafastth|getTarget\(|setTarget\(" src/main/java -S
-rg -n "getAttribute\(Attributes\.MAX_HEALTH\)|computeAttribute\(Attributes\.MAX_HEALTH|Attributes\.MAX_HEALTH|setBaseValue\(" src/main/java -S
-.\gradlew --no-daemon --console=plain compileJava
+$upstreamRef = '已确认的上游 ref'
+$localHead = git rev-parse HEAD
+$base = git merge-base $localHead $upstreamRef
+git diff --name-status "${base}..${localHead}"
+git diff --name-status "${base}..${upstreamRef}"
 ```
 
-## 完成标准
+集成后用保存的 `$localHead` 执行 `git diff --name-status "${localHead}..HEAD"` 和 `git diff --check "${localHead}..HEAD"`，并用 `git status --short` / `git diff --check` 检查尚未提交的改动。若两边没有共同祖先，应明确这是无共同历史的移植并逐项比较，不能伪造 merge base。对受影响章节选取 `rg` 搜索词并阅读命中代码，不需要运行覆盖全仓的超长正则。代码改动完成后运行 `.\gradlew --no-daemon --console=plain compileJava`；若变更触及转换器、native 或游戏运行期行为，再做对应的聚焦验证。
 
-- `compileJava` 通过。
-- 关键入口 `Spore.commonSetup`、`SporeEventBus.tick().addSelfListener()`、`SporePacketHandler.registerPackets()` 全部存在。
-- JVMTI/Instrumentation 双后端、native `ClassFileLoadHook`、`sporeAgent.jar`、C 源码/JNI header/当前 DLL 均有代码和跟踪证据；若 native 源码或签名变化，DLL 已同步重编译。
-- 已定义隐藏类兜底重转换入口仍由 `HeasdalthUtil` 调用，并保留依赖预加载、flag 临时清除/`finally` 恢复、独立 transformer 安装状态与二分失败隔离。
-- 定义前转换链有完整入口证据：`spore.mixins.json -> SporeMixinPlugin -> HiddenDefineHook.inspectHiddenDefine -> SporeHiddenDefineHookTransformer -> HiddenDefineHook -> health/effect transformers`；反射判定内联且 `HiddenDefineHook` 有 `ThreadLocal` 重入保护。
-- `SporeFrameClassWriter` 和 `SporeTransformerDebugDump` 仍被核心 transformer/bootstrap 实际调用；`SporeMixinPlugin` 中有 `InstrumentationImplTransformUtil.INSTANCE.inspectInstrumentationImpl()` 的当前启用证据，且该入口保留 JVMTI 优先、Instrumentation 回退及实际 Hook 应用成功判定。
-- `UtilityEntity`/`Infected` 自定义 `sporeTarget` 目标字段、`getTarget()`/`setTarget(...)` 覆盖和 Spore 目标过滤全部有代码证据。
-- 旧灾难的 `TrueCalamity.hurt(CalamityMultipart, DamageSource, float)` 部位弱点额外直接扣血逻辑有代码证据：Gazenbrecher、Grakensenker、Hinderburg、Howitzer、Leviathan、Sieger、Stahlmorder 均保留 `SporeEntityHeeaafastthManager.INSTANCE.hurrt(...)` 调用；Verfalldrachen 不属于这条必保规则。
-- `InfectedCrossbow`/`InfectedGreatBow` 的 BEZERK 箭矢包装链有代码证据：生成的 `AbstractArrow`/projectile 调用 `ASMHurtArrowUtil.INSTANCE.wrap(...)`，wrapper 的 `m_5790_` hook 额外伤害走 `SporeAttackUtil.INSTANCE.attack(...)`。
-- 血量、最大血量、heal redirect、禁止回血效果、fake data health、multipart owner、IDieWithDiscardEntity 特殊死亡全部有代码证据。
-- 无关键词静态或实例生命周期计算的发现和重转换链有代码证据：`LifeCycleInvocationInspector` 独立扫描并缓存数值频率或 boolean 极性证据 -> `SporeDiscoveredLifeCycleMethodRegistry` -> `SporeDiscoveredLifeCycleMethodTransformer` -> Instrumentation/JVMTI/hidden-definition 三条转换路径。
-- `unremovableCollections` 代理集合、`ISporeEntry.actualSetValue`、`ISporeMap.actualPut/actualRemove`、iterator `actualRemove()` 等封锁/可信写入入口全部有代码证据。
-- 禁疗效果管理链路全部有代码证据：`SporeEffectsUtil`/`IEffectManager`、`SporeLivingEntityEffectApplicationTransformer`、bootstrap transformer 注册、`SporeEventBus` 添加/移除事件处理、`Spore` 注册 tick listener、过期效果 `actualRemove()` 清理、`SporeWeaponData.addHealingInhibitRandom` 强制 `forceAddEffect`。
-- 运行期最大生命值变更有配对证据：每个 `Attributes.MAX_HEALTH` 的 `setBaseValue(...)` 或等价 helper 都有同路径 `SporeEntityHeeaafastthManager.INSTANCE.setMaxHeeaafastth(...)`，且同步不依赖原版属性非空。
-- 实体 storage 替换覆盖 server/client lookup、id map、uuid map、known UUID set、tracked entity map、section/callback。
-- 额外伤害路径已迁移到 `SporeAttackUtil` 或明确标记为有意保留的原版主击中路径。
-- Calamity `forceStart` 混淆名优先启动链、Grakensenker 陆行 detour、Howitzer `PausableCalamityPathNavigation` 站桩射击暂停/恢复寻路机制仍在当前上游结构中生效。
-- native DLL、贴图、语言、mods.toml、Gradle 属性没有被上游模板覆盖。
+## 完成判定
+
+- 已说明上游来源、目标提交、共同祖先、同步前本地提交及实际集成范围；上游新增行为与本地增强均有明确处理结果。
+- 受影响的章节已有入口、调用链或行为证据；存在等价重构时说明新旧机制的对应关系。搜索命中和编译结果不能单独替代这项判断。
+- 编译及受影响机制的验证已完成；若 native 源码/JNI 签名变更，已重编译和核对 DLL。无法运行的验证、冲突和待用户选择的取舍明确标记为未完成。
