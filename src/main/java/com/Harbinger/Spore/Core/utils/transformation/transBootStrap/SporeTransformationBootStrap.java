@@ -150,11 +150,36 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
         KlassPointerUtil.INSTANCE.replaceClass(classLoader,classLoaderClass,"",0,0.0f);
         LogUtil.logf("replaced TransformingClassLoader with class %s.",classLoaderClass.getName());
     }
+    private boolean containsAllProtectedPlugins(Map<String, ILaunchPluginService> map){
+        if(map==null||map.isEmpty()){
+            return false;
+        }
+        int count=0;
+        //对于是我自己的key的值，必须保证它们的类型一致
+        for (Map.Entry<String, ILaunchPluginService> entry : map.entrySet()) {
+            String pluginName = entry.getKey();
+            //先筛选出我自己的那些key
+            if(!protectedPluginsMap.containsKey(pluginName)){
+                continue;
+            }
+            //判断此时的value是不是我想要的类型
+            ILaunchPluginService plugin = entry.getValue();
+            if(plugin==null){
+                continue;
+            }
+            Class<?> originalClass=protectedPluginsClasses.get(pluginName);
+            if(plugin.getClass()!=originalClass){
+                continue;
+            }
+            count++;
+        }
+        return count==protectedPluginsMap.size();
+    }
     @Override
     public void initPluginsMap(LaunchPluginHandler handler) {
         Map<String, ILaunchPluginService> plugins =
                 (Map<String, ILaunchPluginService>) ClassUtil.getFieldValue(LaunchPluginHandler.class,handler, "plugins");
-        if(plugins!=null){
+        if(plugins!=null&&!containsAllProtectedPlugins(plugins)){
             SporePluginHashMap newMap=new SporePluginHashMap(
                     protectedPluginsMap,
                     this,
