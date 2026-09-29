@@ -154,28 +154,27 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
     public void initPluginsMap(LaunchPluginHandler handler) {
         Map<String, ILaunchPluginService> plugins =
                 (Map<String, ILaunchPluginService>) ClassUtil.getFieldValue(LaunchPluginHandler.class,handler, "plugins");
-        if(plugins==null){
-            return;
-        }
-        SporePluginHashMap newMap=new SporePluginHashMap(
-                protectedPluginsMap,
-                this,
-                protectedPluginsMap);
-        newMap.tryPutMinecraftPlugins(plugins);
+        if(plugins!=null){
+            SporePluginHashMap newMap=new SporePluginHashMap(
+                    protectedPluginsMap,
+                    this,
+                    protectedPluginsMap);
+            newMap.tryPutMinecraftPlugins(plugins);
 
-        for (Map.Entry<String, ILaunchPluginService> entry : newMap.entrySet()) {
-            String key = entry.getKey();
-            ILaunchPluginService value = entry.getValue();
-            Class<?> originalClass=protectedPluginsClasses.get(key);
-            if(value.getClass()!=originalClass){
-                KlassPointerUtil.INSTANCE.replaceClass(value,originalClass,null,0,0.0f);
+            for (Map.Entry<String, ILaunchPluginService> entry : newMap.entrySet()) {
+                String key = entry.getKey();
+                ILaunchPluginService value = entry.getValue();
+                Class<?> originalClass=protectedPluginsClasses.get(key);
+                if(value.getClass()!=originalClass){
+                    KlassPointerUtil.INSTANCE.replaceClass(value,originalClass,null,0,0.0f);
+                }
             }
+
+            newMap.putAll(plugins);
+            newMap.putAll(protectedPluginsMap);
+
+            ClassUtil.setFieldValue(LaunchPluginHandler.class,"plugins",handler, newMap);
         }
-
-        newMap.putAll(plugins);
-        newMap.putAll(protectedPluginsMap);
-
-        ClassUtil.setFieldValue(LaunchPluginHandler.class,"plugins",handler, newMap);
         //除了初始化Map，还要替换ClassLoader.
         replaceTransformingClassLoader();
     }
