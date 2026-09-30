@@ -43,6 +43,8 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
     private volatile boolean hiddenRetransformInstalled;
     private volatile boolean hiddenJvmtiRetransformInstalled;
     private volatile boolean loadedLivingEntitiesRetransformed;
+    private final Set<Class<?>> runtimeRetransformedClasses =
+            Collections.newSetFromMap(new WeakHashMap<>());
 
     private IJVNTIPointer ensureJVMTIUtil(IJVNTIPointer jvmtiUtil){
         if(jvmtiUtil == null){
@@ -55,6 +57,16 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         if (classes == null || classes.length == 0) {
             return;
         }
+        Set<Class<?>> pending = new LinkedHashSet<>();
+        for (Class<?> clazz : classes) {
+            if (clazz != null && !runtimeRetransformedClasses.contains(clazz)) {
+                pending.add(clazz);
+            }
+        }
+        if (pending.isEmpty()) {
+            return;
+        }
+        Set<Class<?>> succeeded = new HashSet<>();
         Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
         try {
             IInstrumentations instrumentation = InstrumentationUtil.getInstance();
@@ -72,7 +84,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 return;
             }
             List<Class<?>> targets=collectMaybeHiddenRetransformTargets(
-                    classes,
+                    pending.toArray(new Class<?>[0]),
                     hiddenAddresses,
                     instrumentation,
                     jvmUtil,
@@ -83,26 +95,30 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 return;
             }
             if (instrumentationReady) {
-                Collection<Class<?>> visited=new ArrayList<>();
-                int transformed=retransformBisected(instrumentation, targets,visited);
-                if(transformed>=targets.size()) {
+                retransformBisected(instrumentation, targets, succeeded);
+                List<Class<?>> toRetransform = new ArrayList<>();
+                for (Class<?> target : targets) {
+                    if (!succeeded.contains(target)) {
+                        toRetransform.add(target);
+                    }
+                }
+                if (toRetransform.isEmpty()) {
                     return;
                 }
-                Collection<Class<?>> remaining=new HashSet<>(targets);
-                for (Class<?> vis : visited) {
-                    remaining.remove(vis);
-                }
-                List<Class<?>> toRetransform=new ArrayList<>(remaining);
                 jvmUtil = ensureJVMTIUtil(jvmUtil);
                 if (isJvmtiReadyForHiddenRetransform(jvmUtil)) {
-                    retransformBisected(jvmUtil,toRetransform);
+                    retransformBisected(jvmUtil, toRetransform, succeeded);
                 }
                 return;
             }
-            retransformBisected(jvmUtil, targets);
+            retransformBisected(jvmUtil, targets, succeeded);
         }finally {
-            for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
-                resetToHidden(entry.getKey(), entry.getValue());
+            try {
+                for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
+                    resetToHidden(entry.getKey(), entry.getValue());
+                }
+            } finally {
+                runtimeRetransformedClasses.addAll(succeeded);
             }
         }
     }
@@ -111,6 +127,16 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         if (classes == null || classes.length == 0) {
             return;
         }
+        Set<Class<?>> pending = new LinkedHashSet<>();
+        for (Class<?> clazz : classes) {
+            if (clazz != null && !runtimeRetransformedClasses.contains(clazz)) {
+                pending.add(clazz);
+            }
+        }
+        if (pending.isEmpty()) {
+            return;
+        }
+        Set<Class<?>> succeeded = new HashSet<>();
         Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
         try {
             IInstrumentations instrumentation = InstrumentationUtil.getInstance();
@@ -122,7 +148,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 return;
             }
             List<Class<?>> targets=collectMaybeHiddenRetransformTargets(
-                    classes,
+                    pending.toArray(new Class<?>[0]),
                     hiddenAddresses,
                     instrumentation,
                     null,
@@ -130,11 +156,15 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                     false
             );
             if (!targets.isEmpty()) {
-                retransformBisected(instrumentation, targets, new ArrayList<>());
+                retransformBisected(instrumentation, targets, succeeded);
             }
         } finally {
-            for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
-                resetToHidden(entry.getKey(), entry.getValue());
+            try {
+                for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
+                    resetToHidden(entry.getKey(), entry.getValue());
+                }
+            } finally {
+                runtimeRetransformedClasses.addAll(succeeded);
             }
         }
     }
@@ -144,6 +174,16 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         if (classes == null || classes.length == 0) {
             return;
         }
+        Set<Class<?>> pending = new LinkedHashSet<>();
+        for (Class<?> clazz : classes) {
+            if (clazz != null && !runtimeRetransformedClasses.contains(clazz)) {
+                pending.add(clazz);
+            }
+        }
+        if (pending.isEmpty()) {
+            return;
+        }
+        Set<Class<?>> succeeded = new HashSet<>();
         Map<Class<?>,KlassAndAccessFlags> hiddenAddresses=new HashMap<>();
         try {
             IJVNTIPointer jvmUtil = ensureJVMTIUtil(null);
@@ -152,7 +192,7 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 return;
             }
             List<Class<?>> targets=collectMaybeHiddenRetransformTargets(
-                    classes,
+                    pending.toArray(new Class<?>[0]),
                     hiddenAddresses,
                     null,
                     jvmUtil,
@@ -160,11 +200,15 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                     true
             );
             if (!targets.isEmpty()) {
-                retransformBisected(jvmUtil, targets);
+                retransformBisected(jvmUtil, targets, succeeded);
             }
         } finally {
-            for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
-                resetToHidden(entry.getKey(), entry.getValue());
+            try {
+                for (Map.Entry<Class<?>, KlassAndAccessFlags> entry : hiddenAddresses.entrySet()) {
+                    resetToHidden(entry.getKey(), entry.getValue());
+                }
+            } finally {
+                runtimeRetransformedClasses.addAll(succeeded);
             }
         }
     }
@@ -462,6 +506,11 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         return remaining;
     }
     private int retransformBisected(IJVNTIPointer jvmtiUtil, List<Class<?>> targets) {
+        return retransformBisected(jvmtiUtil, targets, null);
+    }
+
+    private int retransformBisected(IJVNTIPointer jvmtiUtil, List<Class<?>> targets,
+                                   Collection<Class<?>> succeeded) {
         if (targets.isEmpty()) {
             return 0;
         }
@@ -472,13 +521,23 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 if (targetLoader != null && targetLoader != originalContextLoader) {
                     Thread.currentThread().setContextClassLoader(targetLoader);
                 }
-                jvmtiUtil.retransformClasses(targets.toArray(new Class<?>[0]));
+                Class<?>[] submitted = targets.toArray(new Class<?>[0]);
+                jvmtiUtil.retransformClasses(submitted);
+                if (succeeded != null) {
+                    succeeded.addAll(Arrays.asList(submitted));
+                }
+                return submitted.length;
             } finally {
                 if (targetLoader != null && targetLoader != originalContextLoader) {
-                    Thread.currentThread().setContextClassLoader(originalContextLoader);
+                    try {
+                        Thread.currentThread().setContextClassLoader(originalContextLoader);
+                    } catch (Throwable restoreFailure) {
+                        LogUtil.errorf("Failed to restore ContextClassLoader after JVMTI retransform: %s",
+                                restoreFailure.getMessage());
+                        LogUtil.printStackTrace(restoreFailure);
+                    }
                 }
             }
-            return targets.size();
         } catch (Throwable t) {
             if (targets.size() == 1) {
                 Class<?> target = targets.get(0);
@@ -494,8 +553,8 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                     t.getMessage());
             LogUtil.printStackTrace(t);
             int middle = targets.size() / 2;
-            return retransformBisected(jvmtiUtil, targets.subList(0, middle))
-                    + retransformBisected(jvmtiUtil, targets.subList(middle, targets.size()));
+            return retransformBisected(jvmtiUtil, targets.subList(0, middle), succeeded)
+                    + retransformBisected(jvmtiUtil, targets.subList(middle, targets.size()), succeeded);
         }
     }
     private int retransformBisected(IInstrumentations instrumentation, List<Class<?>> targets,Collection<Class<?>> visited) {
@@ -509,14 +568,21 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
                 if (targetLoader != null && targetLoader != originalContextLoader) {
                     Thread.currentThread().setContextClassLoader(targetLoader);
                 }
-                instrumentation.retransformClasses(targets.toArray(new Class<?>[0]));
+                Class<?>[] submitted = targets.toArray(new Class<?>[0]);
+                instrumentation.retransformClasses(submitted);
+                visited.addAll(Arrays.asList(submitted));
+                return submitted.length;
             } finally {
                 if (targetLoader != null && targetLoader != originalContextLoader) {
-                    Thread.currentThread().setContextClassLoader(originalContextLoader);
+                    try {
+                        Thread.currentThread().setContextClassLoader(originalContextLoader);
+                    } catch (Throwable restoreFailure) {
+                        LogUtil.errorf("Failed to restore ContextClassLoader after Instrumentation retransform: %s",
+                                restoreFailure.getMessage());
+                        LogUtil.printStackTrace(restoreFailure);
+                    }
                 }
             }
-            visited.addAll(targets);
-            return targets.size();
         } catch (Throwable t) {
             if (targets.size() == 1) {
                 Class<?> target = targets.get(0);
