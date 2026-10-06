@@ -21,7 +21,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 
 public class ProtoHatLayer<T extends Proto> extends RenderLayer<T, EntityModel<T>> {
-    private static final ResourceLocation HAT_LOCATION = new ResourceLocation(Spore.MODID,"textures/entity/proto_christmas_hat.png");
+    public static final ResourceLocation HAT_LOCATION = new ResourceLocation(Spore.MODID,"textures/entity/proto_christmas_hat.png");
     private final ProtoChritsmasHat<T> model;
 
     public ProtoHatLayer(RenderLayerParent<T, EntityModel<T>> p_117346_, EntityModelSet set) {

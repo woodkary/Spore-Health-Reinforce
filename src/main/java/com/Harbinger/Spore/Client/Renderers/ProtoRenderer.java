@@ -10,6 +10,7 @@ import com.Harbinger.Spore.Spore;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -34,7 +35,18 @@ public class ProtoRenderer extends OrganoidMobRenderer<Proto , EntityModel<Proto
     @Override
     public void render(Proto type, float value1, float value2, PoseStack stack, MultiBufferSource bufferSource, int value3) {
         this.model = type.isNunny() ? nunny : normalProto;
-        super.render(type, value1, value2, stack, bufferSource, value3);
+        MultiBufferSource protoBuffers = ProtoHurtRenderTypes.wrapBuffers(bufferSource, getTextureLocation(type),
+                ProtoMembraneLayer.MEMBRANE_TEXTURE, ProtoHatLayer.HAT_LOCATION,
+                type.hasClientHurtFeedback(), type.getClientHurtColor());
+        super.render(type, value1, value2, stack, protoBuffers, value3);
+    }
+
+    @Override
+    protected RenderType getRenderType(Proto proto, boolean bodyVisible, boolean translucent, boolean glowing) {
+        if (translucent) {
+            return ProtoHurtRenderTypes.invisibleVisible(getTextureLocation(proto));
+        }
+        return super.getRenderType(proto, bodyVisible, false, glowing);
     }
 
     @Override

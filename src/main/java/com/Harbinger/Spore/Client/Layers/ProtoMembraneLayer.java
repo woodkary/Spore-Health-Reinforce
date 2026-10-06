@@ -11,7 +11,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class ProtoMembraneLayer extends TranslucentLayer<Proto> {
-    private static final ResourceLocation SYRINGE = new ResourceLocation(Spore.MODID,
+    public static final ResourceLocation MEMBRANE_TEXTURE = new ResourceLocation(Spore.MODID,
             "textures/entity/eyes/proto_membrane.png");
 
     public ProtoMembraneLayer(RenderLayerParent<Proto, EntityModel<Proto>> p_117346_) {
@@ -21,7 +21,7 @@ public class ProtoMembraneLayer extends TranslucentLayer<Proto> {
 
     @Override
     public ResourceLocation getTexture(Proto type) {
-        return SYRINGE;
+        return MEMBRANE_TEXTURE;
     }
 
     @Override

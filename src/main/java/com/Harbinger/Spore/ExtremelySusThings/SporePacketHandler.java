@@ -5,13 +5,14 @@ import com.Harbinger.Spore.network.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SporePacketHandler {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
             new ResourceLocation("spore", "main"),
             () -> PROTOCOL_VERSION,
@@ -66,6 +67,11 @@ public class SporePacketHandler {
                 .encoder(SongInitializingPacket::encode)
                 .decoder(SongInitializingPacket::new)
                 .consumerMainThread(SongInitializingPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(ProtoHurtFeedbackPacket.class, packetId.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ProtoHurtFeedbackPacket::encode)
+                .decoder(ProtoHurtFeedbackPacket::new)
+                .consumerMainThread(ProtoHurtFeedbackPacket::handle)
                 .add();
         HealthPacketHandler.register();
         HealthDeltaPacketHandler.register();

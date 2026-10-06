@@ -28,6 +28,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -329,10 +330,14 @@ public final class SporeAttackUtil implements IAttack {
             }
         }
 
+        if (reducedDamage <= 0.0F) {
+            return 0.0F;
+        }
+
         // 附魔减伤（Protection）
         int protLevel = EnchantmentHelper.getDamageProtection(entity.getArmorSlots(), source);
         if (protLevel > 0) {
-            reducedDamage *= (1.0F - protLevel * 0.04F);
+            reducedDamage = CombatRules.getDamageAfterMagicAbsorb(reducedDamage, (float)protLevel);
         }
 
 
