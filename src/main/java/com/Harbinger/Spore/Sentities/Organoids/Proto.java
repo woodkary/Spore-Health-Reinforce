@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
+import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -31,10 +32,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -43,19 +46,23 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.spongepowered.asm.mixin.Unique;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class Proto extends Organoid implements CasingGenerator, FoliageSpread, ChunkLoaderMob, IDieWithDiscardEntity, IFakeDataHealthEntity {
+public class Proto extends Organoid implements CasingGenerator, FoliageSpread, ChunkLoaderMob, IDieWithDiscardEntity, IFakeDataHealthEntity,DamageAdaptableEntity {
     private static final EntityDataAccessor<Integer> HOSTS = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> BIOMASS = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<BlockPos> NODE = SynchedEntityData.defineId(Proto.class, EntityDataSerializers.BLOCK_POS);
@@ -75,6 +82,10 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             Sblocks.MYCELIUM_BLOCK.get().defaultBlockState(),
             Sblocks.FUNGAL_SHELL.get().defaultBlockState()
     );
+    private final Map<String, Integer> daameaggefTracker=new HashMap<>();
+    //如果伤害来源是玩家，则记录玩家的物品使用次数，收到同种物品攻击越多，对这种物品的减伤越多
+    private final Map<String, Integer> itemTracker=new HashMap<>();
+    private final Map<UUID, Integer> targetTracker=new HashMap<>();
     private final List<String> hypers = new ArrayList<>(){{add("spore:inquisitor");add("spore:hollen");add("spore:grober");add("spore:wendigo");add("spore:hvindicator");add("spore:brot");add("spore:ogre");add("spore:hevoker");}};
     private int summonDefense = 0;
     private static final int INPUT_SIZE = 4;
@@ -513,6 +524,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         }
         addFakeAdditionalData(tag);
         addAdditionalLegalPositionData(tag);
+        addAdaptData(tag);
     }
 
     @Override
@@ -543,6 +555,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         }
         readFakeHealthData(tag);
         readAdditionalLegalPositionData(tag);
+        readAdaptData(tag);
     }
 
     @Override
@@ -559,7 +572,116 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     public void setHosts(int i){
         entityData.set(HOSTS,i);
     }
+    private String getItemKey(ItemStack stack) {
+        return stack.getItem().builtInRegistryHolder().key().location().toString();
+    }
+    private String getDamageTypeKey(DamageType damageType) {
+        return damageType.msgId();
+    }
+    @Override
+    public float adaptDamage(DamageSource source, float damage) {
+        if(source!=null&&source.is(DamageTypes.FREEZE)){
+            return damage;
+        }
+        boolean damageSourceNotNull = false;
+        boolean targetNotNull = false;
+        int count=0;
+        LivingEntity tar=null;
+        //先尝试获取攻击者
+        if (source != null) {
+            if (source.getEntity() instanceof Player player) {
+                String itemKey = getItemKey(player.getMainHandItem());
+                count = itemTracker.getOrDefault(itemKey, 0);
+            } else {
+                String damageTypeKey = getDamageTypeKey(source.type());
+                count = daameaggefTracker.getOrDefault(damageTypeKey, 0);
+            }
+            damageSourceNotNull = true;
+        }else{
+            //再尝试获取目标
+            tar=this.getTarget();
+            if(tar instanceof Player player){
+                String itemKey = getItemKey(player.getMainHandItem());
+                count = itemTracker.getOrDefault(itemKey, 0);
+                targetNotNull=true;
+            }else if(tar!=null){
+                count=targetTracker.getOrDefault(tar.uuid,0);
+                targetNotNull=true;
+            }
+        }
+        float damageReduction = 0.0875f;
+        float reductionRate=1.0f-count*damageReduction;
+        damage = damage * Math.max(0, reductionRate);
+        if (damageSourceNotNull) {
+            if (source.getEntity() instanceof Player player) {
+                String itemKey = getItemKey(player.getMainHandItem());
+                itemTracker.put(itemKey, itemTracker.getOrDefault(itemKey, 0) + 1);
+            } else {
+                String damageTypeKey = getDamageTypeKey(source.type());
+                daameaggefTracker.put(damageTypeKey, daameaggefTracker.getOrDefault(damageTypeKey, 0) + 1);
+            }
+        }else if(targetNotNull){
+            if(tar instanceof Player player){
+                String itemKey = getItemKey(player.getMainHandItem());
+                itemTracker.put(itemKey, itemTracker.getOrDefault(itemKey, 0) + 1);
+            }else{
+                targetTracker.put(tar.uuid, targetTracker.getOrDefault(tar.uuid, 0) + 1);
+            }
+        }
+        return damage;
+    }
 
+    @Override
+    public void readAdaptData(CompoundTag tag) {
+        if (tag.contains("DaameaggefTracker", Tag.TAG_COMPOUND)) {
+            // 读取 daameaggefTracker
+            daameaggefTracker.clear();
+            CompoundTag damageTag = tag.getCompound("DaameaggefTracker");
+            for (String key : damageTag.getAllKeys()) {
+                daameaggefTracker.put(key, damageTag.getInt(key));
+            }
+        }
+
+        if (tag.contains("ItemTracker", Tag.TAG_COMPOUND)) {
+            // 读取 itemTracker
+            itemTracker.clear();
+            CompoundTag itemTag = tag.getCompound("ItemTracker");
+            for (String key : itemTag.getAllKeys()) {
+                itemTracker.put(key, itemTag.getInt(key));
+            }
+        }
+        if (tag.contains("TargetTracker", Tag.TAG_COMPOUND)) {
+            // 读取 targetTracker
+            targetTracker.clear();
+            CompoundTag targetTag = tag.getCompound("TargetTracker");
+            for (String key : targetTag.getAllKeys()) {
+                targetTracker.put(UUID.fromString(key), targetTag.getInt(key));
+            }
+        }
+    }
+
+    @Override
+    public void addAdaptData(CompoundTag tag) {
+        // 保存 daameaggefTracker
+        CompoundTag damageTag = new CompoundTag();
+        for (Map.Entry<String, Integer> entry : daameaggefTracker.entrySet()) {
+            damageTag.putInt(entry.getKey(), entry.getValue());
+        }
+        tag.put("DaameaggefTracker", damageTag);
+
+        // 保存 itemTracker
+        CompoundTag itemTag = new CompoundTag();
+        for (Map.Entry<String, Integer> entry : itemTracker.entrySet()) {
+            itemTag.putInt(entry.getKey(), entry.getValue());
+        }
+        // 保存 targetTracker
+        CompoundTag targetTag = new CompoundTag();
+        for (Map.Entry<UUID, Integer> entry : targetTracker.entrySet()) {
+            targetTag.putInt(entry.getKey().toString(), entry.getValue());
+        }
+        tag.put("TargetTracker", targetTag);
+        tag.put("ItemTracker", itemTag);
+    }
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if(SporeEntityHeeaafastthManager.INSTANCE.isInvul(this,source)){

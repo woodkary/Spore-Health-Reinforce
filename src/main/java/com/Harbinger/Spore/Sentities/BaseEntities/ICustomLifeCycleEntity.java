@@ -66,6 +66,9 @@ public interface ICustomLifeCycleEntity {
             if(!isFreezeDamage){
                 damage= SporeAttackUtil.INSTANCE.damageReduction(liv,damage, source);
             }
+            if(liv instanceof DamageAdaptableEntity adaptable){
+                damage=adaptable.adaptDamage(source,damage);
+            }
             float f1 = Math.max(damage - liv.getAbsorptionAmount(), 0.0F);
             liv.setAbsorptionAmount(liv.getAbsorptionAmount() - (damage - f1));
             float f = damage - f1;
