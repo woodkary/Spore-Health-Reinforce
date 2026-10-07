@@ -621,7 +621,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                 targetNotNull=true;
             }
         }
-        float damageReduction = 0.0875f;
+        float damageReduction = 0.1275f;
         float reductionRate=1.0f-count*damageReduction;
         damage = damage * Math.max(0, reductionRate);
         if (damageSourceNotNull) {
