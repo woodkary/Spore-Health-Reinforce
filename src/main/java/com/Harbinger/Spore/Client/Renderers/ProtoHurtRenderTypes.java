@@ -1,7 +1,7 @@
 package com.Harbinger.Spore.Client.Renderers;
 
 import com.Harbinger.Spore.Spore;
-import com.Harbinger.Spore.network.ProtoHurtColor;
+import com.Harbinger.Spore.network.AdaptableHurtColor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -68,7 +68,7 @@ public final class ProtoHurtRenderTypes extends RenderStateShard {
 
     public static MultiBufferSource wrapBuffers(MultiBufferSource source, ResourceLocation bodyTexture,
                                                 ResourceLocation membraneTexture, ResourceLocation hatTexture,
-                                                boolean hasFeedback, ProtoHurtColor color) {
+                                                boolean hasFeedback, AdaptableHurtColor color) {
         // Restrict replacement to the existing model passes. Labels, leashes and outlines pass through.
         RenderType body = RenderType.entityCutoutNoCull(bodyTexture);
         RenderType membrane = RenderType.entityTranslucent(membraneTexture);

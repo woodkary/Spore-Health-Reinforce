@@ -68,10 +68,10 @@ public class SporePacketHandler {
                 .decoder(SongInitializingPacket::new)
                 .consumerMainThread(SongInitializingPacket::handle)
                 .add();
-        INSTANCE.messageBuilder(ProtoHurtFeedbackPacket.class, packetId.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ProtoHurtFeedbackPacket::encode)
-                .decoder(ProtoHurtFeedbackPacket::new)
-                .consumerMainThread(ProtoHurtFeedbackPacket::handle)
+        INSTANCE.messageBuilder(AdaptableHurtFeedbackPacket.class, packetId.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(AdaptableHurtFeedbackPacket::encode)
+                .decoder(AdaptableHurtFeedbackPacket::new)
+                .consumerMainThread(AdaptableHurtFeedbackPacket::handle)
                 .add();
         HealthPacketHandler.register();
         HealthDeltaPacketHandler.register();

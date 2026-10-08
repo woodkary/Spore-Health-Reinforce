@@ -6,13 +6,12 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
-import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
-import com.Harbinger.Spore.network.ProtoHurtColor;
-import com.Harbinger.Spore.network.ProtoHurtFeedbackPacket;
+import com.Harbinger.Spore.network.AdaptableHurtColor;
+import com.Harbinger.Spore.network.AdaptableHurtFeedbackPacket;
 import com.Harbinger.Spore.Sblocks.BrainRemnants;
 import com.Harbinger.Spore.Sblocks.CDUBlock;
 import com.Harbinger.Spore.Sentities.*;
@@ -35,7 +34,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -54,14 +52,11 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.spongepowered.asm.mixin.Unique;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -91,7 +86,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     private final Map<String, Integer> itemTracker=new HashMap<>();
     private final Map<UUID, Integer> targetTracker=new HashMap<>();
     // Client-only transient feedback. Neither field is synced as entity data or saved to NBT.
-    private ProtoHurtColor clientHurtColor = ProtoHurtColor.RED;
+    private AdaptableHurtColor clientHurtColor = AdaptableHurtColor.RED;
     private int clientHurtFeedbackTicks;
     private final List<String> hypers = new ArrayList<>(){{add("spore:inquisitor");add("spore:hollen");add("spore:grober");add("spore:wendigo");add("spore:hvindicator");add("spore:brot");add("spore:ogre");add("spore:hevoker");}};
     private int summonDefense = 0;
@@ -592,7 +587,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             return damage;
         }
         if(source!=null&&source.is(DamageTypes.FREEZE)){
-            sendHurtFeedback(ProtoHurtColor.RED);
+            sendHurtFeedback(AdaptableHurtColor.RED);
             return damage;
         }
         boolean damageSourceNotNull = false;
@@ -640,34 +635,34 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                 targetTracker.put(tar.uuid, targetTracker.getOrDefault(tar.uuid, 0) + 1);
             }
         }
-        sendHurtFeedback(ProtoHurtColor.fromMultiplier(Math.max(0, reductionRate)));
+        sendHurtFeedback(AdaptableHurtColor.fromMultiplier(Math.max(0, reductionRate)));
         return damage;
     }
 
-    private void sendHurtFeedback(ProtoHurtColor color) {
+    private void sendHurtFeedback(AdaptableHurtColor color) {
         SporePacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> this),
-                new ProtoHurtFeedbackPacket(getId(), getUUID(), color, ProtoHurtFeedbackPacket.DEFAULT_DURATION_TICKS));
+                new AdaptableHurtFeedbackPacket(getId(), getUUID(), color, AdaptableHurtFeedbackPacket.DEFAULT_DURATION_TICKS));
     }
 
-    public void applyClientHurtFeedback(ProtoHurtColor color, int durationTicks) {
+    public void applyClientHurtFeedback(AdaptableHurtColor color, int durationTicks) {
         if (level().isClientSide) {
             clientHurtColor = color;
             // Assign on every event, even if the color matches the previous hit.
             clientHurtFeedbackTicks = Mth.clamp(durationTicks, 1, 40);
         }
     }
-
-    public ProtoHurtColor getClientHurtColor() {
+    @Override
+    public AdaptableHurtColor getClientHurtColor() {
         return clientHurtColor;
     }
-
+    @Override
     public boolean hasClientHurtFeedback() {
         return clientHurtFeedbackTicks > 0;
     }
 
     private void tickClientHurtFeedback() {
         if (level().isClientSide && clientHurtFeedbackTicks > 0 && --clientHurtFeedbackTicks == 0) {
-            clientHurtColor = ProtoHurtColor.RED;
+            clientHurtColor = AdaptableHurtColor.RED;
         }
     }
 

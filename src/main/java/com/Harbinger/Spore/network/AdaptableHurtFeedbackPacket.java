@@ -10,11 +10,11 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /** One packet per admitted hit, including repeated colors and fully adapted hits. */
-public record ProtoHurtFeedbackPacket(int entityId, UUID entityUuid, ProtoHurtColor color, int durationTicks) {
+public record AdaptableHurtFeedbackPacket(int entityId, UUID entityUuid, AdaptableHurtColor color, int durationTicks) {
     public static final int DEFAULT_DURATION_TICKS = 10;
 
-    public ProtoHurtFeedbackPacket(FriendlyByteBuf buffer) {
-        this(buffer.readVarInt(), buffer.readUUID(), buffer.readEnum(ProtoHurtColor.class), buffer.readVarInt());
+    public AdaptableHurtFeedbackPacket(FriendlyByteBuf buffer) {
+        this(buffer.readVarInt(), buffer.readUUID(), buffer.readEnum(AdaptableHurtColor.class), buffer.readVarInt());
     }
 
     public void encode(FriendlyByteBuf buffer) {
@@ -25,7 +25,7 @@ public record ProtoHurtFeedbackPacket(int entityId, UUID entityUuid, ProtoHurtCo
     }
 
     // Registered with consumerMainThread; only the client branch resolves the client handler.
-    public static void handle(ProtoHurtFeedbackPacket message, Supplier<NetworkEvent.Context> context) {
+    public static void handle(AdaptableHurtFeedbackPacket message, Supplier<NetworkEvent.Context> context) {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ProtoHurtFeedbackClient.handle(message));
         context.get().setPacketHandled(true);
     }
