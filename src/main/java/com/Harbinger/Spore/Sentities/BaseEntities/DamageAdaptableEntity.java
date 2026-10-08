@@ -6,8 +6,14 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.UUID;
+
 public interface DamageAdaptableEntity {
     float adaptDamage(DamageSource source, float damage);
+
+    UUID getAdaptableUUID();
+
+    void applyClientHurtFeedback(AdaptableHurtColor color, int durationTicks);
 
     AdaptableHurtColor getClientHurtColor();
 

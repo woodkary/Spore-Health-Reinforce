@@ -643,7 +643,11 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         SporePacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> this),
                 new AdaptableHurtFeedbackPacket(getId(), getUUID(), color, AdaptableHurtFeedbackPacket.DEFAULT_DURATION_TICKS));
     }
-
+    @Override
+    public UUID getAdaptableUUID(){
+        return getUUID();
+    }
+    @Override
     public void applyClientHurtFeedback(AdaptableHurtColor color, int durationTicks) {
         if (level().isClientSide) {
             clientHurtColor = color;
