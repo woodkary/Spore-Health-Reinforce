@@ -9,9 +9,7 @@ import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
-import com.Harbinger.Spore.ExtremelySusThings.SporePacketHandler;
 import com.Harbinger.Spore.network.AdaptableHurtColor;
-import com.Harbinger.Spore.network.AdaptableHurtFeedbackPacket;
 import com.Harbinger.Spore.Sblocks.BrainRemnants;
 import com.Harbinger.Spore.Sblocks.CDUBlock;
 import com.Harbinger.Spore.Sentities.*;
@@ -55,7 +53,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
@@ -85,9 +82,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     //如果伤害来源是玩家，则记录玩家的物品使用次数，收到同种物品攻击越多，对这种物品的减伤越多
     private final Map<String, Integer> itemTracker=new HashMap<>();
     private final Map<UUID, Integer> targetTracker=new HashMap<>();
-    // Client-only transient feedback. Neither field is synced as entity data or saved to NBT.
-    private AdaptableHurtColor clientHurtColor = AdaptableHurtColor.RED;
-    private int clientHurtFeedbackTicks;
+    private final AdaptableHurtFeedbackState hurtFeedbackState = new AdaptableHurtFeedbackState();
     private final List<String> hypers = new ArrayList<>(){{add("spore:inquisitor");add("spore:hollen");add("spore:grober");add("spore:wendigo");add("spore:hvindicator");add("spore:brot");add("spore:ogre");add("spore:hevoker");}};
     private int summonDefense = 0;
     private static final int INPUT_SIZE = 4;
@@ -320,7 +315,6 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     @Override
     public void tick() {
         super.tick();
-        tickClientHurtFeedback();
         tickLegalPosition();
         if (!level().isClientSide){
             if (this.tickCount % 6000 == 0 && SConfig.SERVER.mound_foliage.get() && this.entityData.get(NODE) != BlockPos.ZERO){
@@ -639,35 +633,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         return damage;
     }
 
-    private void sendHurtFeedback(AdaptableHurtColor color) {
-        SporePacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> this),
-                new AdaptableHurtFeedbackPacket(getId(), getUUID(), color, AdaptableHurtFeedbackPacket.DEFAULT_DURATION_TICKS));
-    }
     @Override
-    public UUID getAdaptableUUID(){
-        return getUUID();
-    }
-    @Override
-    public void applyClientHurtFeedback(AdaptableHurtColor color, int durationTicks) {
-        if (level().isClientSide) {
-            clientHurtColor = color;
-            // Assign on every event, even if the color matches the previous hit.
-            clientHurtFeedbackTicks = Mth.clamp(durationTicks, 1, 40);
-        }
-    }
-    @Override
-    public AdaptableHurtColor getClientHurtColor() {
-        return clientHurtColor;
-    }
-    @Override
-    public boolean hasClientHurtFeedback() {
-        return clientHurtFeedbackTicks > 0;
-    }
-
-    private void tickClientHurtFeedback() {
-        if (level().isClientSide && clientHurtFeedbackTicks > 0 && --clientHurtFeedbackTicks == 0) {
-            clientHurtColor = AdaptableHurtColor.RED;
-        }
+    public AdaptableHurtFeedbackState getHurtFeedbackState() {
+        return hurtFeedbackState;
     }
 
     @Override

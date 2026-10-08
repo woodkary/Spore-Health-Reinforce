@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class ProtoRenderer extends OrganoidMobRenderer<Proto , EntityModel<Proto>> {
@@ -24,6 +25,18 @@ public class ProtoRenderer extends OrganoidMobRenderer<Proto , EntityModel<Proto
             "textures/entity/proto_remade.png");
     private static final ResourceLocation OLD_PROTO = new ResourceLocation(Spore.MODID,
             "textures/entity/proto.png");
+    private static final Map<RenderType, RenderType> NORMAL_MATERIALS = hurtMaterials(TEXTURE);
+    private static final Map<RenderType, RenderType> NUNNY_MATERIALS = hurtMaterials(OLD_PROTO);
+
+    private static Map<RenderType, RenderType> hurtMaterials(ResourceLocation bodyTexture) {
+        return Map.of(
+                RenderType.entityCutoutNoCull(bodyTexture), AdaptableHurtRenderTypes.cutoutNoCull(bodyTexture),
+                RenderType.entityTranslucent(ProtoMembraneLayer.MEMBRANE_TEXTURE),
+                AdaptableHurtRenderTypes.translucent(ProtoMembraneLayer.MEMBRANE_TEXTURE),
+                RenderType.entityCutoutNoCull(ProtoHatLayer.HAT_LOCATION),
+                AdaptableHurtRenderTypes.cutoutNoCull(ProtoHatLayer.HAT_LOCATION),
+                RenderType.itemEntityTranslucentCull(bodyTexture), AdaptableHurtRenderTypes.invisibleVisible(bodyTexture));
+    }
 
     public ProtoRenderer(EntityRendererProvider.Context context) {
         super(context, new ProtoRedesign<>(context.bakeLayer(ProtoRedesign.LAYER_LOCATION)), 3f);
@@ -35,18 +48,9 @@ public class ProtoRenderer extends OrganoidMobRenderer<Proto , EntityModel<Proto
     @Override
     public void render(Proto type, float value1, float value2, PoseStack stack, MultiBufferSource bufferSource, int value3) {
         this.model = type.isNunny() ? nunny : normalProto;
-        MultiBufferSource protoBuffers = ProtoHurtRenderTypes.wrapBuffers(bufferSource, getTextureLocation(type),
-                ProtoMembraneLayer.MEMBRANE_TEXTURE, ProtoHatLayer.HAT_LOCATION,
-                type.hasClientHurtFeedback(), type.getClientHurtColor());
+        MultiBufferSource protoBuffers = AdaptableHurtRenderTypes.wrapBuffers(bufferSource,
+                type.getClientHurtFeedbackSnapshot(), type.isNunny() ? NUNNY_MATERIALS : NORMAL_MATERIALS);
         super.render(type, value1, value2, stack, protoBuffers, value3);
-    }
-
-    @Override
-    protected RenderType getRenderType(Proto proto, boolean bodyVisible, boolean translucent, boolean glowing) {
-        if (translucent) {
-            return ProtoHurtRenderTypes.invisibleVisible(getTextureLocation(proto));
-        }
-        return super.getRenderType(proto, bodyVisible, false, glowing);
     }
 
     @Override
