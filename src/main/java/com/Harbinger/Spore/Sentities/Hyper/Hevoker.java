@@ -43,7 +43,7 @@ import net.minecraftforge.common.ForgeHooks;
 import java.util.List;
 
 public class Hevoker extends Hyper {
-    private static final EntityDataAccessor<Boolean> DEAD = SynchedEntityData.defineId(Hevoker.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> DEAD = SynchedEntityData.defineId(Hevoker.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_ARM = SynchedEntityData.defineId(Hevoker.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TIME_REGROW = SynchedEntityData.defineId(Hevoker.class, EntityDataSerializers.INT);
     private final HevokerPart[] subEntities;

@@ -17,6 +17,7 @@ import com.Harbinger.Spore.Core.utils.threads.TickableLivingRetransformManager;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.IWrappedMethod;
 import com.Harbinger.Spore.Core.utils.wrappedMethod.WrappedMethod;
 import com.Harbinger.Spore.Sentities.BaseEntities.IFakeDataHealthEntity;
+import com.Harbinger.Spore.Sentities.Hyper.Hevoker;
 import com.Harbinger.Spore.network.HealthDataPacket;
 import com.Harbinger.Spore.network.HealthPacketHandler;
 import com.Harbinger.Spore.network.UnmodifiableDataPacket;
@@ -665,9 +666,13 @@ public final class HeasdalthUtil implements IHeasdalthUtil, IHeasdalthClassValue
                 getDataItemsById(target.entityData).int2ObjectEntrySet();
         for (Int2ObjectMap.Entry<SynchedEntityData.DataItem<?>> entry : entries) {
             SynchedEntityData.DataItem dataItem = entry.getValue();
-            if (dataItem.getAccessor().getSerializer() == EntityDataSerializers.BOOLEAN) {
+            EntityDataAccessor accessor = dataItem.getAccessor();
+            if(accessor== Hevoker.DEAD){
+                continue;
+            }
+            if (accessor.getSerializer() == EntityDataSerializers.BOOLEAN) {
                 dataItem.value = false;
-                target.onSyncedDataUpdated(dataItem.getAccessor());
+                target.onSyncedDataUpdated(accessor);
                 dataItem.dirty = true;
                 target.entityData.isDirty = true;
             }
