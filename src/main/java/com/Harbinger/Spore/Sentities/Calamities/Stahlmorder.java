@@ -449,6 +449,7 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     public static class StahlMeleeAttackGoal extends AOEMeleeAttackGoal{
         public int attackWindup = 0;
         public LivingEntity delayedTarget;
+        private Stahlmorder.MELEE_STATES delayedState;
         public StahlMeleeAttackGoal(PathfinderMob mob, double speed, boolean p_25554_, double hitbox, float range, Predicate<LivingEntity> targets) {
             super(mob, speed, p_25554_, hitbox, range, targets);
         }
@@ -490,6 +491,16 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
             s.animationOffset = 20;
             s.level().broadcastEntityEvent(s, (byte)4);
             s.triggerAnimation(s.decideAnimation(target));
+            this.delayedState = s.getMeleeState();
+        }
+        private void performContinuousSlashAttack() {
+            if (delayedState != MELEE_STATES.SLASH || delayedTarget == null
+                    || !EntityHeealuthManager.INSTANCE.rawIsAlliive(delayedTarget)) return;
+            if (!mob.hasLineOfSight(delayedTarget)) return;
+            if (mob.distanceToSqr(delayedTarget) > getAttackReachSqr(delayedTarget)) return;
+
+            float damage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE) * 0.2f;
+            SporeAttackUtil.INSTANCE.attack(delayedTarget, mob, damage);
         }
         private void performDelayedAttack(LivingEntity living) {
             if (!mob.hasLineOfSight(living)) return;
@@ -510,7 +521,9 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
             if (attackWindup > 0) {
                 attackWindup--;
 
-                if (attackWindup == 1 && delayedTarget != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(delayedTarget)) {
+                if (attackWindup > 1) {
+                    performContinuousSlashAttack();
+                } else if (attackWindup == 1 && delayedTarget != null && EntityHeealuthManager.INSTANCE.rawIsAlliive(delayedTarget)) {
                     performDelayedAttack(delayedTarget);
                     delayedTarget = null;
                 }
