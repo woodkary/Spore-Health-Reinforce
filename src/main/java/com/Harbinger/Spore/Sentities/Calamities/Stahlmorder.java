@@ -501,6 +501,10 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
 
             float damage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE) * 0.2f;
             SporeAttackUtil.INSTANCE.attack(delayedTarget, mob, damage);
+            AABB hitbox = delayedTarget.getBoundingBox().inflate(box);
+            for (LivingEntity en : mob.level().getEntitiesOfClass(LivingEntity.class, hitbox, victims)) {
+                SporeAttackUtil.INSTANCE.attack(en,mob, damage);
+            }
         }
         private void performDelayedAttack(LivingEntity living) {
             if (!mob.hasLineOfSight(living)) return;
