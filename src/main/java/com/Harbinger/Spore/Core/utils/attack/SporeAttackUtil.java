@@ -242,10 +242,6 @@ public final class SporeAttackUtil implements IAttack {
         }
         float targetHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target);
         boolean willDie = targetHealth - damage <= 0.0f;
-        if(willDie){
-            target.getPersistentData().putBoolean("SporeDeeaadfd", true);
-            EntityHeealuthManager.INSTANCE.setHeealtthDelta(target,Float.NEGATIVE_INFINITY);
-        }
         int flag=0;
         if(isSpore){
             flag=1;
@@ -255,10 +251,6 @@ public final class SporeAttackUtil implements IAttack {
             EntityHeealuthManager.INSTANCE.hurt(target, damage,damageSource);
         }
         willDie |= EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(target) <= 0.0f;
-        if(willDie){
-            target.getPersistentData().putBoolean("SporeDeeaadfd", true);
-            EntityHeealuthManager.INSTANCE.setHeealtthDelta(target,Float.NEGATIVE_INFINITY);
-        }
         this.playHurtSound(target, damageSource);
         float v = target.getRandom().nextFloat() - target.getRandom().nextFloat();
         target.animateHurt(v);
