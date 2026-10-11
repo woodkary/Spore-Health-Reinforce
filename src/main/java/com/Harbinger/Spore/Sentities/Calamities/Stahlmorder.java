@@ -497,23 +497,25 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
             if (delayedState != MELEE_STATES.SLASH || delayedTarget == null
                     || !EntityHeealuthManager.INSTANCE.rawIsAlliive(delayedTarget)) return;
             if (!mob.hasLineOfSight(delayedTarget)) return;
-            if (mob.distanceToSqr(delayedTarget) > getAttackReachSqr(delayedTarget)) return;
+            double attackReachSqr = getAttackReachSqr(delayedTarget);
+            if (mob.distanceToSqr(delayedTarget) > attackReachSqr) return;
 
             float damage = (float) mob.attributes.getValue(Attributes.ATTACK_DAMAGE) * 0.2f;
             SporeAttackUtil.INSTANCE.attack(delayedTarget, mob, damage);
-            AABB hitbox = mob.getBoundingBox().inflate(box*3.0);
+            AABB hitbox = mob.getBoundingBox().inflate(Math.sqrt(attackReachSqr));
             for (LivingEntity en : mob.level().getEntitiesOfClass(LivingEntity.class, hitbox, victims)) {
                 SporeAttackUtil.INSTANCE.attack(en,mob, damage);
             }
         }
         private void performDelayedAttack(LivingEntity living) {
             if (!mob.hasLineOfSight(living)) return;
-            if (mob.distanceToSqr(living) > getAttackReachSqr(living)) return;
+            double attackReachSqr = getAttackReachSqr(living);
+            if (mob.distanceToSqr(living) > attackReachSqr) return;
 
             mob.swing(InteractionHand.MAIN_HAND);
             mob.doHurtTarget(living);
 
-            AABB hitbox = mob.getBoundingBox().inflate(delayedState==MELEE_STATES.SLASH?box*3.0:box);
+            AABB hitbox = mob.getBoundingBox().inflate(delayedState==MELEE_STATES.SLASH?Math.sqrt(attackReachSqr):box);
             for (LivingEntity en : mob.level().getEntitiesOfClass(LivingEntity.class, hitbox, victims)) {
                 mob.doHurtTarget(en);
             }
