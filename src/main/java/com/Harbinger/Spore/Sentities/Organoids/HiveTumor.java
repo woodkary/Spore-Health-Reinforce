@@ -2,10 +2,12 @@ package com.Harbinger.Spore.Sentities.Organoids;
 
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sblocks.CDUBlock;
 import com.Harbinger.Spore.Sentities.AI.AOEMeleeAttackGoal;
+import com.Harbinger.Spore.Sentities.BaseEntities.Calamity;
 import com.Harbinger.Spore.Sentities.BaseEntities.Infected;
 import com.Harbinger.Spore.Sentities.BaseEntities.Organoid;
 import com.Harbinger.Spore.Sentities.FoliageSpread;
@@ -20,6 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -125,6 +128,14 @@ public class HiveTumor extends Organoid implements FoliageSpread {
         level().addFreshEntity(proto);
         entityData.set(GROWTH,0);
         discard();
+    }
+    @Override
+    public boolean isProtoOrCalamity(){
+        return true;
+    }
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        return !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source)&&super.hurt(source, amount);
     }
     protected void giveMadness(){
         AABB aabb = this.getBoundingBox().inflate(64);
