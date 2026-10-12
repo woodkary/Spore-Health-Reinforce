@@ -8,6 +8,8 @@ import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import sun.misc.Unsafe;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -16,6 +18,8 @@ import java.util.*;
 public final class SporeLivingEntityHealthTransformerBootstrap implements ICommonBootStrap  {
     private static final String SPORE_PACKAGE_PREFIX = "com.Harbinger.Spore.";
     private static final String ENTITY_RENDERER_CLASS_NAME = "net.minecraft.client.renderer.entity.EntityRenderer";
+    private static final String ENTITY_DISPATCHER_CLASS_NAME = "net.minecraft.client.renderer.entity.EntityRenderDispatcher";
+    private static final String DISPATCHER_HOOK_CLASS_NAME = "com.Harbinger.Spore.Core.asmHooks.SporeEntityRenderDispatcherHook";
     private static final long CLASS_KLASS_OFFSET = 16L;
     private static final long KLASS_ACCESS_FLAGS_OFFSET = 164L;
     private static final int JVM_ACC_IS_HIDDEN_CLASS = 0x04000000;
@@ -391,6 +395,10 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         jvmtiUtil.addTransformer(deathTimeTransformer);
         jvmtiUtil.addTransformer(effectApplicationTransformer);
         jvmtiUtil.addTransformer(entityRendererTransformer);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            initializeDispatcherHook();
+            jvmtiUtil.addTransformer(SporeEntityRenderDispatcherTransformer.newSelfTransformer());
+        }
         jvmtiTransInstalled=jvmtiUtil.isTransformerHookInstalled();
         return true;
     }
@@ -422,6 +430,10 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         instrumentation.addTransformer(deathTimeTransformer);
         instrumentation.addTransformer(effectApplicationTransformer);
         instrumentation.addTransformer(entityRendererTransformer);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            initializeDispatcherHook();
+            instrumentation.addTransformer(SporeEntityRenderDispatcherTransformer.newInstance());
+        }
         installed = true;
         return true;
     }
@@ -656,15 +668,25 @@ public final class SporeLivingEntityHealthTransformerBootstrap implements ICommo
         }
         return jvmtiUtil.isModifiableClass(clazz);
     }
+    private void initializeDispatcherHook() {
+        try {
+            // Name-based initialization keeps every client type out of common bootstrap signatures.
+            Class.forName(DISPATCHER_HOOK_CLASS_NAME, true,
+                    SporeLivingEntityHealthTransformerBootstrap.class.getClassLoader());
+        } catch (Throwable failure) {
+            throw new IllegalStateException("Failed to initialize hidden client dispatcher hook", failure);
+        }
+    }
+
     private boolean isLivingEntityOrExternalEntityRenderer(Class<?> clazz) {
         if (LivingEntity.class.isAssignableFrom(clazz)) {
             return true;
         }
-        if (clazz.getName().startsWith(SPORE_PACKAGE_PREFIX)) {
-            return false;
-        }
         for (Class<?> current = clazz; current != null; current = current.getSuperclass()) {
-            if (ENTITY_RENDERER_CLASS_NAME.equals(current.getName())) {
+            if (FMLEnvironment.dist == Dist.CLIENT && ENTITY_DISPATCHER_CLASS_NAME.equals(current.getName())) {
+                return true;
+            }
+            if (!clazz.getName().startsWith(SPORE_PACKAGE_PREFIX) && ENTITY_RENDERER_CLASS_NAME.equals(current.getName())) {
                 return true;
             }
         }

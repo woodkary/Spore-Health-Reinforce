@@ -10,10 +10,13 @@ import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityDeathTimeTr
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityEffectApplicationTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformer;
 import com.Harbinger.Spore.Core.agents.transformers.SporeDiscoveredLifeCycleMethodTransformer;
+import com.Harbinger.Spore.Core.agents.transformers.SporeEntityRenderDispatcherTransformer;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.ClassUtil;
 import org.objectweb.asm.ClassReader;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.invoke.MethodHandle;
@@ -57,6 +60,9 @@ public final class HiddenDefineHook implements SelfTransformer {
             SporeLivingEntityEffectApplicationTransformer.newSelfTransformer(),
             SporeDiscoveredLifeCycleMethodTransformer.newSelfTransformer(),
     };
+    // Transform dispatcher overrides before hidden definition; do not alter JVM hidden flags for these targets.
+    private final SelfTransformer dispatcherTransformer = FMLEnvironment.dist == Dist.CLIENT
+            ? SporeEntityRenderDispatcherTransformer.newSelfTransformer() : null;
     @Override
     public byte[] transformClassByte(ClassLoader loader, String className, byte[] classfileBuffer) {
         byte[] res=classfileBuffer;
@@ -66,6 +72,13 @@ public final class HiddenDefineHook implements SelfTransformer {
             if(temp!=null&&temp.length>0) {
                 res=temp;
                 modified=true;
+            }
+        }
+        if (dispatcherTransformer != null) {
+            byte[] transformed = dispatcherTransformer.transformClassByte(loader, className, res);
+            if (transformed != null && transformed.length > 0) {
+                res = transformed;
+                modified = true;
             }
         }
         return modified ? res : null;

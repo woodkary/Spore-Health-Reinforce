@@ -9,8 +9,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 public final class CustomDeathTimeManager implements IDeathTimeManager {
     private static final String DEATH_TIME_TAG = "spore$DTicks";
+    private final ThreadLocal<Deque<LivingEntity>> specialRenderEntities = new ThreadLocal<>();
 
     public static final IDeathTimeManager INSTANCE= BytecodeUtil.createHiddenSingletonInstance(
             IDeathTimeManager.class,
@@ -19,12 +23,23 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
 
     @Override
     public int deathTimeGetFieldHook(LivingEntity entity, int initialDeathTime) {
-        if (entity == null || SporeJudge.isSporeEntity(entity)) {
+        if (entity == null) {
             return initialDeathTime;
         }
-        if(entity instanceof Player player&&
-                EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&
-                !LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)) {
+        Deque<LivingEntity> stack = specialRenderEntities.get();
+        if (stack != null) {
+            for (LivingEntity rendering : stack) {
+                if (rendering == entity) {
+                    return 0;
+                }
+            }
+        }
+        boolean trueDeadPlayer = isTrueDeadPlayer(entity);
+        if (!trueDeadPlayer && SporeJudge.isSporeEntity(entity)) {
+            return initialDeathTime;
+        }
+        if (!trueDeadPlayer && entity instanceof Player player
+                && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
             return 0;
         }
         CompoundTag data = entity.getPersistentData();
@@ -39,10 +54,41 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
     }
 
     @Override
+    public void enterSpecialRender(LivingEntity entity) {
+        if (entity == null) {
+            throw new IllegalArgumentException("Special render entity must not be null");
+        }
+        Deque<LivingEntity> stack = specialRenderEntities.get();
+        if (stack == null) {
+            stack = new ArrayDeque<>();
+            specialRenderEntities.set(stack);
+        }
+        stack.push(entity);
+    }
+
+    @Override
+    public void exitSpecialRender(LivingEntity entity) {
+        Deque<LivingEntity> stack = specialRenderEntities.get();
+        if (stack == null || stack.peek() != entity) {
+            throw new IllegalStateException("Special render scopes must exit in nesting order");
+        }
+        stack.pop();
+        if (stack.isEmpty()) {
+            specialRenderEntities.remove();
+        }
+    }
+
+    private boolean isTrueDeadPlayer(LivingEntity entity) {
+        return entity instanceof Player player
+                && LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player);
+    }
+
+    @Override
     public void accept(LivingEvent.LivingTickEvent livingTickEvent) {
         LivingEntity entity = livingTickEvent.getEntity();
         CompoundTag data = entity.getPersistentData();
-        if (!entity.isDeadOrDying()) {
+        boolean trueDeadPlayer = isTrueDeadPlayer(entity);
+        if (!trueDeadPlayer && !EntityHeealuthManager.INSTANCE.isDeeadfOrDyaging(entity, entity.isDeadOrDying())) {
             boolean wasManaged = data.contains(DEATH_TIME_TAG, Tag.TAG_INT);
             data.remove(DEATH_TIME_TAG);
             if (wasManaged) {
@@ -50,10 +96,9 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
             }
             return;
         }
-        if (SporeJudge.isSporeEntity(entity)||
+        if (!trueDeadPlayer && (SporeJudge.isSporeEntity(entity)||
                 entity instanceof Player player&&
-                        EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)&&
-                        !LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)) {
+                        EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
             data.remove(DEATH_TIME_TAG);
             return;
         }
