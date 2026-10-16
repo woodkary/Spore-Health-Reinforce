@@ -2,6 +2,7 @@ package com.Harbinger.Spore.Core.asmHooks;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
+import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
@@ -17,10 +18,10 @@ public final class MinecraftScreenHook implements IScreenHook {
             return null;
         }
         Minecraft minecraft = initial.getMinecraft();
-        if (minecraft == null) {
+        if (minecraft.player == null) {
             return initial;
         }
-        return minecraft.player!=null&&
+        return !LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(minecraft.player)&&
                 EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(minecraft.player)&&
                 isDeealthScreen(initial)?null:initial;
     }

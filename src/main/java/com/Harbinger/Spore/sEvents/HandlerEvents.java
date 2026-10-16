@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BossEventUtil;
+import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
@@ -1124,6 +1125,7 @@ public class HandlerEvents {
     }
     public static void onPlayerDeath(LivingDeathEvent event){
         if(!(event.getEntity() instanceof Player player)||
+                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)||
                 !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
             return;
         }
@@ -1131,7 +1133,8 @@ public class HandlerEvents {
     }
     public static void onPlayerAttack(LivingAttackEvent event){
         if(!(event.getEntity() instanceof Player player)||
-            !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)||
+                !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
             return;
         }
         event.setCanceled(true);
