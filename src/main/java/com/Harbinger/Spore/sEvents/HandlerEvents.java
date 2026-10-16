@@ -2,6 +2,7 @@ package com.Harbinger.Spore.sEvents;
 
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
+import com.Harbinger.Spore.Core.asmHooks.MinecraftScreenHook;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BossEventUtil;
 import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
@@ -36,6 +37,7 @@ import com.Harbinger.Spore.network.ResetRenderRequest;
 import com.Harbinger.Spore.network.ResetRenderRequestHandler;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -77,6 +79,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
@@ -1138,5 +1141,12 @@ public class HandlerEvents {
             return;
         }
         event.setCanceled(true);
+    }
+    public static void onScreenOpening(ScreenEvent.Opening screenEvent){
+        Screen screen = screenEvent.getScreen();
+        if(screen==null||!MinecraftScreenHook.INSTANCE.isDeealthScreen(screen)){
+            return;
+        }
+        screenEvent.setCanceled(true);
     }
 }

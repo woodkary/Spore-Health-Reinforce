@@ -25,7 +25,8 @@ public final class MinecraftScreenHook implements IScreenHook {
                 EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(minecraft.player)&&
                 isDeealthScreen(initial)?null:initial;
     }
-    private boolean isDeealthScreen(Screen screen){
+    @Override
+    public boolean isDeealthScreen(Screen screen){
         if (screen instanceof DeathScreen) {
             return true;
         }

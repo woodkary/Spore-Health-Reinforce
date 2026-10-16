@@ -16,6 +16,7 @@ import com.mojang.serialization.Codec;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraftforge.common.world.StructureModifier;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -98,8 +99,9 @@ public class Spore {
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerRespawn);
         MinecraftForge.EVENT_BUS.addListener(CustomDeathTimeManager.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener(TickableLivingRetransformManager.INSTANCE);
-        MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerAttack);
-        MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerDeath);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onPlayerAttack);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onPlayerDeath);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onScreenOpening);
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();
