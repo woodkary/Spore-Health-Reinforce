@@ -18,7 +18,7 @@ public final class MinecraftScreenHook implements IScreenHook {
             return null;
         }
         Minecraft minecraft = initial.getMinecraft();
-        if (minecraft.player == null) {
+        if (minecraft==null||minecraft.player == null) {
             return initial;
         }
         return !LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(minecraft.player)&&
