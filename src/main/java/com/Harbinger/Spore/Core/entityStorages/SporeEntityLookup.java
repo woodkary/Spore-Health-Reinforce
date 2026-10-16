@@ -156,7 +156,9 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
 
     @Override
     public T getEntity(int id) {
-        this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        if(!(this.byId instanceof ISporeEntityStorage)){
+            this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        }
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(id)){
             return null;
         }
@@ -169,7 +171,9 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
     }
     @Override
     public T getEntity(UUID uuid) {
-        this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
+        if(!(this.byUuid instanceof ISporeEntityStorage)){
+            this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
+        }
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(uuid)){
             return null;
         }
