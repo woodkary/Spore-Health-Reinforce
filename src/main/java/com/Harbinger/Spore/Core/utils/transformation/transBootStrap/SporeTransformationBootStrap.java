@@ -41,7 +41,8 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
     private final Class<?> classLoaderClass;
     public SporeTransformationBootStrap() {
         List<Class<?>> pluginClasses = resolveHiddenPlugins(
-                "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeLifeCycleCallSitePlugin"
+                "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeLifeCycleCallSitePlugin",
+                "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeMinecraftScreenFieldPlugin"
         );
         Map<String, ILaunchPluginService> t1=new HashMap<>();
         Map<String,Class<?>> t2=new HashMap<>();

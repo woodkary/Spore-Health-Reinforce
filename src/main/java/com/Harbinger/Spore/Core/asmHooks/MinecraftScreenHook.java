@@ -13,7 +13,13 @@ public final class MinecraftScreenHook implements IScreenHook {
     public static final IScreenHook INSTANCE;
     @Override
     public Screen getScreenHook(Screen initial) {
+        if (initial == null) {
+            return null;
+        }
         Minecraft minecraft = initial.getMinecraft();
+        if (minecraft == null) {
+            return initial;
+        }
         return minecraft.player!=null&&
                 EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(minecraft.player)&&
                 isDeealthScreen(initial)?null:initial;
