@@ -30,7 +30,7 @@ public final class MinecraftScreenHook implements IScreenHook {
         }
         if (screen != null) {
             String name = screen.getClass().getName();
-            if(name.startsWith("net.minecraft")){
+            if(name.startsWith("net.minecraft.client.gui.screens.")){
                 return false;
             }
             String lowerCase = name.toLowerCase();
