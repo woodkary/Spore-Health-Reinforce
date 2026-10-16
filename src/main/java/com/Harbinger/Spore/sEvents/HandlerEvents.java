@@ -1122,6 +1122,13 @@ public class HandlerEvents {
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent respawnEvent){
         Optional.ofNullable(respawnEvent.getEntity()).ifPresent(setPlayerAlive);
     }
+    public static void onPlayerDeath(LivingDeathEvent event){
+        if(!(event.getEntity() instanceof Player player)||
+                !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+            return;
+        }
+        event.setCanceled(true);
+    }
     public static void onPlayerAttack(LivingAttackEvent event){
         if(!(event.getEntity() instanceof Player player)||
             !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
