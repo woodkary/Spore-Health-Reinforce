@@ -98,6 +98,7 @@ public class Spore {
         MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerRespawn);
         MinecraftForge.EVENT_BUS.addListener(CustomDeathTimeManager.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener(TickableLivingRetransformManager.INSTANCE);
+        MinecraftForge.EVENT_BUS.addListener(HandlerEvents::onPlayerAttack);
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();
