@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Core.utils.transformation;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.transformation.plugins.LifeCycleCallSiteHookResolver;
 import com.Harbinger.Spore.Core.utils.transformation.plugins.LifeCycleCallSiteHookSpec;
+import com.Harbinger.Spore.Core.utils.transformation.plugins.SuperNameCache;
 import com.Harbinger.Spore.Core.utils.transformation.transBootStrap.ITransformationBootStrap;
 import com.Harbinger.Spore.Core.utils.transformation.transBootStrap.SporeTransformationBootStrap;
 import cpw.mods.modlauncher.*;
@@ -110,6 +111,7 @@ public final class SporeTransformationService implements ISporeTransformationSer
         LogUtil.log("Initializing SporeTransformationService");
         LifeCycleCallSiteHookResolver.class.getName();
         LifeCycleCallSiteHookSpec.class.getName();
+        SuperNameCache.class.getName();
         init();
     }
 

@@ -25,9 +25,6 @@ public final class SporeLifeCycleCallSitePlugin implements ILaunchPluginService 
     private final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/EntityHeealuthManager";
     private final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/asmHooks/IEntityHealth";
     private final String HOOK_INSTANCE_DESC = "L" + HOOK_INTERFACE + ";";
-
-    private final Map<String, String> superNameCache = new ConcurrentHashMap<>();
-
     @Override
     public String name() {
         return "SporeLifeCycleCallSitePlugin";
@@ -208,7 +205,7 @@ public final class SporeLifeCycleCallSitePlugin implements ILaunchPluginService 
         while (current != null
                 && !"java/lang/Object".equals(current)
                 && visited.add(current)) {
-            String superName = superNameCache.get(current);
+            String superName = SuperNameCache.INSTANCE.get(current);
             if (superName == null) {
                 superName = readAndCacheSuperName(current);
             }
@@ -257,8 +254,6 @@ public final class SporeLifeCycleCallSitePlugin implements ILaunchPluginService 
     }
 
     private void cacheSuperName(String className, String superName) {
-        if (className != null && superName != null) {
-            superNameCache.put(className, superName);
-        }
+        SuperNameCache.INSTANCE.put(className, superName);
     }
 }
