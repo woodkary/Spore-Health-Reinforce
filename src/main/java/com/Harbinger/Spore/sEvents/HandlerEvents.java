@@ -37,6 +37,7 @@ import com.Harbinger.Spore.network.ResetRenderRequest;
 import com.Harbinger.Spore.network.ResetRenderRequestHandler;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -1145,6 +1146,13 @@ public class HandlerEvents {
     public static void onScreenOpening(ScreenEvent.Opening screenEvent){
         Screen screen = screenEvent.getScreen();
         if(screen==null||!MinecraftScreenHook.INSTANCE.isDeealthScreen(screen)){
+            return;
+        }
+        Minecraft minecraft = screen.getMinecraft();
+        if(minecraft==null||
+                minecraft.player==null||
+                LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(minecraft.player)||
+                !EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(minecraft.player)){
             return;
         }
         screenEvent.setCanceled(true);
