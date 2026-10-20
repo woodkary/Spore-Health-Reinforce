@@ -64,6 +64,10 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    private int terminalStuckRecoveries;
    private final Map<BlockPos, Long> avoidedWaterNodes = new HashMap<>();
    private boolean wasUsingWaterPathing;
+   private final LocalNavigationProgress localProgress = new LocalNavigationProgress();
+   @Nullable
+   private Object localProgressTask;
+   private long lastLocalProgressTick = Long.MIN_VALUE;
 
    public CalamityPathNavigation(Calamity calamity, Level level) {
       super(calamity, level);
@@ -181,6 +185,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    public void tick() {
       this.updatePathingMode();
+      this.updateLocalProgressTask();
 
       if (this.tryCompleteActiveDetourTarget()) {
          return;
@@ -259,6 +264,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    /** @deprecated */
    @Deprecated
    public void hardStop() {
+      this.localProgress.reset();
       this.path = null;
       this.clearDetourState();
       this.resetNodeProgressTracking(null);
@@ -316,18 +322,23 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       double distanceToNodeSqr = this.mob.position().distanceToSqr(nodePosition);
+      double wantedY = this.mob instanceof FlyingInfected ? nodePosition.y : this.getWantedYForNode(nodePosition);
+      boolean locallyStalled = this.isLocallyStalled(new Vec3(nodePosition.x, wantedY, nodePosition.z));
       if (distanceToNodeSqr + MIN_NODE_PROGRESS_SQR < this.bestDistanceToNodeSqr) {
          this.bestDistanceToNodeSqr = distanceToNodeSqr;
          this.ticksWithoutNodeProgress = 0;
-         return false;
+         if (!locallyStalled) {
+            return false;
+         }
       }
 
       this.bestDistanceToNodeSqr = Math.min(this.bestDistanceToNodeSqr, distanceToNodeSqr);
       ++this.ticksWithoutNodeProgress;
-      if (this.ticksWithoutNodeProgress < STUCK_ON_NODE_TICKS || !this.isPhysicallyStalledAtNode()) {
+      if (!locallyStalled && (this.ticksWithoutNodeProgress < STUCK_ON_NODE_TICKS || !this.isPhysicallyStalledAtNode())) {
          return false;
       }
 
+      this.localProgress.reset();
       if (this.isUsingWaterPathing()) {
          return this.recoverFromWaterStuckNode(currentPath, nodeIndex);
       }
@@ -398,9 +409,10 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
    public void recomputePath() {
       if (this.level.getGameTime() - this.timeLastRecompute > 20L) {
-         if (this.targetPos != null) {
+         BlockPos target = this.getCurrentNavigationTarget();
+         if (target != null) {
             this.path = null;
-            this.path = this.createPath(this.targetPos, this.reachRange);
+            this.path = this.createPath(target, this.reachRange);
             this.timeLastRecompute = this.level.getGameTime();
             this.hasDelayedRecomputation = false;
             this.resetNodeProgressTracking(this.path);
@@ -425,12 +437,40 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       this.resetNodeProgressTracking(this.path);
    }
 
+   public void resetTaskNavigation() {
+      this.localProgress.reset();
+      this.clearDetourState();
+      this.finishNavigationTarget();
+      this.resetNodeProgressTracking(null);
+   }
+
+   public boolean hasActiveDetour() {
+      return this.activeDetourTarget != null;
+   }
+
+   public boolean tryStartTemporaryExit(BlockPos restoreTarget) {
+      if (this.hasActiveDetour() || !this.detourTargetStack.isEmpty()) {
+         return false;
+      }
+
+      // Randomize a local exit search, independently of the task's height or distance.
+      BlockPos searchCenter = this.mob.blockPosition().offset(
+              this.mob.getRandom().nextInt(-DETOUR_SEARCH_RADIUS, DETOUR_SEARCH_RADIUS + 1),
+              DETOUR_VERTICAL_RANGE,
+              this.mob.getRandom().nextInt(-DETOUR_SEARCH_RADIUS, DETOUR_SEARCH_RADIUS + 1));
+      return this.tryStartDetour(restoreTarget, searchCenter);
+   }
+
    private boolean tryStartDetourAround(BlockPos blockedTarget) {
+      return this.tryStartDetour(blockedTarget, blockedTarget);
+   }
+
+   private boolean tryStartDetour(BlockPos restoreTarget, BlockPos searchCenter) {
       if (this.detourTargetStack.size() >= MAX_DETOUR_DEPTH) {
          return false;
       }
 
-      TemporaryPath temporaryPath = this.findReachableTemporaryTarget(blockedTarget);
+      TemporaryPath temporaryPath = this.findReachableTemporaryTarget(searchCenter);
       if (temporaryPath == null) {
          return false;
       }
@@ -441,7 +481,7 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       boolean previousDelayedRecomputation = this.hasDelayedRecomputation;
       long previousTimeLastRecompute = this.timeLastRecompute;
       BlockPos previousActiveTarget = this.activeDetourTarget;
-      this.detourTargetStack.push(blockedTarget);
+      this.detourTargetStack.push(restoreTarget);
       this.activeDetourTarget = temporaryPath.target;
       this.triedDetourTargets.add(temporaryPath.target.asLong());
       if (!this.applyPathTo(temporaryPath.target, temporaryPath.path)) {
@@ -484,9 +524,14 @@ public class CalamityPathNavigation extends GroundPathNavigation {
                      continue;
                   }
 
+                  BlockPos pathTarget = candidatePath.getTarget();
+                  if (!pathTarget.equals(candidate) && !this.canUseTemporaryTarget(pathTarget, blockedTarget)) {
+                     continue;
+                  }
+
                   double score = candidatePath.getNodeCount() + this.distanceSqr(candidate, blockedTarget) * 0.25D + this.mob.distanceToSqr(Vec3.atCenterOf(candidate)) * 0.01D;
                   if (score < bestScore) {
-                     best = new TemporaryPath(candidate, candidatePath);
+                     best = new TemporaryPath(pathTarget, candidatePath);
                      bestScore = score;
                   }
                }
@@ -536,7 +581,11 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    }
 
    private boolean tryCompleteActiveDetourTarget() {
-      return this.activeDetourTarget != null && this.isCloseEnoughToNavigationTarget(this.activeDetourTarget) && this.completeCurrentNavigationTarget();
+      if (this.activeDetourTarget == null) {
+         return false;
+      }
+      BlockPos target = this.path != null && this.isActiveDetourTargetCurrent() ? this.path.getTarget() : this.activeDetourTarget;
+      return this.isCloseEnoughToNavigationTarget(target) && this.completeCurrentNavigationTarget();
    }
 
    private void restoreActiveDetourTargetIfInterrupted() {
@@ -562,11 +611,11 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    }
 
    private boolean isActiveDetourTargetCurrent() {
-      if (this.activeDetourTarget == null || !this.activeDetourTarget.equals(this.targetPos) || !this.activeDetourTarget.equals(this.pathToPosition)) {
+      if (this.activeDetourTarget == null || !this.activeDetourTarget.equals(this.pathToPosition)) {
          return false;
       }
 
-      return this.path == null || this.activeDetourTarget.equals(this.path.getTarget());
+      return this.path == null ? this.activeDetourTarget.equals(this.targetPos) : this.path.getTarget().equals(this.targetPos);
    }
 
    private boolean completeCurrentNavigationTarget() {
@@ -576,7 +625,8 @@ public class CalamityPathNavigation extends GroundPathNavigation {
 
       if (!this.detourTargetStack.isEmpty()) {
          BlockPos nextTarget = this.detourTargetStack.pop();
-         this.activeDetourTarget = nextTarget;
+         // The bottom entry is the original navigation request, not another exit.
+         this.activeDetourTarget = this.detourTargetStack.isEmpty() ? null : nextTarget;
          Path nextPath = this.createPathForCandidate(nextTarget);
          if (nextPath != null && this.applyPathTo(nextTarget, nextPath)) {
             return true;
@@ -593,7 +643,8 @@ public class CalamityPathNavigation extends GroundPathNavigation {
    }
 
    private boolean applyPathTo(BlockPos target, Path newPath) {
-      this.targetPos = target;
+      // Keep the requested destination separate from GroundPathNavigation's adjusted target.
+      this.targetPos = newPath.getTarget();
       this.pathToPosition = target;
       this.hasDelayedRecomputation = false;
       this.timeLastRecompute = this.level.getGameTime();
@@ -608,18 +659,22 @@ public class CalamityPathNavigation extends GroundPathNavigation {
       }
 
       double distanceToTargetSqr = this.mob.position().distanceToSqr(Vec3.atCenterOf(target));
+      boolean locallyStalled = this.isLocallyStalled(new Vec3(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D));
       if (distanceToTargetSqr + MIN_NODE_PROGRESS_SQR < this.bestDistanceToFallbackTargetSqr) {
          this.bestDistanceToFallbackTargetSqr = distanceToTargetSqr;
          this.ticksWithoutFallbackProgress = 0;
-         return false;
+         if (!locallyStalled) {
+            return false;
+         }
       }
 
       this.bestDistanceToFallbackTargetSqr = Math.min(this.bestDistanceToFallbackTargetSqr, distanceToTargetSqr);
       ++this.ticksWithoutFallbackProgress;
-      if (this.ticksWithoutFallbackProgress < STUCK_ON_NODE_TICKS || !this.isPhysicallyStalledAtNode()) {
+      if (!locallyStalled && (this.ticksWithoutFallbackProgress < STUCK_ON_NODE_TICKS || !this.isPhysicallyStalledAtNode())) {
          return false;
       }
 
+      this.localProgress.reset();
       this.resetFallbackProgressTracking(null);
       this.recoverFromStuckTerminalNode();
       return true;
@@ -646,15 +701,52 @@ public class CalamityPathNavigation extends GroundPathNavigation {
          return this.activeDetourTarget;
       }
 
-      if (this.pathToPosition != null && this.isDone()) {
+      if (this.pathToPosition != null) {
          return this.pathToPosition;
       }
 
-      return this.targetPos != null ? this.targetPos : this.pathToPosition;
+      return this.targetPos;
    }
 
    private boolean isDetourRelatedTarget(BlockPos target) {
-      return target.equals(this.targetPos) || target.equals(this.activeDetourTarget) || this.detourTargetStack.contains(target);
+      return target.equals(this.pathToPosition) || target.equals(this.targetPos) || target.equals(this.activeDetourTarget) || this.detourTargetStack.contains(target);
+   }
+
+   private boolean isLocallyStalled(Vec3 wantedPosition) {
+      if (this.speedModifier <= 0.0D || this.localProgressTask == null) {
+         this.localProgress.suspend();
+         return false;
+      }
+      long gameTime = this.level.getGameTime();
+      if (gameTime == this.lastLocalProgressTick) {
+         return false;
+      }
+      // Paused/idle ticks do not count; retain the historical distance and height.
+      if (gameTime != this.lastLocalProgressTick + 1L) {
+         this.localProgress.suspend();
+      }
+      this.lastLocalProgressTick = gameTime;
+      return this.localProgress.sample(this.mob.getX(), this.mob.getY(), this.mob.getZ(),
+              wantedPosition.x, wantedPosition.y, wantedPosition.z);
+   }
+
+   private void updateLocalProgressTask() {
+      Calamity calamity = (Calamity)this.mob;
+      // Task identity survives path replacements, detours and adjusted endpoints.
+      Object task = calamity.getTarget();
+      if (task == null && !BlockPos.ZERO.equals(calamity.getSearchArea())) {
+         task = calamity.getSearchArea();
+      }
+      if (task == null) {
+         task = this.detourTargetStack.isEmpty() ? this.pathToPosition : this.detourTargetStack.peekLast();
+         if (task == null && !this.isDone()) {
+            task = this.targetPos;
+         }
+      }
+      if (!Objects.equals(task, this.localProgressTask)) {
+         this.localProgressTask = task;
+         this.localProgress.reset();
+      }
    }
 
    private void clearDetourState() {

@@ -33,7 +33,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -250,7 +249,14 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
     }
 
     public void setSearchArea(BlockPos blockPos) {
-        this.entityData.set(SEARCH_AREA, blockPos);
+        if (!blockPos.equals(this.getSearchArea())) {
+            if (this.getNavigation() instanceof CalamityPathNavigation navigation) {
+                navigation.resetTaskNavigation();
+            } else {
+                this.getNavigation().stop();
+            }
+        }
+        this.entityData.set(SEARCH_AREA, blockPos.immutable());
     }
 
     public BlockPos getSearchArea() {
@@ -443,32 +449,33 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         return null;
     }
     public  boolean tryToDigDown(){
-        if (this.getSearchArea() != BlockPos.ZERO && this.verticalCollisionBelow){
-            double x = Math.abs(this.getSearchArea().getX())  - Math.abs(this.getX());
-            double z = Math.abs(this.getSearchArea().getZ()) - Math.abs(this.getZ());
+        if (!BlockPos.ZERO.equals(this.getSearchArea()) && this.verticalCollisionBelow){
+            double x = this.getSearchArea().getX() - this.getX();
+            double z = this.getSearchArea().getZ() - this.getZ();
             return this.getSearchArea().getY() < this.getY() && (Math.abs(x) < 6) && (Math.abs(z) < 6);
         }
         return false;
     }
 
     public void relocateExitPoint(){
-        RandomSource randomSource = RandomSource.create();
-        if (this.getSearchArea().getY() > this.getY()){
-            if ((Math.abs(this.getSearchArea().getX())  - Math.abs(this.getX()) < 6) && (Math.abs(this.getSearchArea().getZ()) - Math.abs(this.getZ()) < 6) && (Math.abs(this.getSearchArea().getY()) - Math.abs(this.getY()) > 4)){
-                int f = (int) Math.abs(Math.abs(this.getSearchArea().getY()) - Math.abs(this.getY()));
-                int x = randomSource.nextInt(-f,f);
-                int z = randomSource.nextInt(-f,f);
-               this.setSearchArea(new BlockPos(this.getSearchArea().getX() + x,this.getSearchArea().getY(),this.getSearchArea().getZ() + z));
-            }
+        BlockPos taskTarget = this.getSearchArea();
+        if (this.level().isClientSide || BlockPos.ZERO.equals(taskTarget) || this.getTarget() != null) {
+            return;
         }
-
+        double x = taskTarget.getX() - this.getX();
+        double z = taskTarget.getZ() - this.getZ();
+        double heightDifference = taskTarget.getY() - this.getY();
+        if (Math.abs(x) < 6 && Math.abs(z) < 6 && heightDifference > 4
+                && this.getNavigation() instanceof CalamityPathNavigation navigation) {
+            navigation.tryStartTemporaryExit(taskTarget.above());
+        }
     }
     public double setInflation(){
         return 1.5;
     }
 
     public AABB getMiningHitbox(){
-        if (this.getSearchArea() != BlockPos.ZERO && this.getTarget() == null){
+        if (!BlockPos.ZERO.equals(this.getSearchArea()) && this.getTarget() == null){
             if (this.getSearchArea().getY() < this.getY()){
                 return this.getBoundingBox().inflate(this.setInflation(),0.0,this.setInflation()).move(0.0,-1.0,0.0);
             }else if (this.getSearchArea().getY() > this.getY()){
@@ -546,7 +553,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         if (isRooted()){
             this.makeStuckInBlock(Blocks.AIR.defaultBlockState(), new Vec3(0, 1, 0));
         }
-        if (this.getRandom().nextInt(300) == 0 && this.getSearchArea() != BlockPos.ZERO){
+        if (!this.level().isClientSide && this.getRandom().nextInt(300) == 0 && !BlockPos.ZERO.equals(this.getSearchArea())){
             relocateExitPoint();
         }
         if (breakCounter < 80) {
@@ -609,7 +616,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     @Override
     public boolean shouldLoadChunk() {
-        return SConfig.SERVER.calamity_chunk.get() && this.getSearchArea() != BlockPos.ZERO;
+        return SConfig.SERVER.calamity_chunk.get() && !BlockPos.ZERO.equals(this.getSearchArea());
     }
 
     @Override
@@ -634,15 +641,15 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         }
 
         protected void moveMobToBlock() {
+            if (this.infected.getNavigation() instanceof CalamityPathNavigation navigation && navigation.hasActiveDetour()) {
+                return;
+            }
             this.infected.getNavigation().moveTo((double) ((float) this.infected.getSearchArea().getX()) + 0.5D, (double) (this.infected.getSearchArea().getY() + 1), (double) ((float) this.infected.getSearchArea().getZ()) + 0.5D, 1);
         }
 
         @Override
         public boolean canUse() {
-            if (this.infected.getSearchArea() != BlockPos.ZERO && this.infected.getSearchArea() != null && infected.getTarget() == null) {
-                return this.infected.getSearchArea().distToCenterSqr(this.infected.position()) > 4.0;
-            }
-            return false;
+            return !BlockPos.ZERO.equals(this.infected.getSearchArea()) && infected.getTarget() == null;
         }
 
         @Override
@@ -654,7 +661,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
         @Override
         public boolean canContinueToUse() {
-            return infected.getTarget() == null;
+            return !BlockPos.ZERO.equals(this.infected.getSearchArea()) && infected.getTarget() == null;
         }
 
 
@@ -662,10 +669,10 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         public void tick() {
             super.tick();
             ++this.tryTicks;
-            if (this.infected.getSearchArea() != BlockPos.ZERO && shouldRecalculatePath()) {
+            if (!BlockPos.ZERO.equals(this.infected.getSearchArea()) && shouldRecalculatePath()) {
                 this.moveMobToBlock();
             }
-            if (this.infected.getSearchArea() != BlockPos.ZERO && this.infected.getSearchArea().distToCenterSqr(this.infected.position()) < 80.0) {
+            if (!BlockPos.ZERO.equals(this.infected.getSearchArea()) && this.infected.getSearchArea().distToCenterSqr(this.infected.position()) < 80.0) {
                 infected.setSearchArea(BlockPos.ZERO);
                 infected.SummonMound(infected);
                 ChunkLoaderHelper.removeRequestsByPrefix(infected.getChunkId());
