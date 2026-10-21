@@ -278,7 +278,6 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
     }
 
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-        boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         if (calamityMultipart == this.tongue){
             if (this.getTongue() > 0 && value > this.getTongue()){
                 if (this.getTongue() > 0 && value > this.getTongue()){
@@ -287,8 +286,7 @@ public class Gazenbrecher extends Calamity implements WaterInfected , RangedAtta
                 }
                 this.playSound(Ssounds.LIMB_SLASH.get());
             }
-            this.hurt(source,value * 1.5f);
-            if (canApplyWeakPointDamage) {
+            if (this.hurt(source,value * 1.5f)) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.8f);
             }
             this.setTongue(value > this.getTongue() ? 0 : this.getTongue() - value);

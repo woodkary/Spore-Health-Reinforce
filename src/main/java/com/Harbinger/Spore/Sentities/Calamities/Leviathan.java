@@ -283,14 +283,13 @@ public class Leviathan extends Calamity implements TrueCalamity, WaterInfected, 
 
     @Override
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-        boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         value = rangeAttackAnimationTick > 0 ? value * 2 : value * 0.5f;
+        boolean canApplyWeakPointDamage=hurt(source,value);
         if (rangeAttackAnimationTick > 0) {
             if (canApplyWeakPointDamage) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
             }
         }
-        hurt(source,value);
         return false;
     }
 

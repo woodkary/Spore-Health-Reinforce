@@ -236,15 +236,12 @@ public class Stahlmorder extends Calamity implements TrueCalamity {
     }
     @Override
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-        boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         if (calamityMultipart == this.mouth){
-            this.hurt(source,value * 1.25f);
-            if (canApplyWeakPointDamage) {
+            if (this.hurt(source,value * 1.25f)) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
             }
         } else if (calamityMultipart == this.swordArm && getSwordArm() > 0){
-            this.hurt(source,value * 1.5f);
-            if (canApplyWeakPointDamage) {
+            if (this.hurt(source,value * 1.5f)) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 1.1f);
             }
             float lostHealth = getSwordArm()-this.getDamageAfterArmorAbsorb(source,value);

@@ -379,20 +379,17 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
         boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         if (calamityMultipart == this.mouth){
-            this.hurt(source,value*2f);
-            if (canApplyWeakPointDamage) {
+            if (this.hurt(source,value*2f)) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.8f);
             }
         }else if (calamityMultipart == this.rightArm){
-            this.hurt(source,value *1.5f);
-            if (canApplyWeakPointDamage) {
+            if (this.hurt(source,value *1.5f)) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.4f);
             }
             float lostHealth = getRightArm()-this.getDamageAfterArmorAbsorb(source,value);
             this.setRightArm(lostHealth > 0 ? lostHealth : getRightArm() != 0 ? summonDetashedPart(true) : 0f);
         }else if (calamityMultipart == this.leftArm){
-            this.hurt(source,value*1.5f);
-            if (canApplyWeakPointDamage) {
+            if (this.hurt(source,value*1.5f)) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.4f);
             }
             float lostHealth = getLeftArm()-this.getDamageAfterArmorAbsorb(source,value);

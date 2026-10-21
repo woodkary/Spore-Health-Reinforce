@@ -243,7 +243,6 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
 
     @Override
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-        boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         if (calamityMultipart == RightHand){
             this.entityData.set(RIGHT_ARM_DELAY,100);
         }
@@ -252,12 +251,13 @@ public class Grakensenker extends Calamity implements TrueCalamity, WaterInfecte
         }
         float originalDamage = value;
         value = calamityMultipart == this.Body ? value * 3 : value;
+        boolean canApplyWeakPointDamage=this.hurt(source,value);
         if (calamityMultipart == this.Body) {
             if (canApplyWeakPointDamage) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, originalDamage * 2.0f);
             }
         }
-        return this.hurt(source,value);
+        return canApplyWeakPointDamage;
     }
 
     @Override
