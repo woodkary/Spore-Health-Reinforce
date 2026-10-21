@@ -179,12 +179,17 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
 
     @Override
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
+        boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         if (calamityMultipart == this.mouth){
             this.hurt(source,value * 2f);
-            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
+            if (canApplyWeakPointDamage) {
+                SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
+            }
         }else if(calamityMultipart == this.rightcannon || calamityMultipart == this.leftcannon){
             this.hurt(source,value * 3f);
-            SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 2.0f);
+            if (canApplyWeakPointDamage) {
+                SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 2.0f);
+            }
         }else {
             this.hurt(source,value);
         }

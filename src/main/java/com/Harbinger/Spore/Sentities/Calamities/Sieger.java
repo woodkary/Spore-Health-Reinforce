@@ -321,10 +321,13 @@ public class Sieger extends Calamity implements RangedAttackMob, TrueCalamity {
     }
 
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
+        boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         if (calamityMultipart == this.tail || calamityMultipart == this.tail2){
             this.hurt(source,this.isAdapted() ? value:value * 2);
             if (!this.isAdapted()) {
-                SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
+                if (canApplyWeakPointDamage) {
+                    SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value);
+                }
             }
             float lostHealth = getTail()-this.getDamageAfterArmorAbsorb(source,value);
             this.setTail(lostHealth > 0 ? lostHealth : getTail() != 0 ? SummonDetashedTail() : 0f);
