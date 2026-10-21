@@ -377,7 +377,6 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
         }
     }
     public boolean hurt(CalamityMultipart calamityMultipart, DamageSource source, float value) {
-        boolean canApplyWeakPointDamage = !SporeEntityHeeaafastthManager.INSTANCE.isInvul(this, source);
         if (calamityMultipart == this.mouth){
             if (this.hurt(source,value*2f)) {
                 SporeEntityHeeaafastthManager.INSTANCE.hurrt(this, source, value * 0.8f);
