@@ -122,7 +122,9 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
 
     @Override
     public <U extends T> void getEntities(EntityTypeTest<T, U> p_261575_, AbortableIterationConsumer<U> p_261925_) {
-        this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        if(!(this.byId instanceof ISporeEntityStorage)) {
+            this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        }
         for (T entity : this.byId.values()) {
             if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
                 continue;
@@ -138,16 +140,24 @@ public final class SporeEntityLookup<T extends EntityAccess> extends EntityLooku
     public Iterable<T> getAllEntities() {
 
         // 保持你现有的保护逻辑（按你的要求不提前）
-        this.byId = SporeEntityByIdMap.newInstance(this.byId);
-        this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
+        if(!(this.byId instanceof ISporeEntityStorage)) {
+            this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        }
+        if(!(this.byUuid instanceof ISporeEntityStorage)){
+            this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
+        }
 
         return EntityIterable.newInstance(this.byId);
     }
 
     @Override
     public void add(T entity) {
-        this.byId = SporeEntityByIdMap.newInstance(this.byId);
-        this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
+        if(!(this.byId instanceof ISporeEntityStorage)) {
+            this.byId = SporeEntityByIdMap.newInstance(this.byId);
+        }
+        if(!(this.byUuid instanceof ISporeEntityStorage)){
+            this.byUuid = SporeEntityByUuidMap.newInstance(this.byUuid);
+        }
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
             return;
         }
