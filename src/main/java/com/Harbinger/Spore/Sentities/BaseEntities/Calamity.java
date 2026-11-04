@@ -544,7 +544,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
                     SporeAttackUtil.INSTANCE.playSound(this.level(), null, this.getX(), this.getY(), this.getZ(),
                             soundEvent, this.getSoundSource(), 1.0f, 1.0f);
                 }
-                if(SRPJudge.isSRPEntity(living)){
+                if(SRPJudge.isSRPLikeEntity(living)){
                     EntityHeealuthManager.INSTANCE.killEntity(living,source);
                 }else{
                     SporeAttackUtil.INSTANCE.dealDamage(living, this, source, 0.5f);
