@@ -1,8 +1,10 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sentities;
 import com.Harbinger.Spore.Core.Ssounds;
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -10,6 +12,7 @@ import com.Harbinger.Spore.Sentities.BaseEntities.UtilityEntity;
 import com.Harbinger.Spore.Sentities.Calamities.Hinderburg;
 import com.google.common.collect.Sets;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -19,6 +22,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -132,7 +136,7 @@ public class TumoroidNuke extends UtilityEntity{
     public void actuallyHurt(DamageSource source, float amount) {
 
     }
-    private void explodeEntity(LivingEntity source,double x,double y,double z,float radius) {
+    private void explodeEntity(LivingEntity source,boolean overlocked,double x,double y,double z,float radius) {
         float f2 = radius * 2.0F;
         int k1 = Mth.floor(x - (double)f2 - (double)1.0F);
         int l1 = Mth.floor(x + (double)f2 + (double)1.0F);
@@ -142,7 +146,7 @@ public class TumoroidNuke extends UtilityEntity{
         int j1 = Mth.floor(z + (double)f2 + (double)1.0F);
         List<Entity> list = this.level.getEntities(source, new AABB(k1, i2, j2, l1, i1, j1));
         Vec3 center = new Vec3(x, y, z);
-
+        DamageSource explosion = new DamageSource(this.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.EXPLOSION),this, source);
         for (Entity entity : list) {
             if(!(entity instanceof LivingEntity liv)||SporeJudge.isSporeEntity(entity)){
                 continue;
@@ -157,7 +161,11 @@ public class TumoroidNuke extends UtilityEntity{
             }
             double d14 = Explosion.getSeenPercent(center, entity);
             double d10 = ((double) 1.0F - d12) * d14;
-            SporeAttackUtil.INSTANCE.attack(liv,source,liv.damageSources().explosion(this,source),(float)((int)((d10 * d10 + d10) / (double)2.0F * (double)7.0F * (double)f2 + (double)1.0F)));
+            if(overlocked&&SRPJudge.isSRPLikeEntity(liv)){
+                SporeAttackUtil.INSTANCE.dealDamage(liv, explosion, 0.1f*(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(liv)+liv.getMaxHealth()));
+                liv.invulnerableTime=0;
+            }
+            SporeAttackUtil.INSTANCE.attack(liv,source, explosion,(float)((int)((d10 * d10 + d10) / (double)2.0F * (double)7.0F * (double)f2 + (double)1.0F)));
         }
 
     }
@@ -169,7 +177,7 @@ public class TumoroidNuke extends UtilityEntity{
             double y = this.getY() + offset.getY();
             double z = this.getZ() + offset.getZ();
             this.level().explode(entity, x,y,z,radius, explosion$blockinteraction);
-            this.explodeEntity(entity,x, y, z, radius);
+            this.explodeEntity(entity,fire,x, y, z, radius);
             if (fire && this.level() instanceof ServerLevel serverLevel){
                 Utilities.convertBlocks(serverLevel,this,this.getOnPos(),14, Blocks.FIRE.defaultBlockState());
             }
