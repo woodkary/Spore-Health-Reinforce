@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Utility;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.Sblocks;
 import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
@@ -159,6 +160,10 @@ public class NukeEntity extends Entity {
                 float damage = this.getDamage();
                 if (!SporeJudge.isSporeEntity(living) && EntityHeealuthManager.INSTANCE.rawIsAlliive(living)
                         && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
+                    if(SRPJudge.isSRPLikeEntity(living)){
+                        SporeAttackUtil.INSTANCE.dealDamage(living, source, 0.1f*(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living)+living.getMaxHealth()));
+                        living.invulnerableTime=0;
+                    }
                     SporeAttackUtil.INSTANCE.attack(living, source, damage);
                 }
                 living.hurt(source, damage);
