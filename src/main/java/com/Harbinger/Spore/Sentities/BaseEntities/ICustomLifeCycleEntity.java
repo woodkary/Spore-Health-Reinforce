@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
@@ -50,10 +51,15 @@ public interface ICustomLifeCycleEntity {
         if (!liv.isInvulnerableTo(source)&&
                 (!isProtoOrCalamity||!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv,source))) {
             boolean isFreezeDamage = source.is(DamageTypes.FREEZE);
+            boolean shouldLimitSRPDamage=!isFreezeDamage&&SRPJudge.isSRPEntity(source.getEntity());
             //Proto和Calamity会有限伤
             boolean shouldLimitDamage = isProtoOrCalamity && !isFreezeDamage;
             damage = ForgeHooks.onLivingHurt(liv, source, damage);
             float reduceRate = 1.0f;
+            if(shouldLimitSRPDamage){
+                //针对SRP来源的伤害：不超过10点
+                damage=Math.min(10.0f, damage);
+            }
             if(shouldLimitDamage){
                 reduceRate = 0.4f;
                 damage = Math.min(liv instanceof Proto?20.0f:liv.getMaxHealth() * reduceRate, damage);
@@ -85,6 +91,10 @@ public interface ICustomLifeCycleEntity {
                 f1 = Math.min(f1, oldF1);
             }
             if (f1 != 0.0F) {
+                if(shouldLimitSRPDamage){
+                    //针对SRP来源的伤害：不超过10点
+                    f1=Math.min(10.0f, f1);
+                }
                 if(shouldLimitDamage) {
                     f1 = Math.min(liv instanceof Proto?20.0f:liv.getMaxHealth() * reduceRate, f1);
                 }
