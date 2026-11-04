@@ -12,6 +12,7 @@ public final class SRPJudge {
         return !SporeJudge.isSporeEntity(entity)&&isSRPLikeEntity(entity);
     }
     public static boolean isSRPLikeEntity(Entity entity){
+        if(entity==null) return false;
         String lowerModId = EntityType.getKey(entity.getType()).getNamespace().toLowerCase(Locale.ROOT);
         return lowerModId.contains("srp")||
                 lowerModId.contains("scape")&&lowerModId.contains("run")&&lowerModId.contains("parasite");
