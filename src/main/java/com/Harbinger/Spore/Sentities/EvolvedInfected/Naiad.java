@@ -110,7 +110,7 @@ public class Naiad extends EvolvedInfected implements WaterInfected, VariantKeep
             }
         });
         if(SRPJudge.isSRPLikeModLoaded()){
-            this.targetSelector.addGoal(0,new NoLOSNearestAttackableTargetGoal<>
+            this.targetSelector.addGoal(1,new NoLOSNearestAttackableTargetGoal<>
                     (this,LivingEntity.class,10,false,false, SRPJudge::isSRPEntity){
                 @Override
                 protected AABB getTargetSearchArea(double targetDistance) {
