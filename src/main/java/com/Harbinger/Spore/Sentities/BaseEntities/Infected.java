@@ -244,8 +244,8 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
                 (this, LivingEntity.class,  true, livingEntity -> {return SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity);}));
 
         if(SRPJudge.isSRPLikeModLoaded()){
-            this.targetSelector.addGoal(1,new NoLOSNearestAttackableTargetGoal<>
-                    (this,LivingEntity.class,10,false,false, SRPJudge::isSRPEntity){
+            this.targetSelector.addGoal(1,new NearestAttackableTargetGoal<>
+                    (this,LivingEntity.class,10,true,false, SRPJudge::isSRPEntity){
                 @Override
                 protected AABB getTargetSearchArea(double value) {
                     return this.mob.getBoundingBox().inflate(value, value, value);

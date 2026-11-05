@@ -129,14 +129,14 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
     protected void addTargettingGoals(){
         this.goalSelector.addGoal(2, new HurtTargetGoal(this , livingEntity -> TARGET_SELECTOR.test(livingEntity), Infected.class).setAlertOthers(Infected.class));
         this.targetSelector.addGoal(1, new NoLOSNearestAttackableTargetGoal<>
-                (this, LivingEntity.class,  true,livingEntity -> livingEntity instanceof Player || SConfig.SERVER.whitelist.get().contains(livingEntity.getEncodeId())){
+                (this, LivingEntity.class,  10,false,false,livingEntity -> livingEntity instanceof Player || SConfig.SERVER.whitelist.get().contains(livingEntity.getEncodeId())){
             @Override
             protected AABB getTargetSearchArea(double value) {
                 return this.mob.getBoundingBox().inflate(value, value, value);
             }
         });
         this.targetSelector.addGoal(1, new NoLOSNearestAttackableTargetGoal<>
-                (this, LivingEntity.class,  true, livingEntity -> SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity)){
+                (this, LivingEntity.class,  10,false,false, livingEntity -> SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity)){
             @Override
             protected AABB getTargetSearchArea(double value) {
                 return this.mob.getBoundingBox().inflate(value, value, value);
