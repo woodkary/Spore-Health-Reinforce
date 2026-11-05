@@ -1,11 +1,13 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.customEntityData.SporeEntityData;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
+import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.NoLOSNearestAttackableTargetGoal;
 import com.Harbinger.Spore.Sentities.AI.HurtTargetGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -173,6 +175,15 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
                 return this.mob.getBoundingBox().inflate(value, value, value);
             }
         });
+        if(SRPJudge.isSRPLikeModLoaded()){
+            this.targetSelector.addGoal(0,new NoLOSNearestAttackableTargetGoal<>
+                    (this,LivingEntity.class,10,false,false, SRPJudge::isSRPEntity){
+                @Override
+                protected AABB getTargetSearchArea(double value) {
+                    return this.mob.getBoundingBox().inflate(value, value, value);
+                }
+            });
+        }
     }
     @Override
     public boolean canAttack(LivingEntity target) {

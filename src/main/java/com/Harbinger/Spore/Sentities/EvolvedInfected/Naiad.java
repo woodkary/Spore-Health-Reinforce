@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.EvolvedInfected;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Seffects;
@@ -7,6 +8,7 @@ import com.Harbinger.Spore.Core.Ssounds;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
+import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.NoLOSNearestAttackableTargetGoal;
 import com.Harbinger.Spore.Sentities.AI.CustomMeleeAttackGoal;
 import com.Harbinger.Spore.Sentities.AI.HurtTargetGoal;
 import com.Harbinger.Spore.Sentities.AI.HybridPathNavigation;
@@ -107,6 +109,15 @@ public class Naiad extends EvolvedInfected implements WaterInfected, VariantKeep
                 return this.mob.getBoundingBox().inflate(targetDistance);
             }
         });
+        if(SRPJudge.isSRPLikeModLoaded()){
+            this.targetSelector.addGoal(0,new NoLOSNearestAttackableTargetGoal<>
+                    (this,LivingEntity.class,10,false,false, SRPJudge::isSRPEntity){
+                @Override
+                protected AABB getTargetSearchArea(double targetDistance) {
+                    return this.mob.getBoundingBox().inflate(targetDistance);
+                }
+            });
+        }
     }
 
     @Override

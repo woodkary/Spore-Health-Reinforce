@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Calamities;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
@@ -141,6 +142,15 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
                 return this.mob.getBoundingBox().inflate(value, value, value);
             }
         });
+        if(SRPJudge.isSRPLikeModLoaded()){
+            this.targetSelector.addGoal(0,new NoLOSNearestAttackableTargetGoal<>
+                    (this,LivingEntity.class,10,false,false, SRPJudge::isSRPEntity){
+                @Override
+                protected AABB getTargetSearchArea(double value) {
+                    return this.mob.getBoundingBox().inflate(value, value, value);
+                }
+            });
+        }
     }
 
     @Override

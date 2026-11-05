@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.BaseEntities;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.customEntityData.SporeEntityData;
@@ -10,6 +11,7 @@ import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Sblocks.WallRemainsBlock;
 import com.Harbinger.Spore.Sentities.*;
+import com.Harbinger.Spore.Sentities.AI.CalamitiesAI.NoLOSNearestAttackableTargetGoal;
 import com.Harbinger.Spore.Sentities.AI.FloatDiveGoal;
 import com.Harbinger.Spore.Sentities.AI.HurtTargetGoal;
 import com.Harbinger.Spore.Sentities.AI.InfectedConsumeFromRemains;
@@ -17,6 +19,7 @@ import com.Harbinger.Spore.Sentities.AI.InfectedPanicGoal;
 import com.Harbinger.Spore.Sentities.AI.LocHiv.*;
 import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
 import com.Harbinger.Spore.Sentities.Projectile.Vomit;
+import mezz.jei.api.constants.ModIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -59,6 +62,7 @@ import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -238,7 +242,17 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
                 (this, LivingEntity.class,  true,livingEntity -> {return livingEntity instanceof Player || SConfig.SERVER.whitelist.get().contains(livingEntity.getEncodeId());}));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>
                 (this, LivingEntity.class,  true, livingEntity -> {return SConfig.SERVER.at_mob.get() && TARGET_SELECTOR.test(livingEntity);}));
-      }
+
+        if(SRPJudge.isSRPLikeModLoaded()){
+            this.targetSelector.addGoal(0,new NoLOSNearestAttackableTargetGoal<>
+                    (this,LivingEntity.class,10,false,false, SRPJudge::isSRPEntity){
+                @Override
+                protected AABB getTargetSearchArea(double value) {
+                    return this.mob.getBoundingBox().inflate(value, value, value);
+                }
+            });
+        }
+    }
 
     protected void addRegularGoals(){
         this.goalSelector.addGoal(3,new LocalTargettingGoal(this));
