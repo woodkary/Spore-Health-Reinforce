@@ -162,7 +162,7 @@ public class TumoroidNuke extends UtilityEntity{
             double d14 = Explosion.getSeenPercent(center, entity);
             double d10 = ((double) 1.0F - d12) * d14;
             if(overlocked&&SRPJudge.isSRPLikeEntity(liv)){
-                SporeAttackUtil.INSTANCE.dealDamage(liv, explosion, 0.1f*(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(liv)+liv.getMaxHealth()));
+                SporeAttackUtil.INSTANCE.dealDamage(liv, explosion, 0.05f*(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(liv)+liv.getMaxHealth()));
                 liv.invulnerableTime=0;
             }
             SporeAttackUtil.INSTANCE.attack(liv,source, explosion,(float)((int)((d10 * d10 + d10) / (double)2.0F * (double)7.0F * (double)f2 + (double)1.0F)));

@@ -1151,7 +1151,7 @@ public class HandlerEvents {
             return;
         }
         float currentHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity);
-        float extraDamage=0.1f*(entity.getMaxHealth()+currentHealth);
+        float extraDamage=0.05f*(entity.getMaxHealth()+currentHealth);
         float newTargetHealth=currentHealth-extraDamage;
         if(newTargetHealth<=0.0f){
             EntityHeealuthManager.INSTANCE.killEntity(entity,event.getSource());

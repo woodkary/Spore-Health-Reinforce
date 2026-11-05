@@ -161,7 +161,7 @@ public class NukeEntity extends Entity {
                 if (!SporeJudge.isSporeEntity(living) && EntityHeealuthManager.INSTANCE.rawIsAlliive(living)
                         && !(living instanceof Player player && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
                     if(SRPJudge.isSRPLikeEntity(living)){
-                        SporeAttackUtil.INSTANCE.dealDamage(living, source, 0.1f*(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living)+living.getMaxHealth()));
+                        SporeAttackUtil.INSTANCE.dealDamage(living, source, 0.05f*(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(living)+living.getMaxHealth()));
                         living.invulnerableTime=0;
                     }
                     SporeAttackUtil.INSTANCE.attack(living, source, damage);
