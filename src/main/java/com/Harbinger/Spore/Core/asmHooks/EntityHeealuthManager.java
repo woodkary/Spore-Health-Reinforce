@@ -494,6 +494,15 @@ public final class EntityHeealuthManager implements IEntityHealth {
             heal(entity,-damage,source);
             return;
         }
+        float absorption=entity.getAbsorptionAmount();
+        if(absorption>0.0f){
+            float newAbsorption=Math.max(absorption-damage,0.0f);
+            entity.setAbsorptionAmount(newAbsorption);
+            damage-=absorption;
+        }
+        if(damage<=0.0f){
+            return;
+        }
         if(source!=null){
             entity.getCombatTracker().recordDamage(source,damage);
         }
