@@ -6,6 +6,7 @@ import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.attack.SporeAttackUtil;
+import com.Harbinger.Spore.Core.utils.effects.NoSRPEffectMapProxy;
 import com.Harbinger.Spore.Damage.SdamageTypes;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.SporeSavedData;
@@ -37,6 +38,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -84,6 +86,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
 
     public Calamity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
+        this.activeEffects = NoSRPEffectMapProxy.newInstance(this.activeEffects);
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
         this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_OTHER, 16.0F);
@@ -97,6 +100,47 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         this.setLegalPosition(Vec3.ZERO);
         this.initDATA_HEALTH_IDToZero();
         ClassReflectionUtil.removeSpecialFieldsCache(Calamity.class,"isSpecialDeaf","lastLegalPosition");
+    }
+    @Override
+    public boolean canBeAffected(MobEffectInstance eff) {
+        return !SRPJudge.isSRPEffect(eff.getEffect())&&super.canBeAffected(eff);
+    }
+    @Override
+    public boolean hasEffect(MobEffect eff) {
+        return !SRPJudge.isSRPEffect(eff)&&this.activeEffects.containsKey(eff);
+    }
+    @Override
+    @javax.annotation.Nullable
+    public MobEffectInstance getEffect(MobEffect eff) {
+        return SRPJudge.isSRPEffect(eff)?null:this.activeEffects.get(eff);
+    }
+    @Override
+    public void forceAddEffect(MobEffectInstance p_147216_, @javax.annotation.Nullable Entity p_147217_) {
+        if(SRPJudge.isSRPEffect(p_147216_.getEffect())){
+            return;
+        }
+        super.forceAddEffect(p_147216_, p_147217_);
+    }
+    @Override
+    public void onEffectAdded(MobEffectInstance p_147190_, @javax.annotation.Nullable Entity p_147191_) {
+        if(SRPJudge.isSRPEffect(p_147190_.getEffect())){
+            return;
+        }
+        super.onEffectAdded(p_147190_, p_147191_);
+    }
+    @Override
+    public void sendEffectToPassengers(MobEffectInstance p_289695_) {
+        if(SRPJudge.isSRPEffect(p_289695_.getEffect())){
+            return;
+        }
+        super.sendEffectToPassengers(p_289695_);
+    }
+    @Override
+    public void onEffectUpdated(MobEffectInstance p_147192_, boolean p_147193_, @javax.annotation.Nullable Entity p_147194_) {
+        if(SRPJudge.isSRPEffect(p_147192_.getEffect())){
+            return;
+        }
+        super.onEffectUpdated(p_147192_, p_147193_, p_147194_);
     }
 
     protected int calculateFallDamage(float p_149389_, float p_149390_) {
@@ -781,7 +825,7 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
         if (instance.getEffect().getCategory() == MobEffectCategory.HARMFUL && instance.getAmplifier() < 1){
             return false;
         }
-        return super.addEffect(instance, entity);
+        return !SRPJudge.isSRPEffect(instance.getEffect())&&super.addEffect(instance, entity);
     }
     public List<ItemStack> getDroppedItems(int val) {
         List<ItemStack> drops = new ArrayList<>();
