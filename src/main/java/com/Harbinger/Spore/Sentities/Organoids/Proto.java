@@ -164,6 +164,38 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     public MobEffectInstance getEffect(MobEffect eff) {
         return SRPJudge.isSRPEffect(eff)?null:this.activeEffects.get(eff);
     }
+    @Override
+    public boolean addEffect(MobEffectInstance eff, @Nullable Entity p_147209_) {
+        return !SRPJudge.isSRPEffect(eff.getEffect())&&super.addEffect(eff, p_147209_);
+    }
+    @Override
+    public void forceAddEffect(MobEffectInstance p_147216_, @Nullable Entity p_147217_) {
+        if(SRPJudge.isSRPEffect(p_147216_.getEffect())){
+            return;
+        }
+        super.forceAddEffect(p_147216_, p_147217_);
+    }
+    @Override
+    public void onEffectAdded(MobEffectInstance p_147190_, @Nullable Entity p_147191_) {
+        if(SRPJudge.isSRPEffect(p_147190_.getEffect())){
+            return;
+        }
+        super.onEffectAdded(p_147190_, p_147191_);
+    }
+    @Override
+    public void sendEffectToPassengers(MobEffectInstance p_289695_) {
+        if(SRPJudge.isSRPEffect(p_289695_.getEffect())){
+            return;
+        }
+        super.sendEffectToPassengers(p_289695_);
+    }
+    @Override
+    public void onEffectUpdated(MobEffectInstance p_147192_, boolean p_147193_, @Nullable Entity p_147194_) {
+        if(SRPJudge.isSRPEffect(p_147192_.getEffect())){
+            return;
+        }
+        super.onEffectUpdated(p_147192_, p_147193_, p_147194_);
+    }
 
     @Nullable
     public Signal signal;
