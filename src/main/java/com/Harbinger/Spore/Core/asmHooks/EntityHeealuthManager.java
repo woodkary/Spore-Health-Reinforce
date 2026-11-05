@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.customEntityData.UnmodifiableEntityData;
 import com.Harbinger.Spore.Core.utils.*;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
@@ -495,7 +496,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
             return;
         }
         float absorption=entity.getAbsorptionAmount();
-        if(absorption>0.0f){
+        if(absorption>0.0f&&!SRPJudge.isSRPEntity(entity)){
             float newAbsorption=Math.max(absorption-damage,0.0f);
             entity.setAbsorptionAmount(newAbsorption);
             damage-=absorption;
