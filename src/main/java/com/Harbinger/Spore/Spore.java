@@ -98,7 +98,7 @@ public class Spore {
         MinecraftForge.EVENT_BUS.addListener(CustomDeathTimeManager.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener(TickableLivingRetransformManager.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onPlayerAttack);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onSRPEntityAttack);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST,HandlerEvents::onSRPEntityAttack);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onPlayerDeath);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onScreenOpening);
     }
