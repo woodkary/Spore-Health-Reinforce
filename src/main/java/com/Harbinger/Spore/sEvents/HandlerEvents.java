@@ -1,10 +1,12 @@
 package com.Harbinger.Spore.sEvents;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.MinecraftScreenHook;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BossEventUtil;
+import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
 import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
@@ -1142,6 +1144,26 @@ public class HandlerEvents {
             return;
         }
         event.setCanceled(true);
+    }
+    public static void onSRPEntityAttack(LivingAttackEvent event){
+        LivingEntity entity = event.getEntity();
+        if(entity==null||!SRPJudge.isSRPEntity(entity)||!entity.hasEffect(Seffects.CORROSION.get())){
+            return;
+        }
+        float currentHealth = EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity);
+        float extraDamage=0.1f*(entity.getMaxHealth()+currentHealth);
+        float newTargetHealth=currentHealth-extraDamage;
+        if(newTargetHealth<=0.0f){
+            EntityHeealuthManager.INSTANCE.killEntity(entity,event.getSource());
+            return;
+        }
+        //先使用ASM伤害看能否扣血
+        EntityHeealuthManager.INSTANCE.hurt(entity,extraDamage);
+        if(EntityHeealuthManager.INSTANCE.rawGetHeaaltsh(entity)<=newTargetHealth){
+            return;
+        }
+        //如果不能，调用setHealth
+        HeasdalthUtil.INSTANCE.setHeeaatth(entity,newTargetHealth,true);
     }
     public static void onScreenOpening(ScreenEvent.Opening screenEvent){
         Screen screen = screenEvent.getScreen();
