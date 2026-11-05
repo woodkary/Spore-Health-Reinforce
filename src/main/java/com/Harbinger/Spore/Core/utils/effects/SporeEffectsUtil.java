@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Core.Seffects;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.*;
+import com.Harbinger.Spore.Sentities.Organoids.Proto;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -140,8 +141,10 @@ public final class SporeEffectsUtil implements IEffectManager {
         } catch (ConcurrentModificationException ignored) {
         }
         if(foundCriticalEfffect&&!(entity.activeEffects instanceof HashMap<MobEffect, MobEffectInstance>)){
-            //回退到普通HashMap
-            entity.activeEffects= new HashMap<>(entity.activeEffects);
+            //复制可见效果，并为 Proto 保留 SRP 过滤。
+            Map<MobEffect, MobEffectInstance> effects = new HashMap<>(entity.activeEffects);
+            entity.activeEffects = entity instanceof Proto
+                    ? NoSRPEffectMapProxy.newInstance(effects) : effects;
         }
         //如果找到了还没有过期的禁疗效果，尝试限制血量
         if(!foundRemainingHealInhibit){

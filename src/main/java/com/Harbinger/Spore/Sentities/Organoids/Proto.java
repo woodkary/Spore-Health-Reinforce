@@ -1,11 +1,13 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
+import com.Harbinger.Spore.Core.utils.effects.NoSRPEffectMapProxy;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
@@ -38,6 +40,7 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -102,6 +105,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     private static final int MAX_SIGNAL_SUMMON_ATTEMPTS = 20;
     public Proto(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
+        this.activeEffects = NoSRPEffectMapProxy.newInstance(this.activeEffects);
         setPersistenceRequired();
         initializeValues();
         this.setLegalPosition(Vec3.ZERO);
@@ -146,6 +150,19 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         ResourceLocation location = new ResourceLocation(s);
         Entity entity = ForgeRegistries.ENTITY_TYPES.getValue(location).create(level());
         return entity instanceof VariantKeeper keeper ? this.getRandom().nextInt(keeper.amountOfMutations()) : -1;
+    }
+    @Override
+    public boolean canBeAffected(MobEffectInstance eff) {
+        return !SRPJudge.isSRPEffect(eff.getEffect())&&super.canBeAffected(eff);
+    }
+    @Override
+    public boolean hasEffect(MobEffect eff) {
+        return !SRPJudge.isSRPEffect(eff)&&this.activeEffects.containsKey(eff);
+    }
+    @Override
+    @Nullable
+    public MobEffectInstance getEffect(MobEffect eff) {
+        return SRPJudge.isSRPEffect(eff)?null:this.activeEffects.get(eff);
     }
 
     @Nullable
@@ -1177,4 +1194,5 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
     public float getDefault0HllealthDelta() {
         return this.entityData.get(DATA_HEALTH);
     }
+
 }
