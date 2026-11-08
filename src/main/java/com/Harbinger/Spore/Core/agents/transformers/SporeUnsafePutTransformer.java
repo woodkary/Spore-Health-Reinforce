@@ -17,9 +17,12 @@ import com.Harbinger.Spore.Core.agents.IInstrumentations;
 import com.Harbinger.Spore.Core.agents.InstrumentationUtil;
 import com.Harbinger.Spore.Core.agents.IJVNTIPointer;
 import com.Harbinger.Spore.Core.agents.JVMTIPointerUtil;
+
 import java.util.Locale;
 
-/** Guards Unsafe put/putVolatile calls made by mod classes. */
+/**
+ * Guards Unsafe put/putVolatile calls made by mod classes.
+ */
 public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 implements SelfTransformer {
     private static final String HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/IUnsafePutHook";
     private static final String UNSAFE_PUT_HOOK_OWNER = "com/Harbinger/Spore/Core/asmHooks/UnsafePutHook";
@@ -49,7 +52,7 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
     }
 
     public static ClassFileTransformer newInstance() {
-        if(constructor==null) {
+        if (constructor == null) {
             try {
                 constructor = ClassUtil.getLookup().findConstructor(
                         TRANSFORM_CLASS, java.lang.invoke.MethodType.methodType(void.class));
@@ -104,8 +107,7 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
                     if (insn instanceof MethodInsnNode call) {
                         if (isUnsafePut(call)) {
                             modified |= patchUnsafePut(method, call, (wrapperReads & wrapperWriteKind(call)) != 0);
-                        }
-                        else if (isMethodHandleInvoke(call)) modified |= patchMethodHandleInvoke(method, call);
+                        } else if (isMethodHandleInvoke(call)) modified |= patchMethodHandleInvoke(method, call);
                     }
                     insn = next;
                 }
@@ -126,7 +128,8 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
 
     private boolean patchUnsafePut(MethodNode method, MethodInsnNode call, boolean protectWrapper) {
         Type[] args = Type.getArgumentTypes(call.desc);
-        if (args.length == 0 || !isExactObject(args[0]) || Type.getReturnType(call.desc).getSort() != Type.VOID) return false;
+        if (args.length == 0 || !isExactObject(args[0]) || Type.getReturnType(call.desc).getSort() != Type.VOID)
+            return false;
         if (protectWrapper && hasWrapperGuard(call, args)) return false;
         int[] locals = allocateLocals(method, args, true);
         InsnList code = new InsnList();
@@ -294,22 +297,43 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
         for (int i = 0; i < args.length; i++) code.add(new VarInsnNode(loadOpcode(args[i]), locals[i]));
     }
 
-    private int storeOpcode(Type t) { return t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY ? Opcodes.ASTORE : t.getOpcode(Opcodes.ISTORE); }
-    private int loadOpcode(Type t) { return t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY ? Opcodes.ALOAD : t.getOpcode(Opcodes.ILOAD); }
-    private boolean isExactObject(Type t) { return t.getSort() == Type.OBJECT && "java/lang/Object".equals(t.getInternalName()); }
-    private boolean isReference(Type t) { return t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY; }
+    private int storeOpcode(Type t) {
+        return t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY ? Opcodes.ASTORE : t.getOpcode(Opcodes.ISTORE);
+    }
+
+    private int loadOpcode(Type t) {
+        return t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY ? Opcodes.ALOAD : t.getOpcode(Opcodes.ILOAD);
+    }
+
+    private boolean isExactObject(Type t) {
+        return t.getSort() == Type.OBJECT && "java/lang/Object".equals(t.getInternalName());
+    }
+
+    private boolean isReference(Type t) {
+        return t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY;
+    }
+
     private boolean isUnsafePut(MethodInsnNode c) {
-        if (!isUnsafeOwner(c.owner) || c.getOpcode() != Opcodes.INVOKEVIRTUAL || !c.name.startsWith("put")) return false;
+        if (!isUnsafeOwner(c.owner) || c.getOpcode() != Opcodes.INVOKEVIRTUAL || !c.name.startsWith("put"))
+            return false;
         Type[] args = Type.getArgumentTypes(c.desc);
         return args.length > 0 && isExactObject(args[0]);
     }
+
     private boolean isMethodHandleInvoke(MethodInsnNode c) {
         return c.getOpcode() == Opcodes.INVOKEVIRTUAL
                 && METHOD_HANDLE_OWNER.equals(c.owner)
                 && ("invoke".equals(c.name) || "invokeExact".equals(c.name));
     }
-    private boolean isUnsafeOwner(String owner) { for (String s : UNSAFE_OWNERS) if (s.equals(owner)) return true; return false; }
-    private boolean shouldSkip(String name) { return name.equals(SporeUnsafePutTransformer.class.getName()) || name.equals(UnsafePutHook.class.getName()) || name.equals("com.Harbinger.Spore.Core.asmHooks.IUnsafePutHook"); }
+
+    private boolean isUnsafeOwner(String owner) {
+        for (String s : UNSAFE_OWNERS) if (s.equals(owner)) return true;
+        return false;
+    }
+
+    private boolean shouldSkip(String name) {
+        return name.equals(SporeUnsafePutTransformer.class.getName()) || name.equals(UnsafePutHook.class.getName()) || name.equals("com.Harbinger.Spore.Core.asmHooks.IUnsafePutHook");
+    }
 
     // Kept private and self-contained so loading this transformer does not link StackTraceUtil.
     private boolean isBadModNameCopy(String name) {
@@ -319,12 +343,30 @@ public final class SporeUnsafePutTransformer extends SporeClassFileTransformer0 
         if (isVanilla(name) || isWhiteListed(name)) return false;
         return true;
     }
+
     private boolean isVanilla(String n) {
-        if (n.startsWith("net.minecraft.")) { String s=n.substring(14); return !s.contains(".") || starts(s,"advancements","client","commands","core","data","gametest","locale","nbt","network","obfuscate","realms","recipebook","resources","server","sounds","stats","tags","util","world"); }
-        if (n.startsWith("cpw.mods.")) { String s=n.substring(9); return !s.contains(".") || starts(s,"cl","jarhandling","niofs","util","modlauncher","bootstraplauncher"); }
-        return starts(n,"com.electronwill.","com.google.","com.mojang.","com.sun.","cpw.mods.","io.netty.","it.unimi.","java.","javax.","jdk.","joptsimple.","net.minecraftforge.","net.minecrell.","org.antlr.","org.apache.","org.lwjgl.","org.joml.","org.objectweb.","org.openjdk.","org.slf4j.","org.spongepowered.","sun.");
+        if (n.startsWith("net.minecraft.")) {
+            String s = n.substring(14);
+            return !s.contains(".") || starts(s, "advancements", "client", "commands", "core", "data", "gametest", "locale", "nbt", "network", "obfuscate", "realms", "recipebook", "resources", "server", "sounds", "stats", "tags", "util", "world");
+        }
+        if (n.startsWith("cpw.mods.")) {
+            String s = n.substring(9);
+            return !s.contains(".") || starts(s, "cl", "jarhandling", "niofs", "util", "modlauncher", "bootstraplauncher");
+        }
+        return starts(n, "com.electronwill.", "com.google.", "com.mojang.", "com.sun.", "cpw.mods.", "io.netty.", "it.unimi.", "java.", "javax.", "jdk.", "joptsimple.", "net.minecraftforge.", "net.minecrell.", "org.antlr.", "org.apache.", "org.lwjgl.", "org.joml.", "org.objectweb.", "org.openjdk.", "org.slf4j.", "org.spongepowered.", "sun.");
     }
-    private boolean isWhiteListed(String n) { return starts(n,"com.llamalad7.mixinextras.","me.jellysquid.mods.sodium.","net.irisshaders.iris.","net.irisshaders.batchedentityrendering.","dev.tr7zw.entityculling.","net.raphimc.immediatelyfast.","malte0811.ferritecore.","software.bernie.geckolib.","com.supermartijn642.fusion.","com.supermartijn642.core.","dev.architectury.","top.theillusivec4.caelus.","com.github.alexthe666.citadel.","top.theillusivec4.curios.","virtuoel.pehkui.","dev.kosmx.playerAnim.","optifine.","net.optifine.","mezz.jei.","fi.dy.masa.tweakeroo","oshi.","io.github.flemmli97.mobbattle."); }
-    private boolean starts(String n,String... p){ for(String s:p) if(n.startsWith(s)) return true; return false; }
-    @Override public byte[] transformClassByte(ClassLoader loader, String className, byte[] classfileBuffer) { return transformInternal(loader,className,classfileBuffer); }
+
+    private boolean isWhiteListed(String n) {
+        return starts(n, "com.llamalad7.mixinextras.", "me.jellysquid.mods.sodium.", "net.irisshaders.iris.", "net.irisshaders.batchedentityrendering.", "dev.tr7zw.entityculling.", "net.raphimc.immediatelyfast.", "malte0811.ferritecore.", "software.bernie.geckolib.", "com.supermartijn642.fusion.", "com.supermartijn642.core.", "dev.architectury.", "top.theillusivec4.caelus.", "com.github.alexthe666.citadel.", "top.theillusivec4.curios.", "virtuoel.pehkui.", "dev.kosmx.playerAnim.", "optifine.", "net.optifine.", "mezz.jei.", "fi.dy.masa.tweakeroo", "oshi.", "io.github.flemmli97.mobbattle.");
+    }
+
+    private boolean starts(String n, String... p) {
+        for (String s : p) if (n.startsWith(s)) return true;
+        return false;
+    }
+
+    @Override
+    public byte[] transformClassByte(ClassLoader loader, String className, byte[] classfileBuffer) {
+        return transformInternal(loader, className, classfileBuffer);
+    }
 }
