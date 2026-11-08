@@ -22,6 +22,7 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public final class SporeChunkMap extends ChunkMap {
@@ -52,6 +53,13 @@ public final class SporeChunkMap extends ChunkMap {
         try {
             super.addEntity(entity);
         }catch (Throwable ignored) {}
+    }
+    @Override
+    protected void tick(BooleanSupplier p_140281_) {
+        if(!(this.entityMap instanceof ISporeEntityStorage)){
+            this.entityMap= SporeTrackedEntityMap.newInstance(this.entityMap);
+        }
+        super.tick(p_140281_);
     }
     @Override
     protected void tick() {
