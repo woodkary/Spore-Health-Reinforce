@@ -175,15 +175,6 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
                 return this.mob.getBoundingBox().inflate(value, value, value);
             }
         });
-        if(SRPJudge.isSRPLikeModLoaded()){
-            this.targetSelector.addGoal(1,new NearestAttackableTargetGoal<>
-                    (this,LivingEntity.class,10,true,false, SRPJudge::isSRPEntity){
-                @Override
-                protected AABB getTargetSearchArea(double value) {
-                    return this.mob.getBoundingBox().inflate(value, value, value);
-                }
-            });
-        }
     }
     @Override
     public boolean canAttack(LivingEntity target) {

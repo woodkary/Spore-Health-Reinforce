@@ -142,15 +142,6 @@ public class Howitzer extends Calamity implements TrueCalamity, RangedAttackMob 
                 return this.mob.getBoundingBox().inflate(value, value, value);
             }
         });
-        if(SRPJudge.isSRPLikeModLoaded()){
-            this.targetSelector.addGoal(1,new NoLOSNearestAttackableTargetGoal<>
-                    (this,LivingEntity.class,10,false,false, SRPJudge::isSRPEntity){
-                @Override
-                protected AABB getTargetSearchArea(double value) {
-                    return this.mob.getBoundingBox().inflate(value, value, value);
-                }
-            });
-        }
     }
 
     @Override

@@ -206,15 +206,6 @@ public class Gargoyl extends EvolvedInfected implements FlyingInfected, ArmedInf
                 return this.mob.getBoundingBox().inflate(targetDistance, targetDistance, targetDistance);
             }
         });
-        if(SRPJudge.isSRPLikeModLoaded()){
-            this.targetSelector.addGoal(1,new NearestAttackableTargetGoal<>
-                    (this,LivingEntity.class,10,true,false, SRPJudge::isSRPEntity){
-                @Override
-                protected AABB getTargetSearchArea(double targetDistance) {
-                    return this.mob.getBoundingBox().inflate(targetDistance, targetDistance, targetDistance);
-                }
-            });
-        }
     }
 
     public void setAttackTicks(int value){
