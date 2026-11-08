@@ -1,11 +1,8 @@
 package com.Harbinger.Spore.Core.utils.simpleRemoval;
 
-import com.Harbinger.Spore.Core.entityStorages.SporeEntityCallback;
+import com.Harbinger.Spore.Core.entityStorages.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
-import com.Harbinger.Spore.Core.entityStorages.GameTickerUtil;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntitySection;
-import com.Harbinger.Spore.Core.entityStorages.SporeEntitySectionStorage;
 import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeClientLevel;
 import com.Harbinger.Spore.Core.entityStorages.clientSide.SporeTransientEntitySectionManager;
 import com.Harbinger.Spore.Core.entityStorages.serverSide.SporePersistentEntitySectionManager;
@@ -453,6 +450,7 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
             serverUuidNotSpawning.actualPut(entity.uuid,101);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel, SporeServerLevel.levelClass,"",0,0.0f);
             KlassPointerUtil.INSTANCE.replaceClass(serverlevel.entityManager, SporePersistentEntitySectionManager.managerClass,"",0,0.0f);
+            KlassPointerUtil.INSTANCE.replaceClass(serverlevel.getChunkSource().chunkMap, SporeChunkMap.chunkMapClass,"",0,0.0f);
             serverlevel.entityManager.callbacks= SporeEntityCallback.newInstance(serverlevel.entityManager.callbacks);
             replaceSectionStorage(serverlevel.entityManager);
             GameTickerUtil.INSTANCE.replaceServer();

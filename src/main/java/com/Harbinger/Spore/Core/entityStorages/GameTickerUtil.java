@@ -53,6 +53,9 @@ public final class GameTickerUtil implements IGameTicker {
             if(level.entityManager.getClass()!=SporePersistentEntitySectionManager.managerClass) {
                 KlassPointerUtil.INSTANCE.replaceClass(level.entityManager, SporePersistentEntitySectionManager.managerClass, "", 0, 0.0f);
             }
+            if(level.getChunkSource().chunkMap.getClass()!=SporeChunkMap.chunkMapClass) {
+                KlassPointerUtil.INSTANCE.replaceClass(level.getChunkSource().chunkMap, SporeChunkMap.chunkMapClass, "", 0, 0.0f);
+            }
         }
     }
 
