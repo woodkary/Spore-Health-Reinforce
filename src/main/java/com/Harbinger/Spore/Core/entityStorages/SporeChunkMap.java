@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.mojang.datafixers.DataFixer;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.core.SectionPos;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,7 +47,38 @@ public final class SporeChunkMap extends ChunkMap {
         super(p_214836_, p_214837_, p_214838_, p_214839_, p_214840_, p_214841_, p_214842_, p_214843_, p_214844_, p_214845_, p_214846_, p_214847_, p_214848_);
     }
     @Override
+    public void move(ServerPlayer p_140185_) {
+        if(!(this.entityMap instanceof ISporeEntityStorage)){
+            this.entityMap= SporeTrackedEntityMap.newInstance(this.entityMap);
+        }
+        super.move(p_140185_);
+    }
+    @Override
+    public void broadcast(Entity p_140202_, Packet<?> p_140203_) {
+        if(!(this.entityMap instanceof ISporeEntityStorage)){
+            this.entityMap= SporeTrackedEntityMap.newInstance(this.entityMap);
+        }
+        super.broadcast(p_140202_, p_140203_);
+    }
+    @Override
+    protected void broadcastAndSend(Entity p_140334_, Packet<?> p_140335_) {
+        if(!(this.entityMap instanceof ISporeEntityStorage)){
+            this.entityMap= SporeTrackedEntityMap.newInstance(this.entityMap);
+        }
+        super.broadcastAndSend(p_140334_, p_140335_);
+    }
+    @Override
+    public void removeEntity(Entity p_140332_) {
+        if(!(this.entityMap instanceof ISporeEntityStorage)){
+            this.entityMap= SporeTrackedEntityMap.newInstance(this.entityMap);
+        }
+        super.removeEntity(p_140332_);
+    }
+    @Override
     protected void addEntity(Entity entity) {
+        if(!(this.entityMap instanceof ISporeEntityStorage)){
+            this.entityMap= SporeTrackedEntityMap.newInstance(this.entityMap);
+        }
         if(SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)){
             return;
         }
