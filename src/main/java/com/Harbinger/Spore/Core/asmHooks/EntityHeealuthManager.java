@@ -303,6 +303,7 @@ public final class EntityHeealuthManager implements IEntityHealth {
         }catch (Exception ignored){}
         return false;
     }
+    @Override
     public boolean trueDeeauth(Entity entity) {
         return hasSporeDeadFlag(entity)||
                 entity instanceof LivingEntity liv &&
@@ -349,7 +350,8 @@ public final class EntityHeealuthManager implements IEntityHealth {
         Package pkg = clazz.getPackage();
         return pkg != null && pkg.getName().toLowerCase(Locale.ROOT).contains("spore");
     }
-    private boolean hasSporeDeadFlag(Entity entity) {
+    @Override
+    public boolean hasSporeDeadFlag(Entity entity) {
         return entity.getPersistentData().contains(SPORE_DEAD_FLAG);
     }
     public boolean isDeeadfOrDyaging(LivingEntity entity,boolean initialValue){

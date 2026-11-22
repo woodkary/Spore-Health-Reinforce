@@ -22,8 +22,8 @@ public final class SporeEntityRenderDispatcherTransformer extends SporeClassFile
     private static final String ENTITY = "net/minecraft/world/entity/Entity";
     private static final String HOOK = "com/Harbinger/Spore/Core/asmHooks/SporeEntityRenderDispatcherHook";
     private static final String HOOK_INTERFACE = "com/Harbinger/Spore/Core/asmHooks/ISporeEntityRenderDispatcherHook";
-    private static final String RENDER_TAIL = "DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
-    private static final String HOOK_DESC = "(L" + DISPATCHER + ";L" + ENTITY + ";" + RENDER_TAIL;
+    private static final String RENDER_ARGS_TAIL = "DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)";
+    private static final String HOOK_DESC = "(L" + DISPATCHER + ";L" + ENTITY + ";" + RENDER_ARGS_TAIL + "Z";
     private static final Class<?> TRANSFORM_CLASS = BytecodeUtil.resolveHiddenClassOrSelf(
             SporeEntityRenderDispatcherTransformer.class
     );
@@ -166,7 +166,7 @@ public final class SporeEntityRenderDispatcherTransformer extends SporeClassFile
         }
         Type[] arguments = Type.getArgumentTypes(method.desc);
         return arguments.length == 9 && arguments[0].getSort() == Type.OBJECT
-                && RENDER_TAIL.equals(method.desc.substring(1 + arguments[0].getDescriptor().length()));
+                && (RENDER_ARGS_TAIL + "V").equals(method.desc.substring(1 + arguments[0].getDescriptor().length()));
     }
 
     private boolean alreadyInjected(MethodNode method) {
@@ -191,8 +191,13 @@ public final class SporeEntityRenderDispatcherTransformer extends SporeClassFile
         }
         for (cursor = cursor.getNext(); cursor != null && cursor != branch.label; cursor = cursor.getNext()) {
             if (cursor instanceof MethodInsnNode call && call.getOpcode() == Opcodes.INVOKEINTERFACE
-                    && HOOK_INTERFACE.equals(call.owner) && "render".equals(call.name) && HOOK_DESC.equals(call.desc)) {
-                AbstractInsnNode returnInsn = nextInstruction(cursor.getNext());
+                    && HOOK_INTERFACE.equals(call.owner) && "tryRender".equals(call.name) && HOOK_DESC.equals(call.desc)) {
+                AbstractInsnNode decision = nextInstruction(cursor.getNext());
+                if (!(decision instanceof JumpInsnNode fallback) || fallback.getOpcode() != Opcodes.IFEQ
+                        || fallback.label != branch.label) {
+                    return false;
+                }
+                AbstractInsnNode returnInsn = nextInstruction(fallback.getNext());
                 return returnInsn != null && returnInsn.getOpcode() == Opcodes.RETURN;
             }
         }
@@ -224,7 +229,8 @@ public final class SporeEntityRenderDispatcherTransformer extends SporeClassFile
             }
             slot += argument.getSize();
         }
-        prefix.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, HOOK_INTERFACE, "render", HOOK_DESC, true));
+        prefix.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, HOOK_INTERFACE, "tryRender", HOOK_DESC, true));
+        prefix.add(new JumpInsnNode(Opcodes.IFEQ, originalBody));
         prefix.add(new InsnNode(Opcodes.RETURN));
         prefix.add(originalBody);
         List<Object> locals = new ArrayList<>();

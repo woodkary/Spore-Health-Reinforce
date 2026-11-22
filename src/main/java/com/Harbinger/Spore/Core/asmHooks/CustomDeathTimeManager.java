@@ -21,32 +21,56 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
             CustomDeathTimeManager.class
     );
 
-    @Override
-    public int deathTimeGetFieldHook(LivingEntity entity, int initialDeathTime) {
-        if (entity == null) {
-            return initialDeathTime;
+    private boolean usesCustomDeathAnimation(LivingEntity entity) {
+        if (!EntityHeealuthManager.INSTANCE.trueDeeauth(entity)) {
+            return false;
         }
+        if (entity instanceof Player player) {
+            if (LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)) {
+                // A true-dead UUID can force max health to zero, making even a neutral delta pass trueDeeauth.
+                return EntityHeealuthManager.INSTANCE.hasSporeDeadFlag(player)
+                        || EntityHeealuthManager.INSTANCE.getHeealtthDelta(player) != 0.0F;
+            }
+            if (EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+                return false;
+            }
+        }
+        return !SporeJudge.isSporeEntity(entity);
+    }
+
+    private boolean isInSpecialRender(LivingEntity entity) {
         Deque<LivingEntity> stack = specialRenderEntities.get();
         if (stack != null) {
             for (LivingEntity rendering : stack) {
                 if (rendering == entity) {
-                    return 0;
+                    return true;
                 }
             }
         }
-        boolean trueDeadPlayer = isTrueDeadPlayer(entity);
-        if (!trueDeadPlayer && SporeJudge.isSporeEntity(entity)) {
-            return initialDeathTime;
-        }
-        if (!trueDeadPlayer && entity instanceof Player player
-                && EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
+        return false;
+    }
+
+    private int storedDeathTime(CompoundTag data, int initialDeathTime) {
+        return data.contains(DEATH_TIME_TAG, Tag.TAG_INT) ? data.getInt(DEATH_TIME_TAG) : initialDeathTime;
+    }
+
+    @Override
+    public int getDeathTimeForRender(LivingEntity entity) {
+        if (!usesCustomDeathAnimation(entity) || isInSpecialRender(entity)) {
             return 0;
         }
-        CompoundTag data = entity.getPersistentData();
-        if (!data.contains(DEATH_TIME_TAG, Tag.TAG_INT)) {
+        return storedDeathTime(entity.getPersistentData(), entity.deathTime);
+    }
+
+    @Override
+    public int deathTimeGetFieldHook(LivingEntity entity, int initialDeathTime) {
+        if (entity == null || !usesCustomDeathAnimation(entity)) {
             return initialDeathTime;
         }
-        int customDeathTime = data.getInt(DEATH_TIME_TAG);
+        if (isInSpecialRender(entity)) {
+            return 0;
+        }
+        int customDeathTime = storedDeathTime(entity.getPersistentData(), initialDeathTime);
         if (initialDeathTime != customDeathTime) {
             entity.deathTime = customDeathTime;
         }
@@ -78,27 +102,11 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
         }
     }
 
-    private boolean isTrueDeadPlayer(LivingEntity entity) {
-        return entity instanceof Player player
-                && LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player);
-    }
-
     @Override
     public void accept(LivingEvent.LivingTickEvent livingTickEvent) {
         LivingEntity entity = livingTickEvent.getEntity();
         CompoundTag data = entity.getPersistentData();
-        boolean trueDeadPlayer = isTrueDeadPlayer(entity);
-        if (!trueDeadPlayer && !EntityHeealuthManager.INSTANCE.isDeeadfOrDyaging(entity, entity.isDeadOrDying())) {
-            boolean wasManaged = data.contains(DEATH_TIME_TAG, Tag.TAG_INT);
-            data.remove(DEATH_TIME_TAG);
-            if (wasManaged) {
-                entity.deathTime = 0;
-            }
-            return;
-        }
-        if (!trueDeadPlayer && (SporeJudge.isSporeEntity(entity)||
-                entity instanceof Player player&&
-                        EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player))) {
+        if (!usesCustomDeathAnimation(entity)) {
             data.remove(DEATH_TIME_TAG);
             return;
         }
@@ -106,10 +114,7 @@ public final class CustomDeathTimeManager implements IDeathTimeManager {
             return;
         }
 
-        int deathTime = data.contains(DEATH_TIME_TAG, Tag.TAG_INT)
-                ? data.getInt(DEATH_TIME_TAG)
-                : entity.deathTime;
-        int nextDeathTime = deathTime + 1;
+        int nextDeathTime = storedDeathTime(data, entity.deathTime) + 1;
         data.putInt(DEATH_TIME_TAG, nextDeathTime);
         entity.deathTime = nextDeathTime;
     }

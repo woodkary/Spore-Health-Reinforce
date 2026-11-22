@@ -1,8 +1,6 @@
 package com.Harbinger.Spore.Core.asmHooks;
 
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
-import com.Harbinger.Spore.Core.utils.LivingEntityHealthLifecycleWrapperUtil;
-import com.Harbinger.Spore.Core.utils.SporeJudge;
 import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -17,7 +15,6 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 /** Client-only implementation, initialized by the common bootstrap only on the client. */
@@ -34,20 +31,27 @@ public final class SporeEntityRenderDispatcherHook implements ISporeEntityRender
     }
 
     @Override
-    public void render(EntityRenderDispatcher dispatcher, Entity entity, double x, double y, double z,
-                       float yaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffers, int packedLight) {
+    public boolean tryRender(EntityRenderDispatcher dispatcher, Entity entity, double x, double y, double z,
+                             float yaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffers, int packedLight) {
         if (SimpleRemoveUtil.INSTANCE.checkIsRemovedAndUpdate(entity)) {
-            return;
+            return true;
+        }
+        if (!(entity instanceof LivingEntity living)) {
+            return false;
         }
         EntityRenderer<? super Entity> renderer = null;
         try {
+            int effectiveDeathTime = CustomDeathTimeManager.INSTANCE.getDeathTimeForRender(living);
+            if (effectiveDeathTime <= 0) {
+                return false;
+            }
             renderer = dispatcher.getRenderer(entity);
             Vec3 offset = renderer.getRenderOffset(entity, partialTicks);
             PoseStack.Pose previousPose = poseStack.last();
-            poseStack.pushPose();
             try {
+                poseStack.pushPose();
                 poseStack.translate(x + offset.x(), y + offset.y(), z + offset.z());
-                renderEntity(renderer, entity, yaw, partialTicks, poseStack, buffers, packedLight);
+                renderDeath(renderer, living, effectiveDeathTime, partialTicks, poseStack, buffers, packedLight);
                 if (entity.displayFireAnimation()) {
                     dispatcher.renderFlame(poseStack, buffers, entity);
                 }
@@ -68,6 +72,7 @@ public final class SporeEntityRenderDispatcherHook implements ISporeEntityRender
             } finally {
                 restorePoseStack(poseStack, previousPose);
             }
+            return true;
         } catch (Throwable throwable) {
             CrashReport report = CrashReport.forThrowable(throwable, "Rendering entity in world");
             CrashReportCategory entityCategory = report.addCategory("Entity being rendered");
@@ -79,34 +84,6 @@ public final class SporeEntityRenderDispatcherHook implements ISporeEntityRender
             details.setDetail("Delta", partialTicks);
             throw new ReportedException(report);
         }
-    }
-
-    private void renderEntity(EntityRenderer<? super Entity> renderer, Entity entity, float yaw, float partialTicks,
-                              PoseStack poseStack, MultiBufferSource buffers, int packedLight) {
-        if (entity instanceof LivingEntity living && isAnimationDeath(living)) {
-            // Read before entering the scope: reads inside it deliberately return zero.
-            int effectiveDeathTime = CustomDeathTimeManager.INSTANCE.deathTimeGetFieldHook(living, living.deathTime);
-            if (effectiveDeathTime > 0) {
-                renderDeath(renderer, living, effectiveDeathTime, partialTicks, poseStack, buffers, packedLight);
-                return;
-            }
-        }
-        renderer.render(entity, yaw, partialTicks, poseStack, buffers, packedLight);
-    }
-
-    private boolean isAnimationDeath(LivingEntity entity) {
-        if (entity instanceof Player player) {
-            if (LivingEntityHealthLifecycleWrapperUtil.INSTANCE.isPlayerTrueDeeafd(player)) {
-                return true;
-            }
-            if (EntityHeealuthManager.INSTANCE.isSpectatorOrCreative(player)) {
-                return false;
-            }
-        }
-        if (SporeJudge.isSporeEntity(entity)) {
-            return false;
-        }
-        return EntityHeealuthManager.INSTANCE.isDeeadfOrDyaging(entity, entity.isDeadOrDying());
     }
 
     private void renderDeath(EntityRenderer<? super Entity> renderer, LivingEntity entity, int effectiveDeathTime,
