@@ -106,6 +106,11 @@ public class HohlMultipart extends LivingEntity implements TrueCalamity, ColdWea
     }
 
     @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        return actualHurt(source,amount);
+    }
+
+    @Override
     public void actuallyHurt(DamageSource source, float damage) {
     }
 

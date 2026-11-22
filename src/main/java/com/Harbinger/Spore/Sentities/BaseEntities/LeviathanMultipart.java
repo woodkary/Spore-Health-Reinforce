@@ -127,6 +127,11 @@ public class LeviathanMultipart extends LivingEntity implements TrueCalamity, Co
     }
 
     @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        return actualHurt(source,amount);
+    }
+
+    @Override
     public void actuallyHurt(DamageSource source, float damage) {
     }
 
