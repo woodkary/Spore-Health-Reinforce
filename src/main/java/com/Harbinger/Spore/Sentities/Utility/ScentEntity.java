@@ -53,6 +53,22 @@ public class ScentEntity extends UtilityEntity {
     public boolean isInvulnerable() {
         return true;
     }
+    @Override
+    public boolean hurt(DamageSource p_21016_, float p_21017_) {
+        return false;
+    }
+    @Override
+    public void actuallyHurt(DamageSource source, float amount) {
+
+    }
+    @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        return 0.0f;
+    }
+    @Override
+    public boolean livingEntityHurt(DamageSource p_21016_, float p_21017_) {
+        return false;
+    }
 
     @Override
     public void tick() {
@@ -200,11 +216,6 @@ public class ScentEntity extends UtilityEntity {
         }
     }
 
-
-    @Override
-    public boolean hurt(DamageSource source, float amount) {
-        return false;
-    }
 
     public void Summon(LivingEntity entity) {
         ServerLevelAccessor world = (ServerLevelAccessor) entity.level();
