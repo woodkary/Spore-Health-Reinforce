@@ -208,13 +208,13 @@ public interface ICustomLifeCycleEntity {
                 (!isProtoOrCalamity||!SporeEntityHeeaafastthManager.INSTANCE.isInvul(liv,source))) {
             boolean isFreezeDamage = source.is(DamageTypes.FREEZE);
             boolean shouldLimitSRPDamage=!isFreezeDamage&&SRPJudge.isSRPEntity(source.getEntity());
-            int srpLimitRate= (int) (liv.getMaxHealth()/30);
+            int srpLimitRate= (int) (liv.getMaxHealth()/20);
             //Proto和Calamity会有限伤
             boolean shouldLimitDamage = isProtoOrCalamity && !isFreezeDamage;
             damage = ForgeHooks.onLivingHurt(liv, source, damage);
             float reduceRate = 1.0f;
             if(shouldLimitSRPDamage){
-                //针对SRP来源的伤害：不超过最大生命值/30，或10点
+                //针对SRP来源的伤害：不超过最大生命值/20，或10点
                 damage=Math.min(Math.min(10,srpLimitRate), damage);
             }
             if(shouldLimitDamage){
@@ -249,7 +249,7 @@ public interface ICustomLifeCycleEntity {
             }
             if (f1 != 0.0F) {
                 if(shouldLimitSRPDamage){
-                    //针对SRP来源的伤害：不超过最大生命值/30，或10点
+                    //针对SRP来源的伤害：不超过最大生命值/20，或10点
                     f1=Math.min(Math.min(10,srpLimitRate), f1);
                 }
                 if(shouldLimitDamage) {
