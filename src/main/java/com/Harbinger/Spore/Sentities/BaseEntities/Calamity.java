@@ -567,6 +567,17 @@ public class Calamity extends UtilityEntity implements Enemy, ArmorPersentageByp
             hurtDellta(2.0f * actualDamage);
         }
     }
+    @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        if (!source.is(DamageTypes.FREEZE)) {
+            amount *= 1.0f - this.getDamageAdaptationCount() * 0.02f;
+        }
+        float actualDamage = actualHurt(source, amount);
+        if (actualDamage > 0.0f) {
+            hurtDellta(2.0f * actualDamage);
+        }
+        return actualDamage;
+    }
 
     @Override
     public void tick() {

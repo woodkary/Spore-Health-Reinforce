@@ -788,6 +788,14 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             hurtDellta(2.0f * actualDamage);
         }
     }
+    @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        float actualDamage = actualHurt(source, amount);
+        if (actualDamage > 0.0f) {
+            hurtDellta(2.0f * actualDamage);
+        }
+        return actualDamage;
+    }
 
     @Override
     public boolean isSpecialDefasd() {

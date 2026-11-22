@@ -20,6 +20,7 @@ import com.Harbinger.Spore.Sentities.AI.LocHiv.*;
 import com.Harbinger.Spore.Sentities.Projectile.AcidBall;
 import com.Harbinger.Spore.Sentities.Projectile.Vomit;
 import mezz.jei.api.constants.ModIds;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -31,6 +32,11 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.stats.Stats;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -61,7 +67,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.event.entity.living.ShieldBlockEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -219,6 +227,10 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
     @Override
     public void actuallyHurt(DamageSource source, float amount) {
         actualHurt(source, amount);
+    }
+    @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        return actualHurt(source, amount);
     }
 
     @Override
@@ -461,12 +473,12 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
             serverLevel.sendParticles(Sparticles.SPORE_PARTICLE.get(), x0, y0, z0, 4,0, 0, 0,1);
         }
         if (source.getDirectEntity() instanceof AcidBall || source.getDirectEntity() instanceof Vomit){
-            return  false;
+            return false;
         }
         if (source.getDirectEntity() != null){
             this.setSearchPos(new BlockPos((int)source.getDirectEntity().getX(),(int)source.getDirectEntity().getY(),(int)source.getDirectEntity().getZ()));
         }
-        return super.hurt(source, amount);
+        return livingEntityHurt(source, amount);
     }
 
     public static boolean checkMonsterInfectedRules(EntityType<? extends Infected> p_219014_, ServerLevelAccessor levelAccessor, MobSpawnType type, BlockPos pos, RandomSource source) {

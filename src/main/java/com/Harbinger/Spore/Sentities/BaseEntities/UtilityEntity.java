@@ -119,10 +119,17 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
     public LivingEntity entity() {
         return this;
     }
-
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        return livingEntityHurt(source, amount);
+    }
     @Override
     public void actuallyHurt(DamageSource source, float amount) {
         actualHurt(source, amount);
+    }
+    @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        return actualHurt(source, amount);
     }
 
     @Override

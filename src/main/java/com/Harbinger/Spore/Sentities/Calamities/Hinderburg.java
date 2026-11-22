@@ -436,6 +436,10 @@ public class Hinderburg extends Calamity implements FlyingInfected , TrueCalamit
         }
         super.actuallyHurt(source,amount);
     }
+    @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        return isSelfTumorDamage(source)?0.0f:super.livingEntityActuallyHurt(source,amount);
+    }
 
     public boolean isArmed(){
         return this.getBomb() >= 2400;

@@ -136,6 +136,10 @@ public class TumoroidNuke extends UtilityEntity{
     public void actuallyHurt(DamageSource source, float amount) {
 
     }
+    @Override
+    public float livingEntityActuallyHurt(DamageSource source, float amount) {
+        return 0.0f;
+    }
     private void explodeEntity(LivingEntity source,boolean overlocked,double x,double y,double z,float radius) {
         float f2 = radius * 2.0F;
         int k1 = Mth.floor(x - (double)f2 - (double)1.0F);
