@@ -19,7 +19,10 @@ public final class TargetSameModGoal extends Goal {
     public TargetSameModGoal(Mob mob) {
         this.mob = mob;
         String mobNamespace=EntityType.getKey(mob.getType()).getNamespace();
-        this.targetSameModEntityPredicate = TargetingConditions.forNonCombat().selector(entity->
+        this.targetSameModEntityPredicate = TargetingConditions.forNonCombat()
+                .ignoreInvisibilityTesting()
+                .ignoreLineOfSight()
+                .selector(entity->
                 EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace));
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
         this.resetSelfTargetTicks = 0;
