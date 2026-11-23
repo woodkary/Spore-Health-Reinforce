@@ -405,6 +405,9 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                     }
                 }
             }
+            if(this.tickCount%40==0){
+                this.giveSRPSelfAttack();
+            }
             if (this.tickCount % 3000 == 0 && SConfig.SERVER.proto_madness.get()){
                 this.giveMadness(this);
             }
@@ -523,19 +526,25 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             }
         }
     }
-    protected void giveMadness(Proto proto){
-        AABB aabb = proto.getBoundingBox().inflate(128);
+    private void giveSRPSelfAttack(){
+        if(!SRPJudge.isSRPLikeModLoaded()){
+            return;
+        }
+        AABB aabb = this.getBoundingBox().inflate(128);
         for (LivingEntity living : this.level().getEntitiesOfClass(LivingEntity.class, aabb,
                 liv ->
                         liv instanceof Mob mob&&
-                        !mob.getPersistentData().getBoolean("spore:selfTarrget")&&
-                        SRPJudge.isSRPEntity(mob))) {
-            Mob mob=(Mob)living;
-            if(Math.random()<0.05f){
-                mob.getPersistentData().putBoolean("spore:selfTarrget",true);
+                                !mob.getPersistentData().getBoolean("spore:selfTarrget")&&
+                                SRPJudge.isSRPEntity(mob))) {
+            if(Math.random()<0.05){
+                Mob mob=(Mob)living;
+                mob.getPersistentData().putBoolean("spore:selfTarrget", true);
                 mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));
             }
         }
+    }
+    protected void giveMadness(Proto proto){
+        AABB aabb = proto.getBoundingBox().inflate(128);
         List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, aabb,
                 living -> SConfig.SERVER.proto_sapient_target.get().contains(living.getEncodeId()) || living instanceof Player);
         for (LivingEntity living : entities){
