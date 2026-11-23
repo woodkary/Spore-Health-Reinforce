@@ -11,6 +11,7 @@ import com.Harbinger.Spore.Core.utils.effects.NoSRPEffectMapProxy;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoadRequest;
 import com.Harbinger.Spore.ExtremelySusThings.ChunkLoaderHelper;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
+import com.Harbinger.Spore.Sentities.AI.TargetSameModGoal;
 import com.Harbinger.Spore.network.AdaptableHurtColor;
 import com.Harbinger.Spore.Sblocks.BrainRemnants;
 import com.Harbinger.Spore.Sblocks.CDUBlock;
@@ -527,6 +528,12 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                 living -> SConfig.SERVER.proto_sapient_target.get().contains(living.getEncodeId()) || living instanceof Player);
         for (LivingEntity living : entities){
             living.addEffect(new MobEffectInstance(Seffects.MADNESS.get(),6000,0,false,false));
+            if(living instanceof Mob mob&&!mob.getPersistentData().getBoolean("spore:selfTarrget")&&
+                    SRPJudge.isSRPEntity(mob)&&
+                    Math.random()<0.05f){
+                mob.getPersistentData().putBoolean("spore:selfTarrget",true);
+                mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));
+            }
         }
     }
 
