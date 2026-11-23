@@ -42,7 +42,8 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
     public SporeTransformationBootStrap() {
         List<Class<?>> pluginClasses = resolveHiddenPlugins(
                 "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeLifeCycleCallSitePlugin",
-                "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeMinecraftScreenFieldPlugin"
+                "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeMinecraftScreenFieldPlugin",
+                "com.Harbinger.Spore.Core.utils.transformation.plugins.SporeMobGetTargetCallSitePlugin"
         );
         Map<String, ILaunchPluginService> t1=new HashMap<>();
         Map<String,Class<?>> t2=new HashMap<>();
@@ -217,6 +218,18 @@ public final class SporeTransformationBootStrap implements ITransformationBootSt
                     }
                 }
                 list.addAll(missingPlugins);
+                ILaunchPluginService targetReader = protectedPluginsMap.get("SporeMobGetTargetCallSitePlugin");
+                if (targetReader != null) {
+                    // Keep the getter visible to later BEFORE plugins inside our wrapper.
+                    for (int i = list.size() - 1; i > 0; i--) {
+                        if (list.get(i) == targetReader) {
+                            list.remove(i);
+                        }
+                    }
+                    if (list.isEmpty() || list.get(0) != targetReader) {
+                        list.add(0, targetReader);
+                    }
+                }
             }
 
         }

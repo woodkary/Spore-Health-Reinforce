@@ -27,7 +27,7 @@ public final class TargetSameModGoal extends Goal {
     private LivingEntity mobTarget;
     private int selfTargetChecks;
     private int unconfirmedTargetWrites;
-    private long nextStartTime;
+    private long nextWriteTick;
 
     public TargetSameModGoal(Mob mob) {
         this.mob = mob;
@@ -42,14 +42,13 @@ public final class TargetSameModGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return this.mob.level().getGameTime() >= this.nextStartTime
-                && EntityHeealuthManager.INSTANCE.rawIsAlliive(this.mob);
+        return EntityHeealuthManager.INSTANCE.rawIsAlliive(this.mob);
     }
 
     @Override
     public void start() {
         findTarget();
-        maintainSelectedTarget();
+        tryWriteSelectedTarget();
     }
 
     private void findTarget() {
@@ -62,7 +61,7 @@ public final class TargetSameModGoal extends Goal {
                 this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
         LivingEntity selected = nearest == null ? this.mob : nearest;
         if (selected != this.mobTarget) {
-            this.unconfirmedTargetWrites = 0;
+            resetTargetWrites();
         }
         this.mobTarget = selected;
         this.selfTargetChecks = 0;
@@ -84,7 +83,8 @@ public final class TargetSameModGoal extends Goal {
         if (needsNewTarget()) {
             findTarget();
         }
-        return maintainSelectedTarget();
+        tryWriteSelectedTarget();
+        return true;
     }
 
     private boolean needsNewTarget() {
@@ -97,25 +97,33 @@ public final class TargetSameModGoal extends Goal {
                 || !this.targetSameModEntityPredicate.test(this.mob, this.mobTarget);
     }
 
-    private boolean maintainSelectedTarget() {
+    private void tryWriteSelectedTarget() {
         // A write is stable only if the selected target is still present at the next check.
         if (this.mob.getTarget() == this.mobTarget) {
+            resetTargetWrites();
+            return;
+        }
+        long now = this.mob.level().getGameTime();
+        if (now < this.nextWriteTick) {
+            return;
+        }
+        this.unconfirmedTargetWrites++;
+        this.mob.setTarget(this.mobTarget);
+        if (this.unconfirmedTargetWrites >= MAX_TARGET_WRITES) {
             this.unconfirmedTargetWrites = 0;
-            return true;
+            this.nextWriteTick = now + RETRY_DELAY_TICKS;
         }
-        if (this.unconfirmedTargetWrites < MAX_TARGET_WRITES) {
-            this.unconfirmedTargetWrites++;
-            this.mob.setTarget(this.mobTarget);
-            if (this.mob.getTarget() == this.mobTarget || this.unconfirmedTargetWrites < MAX_TARGET_WRITES) {
-                return true;
-            }
-        }
-        this.nextStartTime = this.mob.level().getGameTime() + RETRY_DELAY_TICKS;
-        return false;
+    }
+
+    private void resetTargetWrites() {
+        this.unconfirmedTargetWrites = 0;
+        this.nextWriteTick = 0;
     }
 
     @Override
     public void stop() {
         this.mobTarget = null;
+        this.selfTargetChecks = 0;
+        resetTargetWrites();
     }
 }

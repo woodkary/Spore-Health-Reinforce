@@ -93,6 +93,9 @@ public final class SporeTransformationService implements ISporeTransformationSer
         return List.of();
     }
     private static void init(){
+        SuperNameCache.class.getName();
+        LifeCycleCallSiteHookResolver.class.getName();
+        LifeCycleCallSiteHookSpec.class.getName();
         Launcher launcher = Launcher.INSTANCE;
         if (launcher == null) {
             return;
@@ -109,9 +112,6 @@ public final class SporeTransformationService implements ISporeTransformationSer
     }
     static{
         LogUtil.log("Initializing SporeTransformationService");
-        LifeCycleCallSiteHookResolver.class.getName();
-        LifeCycleCallSiteHookSpec.class.getName();
-        SuperNameCache.class.getName();
         init();
     }
 
