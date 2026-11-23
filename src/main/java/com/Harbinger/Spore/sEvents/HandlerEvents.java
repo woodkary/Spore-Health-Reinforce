@@ -17,6 +17,7 @@ import com.Harbinger.Spore.ExtremelySusThings.*;
 import com.Harbinger.Spore.ExtremelySusThings.Package.SongInitializingPacket;
 import com.Harbinger.Spore.SBlockEntities.CDUBlockEntity;
 import com.Harbinger.Spore.SBlockEntities.LivingStructureBlocks;
+import com.Harbinger.Spore.Sentities.AI.TargetSameModGoal;
 import com.Harbinger.Spore.Sentities.ArmorPersentageBypass;
 import com.Harbinger.Spore.Sentities.BaseEntities.*;
 import com.Harbinger.Spore.Sentities.BasicInfected.InfectedDrowned;
@@ -66,6 +67,8 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Inventory;
@@ -1080,7 +1083,10 @@ public class HandlerEvents {
         }
         if (!(event.getEntity() instanceof Mob mob))
             return;
-
+        if(mob.getPersistentData().getBoolean("spore:selfTarrget")&&
+                findGoal(mob, TargetSameModGoal.class)==null){
+            mob.targetSelector.addGoal(0, new TargetSameModGoal(mob));
+        }
         if (!(mob.getTarget() instanceof ServerPlayer player))
             return;
 
@@ -1095,6 +1101,14 @@ public class HandlerEvents {
         if (mob instanceof Vigil){
             SporePacketHandler.sendToClient(new SongInitializingPacket(2, true, true), player);
         }
+    }
+    private static  <T extends Goal> T findGoal(Mob mob, Class<T> goalClass) {
+        for (WrappedGoal wrapped : mob.targetSelector.getAvailableGoals()) {
+            if (goalClass.isInstance(wrapped.getGoal())) {
+                return goalClass.cast(wrapped.getGoal());
+            }
+        }
+        return null;
     }
     @SubscribeEvent
     public static void horseArmorTick(LivingEvent.LivingTickEvent event) {

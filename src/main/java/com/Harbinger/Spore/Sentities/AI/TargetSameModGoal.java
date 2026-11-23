@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.AI;
 
+import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -22,6 +23,7 @@ public final class TargetSameModGoal extends Goal {
         this.targetSameModEntityPredicate = TargetingConditions.forNonCombat()
                 .ignoreInvisibilityTesting()
                 .ignoreLineOfSight()
+                .range(getFollowDistance())
                 .selector(entity->
                 EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace));
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
@@ -30,6 +32,7 @@ public final class TargetSameModGoal extends Goal {
     @Override
     public boolean canUse() {
         findTarget();
+        this.targetSameModEntityPredicate.range(getFollowDistance());
         return true;
     }
     private void findTarget() {
@@ -52,11 +55,16 @@ public final class TargetSameModGoal extends Goal {
     public boolean canContinueToUse() {
         LivingEntity tar = this.mob.getTarget();
         if(tar==this.mob){
-            return ++this.resetSelfTargetTicks>=20;
-        }else{
-            this.resetSelfTargetTicks=0;
-            return tar==mobTarget;
+            return ++this.resetSelfTargetTicks<20;
         }
+        if(tar==null) {
+            return false;
+        }
+        this.resetSelfTargetTicks=0;
+        return tar==mobTarget&&
+                EntityHeealuthManager.INSTANCE.rawIsAlliive(tar)&&
+                tar.level()==this.mob.level()&&
+                tar.distanceTo(this.mob)<=getFollowDistance();
     }
 
     @Override

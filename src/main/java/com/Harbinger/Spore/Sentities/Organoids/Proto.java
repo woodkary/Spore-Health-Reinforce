@@ -523,27 +523,14 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             }
         }
     }
-    private <T extends Goal> T findGoal(Mob mob, Class<T> goalClass) {
-        for (WrappedGoal wrapped : mob.targetSelector.getAvailableGoals()) {
-            if (goalClass.isInstance(wrapped.getGoal())) {
-                return goalClass.cast(wrapped.getGoal());
-            }
-        }
-        return null;
-    }
     protected void giveMadness(Proto proto){
         AABB aabb = proto.getBoundingBox().inflate(128);
         for (LivingEntity living : this.level().getEntitiesOfClass(LivingEntity.class, aabb,
                 liv ->
                         liv instanceof Mob mob&&
+                        !mob.getPersistentData().getBoolean("spore:selfTarrget")&&
                         SRPJudge.isSRPEntity(mob))) {
             Mob mob=(Mob)living;
-            if(mob.getPersistentData().getBoolean("spore:selfTarrget")){
-                if(findGoal(mob, TargetSameModGoal.class)==null) {
-                    mob.targetSelector.addGoal(0, new TargetSameModGoal(mob));
-                }
-                continue;
-            }
             if(Math.random()<0.05f){
                 mob.getPersistentData().putBoolean("spore:selfTarrget",true);
                 mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));
