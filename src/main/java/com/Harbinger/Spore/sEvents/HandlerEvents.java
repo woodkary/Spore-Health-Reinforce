@@ -1127,7 +1127,7 @@ public class HandlerEvents {
             SporePacketHandler.sendToClient(new SongInitializingPacket(2, true, true), player);
         }
     }
-    private static  <T extends Goal> T findGoal(Mob mob, Class<T> goalClass) {
+    public static  <T extends Goal> T findGoal(Mob mob, Class<T> goalClass) {
         for (WrappedGoal wrapped : mob.targetSelector.getAvailableGoals()) {
             if (goalClass.isInstance(wrapped.getGoal())) {
                 return goalClass.cast(wrapped.getGoal());

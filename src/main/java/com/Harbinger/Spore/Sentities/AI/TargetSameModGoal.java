@@ -19,6 +19,11 @@ public final class TargetSameModGoal extends Goal {
 
     private final Mob mob;
     private final TargetingConditions targetSameModEntityPredicate;
+
+    public LivingEntity getSameModMobTarget() {
+        return mobTarget;
+    }
+
     private LivingEntity mobTarget;
     private int selfTargetChecks;
     private int unconfirmedTargetWrites;

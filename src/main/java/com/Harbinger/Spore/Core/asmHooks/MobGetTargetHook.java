@@ -1,0 +1,41 @@
+package com.Harbinger.Spore.Core.asmHooks;
+
+import com.Harbinger.Spore.Core.utils.BytecodeUtil;
+import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
+import com.Harbinger.Spore.Core.utils.SporeJudge;
+import com.Harbinger.Spore.Sentities.AI.TargetSameModGoal;
+import com.Harbinger.Spore.sEvents.HandlerEvents;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+
+public final class MobGetTargetHook implements IGetTargetHook {
+    public static final IGetTargetHook INSTANCE;
+    @Override
+    public LivingEntity getTargetCallSiteHook(Mob mob, LivingEntity original){
+        if(SporeJudge.isSporeEntity(mob)||!mob.getPersistentData().getBoolean("spore:selfTarrget")){
+            return original;
+        }
+        TargetSameModGoal goal = HandlerEvents.findGoal(mob, TargetSameModGoal.class);
+        if(goal==null){
+            return original;
+        }
+        LivingEntity newTarget=goal.getSameModMobTarget();
+        return newTarget!=null&&EntityHeealuthManager.INSTANCE.rawIsAlliive(newTarget)
+                ?newTarget:
+                original;
+    }
+
+    static{
+        Class<? extends IGetTargetHook>[] clazz=new Class[1];
+        INSTANCE=BytecodeUtil.createHiddenSingletonInstance(
+                clazz,
+                IGetTargetHook.class,
+                MobGetTargetHook.class,
+                new Class<?>[0]
+        );
+        if(clazz[0]!=null){
+            ClassReflectionUtil.removeCachedReflectionData(clazz[0]);
+        }
+        ClassReflectionUtil.removeCachedReflectionData(MobGetTargetHook.class);
+    }
+}
