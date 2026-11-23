@@ -13,14 +13,16 @@ import java.util.EnumSet;
 public final class TargetSameModGoal extends Goal {
     private final Mob mob;
     private LivingEntity mobTarget;
+    private int resetSelfTargetTicks;
     private final TargetingConditions targetSameModEntityPredicate;
 
     public TargetSameModGoal(Mob mob) {
         this.mob = mob;
         String mobNamespace=EntityType.getKey(mob.getType()).getNamespace();
-        this.targetSameModEntityPredicate = TargetingConditions.forNonCombat().range(this.getFollowDistance()).selector(entity->
+        this.targetSameModEntityPredicate = TargetingConditions.forNonCombat().selector(entity->
                 EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace));
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
+        this.resetSelfTargetTicks = 0;
     }
     @Override
     public boolean canUse() {
@@ -46,9 +48,16 @@ public final class TargetSameModGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         LivingEntity tar = this.mob.getTarget();
-        if(tar==this.mob&&Math.random()<0.3){
-            return false;
+        if(tar==this.mob){
+            return ++this.resetSelfTargetTicks>=20;
+        }else{
+            this.resetSelfTargetTicks=0;
+            return tar==mobTarget;
         }
-        return tar==mobTarget;
+    }
+
+    @Override
+    public void stop() {
+        this.resetSelfTargetTicks=0;
     }
 }
