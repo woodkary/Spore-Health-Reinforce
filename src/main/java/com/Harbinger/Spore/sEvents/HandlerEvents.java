@@ -397,6 +397,29 @@ public class HandlerEvents {
                             return 1;
                         }))
         );
+        dispatcher.register(Commands.literal(Spore.MODID+":set_target_self_entities")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.argument("targets", EntityArgument.entities())
+                        .executes(ctx -> {
+                            Collection<? extends Entity> targets = new ArrayList<>(EntityArgument.getEntities(ctx, "targets"));
+                            int count = 0;
+                            for (Entity entity : targets) {
+                                if (entity instanceof Mob mob&&
+                                        !SporeJudge.isSporeEntity(mob)) {
+                                    boolean isFirstRegister=false;
+                                    if(!mob.getPersistentData().getBoolean("spore:selfTarrget")){
+                                        isFirstRegister=true;
+                                        mob.getPersistentData().putBoolean("spore:selfTarrget", true);
+                                    }
+                                    if(isFirstRegister||findGoal(mob, TargetSameModGoal.class)==null){
+                                        mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));
+                                    }
+                                    count++;
+                                }
+                            }
+                            return count;
+                        }))
+        );
         dispatcher.register(Commands.literal(Spore.MODID+":set_area")
                 .executes(arguments -> {
                     ServerLevel world = arguments.getSource().getLevel();
