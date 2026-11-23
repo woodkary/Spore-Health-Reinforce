@@ -8,17 +8,19 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.phys.AABB;
 
+import java.util.EnumSet;
+
 public final class TargetSameModGoal extends Goal {
     private final Mob mob;
-    private final String mobNamespace;
     private LivingEntity mobTarget;
     private final TargetingConditions targetSameModEntityPredicate;
 
     public TargetSameModGoal(Mob mob) {
         this.mob = mob;
-        this.mobNamespace=EntityType.getKey(mob.getType()).getNamespace();
-        this.targetSameModEntityPredicate = TargetingConditions.forCombat().range(this.getFollowDistance()).selector(entity->
-                EntityType.getKey(entity.getType()).getNamespace().equals(this.mobNamespace));
+        String mobNamespace=EntityType.getKey(mob.getType()).getNamespace();
+        this.targetSameModEntityPredicate = TargetingConditions.forNonCombat().range(this.getFollowDistance()).selector(entity->
+                EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace));
+        this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
     @Override
     public boolean canUse() {
@@ -44,6 +46,9 @@ public final class TargetSameModGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         LivingEntity tar = this.mob.getTarget();
+        if(tar==this.mob&&Math.random()<0.3){
+            return false;
+        }
         return tar==mobTarget;
     }
 }

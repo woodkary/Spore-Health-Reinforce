@@ -47,7 +47,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -521,19 +523,30 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
             }
         }
     }
-
+    private <T extends Goal> T findGoal(Mob mob, Class<T> goalClass) {
+        for (WrappedGoal wrapped : mob.targetSelector.getAvailableGoals()) {
+            if (goalClass.isInstance(wrapped.getGoal())) {
+                return goalClass.cast(wrapped.getGoal());
+            }
+        }
+        return null;
+    }
     protected void giveMadness(Proto proto){
         AABB aabb = proto.getBoundingBox().inflate(128);
+        for (LivingEntity living : this.level().getEntitiesOfClass(LivingEntity.class, aabb,
+                liv ->
+                        liv instanceof Mob mob&&
+                        findGoal(mob, TargetSameModGoal.class)==null&&
+                        SRPJudge.isSRPEntity(mob))) {
+            Mob mob=(Mob)living;
+            if(Math.random()<0.05f){
+                mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));
+            }
+        }
         List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, aabb,
                 living -> SConfig.SERVER.proto_sapient_target.get().contains(living.getEncodeId()) || living instanceof Player);
         for (LivingEntity living : entities){
             living.addEffect(new MobEffectInstance(Seffects.MADNESS.get(),6000,0,false,false));
-            if(living instanceof Mob mob&&!mob.getPersistentData().getBoolean("spore:selfTarrget")&&
-                    SRPJudge.isSRPEntity(mob)&&
-                    Math.random()<0.05f){
-                mob.getPersistentData().putBoolean("spore:selfTarrget",true);
-                mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));
-            }
         }
     }
 
