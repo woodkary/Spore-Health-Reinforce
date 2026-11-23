@@ -13,10 +13,16 @@ import java.util.EnumSet;
 import java.util.List;
 
 public final class TargetSameModGoal extends Goal {
+    private static final int SELF_RESCAN_CHECKS = 20;
+    private static final int MAX_TARGET_WRITES = 3;
+    private static final int RETRY_DELAY_TICKS = 20;
+
     private final Mob mob;
-    private LivingEntity mobTarget;
-    private int resetSelfTargetTicks;
     private final TargetingConditions targetSameModEntityPredicate;
+    private LivingEntity mobTarget;
+    private int selfTargetChecks;
+    private int unconfirmedTargetWrites;
+    private long nextStartTime;
 
     public TargetSameModGoal(Mob mob) {
         this.mob = mob;
@@ -24,14 +30,21 @@ public final class TargetSameModGoal extends Goal {
         this.targetSameModEntityPredicate = TargetingConditions.forNonCombat()
                 .ignoreInvisibilityTesting()
                 .ignoreLineOfSight()
-                .selector(entity -> EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace));
+                .selector(entity -> EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace)
+                        && EntityHeealuthManager.INSTANCE.rawIsAlliive(entity));
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
-        this.resetSelfTargetTicks = 0;
     }
+
     @Override
     public boolean canUse() {
+        return this.mob.level().getGameTime() >= this.nextStartTime
+                && EntityHeealuthManager.INSTANCE.rawIsAlliive(this.mob);
+    }
+
+    @Override
+    public void start() {
         findTarget();
-        return true;
+        maintainSelectedTarget();
     }
 
     private void findTarget() {
@@ -40,42 +53,64 @@ public final class TargetSameModGoal extends Goal {
         List<LivingEntity> candidates = this.mob.level().getEntitiesOfClass(
                 LivingEntity.class, getTargetSearchArea(radius),
                 entity -> this.mob.distanceToSqr(entity) <= radiusSquared);
-        this.mobTarget = this.mob.level().getNearestEntity(candidates, this.targetSameModEntityPredicate,
+        LivingEntity nearest = this.mob.level().getNearestEntity(candidates, this.targetSameModEntityPredicate,
                 this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
-        if (this.mobTarget == null) {
-            this.mobTarget = this.mob;
+        LivingEntity selected = nearest == null ? this.mob : nearest;
+        if (selected != this.mobTarget) {
+            this.unconfirmedTargetWrites = 0;
         }
+        this.mobTarget = selected;
+        this.selfTargetChecks = 0;
     }
 
     private AABB getTargetSearchArea(double radius) {
         return this.mob.getBoundingBox().inflate(radius);
     }
+
     private double getFollowDistance() {
         return this.mob.getAttributeValue(Attributes.FOLLOW_RANGE);
     }
-    @Override
-    public void start() {
-        this.mob.setTarget(this.mobTarget);
-    }
+
     @Override
     public boolean canContinueToUse() {
-        LivingEntity tar = this.mob.getTarget();
-        if(tar==this.mob){
-            return ++this.resetSelfTargetTicks<20;
-        }
-        if(tar==null) {
+        if (!EntityHeealuthManager.INSTANCE.rawIsAlliive(this.mob)) {
             return false;
         }
-        this.resetSelfTargetTicks=0;
-        double followDistance = getFollowDistance();
-        return tar==mobTarget&&
-                EntityHeealuthManager.INSTANCE.rawIsAlliive(tar)&&
-                tar.level()==this.mob.level()&&
-                this.mob.distanceToSqr(tar) <= followDistance * followDistance;
+        if (needsNewTarget()) {
+            findTarget();
+        }
+        return maintainSelectedTarget();
+    }
+
+    private boolean needsNewTarget() {
+        if (this.mobTarget == this.mob) {
+            return ++this.selfTargetChecks >= SELF_RESCAN_CHECKS;
+        }
+        double radius = getFollowDistance();
+        return this.mobTarget == null || this.mobTarget.level() != this.mob.level()
+                || this.mob.distanceToSqr(this.mobTarget) > radius * radius
+                || !this.targetSameModEntityPredicate.test(this.mob, this.mobTarget);
+    }
+
+    private boolean maintainSelectedTarget() {
+        // A write is stable only if the selected target is still present at the next check.
+        if (this.mob.getTarget() == this.mobTarget) {
+            this.unconfirmedTargetWrites = 0;
+            return true;
+        }
+        if (this.unconfirmedTargetWrites < MAX_TARGET_WRITES) {
+            this.unconfirmedTargetWrites++;
+            this.mob.setTarget(this.mobTarget);
+            if (this.mob.getTarget() == this.mobTarget || this.unconfirmedTargetWrites < MAX_TARGET_WRITES) {
+                return true;
+            }
+        }
+        this.nextStartTime = this.mob.level().getGameTime() + RETRY_DELAY_TICKS;
+        return false;
     }
 
     @Override
     public void stop() {
-        this.resetSelfTargetTicks=0;
+        this.mobTarget = null;
     }
 }
