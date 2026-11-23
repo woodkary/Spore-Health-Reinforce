@@ -247,7 +247,8 @@ public class HandlerEvents {
             if (event.getEntity() instanceof Proto proto && event.getLevel() instanceof ServerLevel){
                 SporeSavedData.addProto(proto);
             }
-            if(event.getEntity() instanceof Mob mob&&
+            if(event.getLevel() instanceof ServerLevel&&
+                    event.getEntity() instanceof Mob mob&&
                     mob.getPersistentData().getBoolean("spore:selfTarrget")&&
                     findGoal(mob, TargetSameModGoal.class)==null){
                 mob.targetSelector.addGoal(0, new TargetSameModGoal(mob));
