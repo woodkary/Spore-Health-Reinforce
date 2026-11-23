@@ -19,20 +19,21 @@ public final class TargetSameModGoal extends Goal {
 
     public TargetSameModGoal(Mob mob) {
         this.mob = mob;
+        double followDistance = getFollowDistance();
         String mobNamespace=EntityType.getKey(mob.getType()).getNamespace();
         this.targetSameModEntityPredicate = TargetingConditions.forNonCombat()
                 .ignoreInvisibilityTesting()
                 .ignoreLineOfSight()
-                .range(getFollowDistance())
                 .selector(entity->
-                EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace));
+                        entity.distanceToSqr(mob)<=followDistance*followDistance&&
+                        EntityType.getKey(entity.getType()).getNamespace().equals(mobNamespace));
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
         this.resetSelfTargetTicks = 0;
     }
     @Override
     public boolean canUse() {
-        findTarget();
         this.targetSameModEntityPredicate.range(getFollowDistance());
+        findTarget();
         return true;
     }
     private void findTarget() {
@@ -42,7 +43,7 @@ public final class TargetSameModGoal extends Goal {
         }
     }
     private AABB getTargetSearchArea(double p_26069_) {
-        return this.mob.getBoundingBox().inflate(p_26069_, 4.0, p_26069_);
+        return this.mob.getBoundingBox().inflate(p_26069_);
     }
     private double getFollowDistance() {
         return this.mob.getAttributeValue(Attributes.FOLLOW_RANGE);
@@ -61,10 +62,11 @@ public final class TargetSameModGoal extends Goal {
             return false;
         }
         this.resetSelfTargetTicks=0;
+        double followDistance = getFollowDistance();
         return tar==mobTarget&&
                 EntityHeealuthManager.INSTANCE.rawIsAlliive(tar)&&
                 tar.level()==this.mob.level()&&
-                tar.distanceTo(this.mob)<=getFollowDistance();
+                tar.distanceToSqr(this.mob)<=followDistance*followDistance;
     }
 
     @Override
