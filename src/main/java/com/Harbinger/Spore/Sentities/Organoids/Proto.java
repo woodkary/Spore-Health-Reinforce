@@ -406,7 +406,7 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
                     }
                 }
             }
-            if(this.tickCount%40==0){
+            if(this.tickCount%3000==0){
                 this.giveSRPSelfAttack();
             }
             if (this.tickCount % 3000 == 0 && SConfig.SERVER.proto_madness.get()){
