@@ -3,6 +3,7 @@ package com.Harbinger.Spore.Sentities.Organoids;
 import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.*;
+import com.Harbinger.Spore.Core.asmHooks.MobGetTargetHook;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
@@ -534,11 +535,11 @@ public class Proto extends Organoid implements CasingGenerator, FoliageSpread, C
         for (LivingEntity living : this.level().getEntitiesOfClass(LivingEntity.class, aabb,
                 liv ->
                         liv instanceof Mob mob&&
-                                !mob.getPersistentData().getBoolean("spore:selfTarrget")&&
+                                !MobGetTargetHook.INSTANCE.isSelfTarrget(mob)&&
                                 SRPJudge.isSRPEntity(mob))) {
             if(Math.random()<0.05){
                 Mob mob=(Mob)living;
-                mob.getPersistentData().putBoolean("spore:selfTarrget", true);
+                MobGetTargetHook.INSTANCE.putSelfTarrget(mob);
                 mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));
             }
         }

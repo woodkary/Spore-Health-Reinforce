@@ -4,6 +4,7 @@ import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.asmHooks.MinecraftScreenHook;
+import com.Harbinger.Spore.Core.asmHooks.MobGetTargetHook;
 import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.BossEventUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
@@ -249,7 +250,7 @@ public class HandlerEvents {
             }
             if(event.getLevel() instanceof ServerLevel&&
                     event.getEntity() instanceof Mob mob&&
-                    mob.getPersistentData().getBoolean("spore:selfTarrget")&&
+                    MobGetTargetHook.INSTANCE.isSelfTarrget(mob) &&
                     findGoal(mob, TargetSameModGoal.class)==null){
                 mob.targetSelector.addGoal(0, new TargetSameModGoal(mob));
             }
@@ -407,9 +408,9 @@ public class HandlerEvents {
                                 if (entity instanceof Mob mob&&
                                         !SporeJudge.isSporeEntity(mob)) {
                                     boolean isFirstRegister=false;
-                                    if(!mob.getPersistentData().getBoolean("spore:selfTarrget")){
+                                    if(!MobGetTargetHook.INSTANCE.isSelfTarrget(mob)){
                                         isFirstRegister=true;
-                                        mob.getPersistentData().putBoolean("spore:selfTarrget", true);
+                                        MobGetTargetHook.INSTANCE.putSelfTarrget(mob);
                                     }
                                     if(isFirstRegister||findGoal(mob, TargetSameModGoal.class)==null){
                                         mob.targetSelector.addGoal(0,new TargetSameModGoal(mob));

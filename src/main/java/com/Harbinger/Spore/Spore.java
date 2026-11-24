@@ -3,6 +3,7 @@ package com.Harbinger.Spore;
 import com.Harbinger.Spore.Core.*;
 import com.Harbinger.Spore.Core.agents.transformers.SporeLivingEntityHealthTransformerBootstrap;
 import com.Harbinger.Spore.Core.asmHooks.CustomDeathTimeManager;
+import com.Harbinger.Spore.Core.asmHooks.MobGetTargetHook;
 import com.Harbinger.Spore.Core.utils.BytecodeUtil;
 import com.Harbinger.Spore.Core.utils.LogUtil;
 import com.Harbinger.Spore.Core.utils.effects.SporeEffectsUtil;
@@ -101,6 +102,7 @@ public class Spore {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST,HandlerEvents::onSRPEntityAttack);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onPlayerDeath);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,HandlerEvents::onScreenOpening);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST,MobGetTargetHook.INSTANCE);
     }
     public void commonSetup(FMLCommonSetupEvent event) {
         SporePacketHandler.registerPackets();
