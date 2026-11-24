@@ -81,7 +81,7 @@ import java.util.function.Predicate;
 
 import static com.Harbinger.Spore.ExtremelySusThings.Utilities.biomass;
 
-public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleEntity, IEventTickable {
+public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleEntity, IEventTickable,CustomTargetEntity {
     public static final EntityDataAccessor<Integer> HUNGER = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> KILLS = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> EVOLUTION_POINTS = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
@@ -108,6 +108,11 @@ public class Infected extends Monster implements ColdWeakness, ICustomLifeCycleE
     @Override
     @Nullable
     public LivingEntity getTarget() {
+        return this.sporeTarget;
+    }
+    @Override
+    @Nullable
+    public LivingEntity getCustomTarget() {
         return this.sporeTarget;
     }
     @Override

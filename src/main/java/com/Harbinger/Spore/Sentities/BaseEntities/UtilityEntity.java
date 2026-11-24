@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEntity, IEventTickable {
+public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEntity, IEventTickable,CustomTargetEntity {
     @Nullable
     private LivingEntity sporeTarget;
 
@@ -55,6 +55,11 @@ public class UtilityEntity extends PathfinderMob implements ICustomLifeCycleEnti
     @Override
     @Nullable
     public LivingEntity getTarget() {
+        return this.sporeTarget;
+    }
+    @Override
+    @Nullable
+    public LivingEntity getCustomTarget() {
         return this.sporeTarget;
     }
 

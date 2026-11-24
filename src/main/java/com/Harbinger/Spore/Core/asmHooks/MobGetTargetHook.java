@@ -7,6 +7,7 @@ import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeIterator;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
 import com.Harbinger.Spore.Sentities.AI.TargetSameModGoal;
+import com.Harbinger.Spore.Sentities.BaseEntities.CustomTargetEntity;
 import com.Harbinger.Spore.sEvents.HandlerEvents;
 import com.google.common.collect.MapMaker;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,6 +23,9 @@ public final class MobGetTargetHook implements IGetTargetHook {
     private int tickCount = 100;
     @Override
     public LivingEntity getTargetCallSiteHook(Mob mob, LivingEntity original){
+        if(mob instanceof CustomTargetEntity cte){
+            return cte.getCustomTarget();
+        }
         if(SporeJudge.isSporeEntity(mob)||!isSelfTarrget(mob)){
             return original;
         }
