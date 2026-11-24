@@ -48,6 +48,7 @@ public final class MobGetTargetHook implements IGetTargetHook {
     public void serverTick(TickEvent.ServerTickEvent event) {
         tickCount--;
         if (tickCount <= 0) {
+            tickCount=100;
             ISporeIterator<Map.Entry<Mob,Object>> iterator= (ISporeIterator<Map.Entry<Mob, Object>>) selfTargetMobs.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<Mob, Object> entry = iterator.next();
