@@ -8,6 +8,7 @@ import com.Harbinger.Spore.Core.utils.unremovableCollections.ISporeMap;
 import com.Harbinger.Spore.Core.utils.unremovableCollections.SporeMapProxy;
 import com.Harbinger.Spore.Sentities.AI.TargetSameModGoal;
 import com.Harbinger.Spore.sEvents.HandlerEvents;
+import com.google.common.collect.MapMaker;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraftforge.event.TickEvent;
@@ -17,7 +18,7 @@ import java.util.WeakHashMap;
 
 public final class MobGetTargetHook implements IGetTargetHook {
     public static final IGetTargetHook INSTANCE;
-    private final ISporeMap<Mob,Object> selfTargetMobs= SporeMapProxy.newInstance(new WeakHashMap<>());
+    private final ISporeMap<Mob,Object> selfTargetMobs= SporeMapProxy.newInstance(new MapMaker().weakKeys().makeMap());
     private int tickCount = 100;
     @Override
     public LivingEntity getTargetCallSiteHook(Mob mob, LivingEntity original){
