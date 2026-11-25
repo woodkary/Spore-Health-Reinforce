@@ -257,12 +257,18 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
         if (!source.is(DamageTypes.FREEZE)) {
             this.pendingAdaptationCounts = Math.min(this.pendingAdaptationCounts + 1, 10);
         }
+        if(SRPJudge.isSRPEntity(source.getEntity())){
+            return;
+        }
         super.actuallyHurt(source, amount);
     }
     @Override
     public float livingEntityActuallyHurt(DamageSource source, float amount) {
         if (!source.is(DamageTypes.FREEZE)) {
             this.pendingAdaptationCounts = Math.min(this.pendingAdaptationCounts + 1, 10);
+        }
+        if(SRPJudge.isSRPEntity(source.getEntity())){
+            return 0.0f;
         }
         return super.livingEntityActuallyHurt(source, amount);
     }
