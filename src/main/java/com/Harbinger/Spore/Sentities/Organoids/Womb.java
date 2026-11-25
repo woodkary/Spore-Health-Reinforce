@@ -1,5 +1,6 @@
 package com.Harbinger.Spore.Sentities.Organoids;
 
+import com.Harbinger.Spore.Compat.srps.SRPJudge;
 import com.Harbinger.Spore.Core.asmHooks.EntityHeealuthManager;
 import com.Harbinger.Spore.Core.SConfig;
 import com.Harbinger.Spore.Core.Sparticles;
@@ -127,7 +128,10 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
             --eatingTicks;
         }
     }
-
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        return !SRPJudge.isSRPEntity(source.getEntity())&&super.hurt(source, amount);
+    }
     public void setBiomass(int biomass){
         entityData.set(BIOMASS,biomass);
     }
