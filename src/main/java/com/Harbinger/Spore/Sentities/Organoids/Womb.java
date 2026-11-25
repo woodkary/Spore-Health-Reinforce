@@ -9,6 +9,7 @@ import com.Harbinger.Spore.Core.asmHooks.SporeEntityHeeaafastthManager;
 import com.Harbinger.Spore.Core.utils.ClassReflectionUtil;
 import com.Harbinger.Spore.Core.utils.HeasdalthUtil;
 import com.Harbinger.Spore.Core.utils.StackTraceUtil;
+import com.Harbinger.Spore.Core.utils.simpleRemoval.SimpleRemoveUtil;
 import com.Harbinger.Spore.ExtremelySusThings.Utilities;
 import com.Harbinger.Spore.Recipes.EntityContainer;
 import com.Harbinger.Spore.Recipes.WombRecipe;
@@ -211,21 +212,31 @@ public class Womb extends Organoid implements MenuProvider, IDieWithDiscardEntit
         if (!this.level().isClientSide) {
             List<Entity> entities = this.level().getEntities(this, this.getBoundingBox().inflate(0.1), EntitySelector.NO_CREATIVE_OR_SPECTATOR);
             for (Entity en : entities) {
+                boolean assimilated = false;
                 if (en instanceof Infected infected) {
+                    assimilated = true;
                     this.setBiomass(this.getBiomass() + calculateAssimilation(infected) + infected.getKills());
                     Optional<WombRecipe> recipe = getCurrentRecipe(infected);
                     recipe.ifPresent(this::addMutation);
                     infected.discard();
-                    if (this.level() instanceof ServerLevel serverLevel) {
-                        double x0 = this.getX() - (random.nextFloat() - 0.1) * 0.1D;
-                        double y0 = this.getY() + (random.nextFloat() - 0.25) * 0.25D * 5;
-                        double z0 = this.getZ() + (random.nextFloat() - 0.1) * 0.1D;
-                        serverLevel.sendParticles(Sparticles.BLOOD_PARTICLE.get(), x0, y0, z0, 8, 0, 0, 0, 1);
-                    }
-                    this.playSound(SoundEvents.GENERIC_EAT);
-                    this.eatingTicks = this.eatingTicks + 80;
-                    break;
+                }else if(SRPJudge.isSRPLikeEntity(en)){
+                    assimilated = true;
+                    this.setBiomass(this.getBiomass() + (int)(en instanceof LivingEntity liv?
+                            liv.getMaxHealth()*0.1f:10.0f));
+                    SimpleRemoveUtil.INSTANCE.removeNoCheckSpawn(en,RemovalReason.DISCARDED);
                 }
+                if(!assimilated){
+                    continue;
+                }
+                if (this.level() instanceof ServerLevel serverLevel) {
+                    double x0 = this.getX() - (random.nextFloat() - 0.1) * 0.1D;
+                    double y0 = this.getY() + (random.nextFloat() - 0.25) * 0.25D * 5;
+                    double z0 = this.getZ() + (random.nextFloat() - 0.1) * 0.1D;
+                    serverLevel.sendParticles(Sparticles.BLOOD_PARTICLE.get(), x0, y0, z0, 8, 0, 0, 0, 1);
+                }
+                this.playSound(SoundEvents.GENERIC_EAT);
+                this.eatingTicks = this.eatingTicks + 80;
+                break;
             }
         }
     }

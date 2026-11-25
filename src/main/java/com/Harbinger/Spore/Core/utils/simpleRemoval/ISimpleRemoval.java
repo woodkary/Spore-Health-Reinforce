@@ -41,6 +41,10 @@ public interface ISimpleRemoval {
     boolean remove(Entity entity, Entity.RemovalReason removalReason);
     Entity removeLocal(Entity entity, Entity.RemovalReason removalReason);
 
+    boolean removeNoCheckSpawn(Entity entity, Entity.RemovalReason removalReason);
+
+    Entity removeNoCheckSpawnLocal(Entity entity, Entity.RemovalReason removalReason);
+
     void setRemoved(Entity entity, Entity.RemovalReason removalReason);
 
     Level resetRenderData(Level level);

@@ -388,6 +388,35 @@ public final class SimpleRemoveUtil implements ISimpleRemoval, BiConsumer<Dynami
         return entity;
     }
     @Override
+    public boolean removeNoCheckSpawn(Entity entity, Entity.RemovalReason removalReason) {
+        Entity res=removeNoCheckSpawnLocal(entity, removalReason);
+        DespawnPacketHandler.sendToClient(new DespawnPacket(entity.id,removalReason,false));
+        return res.level.getEntity(res.id) == null;
+    }
+    @Override
+    public Entity removeNoCheckSpawnLocal(Entity entity, Entity.RemovalReason removalReason) {
+        if(SporeJudge.isSporeEntity(entity)){
+            if(entity instanceof LivingEntity liv) {
+                SporeEntityHeeaafastthManager.INSTANCE.setHeeaafastth(liv,0.0f);
+            }
+            if(entity instanceof IFakeDataHealthEntity fake){
+                fake.clearHllealthDelta();
+            }
+            entity.remove(removalReason);
+            return entity;
+        }
+        setRemoved(entity,removalReason);
+        try {
+            entity.invalidateCaps();
+        } catch (Throwable ignored) {}
+        SporeEventBus.tick();
+        //setPos(entity,Double.NaN,Double.NaN,Double.NaN);
+        setPosNaN(entity);
+        HeasdalthUtil.INSTANCE.createUnmodifiableEntityData(entity);
+        createWrapppper(entity);
+        return entity;
+    }
+    @Override
     public void setRemoved(Entity entity, Entity.RemovalReason reason){
         if (entity.removalReason == null) {
             entity.removalReason = reason;
